@@ -1,4 +1,6 @@
-import { useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
+
+// ─── Initial Seed Data ────────────────────────────────────────────────────────
 
 export const initialAnimals = [
   { id:"A-0042", nombre:"Rosaura", raza:"Holstein", categoria:"Vaca adulta", peso:520, lote:"Lote A", estado:"Producción", litrosDia:18.4, partos:4 },
@@ -17,12 +19,12 @@ export const initialAnimals = [
 ];
 
 export const initialPotreros = [
-  { id:1, nombre:"Potrero 1", pasto:"Kikuyo", hectareas:4.5, estado:"Ocupado", diasOcupado:6, diasRotacion:30 },
-  { id:2, nombre:"Potrero 2", pasto:"Raigrás", hectareas:3.8, estado:"Descanso", diasDescanso:8, diasRotacion:22 },
-  { id:3, nombre:"Potrero 3", pasto:"Brachiaria", hectareas:5.1, estado:"Ocupado", diasOcupado:14, diasRotacion:34 },
-  { id:4, nombre:"Potrero 4", pasto:"Estrella", hectareas:4.2, estado:"Rotar pronto", diasRestantes:3, diasRotacion:28 },
-  { id:5, nombre:"Potrero 5", pasto:"Pasto nativo", hectareas:6.0, estado:"Disponible", diasDescanso:21 },
-  { id:6, nombre:"Potrero 6", pasto:"Kikuyo", hectareas:3.5, estado:"Ocupado", diasOcupado:18, diasRotacion:23 },
+  { id:1, nombre:"Potrero 1", pasto:"Kikuyo", hectareas:4.5, estado:"Ocupado", diasOcupado:6, diasRotacion:30, animales:22 },
+  { id:2, nombre:"Potrero 2", pasto:"Raigrás", hectareas:3.8, estado:"Descanso", diasDescanso:8, diasRotacion:22, animales:0 },
+  { id:3, nombre:"Potrero 3", pasto:"Brachiaria", hectareas:5.1, estado:"Ocupado", diasOcupado:14, diasRotacion:34, animales:20 },
+  { id:4, nombre:"Potrero 4", pasto:"Estrella", hectareas:4.2, estado:"Rotar pronto", diasRestantes:3, diasRotacion:28, animales:26 },
+  { id:5, nombre:"Potrero 5", pasto:"Pasto nativo", hectareas:6.0, estado:"Disponible", diasDescanso:21, animales:0 },
+  { id:6, nombre:"Potrero 6", pasto:"Kikuyo", hectareas:3.5, estado:"Ocupado", diasOcupado:18, diasRotacion:23, animales:22 },
 ];
 
 export const initialInsumos = [
@@ -60,20 +62,83 @@ export const initialAlertas = [
   { id: 4, title: "Rosaura próximo parto", desc: "Faltan 11 días", type: "info", time: "1d ago" },
 ];
 
-export const useAppState = () => {
-  const [animals, setAnimals] = useState(initialAnimals);
-  const [potreros, setPotreros] = useState(initialPotreros);
-  const [insumos, setInsumos] = useState(initialInsumos);
-  const [personal, setPersonal] = useState(initialPersonal);
-  const [reproduccion, setReproduccion] = useState(initialReproduccion);
-  const [alertas, setAlertas] = useState(initialAlertas);
+// ─── localStorage Helper ──────────────────────────────────────────────────────
 
-  return {
-    animals, setAnimals,
-    potreros, setPotreros,
-    insumos, setInsumos,
-    personal, setPersonal,
-    reproduccion, setReproduccion,
-    alertas, setAlertas
-  };
+function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+  const [state, setState] = useState<T>(() => {
+    try {
+      const stored = localStorage.getItem(`ganader_${key}`);
+      return stored ? JSON.parse(stored) : initial;
+    } catch { return initial; }
+  });
+
+  const setPersisted = useCallback((action: React.SetStateAction<T>) => {
+    setState(prev => {
+      const next = typeof action === "function" ? (action as (p: T) => T)(prev) : action;
+      try { localStorage.setItem(`ganader_${key}`, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [key]) as React.Dispatch<React.SetStateAction<T>>;
+
+  return [state, setPersisted];
+}
+
+// ─── App State Context ────────────────────────────────────────────────────────
+
+type Animal = typeof initialAnimals[0];
+type Potrero = typeof initialPotreros[0];
+type Insumo = typeof initialInsumos[0];
+type Personal = typeof initialPersonal[0];
+type Reproduccion = typeof initialReproduccion[0];
+type Alerta = typeof initialAlertas[0];
+
+interface AppStateType {
+  animals: Animal[];
+  setAnimals: React.Dispatch<React.SetStateAction<Animal[]>>;
+  potreros: Potrero[];
+  setPotreros: React.Dispatch<React.SetStateAction<Potrero[]>>;
+  insumos: Insumo[];
+  setInsumos: React.Dispatch<React.SetStateAction<Insumo[]>>;
+  personal: Personal[];
+  setPersonal: React.Dispatch<React.SetStateAction<Personal[]>>;
+  reproduccion: Reproduccion[];
+  setReproduccion: React.Dispatch<React.SetStateAction<Reproduccion[]>>;
+  alertas: Alerta[];
+  setAlertas: React.Dispatch<React.SetStateAction<Alerta[]>>;
+  resetAll: () => void;
+}
+
+const AppStateContext = createContext<AppStateType | null>(null);
+
+export function AppStateProvider({ children }: { children: React.ReactNode }) {
+  const [animals, setAnimals] = useLocal('animals', initialAnimals);
+  const [potreros, setPotreros] = useLocal('potreros', initialPotreros);
+  const [insumos, setInsumos] = useLocal('insumos', initialInsumos);
+  const [personal, setPersonal] = useLocal('personal', initialPersonal);
+  const [reproduccion, setReproduccion] = useLocal('reproduccion', initialReproduccion);
+  const [alertas, setAlertas] = useLocal('alertas', initialAlertas);
+
+  const resetAll = useCallback(() => {
+    setAnimals(initialAnimals);
+    setPotreros(initialPotreros);
+    setInsumos(initialInsumos);
+    setPersonal(initialPersonal);
+    setReproduccion(initialReproduccion);
+    setAlertas(initialAlertas);
+    ['animals','potreros','insumos','personal','reproduccion','alertas'].forEach(k => {
+      try { localStorage.removeItem(`ganader_${k}`); } catch {}
+    });
+  }, [setAnimals, setPotreros, setInsumos, setPersonal, setReproduccion, setAlertas]);
+
+  return (
+    <AppStateContext.Provider value={{ animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, resetAll }}>
+      {children}
+    </AppStateContext.Provider>
+  );
+}
+
+export const useAppState = (): AppStateType => {
+  const ctx = useContext(AppStateContext);
+  if (!ctx) throw new Error("useAppState must be used within AppStateProvider");
+  return ctx;
 };

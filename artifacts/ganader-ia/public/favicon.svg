@@ -1,3 +1,36 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+  <rect width="180" height="180" rx="36" fill="#1a4a2e"/>
+  <!-- Cow head body -->
+  <ellipse cx="90" cy="100" rx="42" ry="36" fill="#2d8a4e"/>
+  <!-- Cow snout -->
+  <ellipse cx="90" cy="118" rx="22" ry="13" fill="#1a5c2e"/>
+  <!-- Nostrils -->
+  <circle cx="83" cy="118" r="4" fill="#123118"/>
+  <circle cx="97" cy="118" r="4" fill="#123118"/>
+  <!-- Eyes -->
+  <circle cx="76" cy="95" r="7" fill="white"/>
+  <circle cx="104" cy="95" r="7" fill="white"/>
+  <circle cx="77" cy="95" r="3.5" fill="#123118"/>
+  <circle cx="105" cy="95" r="3.5" fill="#123118"/>
+  <!-- Eye shine -->
+  <circle cx="78" cy="93" r="1.2" fill="white"/>
+  <circle cx="106" cy="93" r="1.2" fill="white"/>
+  <!-- Left horn -->
+  <path d="M55 80 Q42 55 50 45 Q58 55 65 75" fill="#4ade80" stroke="#2d8a4e" stroke-width="1"/>
+  <!-- Right horn -->
+  <path d="M125 80 Q138 55 130 45 Q122 55 115 75" fill="#4ade80" stroke="#2d8a4e" stroke-width="1"/>
+  <!-- Left ear -->
+  <ellipse cx="52" cy="85" rx="11" ry="7" fill="#2d8a4e" transform="rotate(-20 52 85)"/>
+  <!-- Right ear -->
+  <ellipse cx="128" cy="85" rx="11" ry="7" fill="#2d8a4e" transform="rotate(20 128 85)"/>
+  <!-- AI circuit dots — top left -->
+  <circle cx="36" cy="36" r="3" fill="#4ade80"/>
+  <circle cx="48" cy="28" r="2" fill="#4ade80" opacity="0.7"/>
+  <line x1="36" y1="36" x2="48" y2="28" stroke="#4ade80" stroke-width="1.2" opacity="0.6"/>
+  <!-- AI circuit dots — top right -->
+  <circle cx="144" cy="36" r="3" fill="#4ade80"/>
+  <circle cx="132" cy="28" r="2" fill="#4ade80" opacity="0.7"/>
+  <line x1="144" y1="36" x2="132" y2="28" stroke="#4ade80" stroke-width="1.2" opacity="0.6"/>
+  <!-- IA text bottom -->
+  <text x="90" y="155" font-family="Arial" font-weight="700" font-size="18" fill="#4ade80" text-anchor="middle" letter-spacing="3">IA</text>
 </svg>

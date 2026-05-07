@@ -1,31 +1,32 @@
 kind = "web"
-previewPath = "/"
-title = "GanaderIA — Ganadería Inteligente"
-version = "1.0.0"
-id = "artifacts/ganader-ia"
-router = "path"
+  previewPath = "/"
+  title = "GanaderIA — Ganadería Inteligente"
+  version = "1.0.0"
+  id = "artifacts/ganader-ia"
+  router = "path"
 
-[[integratedSkills]]
-name = "react-vite"
-version = "1.0.0"
+  [[integratedSkills]]
+  name = "react-vite"
+  version = "1.0.0"
 
-[[services]]
-name = "web"
-paths = [ "/" ]
-localPort = 19538
+  [[services]]
+  name = "web"
+  paths = [ "/" ]
+  localPort = 19538
 
-[services.development]
-run = "pnpm --filter @workspace/ganader-ia run dev"
+  [services.development]
+  run = "pnpm --filter @workspace/ganader-ia run dev"
 
-[services.production]
-build = [ "pnpm", "--filter", "@workspace/ganader-ia", "run", "build" ]
-publicDir = "artifacts/ganader-ia/dist/public"
-serve = "static"
+  [services.production]
+  build = [ "pnpm", "--filter", "@workspace/ganader-ia", "run", "build" ]
+  publicDir = "artifacts/ganader-ia/dist/public"
+  serve = "static"
 
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+  [[services.production.rewrites]]
+  from = "/*"
+  to = "/index.html"
 
-[services.env]
-PORT = "19538"
-BASE_PATH = "/"
+  [services.env]
+  PORT = "19538"
+  BASE_PATH = "/"
+  

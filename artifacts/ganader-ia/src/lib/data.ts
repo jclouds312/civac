@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 // ─── Initial Seed Data ────────────────────────────────────────────────────────
 
@@ -62,6 +62,26 @@ export const initialAlertas = [
   { id: 4, title: "Rosaura próximo parto", desc: "Faltan 11 días", type: "info", time: "1d ago" },
 ];
 
+// ─── API Sync Helpers ─────────────────────────────────────────────────────────
+
+async function apiGet<T>(path: string): Promise<T | null> {
+  try {
+    const res = await fetch(`/api${path}`);
+    if (!res.ok) return null;
+    return res.json() as Promise<T>;
+  } catch { return null; }
+}
+
+async function apiPost(path: string, body: unknown): Promise<void> {
+  try {
+    await fetch(`/api${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch { /* fire and forget */ }
+}
+
 // ─── localStorage Helper ──────────────────────────────────────────────────────
 
 function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
@@ -111,24 +131,85 @@ interface AppStateType {
 const AppStateContext = createContext<AppStateType | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
-  const [animals, setAnimals] = useLocal('animals', initialAnimals);
-  const [potreros, setPotreros] = useLocal('potreros', initialPotreros);
-  const [insumos, setInsumos] = useLocal('insumos', initialInsumos);
-  const [personal, setPersonal] = useLocal('personal', initialPersonal);
-  const [reproduccion, setReproduccion] = useLocal('reproduccion', initialReproduccion);
-  const [alertas, setAlertas] = useLocal('alertas', initialAlertas);
+  const [animals, _setAnimals] = useLocal('animals', initialAnimals);
+  const [potreros, _setPotreros] = useLocal('potreros', initialPotreros);
+  const [insumos, _setInsumos] = useLocal('insumos', initialInsumos);
+  const [personal, _setPersonal] = useLocal('personal', initialPersonal);
+  const [reproduccion, _setReproduccion] = useLocal('reproduccion', initialReproduccion);
+  const [alertas, _setAlertas] = useLocal('alertas', initialAlertas);
+
+  // ── Hydrate from API on mount ─────────────────────────────────────────────
+  useEffect(() => {
+    apiGet<Animal[]>("/animals").then(data => { if (data && data.length > 0) _setAnimals(data); }).catch(() => {});
+    apiGet<Potrero[]>("/potreros").then(data => { if (data && data.length > 0) _setPotreros(data); }).catch(() => {});
+    apiGet<Insumo[]>("/insumos").then(data => { if (data && data.length > 0) _setInsumos(data); }).catch(() => {});
+    apiGet<Personal[]>("/personal").then(data => { if (data && data.length > 0) _setPersonal(data); }).catch(() => {});
+    apiGet<Reproduccion[]>("/reproduccion").then(data => { if (data && data.length > 0) _setReproduccion(data); }).catch(() => {});
+    apiGet<Alerta[]>("/alertas").then(data => { if (data && data.length > 0) _setAlertas(data); }).catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── API-synced setters ────────────────────────────────────────────────────
+  const setAnimals = useCallback((action: React.SetStateAction<Animal[]>) => {
+    _setAnimals(prev => {
+      const next = typeof action === "function" ? (action as (p: Animal[]) => Animal[])(prev) : action;
+      apiPost("/animals/bulk", { animals: next });
+      return next;
+    });
+  }, [_setAnimals]);
+
+  const setPotreros = useCallback((action: React.SetStateAction<Potrero[]>) => {
+    _setPotreros(prev => {
+      const next = typeof action === "function" ? (action as (p: Potrero[]) => Potrero[])(prev) : action;
+      apiPost("/potreros/bulk", { potreros: next });
+      return next;
+    });
+  }, [_setPotreros]);
+
+  const setInsumos = useCallback((action: React.SetStateAction<Insumo[]>) => {
+    _setInsumos(prev => {
+      const next = typeof action === "function" ? (action as (p: Insumo[]) => Insumo[])(prev) : action;
+      apiPost("/insumos/bulk", { insumos: next });
+      return next;
+    });
+  }, [_setInsumos]);
+
+  const setPersonal = useCallback((action: React.SetStateAction<Personal[]>) => {
+    _setPersonal(prev => {
+      const next = typeof action === "function" ? (action as (p: Personal[]) => Personal[])(prev) : action;
+      apiPost("/personal/bulk", { personal: next });
+      return next;
+    });
+  }, [_setPersonal]);
+
+  const setReproduccion = useCallback((action: React.SetStateAction<Reproduccion[]>) => {
+    _setReproduccion(prev => {
+      const next = typeof action === "function" ? (action as (p: Reproduccion[]) => Reproduccion[])(prev) : action;
+      apiPost("/reproduccion/bulk", { reproduccion: next });
+      return next;
+    });
+  }, [_setReproduccion]);
+
+  const setAlertas = useCallback((action: React.SetStateAction<Alerta[]>) => {
+    _setAlertas(prev => {
+      const next = typeof action === "function" ? (action as (p: Alerta[]) => Alerta[])(prev) : action;
+      apiPost("/alertas/bulk", { alertas: next });
+      return next;
+    });
+  }, [_setAlertas]);
 
   const resetAll = useCallback(() => {
-    setAnimals(initialAnimals);
-    setPotreros(initialPotreros);
-    setInsumos(initialInsumos);
-    setPersonal(initialPersonal);
-    setReproduccion(initialReproduccion);
-    setAlertas(initialAlertas);
+    _setAnimals(initialAnimals);
+    _setPotreros(initialPotreros);
+    _setInsumos(initialInsumos);
+    _setPersonal(initialPersonal);
+    _setReproduccion(initialReproduccion);
+    _setAlertas(initialAlertas);
     ['animals','potreros','insumos','personal','reproduccion','alertas'].forEach(k => {
       try { localStorage.removeItem(`ganader_${k}`); } catch {}
     });
-  }, [setAnimals, setPotreros, setInsumos, setPersonal, setReproduccion, setAlertas]);
+    apiPost("/seed", {});
+  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas]);
 
   return React.createElement(
     AppStateContext.Provider,

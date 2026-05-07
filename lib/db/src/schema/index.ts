@@ -103,3 +103,22 @@ export const alertasTable = pgTable("alertas", {
 export const insertAlertaSchema = createInsertSchema(alertasTable).omit({ id: true, createdAt: true });
 export type InsertAlerta = z.infer<typeof insertAlertaSchema>;
 export type Alerta = typeof alertasTable.$inferSelect;
+
+// ── Pesaje ───────────────────────────────────────────────────────────────────
+export const pesajeTable = pgTable("pesaje", {
+  id:               serial("id").primaryKey(),
+  animalId:         text("animal_id").notNull(),
+  animalNombre:     text("animal_nombre").notNull(),
+  categoria:        text("categoria").notNull().default(""),
+  fecha:            text("fecha").notNull(),
+  peso:             real("peso").notNull().default(0),
+  bascula:          text("bascula").notNull().default(""),
+  operador:         text("operador").notNull().default(""),
+  observaciones:    text("observaciones").notNull().default(""),
+  condicionCorporal: integer("condicion_corporal").notNull().default(3),
+  variacion:        real("variacion"),
+  createdAt:        timestamp("created_at").defaultNow(),
+});
+export const insertPesajeSchema = createInsertSchema(pesajeTable).omit({ id: true, createdAt: true });
+export type InsertPesaje = z.infer<typeof insertPesajeSchema>;
+export type Pesaje = typeof pesajeTable.$inferSelect;

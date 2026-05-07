@@ -130,10 +130,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [setAnimals, setPotreros, setInsumos, setPersonal, setReproduccion, setAlertas]);
 
-  return (
-    <AppStateContext.Provider value={{ animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, resetAll }}>
-      {children}
-    </AppStateContext.Provider>
+  return React.createElement(
+    AppStateContext.Provider,
+    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, resetAll } },
+    children
   );
 }
 

@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Bell,
   List, Activity, ActivitySquare, Baby, Dna,
-  MapMap, Wheat, Package, TestTube,
+  Wheat, Package, TestTube,
   DollarSign, Users, LineChart, Leaf, Map,
   Settings, BookOpen, UserCircle, HelpCircle,
   Menu, X
@@ -80,7 +80,7 @@ export function Layout({ children }: LayoutProps) {
           </Section>
 
           <Section title="Campo">
-            <NavItem href="/potreros" icon={MapMap} label="Potreros" />
+            <NavItem href="/potreros" icon={Map} label="Potreros" />
             <NavItem href="/alimentacion" icon={Wheat} label="Alimentación" />
           </Section>
 

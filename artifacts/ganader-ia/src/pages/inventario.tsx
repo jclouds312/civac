@@ -6,9 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { useAppState } from "../lib/data";
 import { Search, Plus } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Inventario() {
-  const { animals } = useAppState();
+  const { animals, setAnimals } = useAppState();
   const [search, setSearch] = useState("");
 
   const filtered = animals.filter(a => 
@@ -28,6 +31,24 @@ export default function Inventario() {
     }
   };
 
+  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newAnimal = {
+      id: formData.get('arete') as string,
+      nombre: formData.get('nombre') as string,
+      raza: formData.get('raza') as string,
+      categoria: formData.get('categoria') as string,
+      peso: Number(formData.get('peso')),
+      lote: formData.get('lote') as string,
+      estado: formData.get('estado') as string,
+      litrosDia: Number(formData.get('litrosDia') || 0),
+      partos: Number(formData.get('partos') || 0),
+    };
+    setAnimals([newAnimal, ...animals]);
+    (e.target as HTMLFormElement).reset();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -35,10 +56,86 @@ export default function Inventario() {
           <h1 className="text-2xl font-bold">Inventario Animal</h1>
           <p className="text-muted-foreground">Gestión y control de rebaño</p>
         </div>
-        <Button className="gap-2">
-          <Plus size={16} />
-          Agregar Animal
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus size={16} />
+              Agregar Animal
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <form onSubmit={handleAdd}>
+              <DialogHeader>
+                <DialogTitle>Agregar Nuevo Animal</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="arete" className="text-right">Arete</Label>
+                  <Input id="arete" name="arete" className="col-span-3" required placeholder="Ej. A-1234" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="nombre" className="text-right">Nombre</Label>
+                  <Input id="nombre" name="nombre" className="col-span-3" required />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="raza" className="text-right">Raza</Label>
+                  <Input id="raza" name="raza" className="col-span-3" required defaultValue="Holstein" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="categoria" className="text-right">Categoría</Label>
+                  <div className="col-span-3">
+                    <Select name="categoria" defaultValue="Vaca adulta">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Vaca adulta">Vaca adulta</SelectItem>
+                        <SelectItem value="Novilla">Novilla</SelectItem>
+                        <SelectItem value="Ternero">Ternero</SelectItem>
+                        <SelectItem value="Toro">Toro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="peso" className="text-right">Peso (kg)</Label>
+                  <Input id="peso" name="peso" type="number" className="col-span-3" required />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="estado" className="text-right">Estado</Label>
+                  <div className="col-span-3">
+                    <Select name="estado" defaultValue="Producción">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Producción">Producción</SelectItem>
+                        <SelectItem value="Seca">Seca</SelectItem>
+                        <SelectItem value="Gestante">Gestante</SelectItem>
+                        <SelectItem value="Abierta">Abierta</SelectItem>
+                        <SelectItem value="Tratamiento">Tratamiento</SelectItem>
+                        <SelectItem value="Destete">Destete</SelectItem>
+                        <SelectItem value="Activo">Activo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="lote" className="text-right">Lote</Label>
+                  <Input id="lote" name="lote" className="col-span-3" defaultValue="Lote A" />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">Cancelar</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button type="submit">Guardar</Button>
+                </DialogClose>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

@@ -1,195 +1,187 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppState } from "../lib/data";
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Download, Pencil, AlertTriangle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 
 export default function Reproduccion() {
   const { reproduccion, setReproduccion } = useAppState();
+  const [open, setOpen] = useState(false);
 
   const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const newRep = {
-      arete: formData.get('arete') as string,
-      animal: formData.get('animal') as string,
-      servicio: formData.get('servicio') as string,
-      fechaParto: formData.get('fechaParto') as string,
-      dias: Number(formData.get('dias')),
-      partosPrev: Number(formData.get('partosPrev') || 0),
-      estado: formData.get('estado') as string,
-    };
-    setReproduccion([newRep, ...reproduccion]);
+    const fd = new FormData(e.currentTarget);
+    setReproduccion([{
+      arete: fd.get('arete') as string,
+      animal: fd.get('animal') as string,
+      servicio: fd.get('servicio') as string,
+      fechaParto: fd.get('fechaParto') as string,
+      dias: Number(fd.get('dias')),
+      partosPrev: Number(fd.get('partosPrev') || 0),
+      estado: fd.get('estado') as string,
+    }, ...reproduccion]);
+    setOpen(false);
   };
 
+  const getDiasColor = (dias: number) => dias < 20 ? 'text-green-400 bg-green-400/10' : dias < 35 ? 'text-orange-400 bg-orange-400/10' : 'text-muted-foreground bg-muted/30';
+
+  const kpisTop = [
+    { label:'TASA CONCEPCIÓN', val:'62%', sub:'Meta 70% ↓', dot:'bg-orange-400' },
+    { label:'PRÓX. PARTOS 30D', val:'3', sub:'gestantes', dot:'bg-green-400' },
+    { label:'ANESTROS >90D', val:'8', sub:'acción urgente', dot:'bg-red-500' },
+    { label:'GESTANTES', val:'1', sub:'8% del hato', dot:'bg-green-400' },
+    { label:'IEP PROMEDIO', val:'428d', sub:'Meta <390d', dot:'bg-red-500' },
+  ];
+
+  const kpisBot = [
+    { label:'TASA PREÑEZ', val:'52%', sub:'Meta 60%', dot:'bg-orange-400' },
+    { label:'VACAS ABIERTAS', val:'2', sub:'revisar protocolo', dot:'bg-orange-400' },
+    { label:'DÍAS ABIERTOS PROM.', val:'142d', sub:'Meta <90d', dot:'bg-red-500' },
+    { label:'DESTETES EXITOSOS', val:'94%', sub:'Meta 90% ✓', dot:'bg-green-400' },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-8">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Reproducción y Ciclos</h1>
-          <p className="text-muted-foreground">Control de montas, I.A. y partos</p>
+          <h1 className="text-2xl font-bold">🔁 Reproducción y Ciclos</h1>
+          <p className="text-muted-foreground text-sm">Control de montas, I.A. y partos · IEP · Protocolos</p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus size={16} />
-              Registrar Evento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleAdd}>
-              <DialogHeader>
-                <DialogTitle>Registrar Gestación</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="arete" className="text-right">Arete</Label>
-                  <Input id="arete" name="arete" className="col-span-3" required />
+        <div className="flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm"><Download size={14} /> CSV</Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="h-9 gap-1.5 text-sm"><Plus size={14} /> Registrar Evento</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <form onSubmit={handleAdd}>
+                <DialogHeader><DialogTitle>Registrar Gestación</DialogTitle></DialogHeader>
+                <div className="grid gap-3 py-4">
+                  {[['arete','Arete'],['animal','Animal'],['servicio','Servicio'],['fechaParto','Fecha Parto']].map(([n,l]) => (
+                    <div key={n} className="grid grid-cols-4 items-center gap-3">
+                      <Label className="text-right">{l}</Label>
+                      <Input name={n} className="col-span-3" required />
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-4 items-center gap-3">
+                    <Label className="text-right">Días</Label>
+                    <Input name="dias" type="number" className="col-span-3" required />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-3">
+                    <Label className="text-right">Partos Prev.</Label>
+                    <Input name="partosPrev" type="number" className="col-span-3" defaultValue="0" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-3">
+                    <Label className="text-right">Estado</Label>
+                    <div className="col-span-3"><Select name="estado" defaultValue="Gestante"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{['Gestante','Próximo parto','En seguimiento'].map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="animal" className="text-right">Animal</Label>
-                  <Input id="animal" name="animal" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="servicio" className="text-right">Servicio</Label>
-                  <Input id="servicio" name="servicio" className="col-span-3" placeholder="Ej. IA Altisimo" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="fechaParto" className="text-right">Fecha Prob. Parto</Label>
-                  <Input id="fechaParto" name="fechaParto" className="col-span-3" placeholder="DD/MM/YYYY" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="dias" className="text-right">Días Restantes</Label>
-                  <Input id="dias" name="dias" type="number" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="estado" className="text-right">Estado</Label>
-                  <Input id="estado" name="estado" className="col-span-3" defaultValue="Normal" required />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancelar</Button>
-                </DialogClose>
-                <DialogClose asChild>
+                <DialogFooter>
+                  <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
                   <Button type="submit">Guardar</Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground uppercase mb-1">Tasa Concepción</div>
-            <div className="text-3xl font-bold text-white">62%</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground uppercase mb-1">Próximos Partos</div>
-            <div className="text-3xl font-bold text-primary">{reproduccion.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground uppercase mb-1">Anestros {'>'} 90d</div>
-            <div className="text-3xl font-bold text-amber-400">8</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground uppercase mb-1">Gestantes</div>
-            <div className="text-3xl font-bold text-purple-400">1</div>
-          </CardContent>
-        </Card>
+      {/* Top KPI cards (bordered style) */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {kpisTop.map(k => (
+          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">{k.label}</span>
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${k.dot}`} />
+            </div>
+            <div className="text-2xl font-bold text-foreground">{k.val}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{k.sub}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Próximos Partos y Gestaciones</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border">
-                  <TableHead>Arete / Animal</TableHead>
-                  <TableHead>Servicio</TableHead>
-                  <TableHead>Fecha Prob. Parto</TableHead>
-                  <TableHead>Días Restantes</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reproduccion.map(r => (
-                  <TableRow key={r.arete} className="border-border">
-                    <TableCell>
-                      <div className="font-medium text-foreground">{r.animal}</div>
-                      <div className="text-xs text-muted-foreground font-mono">{r.arete}</div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{r.servicio}</TableCell>
-                    <TableCell className="text-foreground">{r.fechaParto}</TableCell>
-                    <TableCell>
-                      <span className={`font-bold ${r.dias <= 15 ? 'text-amber-400' : 'text-primary'}`}>
-                        {r.dias}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={
-                        r.estado === 'Normal' ? 'bg-primary/10 text-primary' : 
-                        r.estado === 'Vigilar' ? 'bg-amber-400/10 text-amber-400' : 
-                        'bg-blue-400/10 text-blue-400'
-                      }>
-                        {r.estado}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+      {/* 2-col: Próximos partos + Anestros */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Próximos partos */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-gradient-to-r from-[#1b5e20]/40 to-[#2e7d32]/20">
+            <div className="font-semibold text-sm">🐄 Próximos partos esperados</div>
+            <Button size="sm" className="h-8 text-xs gap-1"><Plus size={12} /> Agregar</Button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[#1a4a2e] border-b border-[#2d6a3f]">
+                  {['Arete','Animal','Servicio','Fecha Parto','Días','Partos Prev.','Estado',''].map(h => (
+                    <th key={h} className="text-white/70 font-semibold text-[10px] uppercase px-3 py-2.5 text-left whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {reproduccion.map((r, i) => (
+                  <tr key={i} className="border-b border-border/50 hover:bg-muted/20">
+                    <td className="px-3 py-3 font-mono text-xs text-green-400 font-semibold">{r.arete}</td>
+                    <td className="px-3 py-3 font-medium text-sm">{r.animal}</td>
+                    <td className="px-3 py-3 text-xs text-muted-foreground">{r.servicio}</td>
+                    <td className="px-3 py-3 text-xs text-muted-foreground">{r.fechaParto}</td>
+                    <td className="px-3 py-3">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${getDiasColor(r.dias)}`}>{r.dias}d</span>
+                    </td>
+                    <td className="px-3 py-3 text-xs text-center text-muted-foreground">{r.partosPrev}</td>
+                    <td className="px-3 py-3">
+                      <span className="text-xs font-medium text-purple-400 bg-purple-400/10 border border-purple-400/30 px-2 py-0.5 rounded-full">{r.estado}</span>
+                    </td>
+                    <td className="px-3 py-3"><button className="text-muted-foreground hover:text-primary p-1"><Pencil size={12} /></button></td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-        <div className="space-y-6">
-          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start gap-3">
-            <AlertCircle className="text-amber-500 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-amber-500">Atención Reproductiva</h4>
-              <p className="text-sm text-amber-500/80 mt-1">Hay 8 vacas con anestro mayor a 90 días con diagnóstico de IA pendiente.</p>
+        {/* Anestros */}
+        <div className="bg-card border border-red-500/20 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-red-500/20 bg-red-500/5">
+            <AlertTriangle size={16} className="text-red-400" />
+            <div className="font-semibold text-sm text-red-400">Vacas con anestro prolongado — acción urgente</div>
+          </div>
+          <div className="p-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-red-400">8</span>
+              <span className="text-sm text-muted-foreground">vacas con anestro &gt;90 días identificadas</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {['A-0108','A-0319','A-0551','A-0712','A-0890','A-0445','A-0180','A-0320'].map(a => (
+                <span key={a} className="text-xs font-mono bg-muted/30 border border-border text-muted-foreground px-2 py-0.5 rounded">{a}</span>
+              ))}
+            </div>
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 space-y-1.5">
+              <div className="text-xs font-semibold text-green-400 mb-2">🤖 Diagnóstico SoftGan IA:</div>
+              <div className="text-xs text-muted-foreground">• IEP promedio 428d → pérdida estimada <strong className="text-foreground">$8.2M COP/mes</strong></div>
+              <div className="text-xs text-muted-foreground">• 8 vacas en anestro &gt;90d → protocolo GnRH + PGF₂α</div>
+              <div className="text-xs text-muted-foreground">• Posible déficit energético postparto — revisar BCS</div>
+              <div className="mt-2 text-xs text-green-400 font-semibold">💡 Si reduce IEP a 390d → +14 vacas en producción → +$8.4M/mes</div>
             </div>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Eficiencia</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-muted-foreground text-sm">Tasa de Preñez</span>
-                <span className="font-bold text-foreground">52%</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-muted-foreground text-sm">Vacas Abiertas</span>
-                <span className="font-bold text-foreground">2</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-border pb-2">
-                <span className="text-muted-foreground text-sm">Prom. Días Abiertos</span>
-                <span className="font-bold text-destructive">142d</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground text-sm">Destetes</span>
-                <span className="font-bold text-primary">94%</span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
+      </div>
+
+      {/* Bottom KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {kpisBot.map(k => (
+          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">{k.label}</span>
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${k.dot}`} />
+            </div>
+            <div className="text-2xl font-bold text-foreground">{k.val}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{k.sub}</div>
+          </div>
+        ))}
       </div>
     </div>
   );

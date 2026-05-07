@@ -1,121 +1,132 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+const ranking = [
+  { rank:1, nombre:'Rosaura', arete:'A-0042', raza:'Holstein', cat:'Vaca adulta', dep:820, score:92, color:'#22c55e' },
+  { rank:2, nombre:'Estrella', arete:'A-0604', raza:'Holstein', cat:'Vaca adulta', dep:780, score:88, color:'#22c55e' },
+  { rank:3, nombre:'Cielo', arete:'A-0087', raza:'Simmental', cat:'Vaca adulta', dep:740, score:84, color:'#22c55e' },
+  { rank:4, nombre:'Niebla', arete:'A-0445', raza:'Holstein', cat:'Vaca adulta', dep:710, score:80, color:'#22c55e' },
+  { rank:5, nombre:'Palmera', arete:'A-0133', raza:'Gyr X', cat:'Vaca adulta', dep:680, score:76, color:'#f97316' },
+  { rank:6, nombre:'Perla', arete:'A-0712', raza:'Holstein', cat:'Vaca adulta', dep:640, score:72, color:'#f97316' },
+  { rank:7, nombre:'Canela', arete:'A-0108', raza:'Brahman', cat:'Vaca adulta', dep:590, score:67, color:'#f97316' },
+  { rank:8, nombre:'Luna', arete:'A-0319', raza:'Simmental', cat:'Novilla', dep:520, score:62, color:'#f97316' },
+  { rank:9, nombre:'Aurora', arete:'A-0551', raza:'Holstein', cat:'Novilla', dep:480, score:55, color:'#ef4444' },
+  { rank:10, nombre:'Brisa', arete:'A-0180', raza:'Angus X', cat:'Novilla', dep:430, score:50, color:'#ef4444' },
+  { rank:11, nombre:'Manchas', arete:'A-0512', raza:'Holstein', cat:'Ternero', dep:0, score:38, color:'#ef4444' },
+];
 
 export default function Genetica() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-8">
       <div>
-        <h1 className="text-2xl font-bold">Genética y Pedigrí</h1>
-        <p className="text-muted-foreground">Evaluación y progreso genético del hato</p>
+        <h1 className="text-2xl font-bold">🧪 Genética y Pedigrí</h1>
+        <p className="text-muted-foreground text-sm">Evaluación y progreso genético del hato · DEP · Índices</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">70.8</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Score Genético</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">11</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Evaluados</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-primary">+820</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Mejor DEP (Rosaura)</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">11/13</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Total Registrados</span>
-          </CardContent>
-        </Card>
+      {/* KPI cards (bordered) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label:'SCORE PROM. HATO', val:'70.8', sub:'promedio', dot:'bg-green-400' },
+          { label:'CON EVALUACIÓN DEP', val:'11', sub:'animales', dot:'bg-blue-400' },
+          { label:'MEJOR DEP LECHE', val:'+820', sub:'Rosaura', dot:'bg-green-400' },
+          { label:'TOTAL EVALUADOS', val:'11 / de 13', sub:'animales', dot:'bg-green-400' },
+        ].map(k => (
+          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{k.label}</span>
+              <span className={`w-2 h-2 rounded-full ${k.dot}`} />
+            </div>
+            <div className="text-2xl font-bold text-foreground">{k.val}</div>
+            <div className="text-[10px] text-muted-foreground">{k.sub}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Animales por DEP (Leche)</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-medium">Rosaura (A-0042)</span>
-                <span className="text-primary font-bold">+820</span>
-              </div>
-              <Progress value={90} className="h-2 bg-muted/50 [&>div]:bg-primary" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-medium">Estrella (A-0604)</span>
-                <span className="text-primary font-bold">+750</span>
-              </div>
-              <Progress value={82} className="h-2 bg-muted/50 [&>div]:bg-primary" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-medium">Cielo (A-0087)</span>
-                <span className="text-primary font-bold">+680</span>
-              </div>
-              <Progress value={75} className="h-2 bg-muted/50 [&>div]:bg-primary" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-medium">Niebla (A-0445)</span>
-                <span className="text-primary font-bold">+610</span>
-              </div>
-              <Progress value={68} className="h-2 bg-muted/50 [&>div]:bg-primary" />
-            </div>
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-medium">Palmera (A-0133)</span>
-                <span className="text-primary font-bold">+590</span>
-              </div>
-              <Progress value={65} className="h-2 bg-muted/50 [&>div]:bg-primary" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pedigrí Destacado - Rosaura</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative border border-border p-6 rounded-lg bg-muted/10">
-              <div className="flex justify-center mb-8 relative">
-                <div className="absolute top-full left-1/2 w-px h-8 bg-border -translate-x-1/2"></div>
-                <div className="px-4 py-2 bg-primary/20 border border-primary/30 rounded-md text-center">
-                  <div className="font-bold text-primary">Rosaura</div>
-                  <div className="text-xs text-muted-foreground">Holstein • DEP +820</div>
+      {/* 2-col: Ranking + Pedigrí */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Ranking genético */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-[#1a5c2e] to-[#2d8a4e] px-5 py-3">
+            <div className="font-semibold text-white text-sm">🏆 Ranking genético DEP (Leche)</div>
+            <div className="text-white/60 text-xs">Evaluación índice compuesto 2025</div>
+          </div>
+          <div className="p-4 space-y-3">
+            {ranking.map(a => (
+              <div key={a.arete}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-6 h-6 rounded-full bg-muted/40 text-muted-foreground text-xs font-bold flex items-center justify-center flex-shrink-0">{a.rank}</span>
+                  <span className="font-medium text-sm flex-1">{a.nombre}</span>
+                  <span className="font-mono text-xs text-muted-foreground">{a.arete}</span>
+                  <span className="text-sm font-bold" style={{color: a.color}}>{a.score}</span>
                 </div>
-              </div>
-              
-              <div className="flex justify-between relative mt-8">
-                <div className="absolute -top-8 left-1/2 w-3/4 h-px bg-border -translate-x-1/2"></div>
-                <div className="absolute -top-8 left-[12.5%] w-px h-8 bg-border"></div>
-                <div className="absolute -top-8 right-[12.5%] w-px h-8 bg-border"></div>
-
-                <div className="w-5/12 text-center">
-                  <div className="px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-md">
-                    <div className="font-bold text-blue-400">Padre</div>
-                    <div className="text-xs text-muted-foreground">Titan USA</div>
-                  </div>
-                </div>
-                
-                <div className="w-5/12 text-center">
-                  <div className="px-3 py-2 bg-pink-500/10 border border-pink-500/20 rounded-md">
-                    <div className="font-bold text-pink-400">Madre</div>
-                    <div className="text-xs text-muted-foreground">Rosalía</div>
+                <div className="pl-8">
+                  <div className="text-[10px] text-muted-foreground mb-1">DEP {a.dep > 0 ? `+${a.dep}L` : '—'} · {a.raza} · {a.cat}</div>
+                  <div className="h-1.5 bg-muted/30 rounded-full">
+                    <div className="h-1.5 rounded-full transition-all" style={{width:`${a.score}%`, background: a.color}} />
                   </div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Pedigrí */}
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-[#1a5c2e] to-[#2d8a4e] px-5 py-3">
+            <div className="font-semibold text-white text-sm">🧬 Pedigrí — Rosaura</div>
+            <div className="text-white/60 text-xs">Árbol genealógico y progenie registrada</div>
+          </div>
+          <div className="p-5 space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between bg-muted/20 rounded-xl p-4 border border-border">
+              <div>
+                <div className="font-bold text-lg">🐄 Rosaura</div>
+                <div className="text-xs text-muted-foreground">A-0042 · Holstein · Score 92</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-muted-foreground">DEP Leche</div>
+                <div className="text-xl font-bold text-green-400">+820L</div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Padre */}
+            <div className="border-l-4 border-blue-500 pl-4 bg-blue-500/5 rounded-r-xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-bold">♂ Padre: Altísimo IA</span>
+                <span className="text-xs text-muted-foreground">· Toro Holstein importado</span>
+              </div>
+              <div className="text-xs text-muted-foreground">DEP Leche: <strong className="text-blue-400">+820L</strong> · DEP Grasa: <strong className="text-blue-400">+28kg</strong> · Origen: Canadá</div>
+            </div>
+
+            {/* Madre */}
+            <div className="border-l-4 border-pink-500 pl-4 bg-pink-500/5 rounded-r-xl p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-bold">♀ Madre: Rosita</span>
+                <span className="text-xs text-muted-foreground">A-0018 · Holstein</span>
+              </div>
+              <div className="text-xs text-muted-foreground">4 partos registrados · Productividad: 18.2L/d · Salud: Excelente</div>
+            </div>
+
+            {/* Progenie */}
+            <div>
+              <div className="text-xs font-bold text-muted-foreground uppercase mb-2">Progenie (1):</div>
+              <div className="flex items-center gap-3 bg-muted/20 rounded-lg p-3 border border-border">
+                <span className="text-lg">🐄</span>
+                <div>
+                  <div className="text-sm font-medium">Manchas</div>
+                  <div className="text-xs text-muted-foreground">A-0512 · Ternero · Holstein · Nac. 2025</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border">
+              {[['Productividad','18.4 L/d','text-cyan-400'],['Score DEP','92 / 100','text-green-400'],['Salud','Excelente','text-green-400']].map(([l,v,c]) => (
+                <div key={l} className="text-center bg-muted/20 rounded-lg p-2">
+                  <div className="text-[10px] text-muted-foreground">{l}</div>
+                  <div className={`text-sm font-bold ${c}`}>{v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

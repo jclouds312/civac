@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { useAppState } from "../lib/data";
-import { Badge } from "@/components/ui/badge";
+import { Bell, TrendingUp, Download, AlertCircle, AlertTriangle, ChevronRight } from "lucide-react";
+import { Link } from "wouter";
+import { useState } from "react";
 
 const dataProduccion = [
   { name: 'Oct', litros: 52000 },
@@ -13,114 +14,411 @@ const dataProduccion = [
   { name: 'Abr', litros: 61300 },
 ];
 
-const COLORS = ['#4ade80', '#2dd4bf', '#fbbf24', '#f87171', '#c084fc', '#60a5fa'];
+const dataPeso = [
+  { name: 'Oct', kg: 400 },
+  { name: 'Nov', kg: 403 },
+  { name: 'Dic', kg: 405 },
+  { name: 'Ene', kg: 408 },
+  { name: 'Feb', kg: 410 },
+  { name: 'Mar', kg: 414 },
+  { name: 'Abr', kg: 417 },
+];
+
+const COLORS_PIE = ['#2e7d32', '#1565c0', '#f57c00', '#6a1b9a'];
+
+const modulos = [
+  { icon: '🐄', title: 'Inventario', desc: 'Registro y seguimiento de cada animal', badge: '13', href: '/inventario' },
+  { icon: '📋', title: 'Ficha Individual', desc: 'Historia clínica y eventos por bovino', badge: null, href: '/ficha' },
+  { icon: '🔁', title: 'Reproducción', desc: 'Celos, inseminación, gestación y nacimientos', badge: '1', href: '/reproduccion' },
+  { icon: '🥛', title: 'Producción', desc: 'Ordeños, litros/vaca, tendencias y calidad', badge: '84L', href: '/produccion' },
+  { icon: '🧬', title: 'Genética', desc: 'DEP, índices genéticos y mejoramiento del hato', badge: null, href: '/genetica' },
+  { icon: '🌿', title: 'Potreros', desc: 'Rotación, aforo, días de descanso y ocupación', badge: '6', href: '/potreros' },
+  { icon: '🌾', title: 'Alimentación', desc: 'Raciones, minerales, sal y suplementos por lote', badge: null, href: '/alimentacion' },
+  { icon: '💊', title: 'Insumos / Kardex', desc: 'Medicamentos, vacunas y materiales con stock', badge: '⚠ 4', href: '/insumos', badgeRed: true },
+  { icon: '🧊', title: 'Semen y Embriones', desc: 'Inventario criogénico, donantes y TE', badge: null, href: '/semen' },
+  { icon: '💰', title: 'Costos y Finanzas', desc: 'Ingresos, egresos, margen lechero y P&G', badge: null, href: '/costos' },
+  { icon: '👷', title: 'Personal / Nómina', desc: 'Empleados, salarios, prestaciones y roles', badge: '6', href: '/personal' },
+  { icon: '🤖', title: 'Predicciones IA', desc: 'Alertas inteligentes y recomendaciones', badge: null, href: '/prediccion' },
+  { icon: '🌱', title: 'Huella Carbono', desc: 'Emisiones CH₄ y CO₂, bonos verdes', badge: null, href: '/co2' },
+  { icon: '🗺️', title: 'Multi-Finca', desc: 'Gestione varias fincas desde un panel', badge: null, href: '/multifinca' },
+];
+
+const insumosBajoStock = [
+  { nombre: 'Prostaglandina', stock: 8, min: 15, unidad: 'frascos' },
+  { nombre: 'Calcio i.v.', stock: 6, min: 12, unidad: 'frascos' },
+  { nombre: 'Vacuna IBR/BVD', stock: 180, min: 250, unidad: 'dosis' },
+  { nombre: 'Oxitocina 10UI', stock: 3, min: 10, unidad: 'frascos' },
+];
+
+const pieData = [
+  { name: 'Vacas adultas', value: 7, pct: '54%' },
+  { name: 'Novillas', value: 3, pct: '23%' },
+  { name: 'Terneros/as', value: 2, pct: '15%' },
+  { name: 'Toros', value: 1, pct: '8%' },
+];
 
 export default function Dashboard() {
   const { animals, potreros, personal, alertas } = useAppState();
+  const [chartTab, setChartTab] = useState<'produccion' | 'peso'>('produccion');
+
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour < 12 ? '¡Buenos días!' : hour < 18 ? '¡Buenas tardes!' : '¡Buenas noches!';
 
   return (
-    <div className="space-y-6">
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-[#0d2111] to-[#123118] p-6 rounded-xl border border-primary/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">¡Buenos días, Administrador!</h1>
-          <p className="text-muted-foreground mt-1">El hato está funcionando correctamente hoy.</p>
-        </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="bg-card/50 text-foreground border-border">{animals.length} Animales</Badge>
-          <Badge variant="outline" className="bg-card/50 text-foreground border-border">5 En Producción</Badge>
-          <Badge variant="outline" className="bg-card/50 text-foreground border-border">{potreros.length} Potreros</Badge>
-          <Badge variant="outline" className="bg-card/50 text-foreground border-border">{personal.length} Staff</Badge>
+    <div className="space-y-6 pb-8">
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-[#1a5c2e] to-[#2d8a4e] rounded-xl p-6 shadow-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl font-bold text-white">{greeting} 👋🏼</h1>
+              </div>
+              <p className="text-white/70 text-sm">
+                {now.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} — {now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+              <p className="text-white/60 text-xs mt-0.5">Tablero principal de GanaderIA — resumen en tiempo real de su hato</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1.5 bg-white/15 text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20">🐄 {animals.length} Animales</span>
+            <span className="flex items-center gap-1.5 bg-white/15 text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20">🥛 5 En producción</span>
+            <span className="flex items-center gap-1.5 bg-white/15 text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20">🌿 {potreros.length} Potreros</span>
+            <span className="flex items-center gap-1.5 bg-white/15 text-white text-xs font-medium px-3 py-1.5 rounded-full border border-white/20">👷 {personal.length} Staff activo</span>
+            <span className="flex items-center gap-1.5 bg-white text-green-800 text-xs font-bold px-3 py-1.5 rounded-full ml-1">● Datos en vivo</span>
+            <button className="relative bg-white/15 hover:bg-white/25 p-1.5 rounded-full border border-white/20">
+              <Bell size={16} className="text-white" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[9px] flex items-center justify-center font-bold">3</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Card className="bg-[#0f1712] border-none shadow-sm">
-          <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
-            <span className="text-3xl font-bold text-white">{animals.length}</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Total Animales</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none shadow-sm">
-          <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
-            <span className="text-3xl font-bold text-primary">84L</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Litros Hoy</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none shadow-sm">
-          <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
-            <span className="text-3xl font-bold text-blue-400">417kg</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Peso Promedio</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none shadow-sm">
-          <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
-            <span className="text-3xl font-bold text-purple-400">1</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Gestante</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-destructive/20 border-destructive/30 shadow-sm relative overflow-hidden">
-          <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
-            <span className="text-3xl font-bold text-destructive">1</span>
-            <span className="text-xs text-destructive/80 mt-1 uppercase tracking-wider">En Tratamiento</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none shadow-sm">
-          <CardContent className="p-4 flex flex-col justify-center items-center text-center h-full">
-            <span className="text-3xl font-bold text-amber-400">$51.2M</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Valor del Hato</span>
-          </CardContent>
-        </Card>
+      {/* 6 KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="rounded-xl p-4 text-white relative overflow-hidden shadow" style={{background:'linear-gradient(135deg,#1b5e20,#2e7d32)'}}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">🐄 Total Animales</div>
+          <div className="text-3xl font-bold">{animals.length}</div>
+          <div className="text-[10px] text-white/60 mt-1">Meta: 250 · 5%</div>
+        </div>
+        <div className="rounded-xl p-4 text-white relative overflow-hidden shadow" style={{background:'linear-gradient(135deg,#0d47a1,#1565c0)'}}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">🥛 Litros Hoy</div>
+          <div className="text-3xl font-bold">84L</div>
+          <div className="text-[10px] text-white/60 mt-1">5 vacas · 16.8 L/vaca</div>
+        </div>
+        <div className="rounded-xl p-4 text-white relative overflow-hidden shadow" style={{background:'linear-gradient(135deg,#e65100,#f57c00)'}}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">⚖️ Peso Promedio</div>
+          <div className="text-3xl font-bold">417 kg</div>
+          <div className="text-[10px] text-white/60 mt-1">hato general</div>
+        </div>
+        <div className="rounded-xl p-4 text-white relative overflow-hidden shadow" style={{background:'linear-gradient(135deg,#4a148c,#6a1b9a)'}}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">🤰 Gestantes</div>
+          <div className="text-3xl font-bold">1</div>
+          <div className="text-[10px] text-white/60 mt-1">8% del hato</div>
+        </div>
+        <div className="rounded-xl p-4 text-white relative overflow-hidden shadow" style={{background:'linear-gradient(135deg,#b71c1c,#c62828)'}}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">
+            <span className="bg-white/20 text-white text-[8px] font-bold px-1.5 py-0.5 rounded mr-1">ALERTA</span>🏥 En Tratamiento
+          </div>
+          <div className="text-3xl font-bold">1</div>
+          <div className="text-[10px] text-white/60 mt-1">⚠ Revisar hoy</div>
+        </div>
+        <div className="rounded-xl p-4 text-white relative overflow-hidden shadow" style={{background:'linear-gradient(135deg,#f57f17,#f9a825)'}}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">💰 Valor del Hato</div>
+          <div className="text-2xl font-bold">$51.200.000</div>
+          <div className="text-[10px] text-white/60 mt-1">COP estimado</div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="col-span-1 lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Evolución Histórica de Producción</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={dataProduccion} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorLitros" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4ade80" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#4ade80" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" stroke="#52525b" tick={{fill: '#a1a1aa'}} />
-                <YAxis stroke="#52525b" tick={{fill: '#a1a1aa'}} />
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fff' }}
-                  itemStyle={{ color: '#4ade80' }}
-                />
-                <Area type="monotone" dataKey="litros" stroke="#4ade80" strokeWidth={2} fillOpacity={1} fill="url(#colorLitros)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {/* 3-col analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Análisis de Pesos */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+              <span className="text-base">⚖️</span>
+            </div>
+            <div>
+              <div className="font-semibold text-sm">Análisis de Pesos</div>
+              <div className="text-xs text-muted-foreground">Promedio · metas por categoría</div>
+            </div>
+          </div>
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-3">
+            <div className="text-xs text-amber-400 uppercase font-semibold">Peso promedio hato</div>
+            <div className="text-3xl font-bold text-amber-400">417 kg</div>
+            <div className="text-xs text-muted-foreground">Biomasa total: <strong className="text-foreground">5.4 ton</strong></div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { icon:'🐄', label:'Vacas adultas', kg:508, diff:'+28 vs 480kg', n:7, color:'text-green-400' },
+              { icon:'🐮', label:'Novillas', kg:298, diff:'-22 vs 320kg', n:3, color:'text-red-400' },
+              { icon:'🐣', label:'Terneros/as', kg:80, diff:'-70 vs 150kg', n:2, color:'text-red-400' },
+              { icon:'🐂', label:'Toros', kg:810, diff:'+160 vs 650kg', n:1, color:'text-green-400' },
+            ].map(c => (
+              <div key={c.label} className="bg-muted/30 rounded-lg p-2.5">
+                <div className="text-base mb-1">{c.icon}</div>
+                <div className="text-xs text-muted-foreground">{c.label}</div>
+                <div className="text-lg font-bold text-foreground">{c.kg} kg</div>
+                <div className={`text-[10px] ${c.color}`}>{c.diff}</div>
+                <div className="text-[10px] text-muted-foreground">{c.n} animales</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Alertas Activas</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y divide-border">
-              {alertas.slice(0, 4).map(a => (
-                <div key={a.id} className="p-4 flex flex-col gap-1 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm font-semibold ${a.type === 'danger' ? 'text-destructive' : a.type === 'warning' ? 'text-amber-400' : 'text-blue-400'}`}>
-                      {a.title}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{a.time}</span>
+        {/* Producción Lechera */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+              <span className="text-base">🥛</span>
+            </div>
+            <div>
+              <div className="font-semibold text-sm">Producción Lechera</div>
+              <div className="text-xs text-muted-foreground">Vacas en ordeño activo</div>
+            </div>
+          </div>
+          <div className="flex gap-4 mb-3">
+            <div className="text-center"><div className="text-2xl font-bold text-blue-400">84</div><div className="text-[10px] text-muted-foreground uppercase">Litros/día</div></div>
+            <div className="text-center"><div className="text-2xl font-bold text-cyan-400">16.8</div><div className="text-[10px] text-muted-foreground uppercase">L/vaca prom</div></div>
+            <div className="text-center"><div className="text-2xl font-bold text-purple-400">5</div><div className="text-[10px] text-muted-foreground uppercase">En ordeño</div></div>
+          </div>
+          <div className="mb-3">
+            <div className="flex justify-between text-xs mb-1"><span className="text-muted-foreground">Meta diaria</span><span className="font-semibold">93% — 84 / 90 L</span></div>
+            <div className="h-2 bg-muted/40 rounded-full"><div className="h-2 bg-amber-500 rounded-full" style={{width:'93%'}} /></div>
+          </div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">Distribución por rango</div>
+          {[['< 10 L','0'],['10-15 L','0'],['15-20 L','5','bg-blue-500'],['> 20 L','0']].map(([r,v,c]) => (
+            <div key={r} className="flex justify-between items-center mb-1">
+              <span className="text-xs text-muted-foreground w-16">{r}</span>
+              <div className="flex-1 mx-2 h-1.5 bg-muted/30 rounded-full"><div className={`h-1.5 rounded-full ${c||'bg-muted'}`} style={{width:`${Number(v)*15}%`}} /></div>
+              <span className="text-xs font-medium w-3 text-right">{v}</span>
+            </div>
+          ))}
+          <div className="mt-3 border-t border-border pt-2">
+            <div className="text-xs font-semibold text-amber-400 mb-1">🏆 Top producción</div>
+            {[['1°','Rosaura','18.4 L'],['2°','Estrella','17.8 L'],['3°','Cielo','16.9 L']].map(([pos,n,l]) => (
+              <div key={n} className="flex justify-between text-xs py-0.5">
+                <span className="text-muted-foreground">{pos} {n}</span>
+                <span className="font-bold text-cyan-400">{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Manejo de Potreros */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <span className="text-base">🌿</span>
+              </div>
+              <div>
+                <div className="font-semibold text-sm">Manejo de Potreros</div>
+                <div className="text-xs text-muted-foreground">Rotación y estado actual</div>
+              </div>
+            </div>
+            <Link href="/potreros" className="text-xs text-primary hover:underline flex items-center gap-1">Ver todos <ChevronRight size={12} /></Link>
+          </div>
+          <div className="flex gap-3 mb-3">
+            <div className="text-center flex-1 bg-muted/20 rounded-lg py-2">
+              <div className="text-xl font-bold">6</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Total</div>
+            </div>
+            <div className="text-center flex-1 bg-muted/20 rounded-lg py-2">
+              <div className="text-xl font-bold text-green-400">1</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Disponibles</div>
+            </div>
+            <div className="text-center flex-1 bg-muted/20 rounded-lg py-2">
+              <div className="text-xl font-bold text-blue-400">27</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Hectáreas</div>
+            </div>
+          </div>
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2.5 mb-3 text-xs">
+            <span className="text-amber-400 font-semibold">⚡ ¡Rotar en los próximos días!</span>
+            <span className="text-muted-foreground ml-1">Potrero 4</span>
+          </div>
+          {[
+            { n:'Potrero 6', ha:'3.5 ha', s:'Ocupado', dot:'bg-orange-500' },
+            { n:'Potrero 5', ha:'6 ha', s:'Listo', dot:'bg-green-500' },
+            { n:'Potrero 4', ha:'4.2 ha', s:'Rotar pronto', dot:'bg-red-500', extra:'3d' },
+            { n:'Potrero 3', ha:'5.1 ha', s:'Ocupado', dot:'bg-orange-500' },
+            { n:'Potrero 2', ha:'3.8 ha', s:'Descanso', dot:'bg-blue-500' },
+          ].map(p => (
+            <div key={p.n} className="flex items-center gap-2 py-1.5 border-b border-border/50 last:border-0">
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${p.dot}`} />
+              <span className="text-xs font-medium flex-1">{p.n}</span>
+              <span className="text-[10px] text-muted-foreground">{p.ha}</span>
+              <span className={`text-[10px] font-semibold ${p.dot==='bg-red-500'?'text-red-400':p.dot==='bg-green-500'?'text-green-400':p.dot==='bg-blue-500'?'text-blue-400':'text-orange-400'}`}>{p.s}{p.extra ? ` · ${p.extra}` : ''}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Evolución Histórica */}
+      <div className="bg-card border border-border rounded-xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+              <TrendingUp size={16} className="text-green-400" />
+            </div>
+            <div>
+              <div className="font-semibold">Evolución Histórica</div>
+              <div className="text-xs text-muted-foreground">Últimos 7 meses · Oct 2024 — Abr 2025</div>
+            </div>
+          </div>
+          <div className="flex gap-1">
+            <button onClick={() => setChartTab('produccion')} className={`text-xs px-3 py-1 rounded-md font-medium ${chartTab==='produccion'?'bg-primary text-white':'bg-muted/40 text-muted-foreground hover:bg-muted/60'}`}>Producción Lechera</button>
+            <button onClick={() => setChartTab('peso')} className={`text-xs px-3 py-1 rounded-md font-medium ${chartTab==='peso'?'bg-primary text-white':'bg-muted/40 text-muted-foreground hover:bg-muted/60'}`}>Peso del Ganado</button>
+          </div>
+        </div>
+        <div className="h-52">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartTab === 'produccion' ? dataProduccion : dataPeso} margin={{top:5,right:20,left:0,bottom:0}}>
+              <defs>
+                <linearGradient id="dashGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#4ade80" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#4ade80" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="name" stroke="#444" tick={{fill:'#888',fontSize:11}} />
+              <YAxis stroke="#444" tick={{fill:'#888',fontSize:11}} width={50} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+              <RechartsTooltip contentStyle={{backgroundColor:'#111',borderColor:'#333',color:'#fff'}} />
+              <Area type="monotone" dataKey={chartTab==='produccion'?'litros':'kg'} stroke="#4ade80" strokeWidth={2} fillOpacity={1} fill="url(#dashGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Row: pie + alertas + KPIs repro + financiero */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Composición + Alertas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Pie */}
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="font-semibold text-sm mb-3">🐄 Composición del hato</div>
+            <div className="text-xs text-muted-foreground mb-2">{animals.length} animales registrados</div>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={55} strokeWidth={0}>
+                    {pieData.map((_,i) => <Cell key={i} fill={COLORS_PIE[i]} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            {pieData.map((d,i) => (
+              <div key={d.name} className="flex items-center gap-2 text-xs py-0.5">
+                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:COLORS_PIE[i]}} />
+                <span className="text-muted-foreground flex-1">{d.name}</span>
+                <span className="font-medium">{d.value} ({d.pct})</span>
+              </div>
+            ))}
+          </div>
+          {/* Alertas */}
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-semibold text-sm">Alertas activas</div>
+              <Link href="/alertas" className="text-xs text-primary hover:underline">Ver todas →</Link>
+            </div>
+            <div className="space-y-2">
+              {alertas.slice(0,4).map(a => (
+                <div key={a.id} className="flex items-start gap-2">
+                  {a.type === 'danger'
+                    ? <AlertCircle size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                    : <AlertTriangle size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
+                  }
+                  <div>
+                    <div className={`text-xs font-semibold ${a.type==='danger'?'text-red-400':'text-amber-400'}`}>{a.title}</div>
+                    <div className="text-[10px] text-muted-foreground">{a.desc}</div>
                   </div>
-                  <span className="text-xs text-muted-foreground">{a.desc}</span>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* KPIs reproductivos + resumen financiero */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* KPIs Reproductivos */}
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="font-semibold text-sm mb-3">🔁 KPIs Reproductivos</div>
+            {[
+              { label:'Tasa de concepción', val:'62%', meta:'meta 70%', ok:false },
+              { label:'Vacas gestantes', val:'8%', meta:'meta 50%', ok:false },
+              { label:'Destetes exitosos', val:'94%', meta:'meta 90%', ok:true },
+              { label:'Natalidad anual', val:'78%', meta:'meta 85%', ok:false },
+            ].map(k => (
+              <div key={k.label} className="flex items-center justify-between py-1.5 border-b border-border/50 last:border-0">
+                <span className="text-xs text-muted-foreground">{k.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-foreground">{k.val}</span>
+                  <span className="text-[10px] text-muted-foreground">{k.meta}</span>
+                  <span className={k.ok ? 'text-green-400 text-[10px]' : 'text-red-400 text-[10px]'}>{k.ok ? '✓' : '✗'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Resumen Financiero */}
+          <div className="bg-card border border-border rounded-xl p-5">
+            <div className="font-semibold text-sm mb-3">💰 Resumen Financiero</div>
+            <div className="text-[10px] text-muted-foreground mb-2">Mes actual · COP</div>
+            {[
+              { label:'Ingresos totales', val:'$85.750.000', color:'text-green-400' },
+              { label:'└ Venta de leche', val:'$70.050.000', color:'text-muted-foreground', indent:true },
+              { label:'└ Venta animales', val:'$12.500.000', color:'text-muted-foreground', indent:true },
+              { label:'Egresos totales', val:'($45.500.000)', color:'text-red-400' },
+              { label:'Utilidad neta', val:'$40.250.000', color:'text-green-400', bold:true },
+            ].map(r => (
+              <div key={r.label} className={`flex justify-between text-xs py-0.5 ${r.indent?'pl-2':''}`}>
+                <span className="text-muted-foreground">{r.label}</span>
+                <span className={`font-medium ${r.color} ${r.bold?'font-bold':''}`}>{r.val}</span>
+              </div>
+            ))}
+            <div className="mt-2 pt-2 border-t border-border flex justify-between text-xs">
+              <span className="text-muted-foreground">Margen: 47% · Costo/L: $820</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Insumos urgentes */}
+      <div className="bg-card border border-border rounded-xl p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="font-semibold text-sm">Insumos por reponer urgente</div>
+          <Link href="/insumos" className="text-xs text-primary hover:underline">Ir a Insumos →</Link>
+        </div>
+        <div className="text-xs text-muted-foreground mb-3">4 producto(s) bajo stock mínimo</div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {insumosBajoStock.map(i => (
+            <div key={i.nombre} className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
+              <div className="text-xs font-semibold text-red-400 mb-2">{i.nombre}</div>
+              <div className="h-1.5 bg-muted/30 rounded-full mb-1">
+                <div className="h-1.5 bg-red-500 rounded-full" style={{width:`${(i.stock/i.min)*40}%`}} />
+              </div>
+              <div className="text-[10px] text-muted-foreground">Stock: <strong className="text-foreground">{i.stock}</strong> / Mín: {i.min} {i.unidad}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Módulos */}
+      <div className="bg-card border border-border rounded-xl p-5">
+        <div className="font-semibold mb-1">🗂️ Módulos de GanaderIA</div>
+        <div className="text-xs text-muted-foreground mb-4">Acceso rápido a todas las secciones del sistema</div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+          {modulos.map(m => (
+            <Link key={m.href} href={m.href} className="block bg-muted/20 hover:bg-muted/40 border border-border rounded-xl p-3 transition-colors group">
+              <div className="text-2xl mb-2">{m.icon}</div>
+              <div className="text-xs font-bold text-foreground group-hover:text-primary mb-1">{m.title}</div>
+              <div className="text-[10px] text-muted-foreground line-clamp-2">{m.desc}</div>
+              {m.badge && (
+                <div className={`mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full inline-block ${m.badgeRed ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>{m.badge}</div>
+              )}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

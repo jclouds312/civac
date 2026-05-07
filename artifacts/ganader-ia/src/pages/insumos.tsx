@@ -1,184 +1,195 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAppState } from "../lib/data";
-import { Progress } from "@/components/ui/progress";
+import { Download, Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Plus, Minus } from "lucide-react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const getCatStyle = (cat: string) => {
+  switch (cat) {
+    case "Alimentacion": return "bg-lime-500/20 text-lime-400 border border-lime-500/30";
+    case "Reproductivo": return "bg-pink-500/20 text-pink-400 border border-pink-500/30";
+    case "Mineral": return "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
+    case "Antibiotico": return "bg-blue-500/20 text-blue-400 border border-blue-500/30";
+    case "Biologico": return "bg-purple-500/20 text-purple-400 border border-purple-500/30";
+    case "Antiparasitario": return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+    default: return "bg-muted text-muted-foreground";
+  }
+};
 
 export default function Insumos() {
   const { insumos, setInsumos } = useAppState();
+  const [open, setOpen] = useState(false);
+  const [catFilter, setCatFilter] = useState("Todos");
 
-  const getStatus = (stock: number, min: number) => {
-    if (stock <= min) return { label: "Crítico", color: "text-destructive", bg: "bg-destructive" };
-    if (stock <= min * 1.5) return { label: "Bajo", color: "text-amber-400", bg: "bg-amber-400" };
-    return { label: "Óptimo", color: "text-primary", bg: "bg-primary" };
+  const criticos = insumos.filter(i => i.stock <= i.minimo);
+  const filtered = catFilter === "Todos" ? insumos : insumos.filter(i => i.categoria === catFilter);
+
+  const updateStock = (idx: number, delta: number) => {
+    const arr = [...insumos];
+    arr[idx] = { ...arr[idx], stock: Math.max(0, arr[idx].stock + delta) };
+    setInsumos(arr);
   };
-
-  const criticos = insumos.filter(i => i.stock <= i.minimo).length;
 
   const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const newInsumo = {
-      nombre: formData.get('nombre') as string,
-      categoria: formData.get('categoria') as string,
-      stock: Number(formData.get('stock')),
-      maximo: Number(formData.get('maximo')),
-      minimo: Number(formData.get('minimo')),
-      unidad: formData.get('unidad') as string,
-    };
-    setInsumos([newInsumo, ...insumos]);
+    const fd = new FormData(e.currentTarget);
+    setInsumos([...insumos, {
+      nombre: fd.get('nombre') as string,
+      categoria: fd.get('categoria') as string,
+      stock: Number(fd.get('stock')),
+      maximo: Number(fd.get('maximo')),
+      minimo: Number(fd.get('minimo')),
+      unidad: fd.get('unidad') as string,
+    }]);
+    setOpen(false);
   };
 
-  const updateStock = (idx: number, delta: number) => {
-    const updated = [...insumos];
-    updated[idx].stock = Math.max(0, updated[idx].stock + delta);
-    setInsumos(updated);
-  };
+  const valorInventario = insumos.reduce((s, i) => s + i.stock * 15000, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Insumos y Kardex</h1>
-          <p className="text-muted-foreground">Control de inventario de medicamentos y alimentos</p>
+    <div className="space-y-5 pb-8">
+      {/* Banner */}
+      <div className="bg-gradient-to-r from-[#7c3d10] to-[#e65100] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">💊</div>
+          <div>
+            <h1 className="text-xl font-bold text-white">Insumos y Kardex</h1>
+            <p className="text-white/70 text-sm">Control de stock · Medicamentos · Vacunas · Alertas de reposición</p>
+          </div>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus size={16} />
-              Agregar Insumo
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form onSubmit={handleAdd}>
-              <DialogHeader>
-                <DialogTitle>Nuevo Insumo</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="nombre" className="text-right">Nombre</Label>
-                  <Input id="nombre" name="nombre" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="categoria" className="text-right">Categoría</Label>
-                  <Input id="categoria" name="categoria" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="stock" className="text-right">Stock Actual</Label>
-                  <Input id="stock" name="stock" type="number" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="minimo" className="text-right">Min / Max</Label>
-                  <div className="col-span-3 flex gap-2">
-                    <Input id="minimo" name="minimo" type="number" placeholder="Min" required />
-                    <Input id="maximo" name="maximo" type="number" placeholder="Max" required />
+        <div className="flex gap-2">
+          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+            <Download size={14} /> CSV
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+                <Plus size={14} /> Insumo
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <form onSubmit={handleAdd}>
+                <DialogHeader><DialogTitle>Nuevo Insumo</DialogTitle></DialogHeader>
+                <div className="grid gap-3 py-4">
+                  <div className="grid grid-cols-4 items-center gap-3">
+                    <Label className="text-right">Nombre</Label>
+                    <Input name="nombre" className="col-span-3" required />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-3">
+                    <Label className="text-right">Categoría</Label>
+                    <div className="col-span-3"><Select name="categoria" defaultValue="Reproductivo"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{['Alimentacion','Reproductivo','Mineral','Antibiotico','Biologico','Antiparasitario'].map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div>
+                  </div>
+                  {[['stock','Stock actual','0'],['maximo','Stock máximo','30'],['minimo','Stock mínimo','10']].map(([n,l,d]) => (
+                    <div key={n} className="grid grid-cols-4 items-center gap-3">
+                      <Label className="text-right">{l}</Label>
+                      <Input name={n} type="number" className="col-span-3" defaultValue={d} required />
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-4 items-center gap-3">
+                    <Label className="text-right">Unidad</Label>
+                    <Input name="unidad" className="col-span-3" defaultValue="frascos" />
                   </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="unidad" className="text-right">Unidad</Label>
-                  <Input id="unidad" name="unidad" className="col-span-3" placeholder="Ej. kg, frascos" required />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancelar</Button>
-                </DialogClose>
-                <DialogClose asChild>
+                <DialogFooter>
+                  <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
                   <Button type="submit">Guardar</Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">{insumos.length}</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Productos</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-destructive/10 border-destructive/30 border">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-destructive">{criticos}</span>
-            <span className="text-xs text-destructive/80 mt-1 uppercase tracking-wider">Stock Crítico</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-primary">$5.3M</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Valor Inventario</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">{new Set(insumos.map(i => i.categoria)).size}</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Categorías</span>
-          </CardContent>
-        </Card>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label:'STOCK MÍNIMO', val:String(criticos.length), sub:'a reponer urgente', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
+          { label:'PRODUCTOS', val:String(insumos.length), sub:'registrados', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
+          { label:'VALOR INVENTARIO', val:`$${(valorInventario/1000000).toFixed(1)}M`, sub:'COP estimado', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
+          { label:'CATEGORÍAS', val:'6', sub:'tipos activos', gradient:'linear-gradient(135deg,#00695c,#00897b)' },
+        ].map(k => (
+          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
+            <div className="text-2xl font-bold">{k.val}</div>
+            <div className="text-[10px] text-white/60">{k.sub}</div>
+          </div>
+        ))}
       </div>
 
-      {criticos > 0 && (
-        <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl flex items-start gap-3">
-          <AlertCircle className="text-destructive shrink-0 mt-0.5" />
+      {/* Alert banner */}
+      {criticos.length > 0 && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
           <div>
-            <h4 className="font-semibold text-destructive">Productos en nivel crítico</h4>
-            <p className="text-sm text-destructive/80 mt-1">Hay {criticos} insumos por debajo del stock mínimo. Se recomienda generar orden de compra.</p>
+            <span className="text-sm font-semibold text-red-400">{criticos.length} producto(s) bajo stock mínimo — Reponer urgente</span>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {criticos.map(c => (
+                <span key={c.nombre} className="bg-orange-500/20 text-orange-300 text-xs font-medium px-2.5 py-1 rounded-full border border-orange-500/30">{c.nombre}</span>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead>Insumo</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Nivel de Stock</TableHead>
-                <TableHead className="text-right">Cantidad</TableHead>
-                <TableHead className="text-right">Ajuste</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {insumos.map((i, idx) => {
-                const status = getStatus(i.stock, i.minimo);
-                const percent = Math.min(100, Math.max(0, (i.stock / i.maximo) * 100));
-                
-                return (
-                  <TableRow key={idx} className="border-border">
-                    <TableCell className="font-medium">{i.nombre}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{i.categoria}</TableCell>
-                    <TableCell className="w-[300px]">
-                      <div className="flex flex-col gap-1 mt-2 mb-2">
-                        <div className="flex justify-between text-xs">
-                          <span className={status.color}>{status.label}</span>
-                          <span className="text-muted-foreground">Min: {i.minimo}</span>
-                        </div>
-                        <Progress value={percent} className={`h-1.5 bg-muted/50 [&>div]:${status.bg}`} />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right font-bold">
-                      {i.stock} <span className="text-xs text-muted-foreground font-normal">{i.unidad}</span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="outline" size="icon" onClick={() => updateStock(idx, -1)} className="h-7 w-7 border-border hover:bg-muted/50"><Minus size={14} /></Button>
-                        <Button variant="outline" size="icon" onClick={() => updateStock(idx, 1)} className="h-7 w-7 border-border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"><Plus size={14} /></Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {/* Inventario */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-[#7c3d10] to-[#e65100] px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-base">📦</span>
+            <div>
+              <div className="font-semibold text-white text-sm">Inventario de Insumos</div>
+              <div className="text-white/60 text-xs">{insumos.length} productos registrados</div>
+            </div>
+          </div>
+          <Select value={catFilter} onValueChange={setCatFilter}>
+            <SelectTrigger className="w-36 bg-white/10 border-white/20 text-white text-xs h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {['Todos','Alimentacion','Reproductivo','Mineral','Antibiotico','Biologico','Antiparasitario'].map(v => (
+                <SelectItem key={v} value={v}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="divide-y divide-border">
+          {filtered.map((ins, idx) => {
+            const pct = Math.round((ins.stock / ins.maximo) * 100);
+            const isLow = ins.stock <= ins.minimo;
+            const realIdx = insumos.indexOf(ins);
+            return (
+              <div key={ins.nombre} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/20 transition-colors">
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full min-w-[100px] text-center ${getCatStyle(ins.categoria)}`}>
+                  {ins.categoria}
+                </span>
+                <span className="flex-1 font-medium text-sm text-foreground">{ins.nombre}</span>
+                <div className="w-28 hidden sm:block">
+                  <div className="text-[10px] text-muted-foreground mb-1">{pct}% del máx</div>
+                  <div className="h-1.5 bg-muted/30 rounded-full">
+                    <div className="h-1.5 rounded-full transition-all" style={{width:`${pct}%`, background: isLow ? '#ef4444' : '#22c55e'}} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => updateStock(realIdx, -1)} className="w-7 h-7 rounded border border-border bg-muted/30 hover:bg-muted flex items-center justify-center text-foreground font-bold text-sm">−</button>
+                  <span className="text-sm font-mono w-28 text-center text-foreground">{ins.stock}/{ins.maximo} {ins.unidad}</span>
+                  <button onClick={() => updateStock(realIdx, 1)} className="w-7 h-7 rounded border border-border bg-muted/30 hover:bg-muted flex items-center justify-center text-foreground font-bold text-sm">+</button>
+                </div>
+                <span className={`text-xs font-semibold border rounded-md px-2 py-0.5 min-w-[60px] text-center ${isLow ? 'text-red-400 border-red-400/40 bg-red-400/5' : 'text-green-400 border-green-400/40 bg-green-400/5'}`}>
+                  {isLow ? '⚠ Pedir' : '✓ OK'}
+                </span>
+                <div className="flex gap-1 ml-1">
+                  <button className="text-muted-foreground hover:text-primary p-1"><Pencil size={13} /></button>
+                  <button className="text-muted-foreground hover:text-destructive p-1" onClick={() => setInsumos(insumos.filter((_,i)=>i!==realIdx))}><Trash2 size={13} /></button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

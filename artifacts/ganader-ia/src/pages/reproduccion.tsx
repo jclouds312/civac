@@ -5,10 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Plus, Download, Pencil, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function Reproduccion() {
-  const { reproduccion, setReproduccion } = useAppState();
+  const { reproduccion, setReproduccion, animals } = useAppState();
   const [open, setOpen] = useState(false);
 
   const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
@@ -28,17 +28,30 @@ export default function Reproduccion() {
 
   const getDiasColor = (dias: number) => dias < 20 ? 'text-green-400 bg-green-400/10' : dias < 35 ? 'text-orange-400 bg-orange-400/10' : 'text-muted-foreground bg-muted/30';
 
+  const stats = useMemo(() => {
+    const totalAnimales = animals.length || 1;
+    const gestantes = reproduccion.length;
+    const proxPartos30d = reproduccion.filter(r => r.dias <= 30).length;
+    const proxPartos7d = reproduccion.filter(r => r.dias <= 7).length;
+    const vacasAbiertas = animals.filter(a =>
+      (a.categoria === 'Vaca adulta' || a.categoria === 'Novilla') &&
+      a.estado === 'Abierta'
+    ).length;
+    const pctHato = ((gestantes / totalAnimales) * 100).toFixed(0);
+    return { gestantes, proxPartos30d, proxPartos7d, vacasAbiertas, pctHato };
+  }, [reproduccion, animals]);
+
   const kpisTop = [
     { label:'TASA CONCEPCIÓN', val:'62%', sub:'Meta 70% ↓', dot:'bg-orange-400' },
-    { label:'PRÓX. PARTOS 30D', val:'3', sub:'gestantes', dot:'bg-green-400' },
+    { label:'PRÓX. PARTOS 30D', val: String(stats.proxPartos30d), sub:'gestantes confirmadas', dot: stats.proxPartos30d > 0 ? 'bg-green-400' : 'bg-muted-foreground' },
     { label:'ANESTROS >90D', val:'8', sub:'acción urgente', dot:'bg-red-500' },
-    { label:'GESTANTES', val:'1', sub:'8% del hato', dot:'bg-green-400' },
+    { label:'GESTANTES', val: String(stats.gestantes), sub:`${stats.pctHato}% del hato`, dot: stats.gestantes > 0 ? 'bg-green-400' : 'bg-muted-foreground' },
     { label:'IEP PROMEDIO', val:'428d', sub:'Meta <390d', dot:'bg-red-500' },
   ];
 
   const kpisBot = [
     { label:'TASA PREÑEZ', val:'52%', sub:'Meta 60%', dot:'bg-orange-400' },
-    { label:'VACAS ABIERTAS', val:'2', sub:'revisar protocolo', dot:'bg-orange-400' },
+    { label:'VACAS ABIERTAS', val: String(stats.vacasAbiertas), sub:'revisar protocolo', dot: stats.vacasAbiertas > 2 ? 'bg-red-500' : 'bg-orange-400' },
     { label:'DÍAS ABIERTOS PROM.', val:'142d', sub:'Meta <90d', dot:'bg-red-500' },
     { label:'DESTETES EXITOSOS', val:'94%', sub:'Meta 90% ✓', dot:'bg-green-400' },
   ];

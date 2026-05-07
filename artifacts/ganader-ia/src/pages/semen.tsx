@@ -1,183 +1,171 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus, Download, Pencil, Trash2, Snowflake } from "lucide-react";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+
+const initialSemen = [
+  { id: 'S-001', toro: 'Altísimo IA', raza: 'Holstein', dep: '+820L', canecas: 2, pajillas: 24, origen: 'Canadá', tipo: 'Convencional', cria: 2026 },
+  { id: 'S-002', toro: 'El Campeón', raza: 'Gyr', dep: '+680L', canecas: 1, pajillas: 12, origen: 'Brasil', tipo: 'Sexado', cria: 2025 },
+  { id: 'S-003', toro: 'Montana Star', raza: 'Angus', dep: '+540kg', canecas: 1, pajillas: 8, origen: 'EE.UU.', tipo: 'Convencional', cria: 2025 },
+  { id: 'S-004', toro: 'Brahman Royal', raza: 'Brahman', dep: '+410L', canecas: 1, pajillas: 18, origen: 'Colombia', tipo: 'Convencional', cria: 2024 },
+];
+
+const embriones = [
+  { id: 'E-001', donante: 'Rosaura A-0042', receptor: 'Perla A-0712', fecha: '15/03/2025', estado: 'Transferido', raza: 'Holstein' },
+  { id: 'E-002', donante: 'Estrella A-0604', receptor: 'Canela A-0108', fecha: '28/03/2025', estado: 'En criopreservación', raza: 'Holstein' },
+  { id: 'E-003', donante: 'Rosaura A-0042', receptor: '—', fecha: '10/04/2025', estado: 'En criopreservación', raza: 'Holstein' },
+];
 
 export default function Semen() {
+  const [semen, setSemen] = useState(initialSemen);
+  const [open, setOpen] = useState(false);
+
+  const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    setSemen([...semen, {
+      id: `S-00${semen.length + 1}`,
+      toro: fd.get('toro') as string,
+      raza: fd.get('raza') as string,
+      dep: fd.get('dep') as string,
+      canecas: 1,
+      pajillas: Number(fd.get('pajillas')),
+      origen: fd.get('origen') as string,
+      tipo: fd.get('tipo') as string,
+      cria: 2025,
+    }]);
+    setOpen(false);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Semen y Embriones</h1>
-          <p className="text-muted-foreground">Inventario genético y termos criogénicos</p>
+    <div className="space-y-5 pb-8">
+      {/* Banner */}
+      <div className="bg-gradient-to-r from-[#0d3d4a] to-[#00838f] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+            <Snowflake size={24} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-white">Semen y Embriones</h1>
+            <p className="text-white/70 text-sm">Inventario criogénico · Donantes · Transferencia de embriones</p>
+          </div>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus size={16} />
-              Agregar Material
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <form>
-              <DialogHeader>
-                <DialogTitle>Nuevo Material Genético</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="toro" className="text-right">Toro / Cruce</Label>
-                  <Input id="toro" name="toro" className="col-span-3" required />
+        <div className="flex gap-2">
+          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+            <Download size={14} /> CSV
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+                <Plus size={14} /> Registro
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <form onSubmit={handleAdd}>
+                <DialogHeader><DialogTitle>Nuevo Registro de Semen</DialogTitle></DialogHeader>
+                <div className="grid gap-3 py-4">
+                  {[['toro','Toro'],['raza','Raza'],['dep','DEP'],['pajillas','Pajillas'],['origen','Origen'],['tipo','Tipo']].map(([n,l]) => (
+                    <div key={n} className="grid grid-cols-4 items-center gap-3">
+                      <Label className="text-right">{l}</Label>
+                      <Input name={n} className="col-span-3" required />
+                    </div>
+                  ))}
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="tipo" className="text-right">Tipo</Label>
-                  <Input id="tipo" name="tipo" className="col-span-3" placeholder="Semen o Embrión" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="raza" className="text-right">Raza</Label>
-                  <Input id="raza" name="raza" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="cantidad" className="text-right">Cantidad</Label>
-                  <Input id="cantidad" name="cantidad" type="number" className="col-span-3" required />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="termo" className="text-right">Ubicación</Label>
-                  <Input id="termo" name="termo" className="col-span-3" placeholder="Ej. Termo A" required />
-                </div>
-              </div>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancelar</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button type="button">Guardar</Button>
-                </DialogClose>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter>
+                  <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
+                  <Button type="submit">Guardar</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">467</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Total Pajillas</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">4</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Toros Activos</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-primary">16</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Embriones</span>
-          </CardContent>
-        </Card>
-        <Card className="bg-[#0f1712] border-none">
-          <CardContent className="p-4 flex flex-col">
-            <span className="text-3xl font-bold text-white">3</span>
-            <span className="text-xs text-muted-foreground mt-1 uppercase tracking-wider">Termos en Uso</span>
-          </CardContent>
-        </Card>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label:'TOROS DISPONIBLES', val:String(semen.length), sub:'en inventario', gradient:'linear-gradient(135deg,#0d3d4a,#00838f)' },
+          { label:'TOTAL PAJILLAS', val:String(semen.reduce((s,r)=>s+r.pajillas,0)), sub:'en criopreservación', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
+          { label:'EMBRIONES', val:String(embriones.length), sub:'lotes registrados', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
+          { label:'CANECAS', val:String(semen.reduce((s,r)=>s+r.canecas,0)), sub:'nitrógeno líquido', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
+        ].map(k => (
+          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
+            <div className="text-2xl font-bold">{k.val}</div>
+            <div className="text-[10px] text-white/60">{k.sub}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="col-span-1 md:col-span-2">
-          <CardHeader>
-            <CardTitle>Catálogo de Semen</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border hover:bg-transparent">
-                  <TableHead>Toro</TableHead>
-                  <TableHead>Raza</TableHead>
-                  <TableHead>DEP Leche</TableHead>
-                  <TableHead>Ubicación</TableHead>
-                  <TableHead className="text-right">Pajillas</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="border-border">
-                  <TableCell className="font-bold text-foreground">Titan USA</TableCell>
-                  <TableCell className="text-muted-foreground">Holstein</TableCell>
-                  <TableCell className="text-primary font-medium">+1105L</TableCell>
-                  <TableCell><Badge variant="outline">Termo A</Badge></TableCell>
-                  <TableCell className="text-right font-bold">194</TableCell>
-                </TableRow>
-                <TableRow className="border-border">
-                  <TableCell className="font-bold text-foreground">Altisimo</TableCell>
-                  <TableCell className="text-muted-foreground">Holstein</TableCell>
-                  <TableCell className="text-primary font-medium">+1240L</TableCell>
-                  <TableCell><Badge variant="outline">Termo A</Badge></TableCell>
-                  <TableCell className="text-right font-bold">120</TableCell>
-                </TableRow>
-                <TableRow className="border-border">
-                  <TableCell className="font-bold text-foreground">Campeon III</TableCell>
-                  <TableCell className="text-muted-foreground">Holstein</TableCell>
-                  <TableCell className="text-primary font-medium">+980L</TableCell>
-                  <TableCell><Badge variant="outline">Termo A</Badge></TableCell>
-                  <TableCell className="text-right font-bold">98</TableCell>
-                </TableRow>
-                <TableRow className="border-border">
-                  <TableCell className="font-bold text-foreground">Furacao</TableCell>
-                  <TableCell className="text-muted-foreground">Gyr</TableCell>
-                  <TableCell className="text-primary font-medium">+850L</TableCell>
-                  <TableCell><Badge variant="outline">Termo B</Badge></TableCell>
-                  <TableCell className="text-right font-bold text-amber-500">55</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      {/* Semen table */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-[#0d3d4a] to-[#00838f] px-5 py-3">
+          <div className="font-semibold text-white text-sm">❄️ Inventario de Semen</div>
+          <div className="text-white/60 text-xs">{semen.length} toros registrados en stock criogénico</div>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0a3040] hover:bg-[#0a3040] border-b border-teal-900/40">
+              {['ID','Toro','Raza','DEP','Pajillas','Tipo','Origen','Año Cría',''].map(h => (
+                <TableHead key={h} className="text-white/70 font-semibold text-xs uppercase">{h}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {semen.map(s => (
+              <TableRow key={s.id} className="border-border hover:bg-muted/20">
+                <TableCell className="font-mono text-xs text-cyan-400">{s.id}</TableCell>
+                <TableCell className="font-semibold text-sm">{s.toro}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{s.raza}</TableCell>
+                <TableCell className="text-green-400 font-bold text-sm">{s.dep}</TableCell>
+                <TableCell className="font-bold text-blue-400">{s.pajillas}</TableCell>
+                <TableCell><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.tipo === 'Sexado' ? 'bg-purple-500/20 text-purple-400' : 'bg-teal-500/20 text-teal-400'}`}>{s.tipo}</span></TableCell>
+                <TableCell className="text-muted-foreground text-sm">{s.origen}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{s.cria}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <button className="text-muted-foreground hover:text-primary p-1"><Pencil size={13} /></button>
+                    <button className="text-muted-foreground hover:text-destructive p-1" onClick={() => setSemen(semen.filter(x=>x.id!==s.id))}><Trash2 size={13} /></button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>Embriones</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 border border-border bg-muted/20 rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-bold">Rosaura x Altisimo</div>
-                <Badge className="bg-primary/20 text-primary border-primary/30">Grado A</Badge>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Disponible</span>
-                <span className="font-bold">8 unidades</span>
-              </div>
-            </div>
-            
-            <div className="p-4 border border-border bg-muted/20 rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-bold">Estrella x Titan USA</div>
-                <Badge className="bg-primary/20 text-primary border-primary/30">Grado A</Badge>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Disponible</span>
-                <span className="font-bold">5 unidades</span>
-              </div>
-            </div>
-
-            <div className="p-4 border border-border bg-muted/20 rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <div className="font-bold">Palmera x Campeon III</div>
-                <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30">Grado B</Badge>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Disponible</span>
-                <span className="font-bold">3 unidades</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Embriones */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <div className="font-semibold text-sm">🧬 Registro de Embriones</div>
+          <div className="text-xs text-muted-foreground">{embriones.length} lotes registrados</div>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#1a4a2e] hover:bg-[#1a4a2e] border-b border-[#2d6a3f]">
+              {['ID','Donante','Receptor','Raza','Fecha TE','Estado'].map(h => (
+                <TableHead key={h} className="text-white/70 font-semibold text-xs uppercase">{h}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {embriones.map(e => (
+              <TableRow key={e.id} className="border-border hover:bg-muted/20">
+                <TableCell className="font-mono text-xs text-cyan-400">{e.id}</TableCell>
+                <TableCell className="font-medium text-sm">{e.donante}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{e.receptor}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{e.raza}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">{e.fecha}</TableCell>
+                <TableCell>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${e.estado === 'Transferido' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>{e.estado}</span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

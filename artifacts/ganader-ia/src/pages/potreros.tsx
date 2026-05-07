@@ -24,6 +24,9 @@ export default function Potreros() {
   const [view, setView] = useState<'mapa' | 'lista'>('mapa');
 
   const totalHa = potreros.reduce((s, p) => s + p.hectareas, 0);
+  const disponibles = potreros.filter(p => p.estado === 'Disponible').length;
+  const enDescanso = potreros.filter(p => p.estado === 'Descanso').length;
+  const rotarUrgente = potreros.filter(p => p.estado === 'Rotar pronto').length;
 
   return (
     <div className="space-y-5 pb-8">
@@ -53,9 +56,9 @@ export default function Potreros() {
         {[
           { label:'POTREROS', val:`${potreros.length}`, sub:'registrados', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
           { label:'ÁREA TOTAL', val:`${totalHa.toFixed(1)} ha`, sub:'hectáreas', gradient:'linear-gradient(135deg,#00695c,#00897b)' },
-          { label:'DISPONIBLES', val:'1', sub:'para uso', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
-          { label:'EN DESCANSO', val:'1', sub:'recuperando', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
-          { label:'ROTAR URGENTE', val:'1', sub:'revisar hoy', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
+          { label:'DISPONIBLES', val:String(disponibles), sub:'para uso', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
+          { label:'EN DESCANSO', val:String(enDescanso), sub:'recuperando', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
+          { label:'ROTAR URGENTE', val:String(rotarUrgente), sub:'revisar hoy', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
         ].map(k => (
           <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
             <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>

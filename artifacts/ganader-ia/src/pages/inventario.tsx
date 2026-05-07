@@ -78,6 +78,9 @@ export default function Inventario() {
   };
 
   const totalLeche = animals.reduce((s, a) => s + (a.litrosDia || 0), 0);
+  const enProduccion = animals.filter(a => a.estado === 'Producción').length;
+  const gestantes = animals.filter(a => a.estado === 'Gestante').length;
+  const enTratamiento = animals.filter(a => a.estado === 'Tratamiento').length;
 
   return (
     <div className="space-y-5 pb-8">
@@ -149,9 +152,9 @@ export default function Inventario() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { label:'TOTAL ANIMALES', val: String(animals.length), sub:'en sistema', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'EN PRODUCCIÓN', val:'5', sub:'ordeño activo', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
-          { label:'GESTANTES', val:'1', sub:'confirmadas', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
-          { label:'EN TRATAMIENTO', val:'1', sub:'revisar hoy', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
+          { label:'EN PRODUCCIÓN', val:String(enProduccion), sub:'ordeño activo', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
+          { label:'GESTANTES', val:String(gestantes), sub:'confirmadas', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
+          { label:'EN TRATAMIENTO', val:String(enTratamiento), sub:'revisar hoy', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
           { label:'LECHE/DÍA', val:`${totalLeche.toFixed(0)}L`, sub:'producción total', gradient:'linear-gradient(135deg,#e65100,#f57c00)' },
         ].map(k => (
           <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>

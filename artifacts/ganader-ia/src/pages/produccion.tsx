@@ -1,10 +1,11 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LabelList } from "recharts";
 import { Download, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAppState } from "../lib/data";
 
 const dataHistorico = [
   { name: 'Oct', litros: 52000 },
@@ -16,16 +17,7 @@ const dataHistorico = [
   { name: 'Abr', litros: 61300 },
 ];
 
-const topVacas = [
-  { rank: 1, nombre: 'Rosaura', litros: 18.4 },
-  { rank: 2, nombre: 'Estrella', litros: 17.8 },
-  { rank: 3, nombre: 'Cielo', litros: 16.9 },
-  { rank: 4, nombre: 'Niebla', litros: 15.8 },
-  { rank: 5, nombre: 'Palmera', litros: 15.2 },
-  { rank: 6, nombre: 'Perla', litros: 12.1 },
-];
-
-const registros = [
+const registrosIniciales = [
   { fecha: '29/04/2025', litros: 1980, precio: 1250, ingreso: 2475000, nota: 'Ordeño normal' },
   { fecha: '28/04/2025', litros: 2010, precio: 1250, ingreso: 2512500, nota: 'Lluvia intensa' },
   { fecha: '27/04/2025', litros: 1950, precio: 1250, ingreso: 2437500, nota: '—' },
@@ -33,9 +25,25 @@ const registros = [
   { fecha: '25/04/2025', litros: 1890, precio: 1250, ingreso: 2362500, nota: 'Vacuna IBR' },
 ];
 
+const fmt = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
 export default function Produccion() {
+  const { animals } = useAppState();
   const [open, setOpen] = useState(false);
-  const [regs, setRegs] = useState(registros);
+  const [regs, setRegs] = useState(registrosIniciales);
+
+  const vacasEnProduccion = useMemo(() =>
+    animals.filter(a => a.estado === 'Producción' && (a.litrosDia || 0) > 0)
+      .sort((a, b) => (b.litrosDia || 0) - (a.litrosDia || 0)),
+    [animals]
+  );
+
+  const totalLitrosDia = useMemo(() => Math.round(vacasEnProduccion.reduce((s, a) => s + (a.litrosDia || 0), 0)), [vacasEnProduccion]);
+  const litrosMes = useMemo(() => totalLitrosDia * 30, [totalLitrosDia]);
+  const litrosPorVaca = vacasEnProduccion.length > 0 ? (totalLitrosDia / vacasEnProduccion.length).toFixed(1) : '0';
+  const ingresoMes = litrosMes * 1250;
+  const costoMes = litrosMes * 820;
+  const margen = ingresoMes > 0 ? ((ingresoMes - costoMes) / ingresoMes * 100).toFixed(1) : '0';
 
   const handleAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -94,45 +102,56 @@ export default function Produccion() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — computed from real animals */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label:'PRODUCCIÓN MES', val:'9.855 L', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
-          { label:'PRECIO LITRO', val:'$1.250', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'INGRESO BRUTO', val:'$12.3M', gradient:'linear-gradient(135deg,#e65100,#f57c00)' },
-          { label:'COSTO/LITRO', val:'$820', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
-          { label:'MARGEN', val:'34.4%', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
+          { label:'VACAS EN ORDEÑO', val:String(vacasEnProduccion.length), sub:`${litrosPorVaca} L/vaca/día`, gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
+          { label:'LITROS HOY', val:`${totalLitrosDia} L`, sub:'producción diaria', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
+          { label:'INGRESO MES EST.', val:`${fmt(ingresoMes)}`, sub:`${(litrosMes/1000).toFixed(0)}K litros × $1.250`, gradient:'linear-gradient(135deg,#e65100,#f57c00)' },
+          { label:'COSTO/LITRO', val:'$820', sub:'Meta <$800', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
+          { label:'MARGEN', val:`${margen}%`, sub:'neto mensual', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
         ].map(k => (
           <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
             <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
+            <div className="text-lg font-bold leading-tight">{k.val}</div>
+            <div className="text-[10px] text-white/60 mt-0.5">{k.sub}</div>
           </div>
         ))}
       </div>
 
       {/* 2-col: Top vacas + Histórico */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Top vacas */}
+        {/* Top vacas — from real animals */}
         <div className="bg-card border border-border rounded-xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-base">🏆</div>
             <div>
               <div className="font-semibold">Top vacas en producción</div>
-              <div className="text-xs text-muted-foreground">6 en ordeño activo</div>
+              <div className="text-xs text-muted-foreground">{vacasEnProduccion.length} en ordeño activo · {totalLitrosDia} L/día total</div>
             </div>
           </div>
-          <div className="space-y-3">
-            {topVacas.map(v => (
-              <div key={v.nombre} className="flex items-center gap-3">
-                <span className="w-6 h-6 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">{v.rank}</span>
-                <span className="text-sm font-medium w-20">{v.nombre}</span>
-                <div className="flex-1 bg-muted/30 rounded-full h-2.5">
-                  <div className="h-2.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400" style={{width:`${(v.litros/20)*100}%`}} />
+          {vacasEnProduccion.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No hay vacas en producción actualmente.</p>
+          ) : (
+            <div className="space-y-3">
+              {vacasEnProduccion.map((v, i) => (
+                <div key={v.id} className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center flex-shrink-0 ${i === 0 ? 'bg-amber-500/20 text-amber-400' : i === 1 ? 'bg-gray-400/20 text-gray-400' : i === 2 ? 'bg-orange-600/20 text-orange-400' : 'bg-primary/15 text-primary'}`}>{i+1}</span>
+                  <div className="text-sm font-medium w-20 truncate">{v.nombre}</div>
+                  <div className="flex-1 bg-muted/30 rounded-full h-2.5">
+                    <div className="h-2.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400" style={{width:`${Math.min(((v.litrosDia||0)/25)*100, 100)}%`}} />
+                  </div>
+                  <span className="text-xs font-bold text-cyan-400 w-14 text-right">{v.litrosDia}L/d</span>
                 </div>
-                <span className="text-xs font-bold text-cyan-400 w-14 text-right">{v.litros}L/d</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+          {vacasEnProduccion.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-border flex justify-between text-xs text-muted-foreground">
+              <span>Mejor: <strong className="text-amber-400">{vacasEnProduccion[0]?.nombre} — {vacasEnProduccion[0]?.litrosDia} L/d</strong></span>
+              <span>Prom: <strong className="text-foreground">{litrosPorVaca} L/d</strong></span>
+            </div>
+          )}
         </div>
 
         {/* Histórico */}
@@ -150,7 +169,7 @@ export default function Produccion() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                 <XAxis dataKey="name" stroke="#444" tick={{fill:'#888',fontSize:10}} />
                 <YAxis stroke="#444" tick={{fill:'#888',fontSize:10}} width={42} />
-                <RechartsTooltip contentStyle={{backgroundColor:'#111',borderColor:'#333',color:'#fff'}} />
+                <RechartsTooltip contentStyle={{backgroundColor:'#111',borderColor:'#333',color:'#fff'}} formatter={(v:number) => [`${v.toLocaleString('es-CO')} L`, 'Litros']} />
                 <Bar dataKey="litros" fill="#1565c0" radius={[4,4,0,0]}>
                   <LabelList dataKey="litros" position="top" style={{fill:'#888',fontSize:9}} formatter={(v: number) => `${(v/1000).toFixed(0)}K`} />
                 </Bar>
@@ -168,7 +187,7 @@ export default function Produccion() {
             </div>
             <div className="bg-purple-500/10 rounded-lg p-2 text-center">
               <div className="text-xs text-muted-foreground">Margen</div>
-              <div className="text-sm font-bold text-purple-400">34.4%</div>
+              <div className="text-sm font-bold text-purple-400">{margen}%</div>
             </div>
           </div>
         </div>
@@ -199,11 +218,20 @@ export default function Produccion() {
                 <td className="px-4 py-3"><span className="bg-muted/40 text-foreground text-xs px-2 py-1 rounded font-mono">{r.fecha}</span></td>
                 <td className="px-4 py-3 text-cyan-400 font-bold text-sm">{r.litros.toLocaleString('es-CO')} L</td>
                 <td className="px-4 py-3 text-muted-foreground text-sm">${r.precio.toLocaleString('es-CO')}</td>
-                <td className="px-4 py-3 text-cyan-400 font-bold text-sm">${r.ingreso.toLocaleString('es-CO')}</td>
+                <td className="px-4 py-3 text-green-400 font-bold text-sm">{fmt(r.ingreso)}</td>
                 <td className="px-4 py-3 text-muted-foreground text-sm">{r.nota}</td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="bg-muted/20 border-t border-border">
+              <td className="px-4 py-3 font-bold text-sm text-foreground">TOTAL</td>
+              <td className="px-4 py-3 font-bold text-cyan-400">{regs.reduce((s,r)=>s+r.litros,0).toLocaleString('es-CO')} L</td>
+              <td />
+              <td className="px-4 py-3 font-bold text-green-400">{fmt(regs.reduce((s,r)=>s+r.ingreso,0))}</td>
+              <td />
+            </tr>
+          </tfoot>
         </table>
       </div>
     </div>

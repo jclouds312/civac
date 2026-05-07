@@ -29,6 +29,7 @@ import Usuarios from "./pages/usuarios";
 import Configuracion from "./pages/configuracion";
 import Documentacion from "./pages/documentacion";
 import Manual from "./pages/manual";
+import Pesaje from "./pages/pesaje";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ function AuthGate() {
         <Route path="/ficha" component={Ficha} />
         <Route path="/reproduccion" component={Reproduccion} />
         <Route path="/produccion" component={Produccion} />
+        <Route path="/pesaje" component={Pesaje} />
         <Route path="/genetica" component={Genetica} />
         <Route path="/potreros" component={Potreros} />
         <Route path="/alimentacion" component={Alimentacion} />

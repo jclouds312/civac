@@ -7,13 +7,14 @@ import {
   BookOpen, Search, LayoutDashboard, List, Activity, Baby, Dna,
   Map, Wheat, Package, TestTube, DollarSign, Users, LineChart, Leaf,
   Bell, ActivitySquare, ChevronRight, ChevronDown, Zap, Shield, Database,
-  Smartphone, Wifi, HelpCircle, ExternalLink, Clock, Star, Download
+  Smartphone, Wifi, HelpCircle, Clock, Star, Download, Scale
 } from "lucide-react";
 
 const modules = [
-  { icon: LayoutDashboard, name: "Tablero KPIs", color: "text-emerald-500", bg: "bg-emerald-500/10", desc: "Vista general del sistema. 6 KPIs principales, gráficos de tendencia, alertas activas, análisis de 3 columnas y módulos de acceso rápido.", nivel: "Básico", tiempo: "5 min" },
+  { icon: LayoutDashboard, name: "Tablero KPIs", color: "text-emerald-500", bg: "bg-emerald-500/10", desc: "Vista general del sistema con datos en vivo. 6 KPIs computados automáticamente del hato, gráficos de tendencia histórica con meta overlay, Análisis de Pesos por categoría, Producción Lechera con ranking y módulo rápido de Básculas.", nivel: "Básico", tiempo: "5 min" },
   { icon: List, name: "Inventario", color: "text-blue-500", bg: "bg-blue-500/10", desc: "Gestión del hato ganadero. CRUD completo de animales con RFID, filtros por categoría/lote/estado, badge de color por raza y conteo automático.", nivel: "Básico", tiempo: "10 min" },
   { icon: Activity, name: "Producción", color: "text-cyan-500", bg: "bg-cyan-500/10", desc: "Registro diario de ordeño. Ranking de vacas top con barras horizontales, BarChart histórico de 7 meses, planilla de 3 turnos y cálculo de litros/vaca.", nivel: "Básico", tiempo: "8 min" },
+  { icon: Scale, name: "Básculas y Pesaje", color: "text-cyan-400", bg: "bg-cyan-400/10", desc: "Módulo exclusivo de control de peso. 4 KPIs de pesaje (total registros, peso promedio, ganancia mensual, último pesaje), LineChart de evolución histórica multi-animal, BarChart por categoría, CRUD completo con condición corporal (1-5), variación automática calculada y filtros por animal/categoría.", nivel: "Básico", tiempo: "8 min" },
   { icon: Baby, name: "Reproducción", color: "text-pink-500", bg: "bg-pink-500/10", desc: "Seguimiento reproductivo. 5 KPIs con indicadores (IEP, tasa concepción, días abiertos), tabla de próximos partos y panel de anestros con diagnóstico IA.", nivel: "Intermedio", tiempo: "12 min" },
   { icon: Dna, name: "Genética", color: "text-violet-500", bg: "bg-violet-500/10", desc: "Análisis de DEP (Diferencias de Transmisión Esperada). Ranking con barras de score por indicador, panel de pedigrí con árbol genealógico y progenie.", nivel: "Avanzado", tiempo: "15 min" },
   { icon: Map, name: "Potreros", color: "text-teal-500", bg: "bg-teal-500/10", desc: "Gestión de pastoreo rotacional. Mapa CSS interactivo por colores (ocupado/descanso/disponible/rotar), toggle lista vs mapa y semáforo de rotación.", nivel: "Básico", tiempo: "7 min" },
@@ -67,7 +68,7 @@ export default function Documentacion() {
         <div className="relative">
           <div className="flex items-center gap-2 mb-3">
             <BookOpen size={20} className="text-blue-300" />
-            <Badge className="bg-blue-500/30 text-blue-200 border-blue-400/30 text-xs">{modules.length} módulos documentados</Badge>
+            <Badge className="bg-blue-500/30 text-blue-200 border-blue-400/30 text-xs">{modules.length} módulos documentados · Backend PostgreSQL activo</Badge>
           </div>
           <h1 className="text-2xl font-bold mb-2">Centro de Documentación</h1>
           <p className="text-blue-200/70 text-sm mb-4">Guías de uso, referencia técnica, preguntas frecuentes y tutoriales del sistema GanaderIA.</p>
@@ -87,7 +88,7 @@ export default function Documentacion() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { icon: Zap, label: "Inicio rápido", desc: "Primeros pasos", color: "text-yellow-500", bg: "bg-yellow-500/10", section: "quickstart" },
-          { icon: BookOpen, label: "Módulos", desc: "16 guías completas", color: "text-blue-500", bg: "bg-blue-500/10", section: "modulos" },
+          { icon: BookOpen, label: "Módulos", desc: "17 guías completas", color: "text-blue-500", bg: "bg-blue-500/10", section: "modulos" },
           { icon: HelpCircle, label: "FAQ", desc: "Preguntas frecuentes", color: "text-purple-500", bg: "bg-purple-500/10", section: "faq" },
           { icon: Shield, label: "PWA & Datos", desc: "Instalación y backup", color: "text-green-500", bg: "bg-green-500/10", section: "pwa" },
         ].map(item => (

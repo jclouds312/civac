@@ -6,6 +6,7 @@ import insumosRouter from "./insumos";
 import personalRouter from "./personal";
 import reproduccionRouter from "./reproduccion";
 import alertasRouter from "./alertas";
+import pesajeRouter from "./pesaje";
 import seedRouter from "./seed";
 
 const router: IRouter = Router();
@@ -17,6 +18,7 @@ router.use(insumosRouter);
 router.use(personalRouter);
 router.use(reproduccionRouter);
 router.use(alertasRouter);
+router.use(pesajeRouter);
 router.use(seedRouter);
 
 export default router;

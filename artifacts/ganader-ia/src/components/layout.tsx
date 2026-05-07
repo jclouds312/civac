@@ -5,7 +5,7 @@ import {
   Wheat, Package, TestTube,
   DollarSign, Users, LineChart, Leaf, Map,
   Settings, BookOpen, UserCircle, HelpCircle,
-  Menu, X, Sun, Moon, LogOut, ChevronDown, Download
+  Menu, X, Sun, Moon, LogOut, ChevronDown, Download, Scale
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
@@ -122,6 +122,7 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/ficha" icon={ActivitySquare} label="Ficha Individual" />
             <NavItem href="/reproduccion" icon={Baby} label="Reproducción" />
             <NavItem href="/produccion" icon={Activity} label="Producción" />
+            <NavItem href="/pesaje" icon={Scale} label="Básculas y Pesaje" />
             <NavItem href="/genetica" icon={Dna} label="Genética" />
           </Section>
 
@@ -189,7 +190,6 @@ export function Layout({ children }: LayoutProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* PWA install button (topbar, smaller) */}
             {installPrompt && (
               <Button variant="ghost" size="sm" onClick={handleInstall} className="text-xs text-emerald-600 dark:text-emerald-400 hidden sm:flex items-center gap-1.5 h-8">
                 <Download size={13} />
@@ -197,7 +197,6 @@ export function Layout({ children }: LayoutProps) {
               </Button>
             )}
 
-            {/* Dark/Light toggle */}
             <Button
               variant="ghost"
               size="icon"
@@ -208,13 +207,11 @@ export function Layout({ children }: LayoutProps) {
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </Button>
 
-            {/* Alerts bell */}
             <Button variant="ghost" size="icon" className="w-8 h-8 relative text-muted-foreground hover:text-foreground">
               <Bell size={16} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
             </Button>
 
-            {/* User avatar + menu */}
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}

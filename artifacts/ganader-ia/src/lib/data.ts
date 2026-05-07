@@ -56,10 +56,45 @@ export const initialReproduccion = [
 ];
 
 export const initialAlertas = [
-  { id: 1, title: "Potrero 4 requiere rotación", desc: "Días de ocupación superados", type: "warning", time: "1h ago" },
-  { id: 2, title: "Vaca Perla en tratamiento", desc: "Antibiótico L.A. día 2/3", type: "danger", time: "3h ago" },
-  { id: 3, title: "Stock bajo: Oxitocina", desc: "3 frascos restantes (Min: 10)", type: "warning", time: "5h ago" },
-  { id: 4, title: "Rosaura próximo parto", desc: "Faltan 11 días", type: "info", time: "1d ago" },
+  { id: 1, title: "Potrero 4 requiere rotación", desc: "Días de ocupación superados", type: "warning", time: "1h ago", resolved: false },
+  { id: 2, title: "Vaca Perla en tratamiento", desc: "Antibiótico L.A. día 2/3", type: "danger", time: "3h ago", resolved: false },
+  { id: 3, title: "Stock bajo: Oxitocina", desc: "3 frascos restantes (Min: 10)", type: "warning", time: "5h ago", resolved: false },
+  { id: 4, title: "Rosaura próximo parto", desc: "Faltan 11 días", type: "info", time: "1d ago", resolved: false },
+];
+
+export const initialPesaje = [
+  { id:1, animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/10/2024", peso:498, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Pesaje mensual", condicionCorporal:3, variacion:null },
+  { id:2, animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/11/2024", peso:505, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:3, variacion:7 },
+  { id:3, animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/12/2024", peso:511, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:6 },
+  { id:4, animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/01/2025", peso:516, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Ganancia excelente", condicionCorporal:4, variacion:5 },
+  { id:5, animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/04/2025", peso:520, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Estable", condicionCorporal:4, variacion:4 },
+  { id:6, animalId:"A-0604", animalNombre:"Estrella", categoria:"Vaca adulta", fecha:"01/10/2024", peso:514, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:null },
+  { id:7, animalId:"A-0604", animalNombre:"Estrella", categoria:"Vaca adulta", fecha:"01/12/2024", peso:524, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:10 },
+  { id:8, animalId:"A-0604", animalNombre:"Estrella", categoria:"Vaca adulta", fecha:"01/04/2025", peso:535, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Buen estado", condicionCorporal:4, variacion:11 },
+  { id:9, animalId:"A-0087", animalNombre:"Cielo", categoria:"Vaca adulta", fecha:"01/10/2024", peso:482, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { id:10, animalId:"A-0087", animalNombre:"Cielo", categoria:"Vaca adulta", fecha:"01/01/2025", peso:490, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:8 },
+  { id:11, animalId:"A-0087", animalNombre:"Cielo", categoria:"Vaca adulta", fecha:"01/04/2025", peso:502, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"Mejora post-parto", condicionCorporal:3, variacion:12 },
+  { id:12, animalId:"A-0445", animalNombre:"Niebla", categoria:"Vaca adulta", fecha:"01/10/2024", peso:490, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:3, variacion:null },
+  { id:13, animalId:"A-0445", animalNombre:"Niebla", categoria:"Vaca adulta", fecha:"01/04/2025", peso:505, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:3, variacion:15 },
+  { id:14, animalId:"A-0133", animalNombre:"Palmera", categoria:"Vaca adulta", fecha:"01/10/2024", peso:472, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { id:15, animalId:"A-0133", animalNombre:"Palmera", categoria:"Vaca adulta", fecha:"01/04/2025", peso:488, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"Estable", condicionCorporal:3, variacion:16 },
+  { id:16, animalId:"A-0712", animalNombre:"Perla", categoria:"Vaca adulta", fecha:"01/10/2024", peso:518, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:null },
+  { id:17, animalId:"A-0712", animalNombre:"Perla", categoria:"Vaca adulta", fecha:"01/04/2025", peso:510, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Leve pérdida por tratamiento", condicionCorporal:3, variacion:-8 },
+  { id:18, animalId:"A-0108", animalNombre:"Canela", categoria:"Vaca adulta", fecha:"01/10/2024", peso:485, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { id:19, animalId:"A-0108", animalNombre:"Canela", categoria:"Vaca adulta", fecha:"01/04/2025", peso:498, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:13 },
+  { id:20, animalId:"A-0319", animalNombre:"Luna", categoria:"Novilla", fecha:"01/10/2024", peso:255, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Novilla en crecimiento", condicionCorporal:3, variacion:null },
+  { id:21, animalId:"A-0319", animalNombre:"Luna", categoria:"Novilla", fecha:"01/01/2025", peso:272, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"", condicionCorporal:3, variacion:17 },
+  { id:22, animalId:"A-0319", animalNombre:"Luna", categoria:"Novilla", fecha:"01/04/2025", peso:287, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Buen desarrollo", condicionCorporal:3, variacion:15 },
+  { id:23, animalId:"A-0551", animalNombre:"Aurora", categoria:"Novilla", fecha:"01/10/2024", peso:265, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"", condicionCorporal:3, variacion:null },
+  { id:24, animalId:"A-0551", animalNombre:"Aurora", categoria:"Novilla", fecha:"01/04/2025", peso:295, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"", condicionCorporal:3, variacion:30 },
+  { id:25, animalId:"A-0215", animalNombre:"Tormenta", categoria:"Novilla", fecha:"01/10/2024", peso:280, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Gestante", condicionCorporal:3, variacion:null },
+  { id:26, animalId:"A-0215", animalNombre:"Tormenta", categoria:"Novilla", fecha:"01/04/2025", peso:312, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Ganancia por gestación", condicionCorporal:4, variacion:32 },
+  { id:27, animalId:"A-0401", animalNombre:"Bravo", categoria:"Toro", fecha:"01/10/2024", peso:790, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Pesaje semestral", condicionCorporal:4, variacion:null },
+  { id:28, animalId:"A-0401", animalNombre:"Bravo", categoria:"Toro", fecha:"01/04/2025", peso:810, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Excelente condición", condicionCorporal:4, variacion:20 },
+  { id:29, animalId:"A-0667", animalNombre:"Brisa", categoria:"Ternero", fecha:"01/01/2025", peso:45, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"Nacimiento", condicionCorporal:3, variacion:null },
+  { id:30, animalId:"A-0667", animalNombre:"Brisa", categoria:"Ternero", fecha:"01/04/2025", peso:72, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"Buen desarrollo", condicionCorporal:3, variacion:27 },
+  { id:31, animalId:"A-0512", animalNombre:"Manchas", categoria:"Ternero", fecha:"01/10/2024", peso:52, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { id:32, animalId:"A-0512", animalNombre:"Manchas", categoria:"Ternero", fecha:"01/04/2025", peso:88, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:36 },
 ];
 
 // ─── API Sync Helpers ─────────────────────────────────────────────────────────
@@ -111,6 +146,7 @@ type Insumo = typeof initialInsumos[0];
 type Personal = typeof initialPersonal[0];
 type Reproduccion = typeof initialReproduccion[0];
 type Alerta = typeof initialAlertas[0];
+export type Pesaje = typeof initialPesaje[0];
 
 interface AppStateType {
   animals: Animal[];
@@ -125,6 +161,8 @@ interface AppStateType {
   setReproduccion: React.Dispatch<React.SetStateAction<Reproduccion[]>>;
   alertas: Alerta[];
   setAlertas: React.Dispatch<React.SetStateAction<Alerta[]>>;
+  pesaje: Pesaje[];
+  setPesaje: React.Dispatch<React.SetStateAction<Pesaje[]>>;
   resetAll: () => void;
 }
 
@@ -137,6 +175,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [personal, _setPersonal] = useLocal('personal', initialPersonal);
   const [reproduccion, _setReproduccion] = useLocal('reproduccion', initialReproduccion);
   const [alertas, _setAlertas] = useLocal('alertas', initialAlertas);
+  const [pesaje, _setPesaje] = useLocal('pesaje', initialPesaje);
 
   // ── Hydrate from API on mount ─────────────────────────────────────────────
   useEffect(() => {
@@ -146,6 +185,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     apiGet<Personal[]>("/personal").then(data => { if (data && data.length > 0) _setPersonal(data); }).catch(() => {});
     apiGet<Reproduccion[]>("/reproduccion").then(data => { if (data && data.length > 0) _setReproduccion(data); }).catch(() => {});
     apiGet<Alerta[]>("/alertas").then(data => { if (data && data.length > 0) _setAlertas(data); }).catch(() => {});
+    apiGet<Pesaje[]>("/pesaje").then(data => { if (data && data.length > 0) _setPesaje(data); }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -198,6 +238,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setAlertas]);
 
+  const setPesaje = useCallback((action: React.SetStateAction<Pesaje[]>) => {
+    _setPesaje(prev => {
+      const next = typeof action === "function" ? (action as (p: Pesaje[]) => Pesaje[])(prev) : action;
+      apiPost("/pesaje/bulk", { pesaje: next });
+      return next;
+    });
+  }, [_setPesaje]);
+
   const resetAll = useCallback(() => {
     _setAnimals(initialAnimals);
     _setPotreros(initialPotreros);
@@ -205,15 +253,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPersonal(initialPersonal);
     _setReproduccion(initialReproduccion);
     _setAlertas(initialAlertas);
-    ['animals','potreros','insumos','personal','reproduccion','alertas'].forEach(k => {
+    _setPesaje(initialPesaje);
+    ['animals','potreros','insumos','personal','reproduccion','alertas','pesaje'].forEach(k => {
       try { localStorage.removeItem(`ganader_${k}`); } catch {}
     });
-    apiPost("/seed", {});
-  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas]);
+    apiPost("/seed", { force: true });
+  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesaje]);
 
   return React.createElement(
     AppStateContext.Provider,
-    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, resetAll } },
+    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, pesaje, setPesaje, resetAll } },
     children
   );
 }

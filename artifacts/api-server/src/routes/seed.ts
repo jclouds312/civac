@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { db, animalsTable, potrerosTable, insumosTable, personalTable, reproduccionTable, alertasTable } from "@workspace/db";
+import { db } from "@workspace/db";
+import { animalsTable, potrerosTable, insumosTable, personalTable, reproduccionTable, alertasTable, pesajeTable } from "@workspace/db/schema";
 
 const router = Router();
 
@@ -63,6 +64,54 @@ const ALERTAS = [
   { title:"Rosaura próximo parto", desc:"Faltan 11 días", type:"info", time:"1d ago", resolved:false },
 ];
 
+// Historical weighing records for all animals
+const PESAJE = [
+  // Rosaura — 5 pesajes históricos
+  { animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/10/2024", peso:498, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Pesaje mensual", condicionCorporal:3, variacion:null },
+  { animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/11/2024", peso:505, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:3, variacion:7 },
+  { animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/12/2024", peso:511, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:6 },
+  { animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/01/2025", peso:516, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Ganancia excelente", condicionCorporal:4, variacion:5 },
+  { animalId:"A-0042", animalNombre:"Rosaura", categoria:"Vaca adulta", fecha:"01/04/2025", peso:520, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Estable", condicionCorporal:4, variacion:4 },
+  // Estrella
+  { animalId:"A-0604", animalNombre:"Estrella", categoria:"Vaca adulta", fecha:"01/10/2024", peso:514, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:null },
+  { animalId:"A-0604", animalNombre:"Estrella", categoria:"Vaca adulta", fecha:"01/12/2024", peso:524, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:10 },
+  { animalId:"A-0604", animalNombre:"Estrella", categoria:"Vaca adulta", fecha:"01/04/2025", peso:535, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Buen estado", condicionCorporal:4, variacion:11 },
+  // Cielo
+  { animalId:"A-0087", animalNombre:"Cielo", categoria:"Vaca adulta", fecha:"01/10/2024", peso:482, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { animalId:"A-0087", animalNombre:"Cielo", categoria:"Vaca adulta", fecha:"01/01/2025", peso:490, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:8 },
+  { animalId:"A-0087", animalNombre:"Cielo", categoria:"Vaca adulta", fecha:"01/04/2025", peso:502, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"Mejora post-parto", condicionCorporal:3, variacion:12 },
+  // Niebla
+  { animalId:"A-0445", animalNombre:"Niebla", categoria:"Vaca adulta", fecha:"01/10/2024", peso:490, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:3, variacion:null },
+  { animalId:"A-0445", animalNombre:"Niebla", categoria:"Vaca adulta", fecha:"01/04/2025", peso:505, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:3, variacion:15 },
+  // Palmera
+  { animalId:"A-0133", animalNombre:"Palmera", categoria:"Vaca adulta", fecha:"01/10/2024", peso:472, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { animalId:"A-0133", animalNombre:"Palmera", categoria:"Vaca adulta", fecha:"01/04/2025", peso:488, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"Estable", condicionCorporal:3, variacion:16 },
+  // Perla
+  { animalId:"A-0712", animalNombre:"Perla", categoria:"Vaca adulta", fecha:"01/10/2024", peso:518, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"", condicionCorporal:4, variacion:null },
+  { animalId:"A-0712", animalNombre:"Perla", categoria:"Vaca adulta", fecha:"01/04/2025", peso:510, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Leve pérdida por tratamiento", condicionCorporal:3, variacion:-8 },
+  // Canela
+  { animalId:"A-0108", animalNombre:"Canela", categoria:"Vaca adulta", fecha:"01/10/2024", peso:485, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { animalId:"A-0108", animalNombre:"Canela", categoria:"Vaca adulta", fecha:"01/04/2025", peso:498, bascula:"Gallagher W210", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:13 },
+  // Luna — Novilla
+  { animalId:"A-0319", animalNombre:"Luna", categoria:"Novilla", fecha:"01/10/2024", peso:255, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Novilla en crecimiento", condicionCorporal:3, variacion:null },
+  { animalId:"A-0319", animalNombre:"Luna", categoria:"Novilla", fecha:"01/01/2025", peso:272, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"", condicionCorporal:3, variacion:17 },
+  { animalId:"A-0319", animalNombre:"Luna", categoria:"Novilla", fecha:"01/04/2025", peso:287, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Buen desarrollo", condicionCorporal:3, variacion:15 },
+  // Aurora — Novilla
+  { animalId:"A-0551", animalNombre:"Aurora", categoria:"Novilla", fecha:"01/10/2024", peso:265, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"", condicionCorporal:3, variacion:null },
+  { animalId:"A-0551", animalNombre:"Aurora", categoria:"Novilla", fecha:"01/04/2025", peso:295, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"", condicionCorporal:3, variacion:30 },
+  // Tormenta — Novilla
+  { animalId:"A-0215", animalNombre:"Tormenta", categoria:"Novilla", fecha:"01/10/2024", peso:280, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Gestante", condicionCorporal:3, variacion:null },
+  { animalId:"A-0215", animalNombre:"Tormenta", categoria:"Novilla", fecha:"01/04/2025", peso:312, bascula:"Báscula portátil", operador:"Pedro Villa", observaciones:"Ganancia por gestación", condicionCorporal:4, variacion:32 },
+  // Bravo — Toro
+  { animalId:"A-0401", animalNombre:"Bravo", categoria:"Toro", fecha:"01/10/2024", peso:790, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Pesaje semestral", condicionCorporal:4, variacion:null },
+  { animalId:"A-0401", animalNombre:"Bravo", categoria:"Toro", fecha:"01/04/2025", peso:810, bascula:"Tru-Test S3", operador:"Carlos Meza", observaciones:"Excelente condición", condicionCorporal:4, variacion:20 },
+  // Terneros
+  { animalId:"A-0667", animalNombre:"Brisa", categoria:"Ternero", fecha:"01/01/2025", peso:45, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"Nacimiento", condicionCorporal:3, variacion:null },
+  { animalId:"A-0667", animalNombre:"Brisa", categoria:"Ternero", fecha:"01/04/2025", peso:72, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"Buen desarrollo", condicionCorporal:3, variacion:27 },
+  { animalId:"A-0512", animalNombre:"Manchas", categoria:"Ternero", fecha:"01/10/2024", peso:52, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:null },
+  { animalId:"A-0512", animalNombre:"Manchas", categoria:"Ternero", fecha:"01/04/2025", peso:88, bascula:"Báscula portátil", operador:"Luis Patiño", observaciones:"", condicionCorporal:3, variacion:36 },
+];
+
 // Seed endpoint — inserts initial data if tables are empty, or resets on force
 router.post("/seed", async (req, res) => {
   try {
@@ -72,6 +121,7 @@ router.post("/seed", async (req, res) => {
     const isEmpty = force || existingAnimals.length === 0;
 
     if (isEmpty) {
+      await db.delete(pesajeTable);
       await db.delete(animalsTable);
       await db.delete(potrerosTable);
       await db.delete(insumosTable);
@@ -85,6 +135,7 @@ router.post("/seed", async (req, res) => {
       await db.insert(personalTable).values(PERSONAL);
       await db.insert(reproduccionTable).values(REPRODUCCION);
       await db.insert(alertasTable).values(ALERTAS);
+      await db.insert(pesajeTable).values(PESAJE);
     }
 
     res.json({ ok: true, seeded: isEmpty });

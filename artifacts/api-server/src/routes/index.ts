@@ -7,6 +7,9 @@ import personalRouter from "./personal";
 import reproduccionRouter from "./reproduccion";
 import alertasRouter from "./alertas";
 import seedRouter from "./seed";
+import pesajesRouter from "./pesajes";
+import gpsRouter from "./gps";
+import usuariosRouter from "./usuarios";
 
 const router: IRouter = Router();
 
@@ -18,5 +21,8 @@ router.use(personalRouter);
 router.use(reproduccionRouter);
 router.use(alertasRouter);
 router.use(seedRouter);
+router.use(pesajesRouter);
+router.use(gpsRouter);
+router.use(usuariosRouter);
 
 export default router;

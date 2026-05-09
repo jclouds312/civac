@@ -1,12 +1,12 @@
 {
-  "name": "GanaderIA — Ganadería Inteligente",
+  "name": "GanaderIA — Ganadería Inteligente PRO",
   "short_name": "GanaderIA",
-  "description": "Sistema inteligente de gestión ganadera. Inventario, producción, reproducción, genética, finanzas y más.",
+  "description": "Sistema PRO de gestión ganadera: inventario, producción, pesaje Bluetooth, GPS, reproducción, genética, finanzas y más. Offline-ready.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#111714",
+  "background_color": "#080f0a",
   "theme_color": "#1a4a2e",
   "categories": ["business", "productivity", "agriculture"],
   "lang": "es",
@@ -17,12 +17,13 @@
     { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml" }
   ],
   "shortcuts": [
-    { "name": "Dashboard", "url": "/", "description": "Ver tablero principal" },
+    { "name": "Dashboard PRO", "url": "/", "description": "Ver tablero principal" },
+    { "name": "Pesaje BT", "url": "/pesaje", "description": "Báscula Bluetooth" },
+    { "name": "GPS Ganado", "url": "/gps", "description": "Rastreo GPS en tiempo real" },
     { "name": "Inventario", "url": "/inventario", "description": "Ver animales" },
-    { "name": "Producción", "url": "/produccion", "description": "Ver producción lechera" },
     { "name": "Alertas", "url": "/alertas", "description": "Ver alertas activas" }
   ],
   "screenshots": [
-    { "src": "/opengraph.jpg", "sizes": "1200x630", "type": "image/jpeg", "label": "Tablero principal de GanaderIA" }
+    { "src": "/opengraph.jpg", "sizes": "1200x630", "type": "image/jpeg", "label": "Tablero principal GanaderIA PRO" }
   ]
 }

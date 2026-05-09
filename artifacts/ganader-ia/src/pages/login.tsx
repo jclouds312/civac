@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { useAuth, ACCOUNTS, Account } from "@/lib/auth";
+import { useAuth, Account } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Leaf, Wifi, Lock, User, ChevronRight, Shield, Stethoscope, Milk, BarChart3 } from "lucide-react";
+import { Eye, EyeOff, Leaf, Wifi, Lock, User, ChevronRight, Shield, Stethoscope, Milk, BarChart3, Scale, Navigation, UserPlus, X } from "lucide-react";
 
 const roleIcons: Record<string, React.ReactNode> = {
-  admin: <Shield className="w-8 h-8" />,
-  vet: <Stethoscope className="w-8 h-8" />,
-  field: <Milk className="w-8 h-8" />,
-  viewer: <BarChart3 className="w-8 h-8" />,
+  admin: <Shield className="w-7 h-7" />,
+  vet: <Stethoscope className="w-7 h-7" />,
+  field: <Milk className="w-7 h-7" />,
+  viewer: <BarChart3 className="w-7 h-7" />,
 };
 
 const roleColors: Record<string, string> = {
@@ -26,14 +26,24 @@ const roleBorder: Record<string, string> = {
   viewer: "border-purple-500/40 hover:border-purple-400",
 };
 
+const roleLabel: Record<string, string> = {
+  admin: "Admin",
+  vet: "Veterinario",
+  field: "Campo",
+  viewer: "Solo lectura",
+};
+
 export default function Login() {
-  const { login, loginAs } = useAuth();
+  const { login, loginAs, accounts } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Account | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  const visibleAccounts = showAll ? accounts : accounts.slice(0, 4);
 
   const handleCard = (account: Account) => {
     setSelected(account);
@@ -63,42 +73,43 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#060e09] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background radial glow */}
+      {/* Background glows */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-emerald-900/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-[600px] h-[400px] bg-emerald-950/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-blue-950/20 rounded-full blur-3xl" />
       </div>
-
-      {/* Grid pattern overlay */}
       <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage: 'linear-gradient(#4ade80 1px, transparent 1px), linear-gradient(90deg, #4ade80 1px, transparent 1px)', backgroundSize: '40px 40px'}} />
 
       <div className="relative z-10 w-full max-w-4xl">
-        {/* Logo & brand */}
-        <div className="text-center mb-8">
+        {/* Logo */}
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-900 border border-emerald-500/30 shadow-2xl shadow-emerald-900/50 mb-4">
             <Leaf className="w-10 h-10 text-emerald-200" />
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight mb-1">
             Ganader<span className="text-emerald-400">IA</span>
+            <span className="ml-2 text-sm font-semibold bg-gradient-to-r from-amber-400 to-orange-400 text-transparent bg-clip-text">PRO</span>
           </h1>
-          <p className="text-emerald-300/70 text-sm">Ganadería Inteligente · Finca El Rancho Verde</p>
-          <div className="flex items-center justify-center gap-2 mt-2 text-xs text-emerald-400/60">
-            <Wifi className="w-3 h-3" />
-            <span>Sistema activo · Colombia</span>
+          <p className="text-emerald-300/70 text-sm">Ganadería Inteligente · Sistema avanzado v3.0</p>
+          <div className="flex items-center justify-center gap-4 mt-2 text-xs">
+            <span className="flex items-center gap-1 text-emerald-400/60"><Wifi className="w-3 h-3" />Sistema activo</span>
+            <span className="flex items-center gap-1 text-blue-400/60"><Scale className="w-3 h-3" />Pesaje BT</span>
+            <span className="flex items-center gap-1 text-cyan-400/60"><Navigation className="w-3 h-3" />GPS Ganado</span>
           </div>
         </div>
 
-        {/* Account cards grid */}
-        <div className="mb-6">
-          <p className="text-center text-xs text-emerald-400/60 uppercase tracking-widest font-semibold mb-4">
-            Seleccione su perfil de acceso
+        {/* Account cards */}
+        <div className="mb-5">
+          <p className="text-center text-xs text-emerald-400/60 uppercase tracking-widest font-semibold mb-3">
+            Seleccione su perfil
           </p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {ACCOUNTS.map(account => (
+          <div className={`grid gap-2.5 ${visibleAccounts.length <= 4 ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'}`}>
+            {visibleAccounts.map(account => (
               <button
                 key={account.id}
                 onClick={() => handleCard(account)}
-                className={`relative group rounded-xl border-2 p-4 text-left transition-all duration-200 cursor-pointer ${roleBorder[account.role]} ${
+                className={`relative group rounded-xl border-2 p-3.5 text-left transition-all duration-200 cursor-pointer ${roleBorder[account.role] || 'border-gray-500/40 hover:border-gray-400'} ${
                   selected?.id === account.id
                     ? 'bg-white/10 scale-[1.02] shadow-lg'
                     : 'bg-white/5 hover:bg-white/8 hover:scale-[1.01]'
@@ -107,18 +118,26 @@ export default function Login() {
                 {selected?.id === account.id && (
                   <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 )}
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${roleColors[account.role]} flex items-center justify-center text-white mb-3 shadow-lg`}>
-                  {roleIcons[account.role]}
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${roleColors[account.role] || 'from-slate-600 to-slate-800'} flex items-center justify-center text-white mb-2.5 shadow-lg`}>
+                  {roleIcons[account.role] || <User className="w-6 h-6" />}
                 </div>
-                <p className="font-semibold text-white text-sm leading-tight mb-0.5">{account.nombre}</p>
-                <p className="text-xs text-white/50">{account.cargo}</p>
-                <div className="flex items-center gap-1 mt-2">
+                <p className="font-semibold text-white text-sm leading-tight mb-0.5 truncate">{account.nombre.split(' ').slice(0,2).join(' ')}</p>
+                <p className="text-xs text-white/50 truncate">{account.cargo || roleLabel[account.role]}</p>
+                <div className="flex items-center gap-1 mt-1.5">
                   <ChevronRight className="w-3 h-3 text-white/30 group-hover:text-white/60 transition-colors" />
-                  <span className="text-[10px] text-white/40 group-hover:text-white/60 transition-colors">Acceso rápido</span>
+                  <span className="text-[9px] text-white/40 group-hover:text-white/60 transition-colors">Acceso rápido</span>
                 </div>
               </button>
             ))}
           </div>
+          {accounts.length > 4 && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="w-full mt-2 text-center text-xs text-emerald-400/60 hover:text-emerald-400 transition-colors py-1"
+            >
+              {showAll ? `Mostrar menos` : `Ver ${accounts.length - 4} usuario(s) más`}
+            </button>
+          )}
         </div>
 
         {/* Login form */}
@@ -197,7 +216,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-white/25 text-xs mt-4">
-          GanaderIA v2.0 · Ganadería Inteligente Colombia · {new Date().getFullYear()}
+          GanaderIA PRO v3.0 · Ganadería Inteligente Colombia · {new Date().getFullYear()} · Offline-ready PWA
         </p>
       </div>
     </div>

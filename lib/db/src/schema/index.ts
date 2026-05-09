@@ -103,3 +103,62 @@ export const alertasTable = pgTable("alertas", {
 export const insertAlertaSchema = createInsertSchema(alertasTable).omit({ id: true, createdAt: true });
 export type InsertAlerta = z.infer<typeof insertAlertaSchema>;
 export type Alerta = typeof alertasTable.$inferSelect;
+
+// ── Pesajes (Weighing) ────────────────────────────────────────────────────────
+export const pesajesTable = pgTable("pesajes", {
+  id:           serial("id").primaryKey(),
+  animalId:     text("animal_id").notNull(),
+  animalNombre: text("animal_nombre").notNull().default(""),
+  peso:         real("peso").notNull().default(0),
+  pesoAnterior: real("peso_anterior").notNull().default(0),
+  fecha:        text("fecha").notNull().default(""),
+  hora:         text("hora").notNull().default(""),
+  metodo:       text("metodo").notNull().default("manual"),
+  dispositivo:  text("dispositivo").notNull().default(""),
+  operador:     text("operador").notNull().default(""),
+  observacion:  text("observacion").notNull().default(""),
+  lote:         text("lote").notNull().default(""),
+  categoria:    text("categoria").notNull().default(""),
+  createdAt:    timestamp("created_at").defaultNow(),
+});
+export const insertPesajeSchema = createInsertSchema(pesajesTable).omit({ id: true, createdAt: true });
+export type InsertPesaje = z.infer<typeof insertPesajeSchema>;
+export type Pesaje = typeof pesajesTable.$inferSelect;
+
+// ── GPS Ubicaciones ───────────────────────────────────────────────────────────
+export const gpsUbicacionesTable = pgTable("gps_ubicaciones", {
+  id:          serial("id").primaryKey(),
+  animalId:    text("animal_id").notNull(),
+  nombre:      text("nombre").notNull().default(""),
+  lat:         real("lat").notNull().default(0),
+  lng:         real("lng").notNull().default(0),
+  potreroId:   integer("potrero_id"),
+  potreroNom:  text("potrero_nom").notNull().default(""),
+  bateria:     integer("bateria").notNull().default(100),
+  activo:      boolean("activo").notNull().default(true),
+  ultimaSenal: text("ultima_senal").notNull().default(""),
+  dispositivo: text("dispositivo").notNull().default(""),
+  createdAt:   timestamp("created_at").defaultNow(),
+  updatedAt:   timestamp("updated_at").defaultNow(),
+});
+export const insertGpsSchema = createInsertSchema(gpsUbicacionesTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertGpsUbicacion = z.infer<typeof insertGpsSchema>;
+export type GpsUbicacion = typeof gpsUbicacionesTable.$inferSelect;
+
+// ── Usuarios Sistema ──────────────────────────────────────────────────────────
+export const usuariosTable = pgTable("usuarios_sistema", {
+  id:        text("id").primaryKey(),
+  nombre:    text("nombre").notNull(),
+  cargo:     text("cargo").notNull().default(""),
+  finca:     text("finca").notNull().default("Finca El Rancho Verde"),
+  email:     text("email").notNull(),
+  password:  text("password").notNull(),
+  role:      text("role").notNull().default("viewer"),
+  permisos:  text("permisos").notNull().default("[]"),
+  activo:    boolean("activo").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+export const insertUsuarioSchema = createInsertSchema(usuariosTable).omit({ createdAt: true, updatedAt: true });
+export type InsertUsuario = z.infer<typeof insertUsuarioSchema>;
+export type UsuarioSistema = typeof usuariosTable.$inferSelect;

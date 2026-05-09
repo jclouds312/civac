@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 
 export interface Account {
   id: string;
@@ -11,9 +11,10 @@ export interface Account {
   gradient: string;
   role: 'admin' | 'vet' | 'field' | 'viewer';
   permisos: string[];
+  activo?: boolean;
 }
 
-export const ACCOUNTS: Account[] = [
+export const DEFAULT_ACCOUNTS: Account[] = [
   {
     id: 'admin',
     nombre: 'Administrador General',
@@ -24,7 +25,8 @@ export const ACCOUNTS: Account[] = [
     avatar: '👑',
     gradient: 'from-[#1a5c2e] to-[#2d8a4e]',
     role: 'admin',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion'],
+    activo: true,
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','pesaje','gps'],
   },
   {
     id: 'vet',
@@ -36,7 +38,8 @@ export const ACCOUNTS: Account[] = [
     avatar: '🩺',
     gradient: 'from-[#0d47a1] to-[#1565c0]',
     role: 'vet',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','prediccion','alertas','documentacion'],
+    activo: true,
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','prediccion','alertas','documentacion','pesaje','gps'],
   },
   {
     id: 'campo',
@@ -48,7 +51,8 @@ export const ACCOUNTS: Account[] = [
     avatar: '🐄',
     gradient: 'from-[#e65100] to-[#f57c00]',
     role: 'field',
-    permisos: ['inventario','produccion','potreros','alimentacion','insumos','alertas'],
+    activo: true,
+    permisos: ['inventario','produccion','potreros','alimentacion','insumos','alertas','pesaje'],
   },
   {
     id: 'visor',
@@ -60,15 +64,35 @@ export const ACCOUNTS: Account[] = [
     avatar: '💼',
     gradient: 'from-[#4a148c] to-[#6a1b9a]',
     role: 'viewer',
-    permisos: ['inventario','produccion','costos','prediccion','co2','alertas'],
+    activo: true,
+    permisos: ['inventario','produccion','costos','prediccion','co2','alertas','gps'],
   },
 ];
 
+function loadAccounts(): Account[] {
+  try {
+    const stored = localStorage.getItem('ganader_accounts');
+    if (stored) {
+      const parsed: Account[] = JSON.parse(stored);
+      if (parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return DEFAULT_ACCOUNTS;
+}
+
+function saveAccounts(accounts: Account[]) {
+  try { localStorage.setItem('ganader_accounts', JSON.stringify(accounts)); } catch {}
+}
+
 interface AuthContextType {
   user: Account | null;
+  accounts: Account[];
   login: (email: string, password: string) => boolean;
   loginAs: (account: Account) => void;
   logout: () => void;
+  registerUser: (data: Omit<Account, 'id'>) => Account;
+  updateUser: (id: string, data: Partial<Account>) => void;
+  deleteUser: (id: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -81,8 +105,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch { return null; }
   });
 
+  const [accounts, setAccountsState] = useState<Account[]>(loadAccounts);
+
+  const setAccounts = useCallback((next: Account[]) => {
+    setAccountsState(next);
+    saveAccounts(next);
+  }, []);
+
   const login = (email: string, password: string): boolean => {
-    const account = ACCOUNTS.find(a => (a.email === email || a.id === email) && a.password === password);
+    const account = accounts.find(a => (a.email === email || a.id === email) && a.password === password && a.activo !== false);
     if (account) { loginAs(account); return true; }
     return false;
   };
@@ -97,7 +128,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try { localStorage.removeItem('ganader_user'); } catch {}
   };
 
-  return React.createElement(AuthContext.Provider, { value: { user, login, loginAs, logout } }, children);
+  const registerUser = (data: Omit<Account, 'id'>): Account => {
+    const id = `user_${Date.now()}`;
+    const newAccount: Account = { id, ...data, activo: true };
+    const updated = [...accounts, newAccount];
+    setAccounts(updated);
+    return newAccount;
+  };
+
+  const updateUser = (id: string, data: Partial<Account>) => {
+    const updated = accounts.map(a => a.id === id ? { ...a, ...data } : a);
+    setAccounts(updated);
+    if (user?.id === id) {
+      const updatedUser = { ...user, ...data };
+      setUser(updatedUser);
+      try { localStorage.setItem('ganader_user', JSON.stringify(updatedUser)); } catch {}
+    }
+  };
+
+  const deleteUser = (id: string) => {
+    if (id === 'admin') return;
+    const updated = accounts.filter(a => a.id !== id);
+    setAccounts(updated);
+  };
+
+  return React.createElement(AuthContext.Provider, {
+    value: { user, accounts, login, loginAs, logout, registerUser, updateUser, deleteUser }
+  }, children);
 }
 
 export const useAuth = (): AuthContextType => {
@@ -105,3 +162,5 @@ export const useAuth = (): AuthContextType => {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
 };
+
+export const ACCOUNTS = DEFAULT_ACCOUNTS;

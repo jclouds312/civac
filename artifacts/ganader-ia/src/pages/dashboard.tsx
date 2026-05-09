@@ -1,6 +1,6 @@
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { useAppState } from "../lib/data";
-import { Bell, TrendingUp, Download, AlertCircle, AlertTriangle, ChevronRight } from "lucide-react";
+import { Bell, TrendingUp, AlertCircle, AlertTriangle, ChevronRight, Scale, Navigation, Bluetooth, Battery, Signal, MapPin } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 
@@ -41,6 +41,9 @@ const modulos = [
   { icon: '🤖', title: 'Predicciones IA', desc: 'Alertas inteligentes y recomendaciones', badge: null, href: '/prediccion' },
   { icon: '🌱', title: 'Huella Carbono', desc: 'Emisiones CH₄ y CO₂, bonos verdes', badge: null, href: '/co2' },
   { icon: '🗺️', title: 'Multi-Finca', desc: 'Gestione varias fincas desde un panel', badge: null, href: '/multifinca' },
+  { icon: '⚖️', title: 'Pesaje BT', desc: 'Báscula Bluetooth, historial y GMD', badge: 'PRO', href: '/pesaje', badgePro: true },
+  { icon: '📡', title: 'GPS Ganado', desc: 'Rastreo en tiempo real y geocercas', badge: 'PRO', href: '/gps', badgePro: true },
+  { icon: '👥', title: 'Usuarios', desc: 'Gestión de accesos y permisos por rol', badge: null, href: '/usuarios' },
 ];
 
 const insumosBajoStock = [
@@ -58,7 +61,7 @@ const pieData = [
 ];
 
 export default function Dashboard() {
-  const { animals, potreros, personal, alertas } = useAppState();
+  const { animals, potreros, personal, alertas, pesajes, gpsUbicaciones } = useAppState();
   const [chartTab, setChartTab] = useState<'produccion' | 'peso'>('produccion');
 
   const now = new Date();
@@ -383,6 +386,118 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* PRO Widgets: Pesaje BT + GPS Live */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Pesaje BT Widget */}
+        <div className="bg-card border border-border rounded-xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -translate-y-8 translate-x-8 pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-900/30">
+                <Scale className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="font-semibold text-sm flex items-center gap-2">
+                  Pesaje Bluetooth
+                  <span className="text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full">PRO</span>
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Bluetooth className="w-3 h-3 text-blue-400" />
+                  {pesajes.filter(p => p.metodo === 'bluetooth').length} registros BT hoy
+                </div>
+              </div>
+            </div>
+            <Link href="/pesaje" className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors">
+              Ir al módulo <ChevronRight size={12} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-center">
+              <div className="text-xl font-bold text-amber-400">{pesajes.length}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Total pesajes</div>
+            </div>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
+              <div className="text-xl font-bold text-blue-400">{pesajes.filter(p => p.metodo === 'bluetooth').length}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Via Bluetooth</div>
+            </div>
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
+              <div className="text-xl font-bold text-green-400">
+                +{pesajes.length > 0 ? Math.round(pesajes.reduce((acc, p) => acc + (p.peso - (p.pesoAnterior || p.peso)), 0) / pesajes.length) : 0} kg
+              </div>
+              <div className="text-[10px] text-muted-foreground uppercase">GMD prom</div>
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">Últimos pesajes</div>
+          <div className="space-y-1.5">
+            {pesajes.slice(0, 4).map(p => (
+              <div key={p.id} className="flex items-center gap-2 py-1 border-b border-border/40 last:border-0">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${p.metodo === 'bluetooth' ? 'bg-blue-400' : 'bg-gray-400'}`} />
+                <span className="text-xs font-medium flex-1">{p.animalNombre}</span>
+                <span className="text-xs text-muted-foreground">{p.fecha}</span>
+                <span className="text-xs font-bold text-amber-400">{p.peso} kg</span>
+                {p.peso > (p.pesoAnterior || p.peso) && (
+                  <span className="text-[10px] text-green-400">+{p.peso - (p.pesoAnterior || 0)}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* GPS Widget */}
+        <div className="bg-card border border-border rounded-xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full -translate-y-8 translate-x-8 pointer-events-none" />
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center shadow-lg shadow-cyan-900/30">
+                <Navigation className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <div className="font-semibold text-sm flex items-center gap-2">
+                  GPS Ganado
+                  <span className="text-[9px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded-full">PRO</span>
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Signal className="w-3 h-3 text-green-400" />
+                  {gpsUbicaciones.filter(g => g.activo).length} collares activos
+                </div>
+              </div>
+            </div>
+            <Link href="/gps" className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+              Ver mapa <ChevronRight size={12} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-3 text-center">
+              <div className="text-xl font-bold text-cyan-400">{gpsUbicaciones.length}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Con collar GPS</div>
+            </div>
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">
+              <div className="text-xl font-bold text-green-400">{gpsUbicaciones.filter(g => g.activo).length}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">En línea</div>
+            </div>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+              <div className="text-xl font-bold text-red-400">{gpsUbicaciones.filter(g => g.bateria < 30).length}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Batería baja</div>
+            </div>
+          </div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">Estado collares</div>
+          <div className="space-y-1.5">
+            {gpsUbicaciones.slice(0, 4).map(g => (
+              <div key={g.id} className="flex items-center gap-2 py-1 border-b border-border/40 last:border-0">
+                <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${g.activo ? 'bg-green-400' : 'bg-gray-500'}`} />
+                <span className="text-xs font-medium flex-1">{g.nombre}</span>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />{g.potreroNom}
+                </span>
+                <span className={`text-xs font-semibold flex items-center gap-0.5 ${g.bateria < 30 ? 'text-red-400' : g.bateria < 50 ? 'text-amber-400' : 'text-green-400'}`}>
+                  <Battery className="w-3 h-3" />{g.bateria}%
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Insumos urgentes */}
       <div className="bg-card border border-border rounded-xl p-5">
         <div className="flex items-center justify-between mb-3">
@@ -414,7 +529,7 @@ export default function Dashboard() {
               <div className="text-xs font-bold text-foreground group-hover:text-primary mb-1">{m.title}</div>
               <div className="text-[10px] text-muted-foreground line-clamp-2">{m.desc}</div>
               {m.badge && (
-                <div className={`mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full inline-block ${m.badgeRed ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>{m.badge}</div>
+                <div className={`mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full inline-block ${m.badgeRed ? 'bg-red-500/20 text-red-400' : (m as any).badgePro ? 'bg-amber-500/20 text-amber-400' : 'bg-primary/20 text-primary'}`}>{m.badge}</div>
               )}
             </Link>
           ))}

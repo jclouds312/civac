@@ -5,7 +5,8 @@ import {
   Wheat, Package, TestTube,
   DollarSign, Users, LineChart, Leaf, Map,
   Settings, BookOpen, UserCircle, HelpCircle,
-  Menu, X, Sun, Moon, LogOut, ChevronDown, Download
+  Menu, X, Sun, Moon, LogOut, ChevronDown, Download,
+  Scale, Navigation, Wifi
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
@@ -13,6 +14,56 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 
 interface LayoutProps { children: React.ReactNode; }
+
+const MODULE_COLORS: Record<string, string> = {
+  '/': 'from-emerald-600 to-teal-600',
+  '/alertas': 'from-red-600 to-rose-600',
+  '/inventario': 'from-green-700 to-emerald-600',
+  '/ficha': 'from-teal-600 to-cyan-600',
+  '/reproduccion': 'from-pink-600 to-rose-600',
+  '/produccion': 'from-blue-600 to-cyan-600',
+  '/genetica': 'from-violet-600 to-purple-600',
+  '/potreros': 'from-lime-600 to-green-600',
+  '/alimentacion': 'from-yellow-600 to-amber-600',
+  '/pesaje': 'from-orange-700 to-red-700',
+  '/insumos': 'from-amber-600 to-orange-600',
+  '/semen': 'from-indigo-600 to-blue-600',
+  '/costos': 'from-emerald-700 to-green-600',
+  '/personal': 'from-slate-600 to-gray-600',
+  '/prediccion': 'from-purple-600 to-violet-600',
+  '/co2': 'from-green-600 to-teal-600',
+  '/multifinca': 'from-cyan-600 to-blue-600',
+  '/gps': 'from-blue-700 to-indigo-700',
+  '/usuarios': 'from-purple-700 to-indigo-600',
+  '/configuracion': 'from-gray-600 to-slate-600',
+  '/documentacion': 'from-sky-600 to-blue-600',
+  '/manual': 'from-teal-600 to-cyan-600',
+};
+
+const MODULE_BG: Record<string, string> = {
+  '/': 'bg-emerald-500/20',
+  '/alertas': 'bg-red-500/20',
+  '/inventario': 'bg-green-500/20',
+  '/ficha': 'bg-teal-500/20',
+  '/reproduccion': 'bg-pink-500/20',
+  '/produccion': 'bg-blue-500/20',
+  '/genetica': 'bg-violet-500/20',
+  '/potreros': 'bg-lime-500/20',
+  '/alimentacion': 'bg-yellow-500/20',
+  '/pesaje': 'bg-orange-600/20',
+  '/insumos': 'bg-amber-500/20',
+  '/semen': 'bg-indigo-500/20',
+  '/costos': 'bg-emerald-500/20',
+  '/personal': 'bg-slate-500/20',
+  '/prediccion': 'bg-purple-500/20',
+  '/co2': 'bg-green-500/20',
+  '/multifinca': 'bg-cyan-500/20',
+  '/gps': 'bg-blue-600/20',
+  '/usuarios': 'bg-purple-600/20',
+  '/configuracion': 'bg-gray-500/20',
+  '/documentacion': 'bg-sky-500/20',
+  '/manual': 'bg-teal-500/20',
+};
 
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
@@ -43,23 +94,36 @@ export function Layout({ children }: LayoutProps) {
     viewer: "bg-purple-600",
   };
 
-  const NavItem = ({ href, icon: Icon, label, badge }: { href: string; icon: any; label: string; badge?: number }) => (
-    <Link href={href} onClick={() => setIsMobileOpen(false)}>
-      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mx-2 my-0.5 transition-all cursor-pointer ${
-        isActive(href)
-          ? "bg-primary/20 text-primary font-semibold border border-primary/20"
-          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-      }`}>
-        <Icon size={17} className={isActive(href) ? "text-primary" : ""} />
-        <span className="flex-1 text-sm">{label}</span>
-        {badge ? (
-          <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-            {badge}
-          </span>
-        ) : null}
-      </div>
-    </Link>
-  );
+  const NavItem = ({ href, icon: Icon, label, badge, accent }: {
+    href: string; icon: any; label: string; badge?: number | string; accent?: string;
+  }) => {
+    const active = isActive(href);
+    const bg = MODULE_BG[href] || 'bg-primary/20';
+    return (
+      <Link href={href} onClick={() => setIsMobileOpen(false)}>
+        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mx-2 my-0.5 transition-all cursor-pointer group ${
+          active
+            ? `${bg} text-primary font-semibold border border-primary/20 shadow-sm`
+            : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        }`}>
+          <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 transition-all ${
+            active ? `bg-gradient-to-br ${MODULE_COLORS[href] || 'from-primary to-primary'} shadow-sm` : 'bg-transparent group-hover:bg-sidebar-accent'
+          }`}>
+            <Icon size={14} className={active ? "text-white" : ""} />
+          </div>
+          <span className="flex-1 text-sm">{label}</span>
+          {badge != null ? (
+            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+              {badge}
+            </span>
+          ) : null}
+          {accent && !badge && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">{accent}</span>
+          )}
+        </div>
+      </Link>
+    );
+  };
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="mb-3">
@@ -70,12 +134,10 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground">
-      {/* Mobile overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setIsMobileOpen(false)} />
       )}
 
-      {/* ── Sidebar ── */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-sidebar border-r border-sidebar-border z-50 transform transition-transform duration-200 lg:translate-x-0 ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border flex-shrink-0">
@@ -85,7 +147,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
             <div>
               <span className="font-bold text-base text-sidebar-foreground tracking-tight leading-none block">
-                Ganader<span className="text-primary">IA</span>
+                Ganader<span className="text-emerald-400">IA</span>
               </span>
               <span className="text-[10px] text-sidebar-foreground/40 leading-none">Ganadería Inteligente</span>
             </div>
@@ -106,6 +168,7 @@ export function Layout({ children }: LayoutProps) {
                 <p className="text-xs font-semibold text-sidebar-foreground truncate leading-tight">{user.nombre.split(' ').slice(0,2).join(' ')}</p>
                 <p className="text-[10px] text-sidebar-foreground/50 truncate leading-tight">{user.cargo}</p>
               </div>
+              <div className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" title="En línea" />
             </div>
           </div>
         )}
@@ -113,7 +176,7 @@ export function Layout({ children }: LayoutProps) {
         {/* Nav */}
         <div className="py-3 overflow-y-auto flex-1">
           <Section title="Principal">
-            <NavItem href="/" icon={LayoutDashboard} label="Tablero KPIs" />
+            <NavItem href="/" icon={LayoutDashboard} label="Tablero KPIs" accent="PRO" />
             <NavItem href="/alertas" icon={Bell} label="Alertas" badge={4} />
           </Section>
 
@@ -123,11 +186,13 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/reproduccion" icon={Baby} label="Reproducción" />
             <NavItem href="/produccion" icon={Activity} label="Producción" />
             <NavItem href="/genetica" icon={Dna} label="Genética" />
+            <NavItem href="/pesaje" icon={Scale} label="Pesaje Bluetooth" accent="BT" />
           </Section>
 
           <Section title="Campo">
             <NavItem href="/potreros" icon={Map} label="Potreros" />
             <NavItem href="/alimentacion" icon={Wheat} label="Alimentación" />
+            <NavItem href="/gps" icon={Navigation} label="Rastreo GPS" accent="GPS" />
           </Section>
 
           <Section title="Gestión">
@@ -138,7 +203,7 @@ export function Layout({ children }: LayoutProps) {
           </Section>
 
           <Section title="Inteligencia IA">
-            <NavItem href="/prediccion" icon={LineChart} label="Predicciones IA" />
+            <NavItem href="/prediccion" icon={LineChart} label="Predicciones IA" accent="IA" />
             <NavItem href="/co2" icon={Leaf} label="Huella de Carbono" />
             <NavItem href="/multifinca" icon={Map} label="Multi-Finca" />
           </Section>
@@ -153,6 +218,10 @@ export function Layout({ children }: LayoutProps) {
 
         {/* Sidebar footer */}
         <div className="px-3 pb-4 flex-shrink-0 border-t border-sidebar-border/50 pt-3 space-y-1">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] text-sidebar-foreground/40">
+            <Wifi size={10} />
+            <span>GanaderIA v3.0 PRO · Offline-ready</span>
+          </div>
           {installPrompt && (
             <button
               onClick={handleInstall}
@@ -172,7 +241,7 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* Main */}
       <main className="flex-1 lg:pl-64 flex flex-col min-h-screen">
         {/* Topbar */}
         <header className="h-14 border-b border-border bg-card/60 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
@@ -180,41 +249,39 @@ export function Layout({ children }: LayoutProps) {
             <button className="lg:hidden text-foreground" onClick={() => setIsMobileOpen(true)}>
               <Menu size={22} />
             </button>
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs text-muted-foreground">
-                {new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {/* Module color strip */}
+            <div className={`hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-md bg-gradient-to-r ${MODULE_COLORS[location] || 'from-emerald-600 to-teal-600'} bg-opacity-20`}>
+              <div className={`w-1.5 h-1.5 rounded-full bg-white animate-pulse`} />
+              <span className="text-xs text-white font-medium">
+                {new Date().toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* PWA install button (topbar, smaller) */}
             {installPrompt && (
               <Button variant="ghost" size="sm" onClick={handleInstall} className="text-xs text-emerald-600 dark:text-emerald-400 hidden sm:flex items-center gap-1.5 h-8">
-                <Download size={13} />
-                Instalar
+                <Download size={13} /> Instalar
               </Button>
             )}
 
-            {/* Dark/Light toggle */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
               className="w-8 h-8 text-muted-foreground hover:text-foreground"
-              title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </Button>
 
-            {/* Alerts bell */}
-            <Button variant="ghost" size="icon" className="w-8 h-8 relative text-muted-foreground hover:text-foreground">
-              <Bell size={16} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
-            </Button>
+            <Link href="/alertas">
+              <Button variant="ghost" size="icon" className="w-8 h-8 relative text-muted-foreground hover:text-foreground">
+                <Bell size={16} />
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
+              </Button>
+            </Link>
 
-            {/* User avatar + menu */}
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
@@ -241,16 +308,19 @@ export function Layout({ children }: LayoutProps) {
                     <div className="p-1">
                       <Link href="/configuracion" onClick={() => setShowUserMenu(false)}>
                         <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-accent/50 cursor-pointer text-foreground">
-                          <Settings size={14} />
-                          Configuración
+                          <Settings size={14} /> Configuración
+                        </div>
+                      </Link>
+                      <Link href="/usuarios" onClick={() => setShowUserMenu(false)}>
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-accent/50 cursor-pointer text-foreground">
+                          <UserCircle size={14} /> Gestión de usuarios
                         </div>
                       </Link>
                       <button
                         onClick={() => { logout(); setShowUserMenu(false); }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                       >
-                        <LogOut size={14} />
-                        Cerrar sesión
+                        <LogOut size={14} /> Cerrar sesión
                       </button>
                     </div>
                   </div>

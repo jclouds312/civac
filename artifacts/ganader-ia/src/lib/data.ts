@@ -62,6 +62,26 @@ export const initialAlertas = [
   { id: 4, title: "Rosaura próximo parto", desc: "Faltan 11 días", type: "info", time: "1d ago" },
 ];
 
+export const initialPesajes = [
+  { id:1, animalId:"A-0042", animalNombre:"Rosaura", peso:520, pesoAnterior:512, fecha:"09/05/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Peso estable, buena condición", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:2, animalId:"A-0604", animalNombre:"Estrella", peso:535, pesoAnterior:528, fecha:"09/05/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:3, animalId:"A-0087", animalNombre:"Cielo", peso:502, pesoAnterior:498, fecha:"09/05/2025", hora:"08:00", metodo:"manual", dispositivo:"", operador:"Luis Patiño", observacion:"Pesaje manual báscula corriente", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:4, animalId:"A-0401", animalNombre:"Bravo", peso:810, pesoAnterior:805, fecha:"08/05/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro en excelente condición corporal", lote:"Lote D", categoria:"Toro" },
+  { id:5, animalId:"A-0667", animalNombre:"Brisa", peso:72, pesoAnterior:65, fecha:"08/05/2025", hora:"10:00", metodo:"manual", dispositivo:"", operador:"Luis Patiño", observacion:"Buen desarrollo ternero", lote:"Lote E", categoria:"Ternero" },
+  { id:6, animalId:"A-0512", animalNombre:"Manchas", peso:88, pesoAnterior:80, fecha:"07/05/2025", hora:"10:20", metodo:"manual", dispositivo:"", operador:"Luis Patiño", observacion:"", lote:"Lote E", categoria:"Ternero" },
+];
+
+export const initialGps = [
+  { id:1, animalId:"A-0042", nombre:"Rosaura", lat:4.7110, lng:-74.0721, potreroId:1, potreroNom:"Potrero 1", bateria:87, activo:true, ultimaSenal:"hace 2 min", dispositivo:"GPS-BT-001" },
+  { id:2, animalId:"A-0604", nombre:"Estrella", lat:4.7115, lng:-74.0718, potreroId:1, potreroNom:"Potrero 1", bateria:72, activo:true, ultimaSenal:"hace 1 min", dispositivo:"GPS-BT-002" },
+  { id:3, animalId:"A-0087", nombre:"Cielo", lat:4.7108, lng:-74.0725, potreroId:1, potreroNom:"Potrero 1", bateria:55, activo:true, ultimaSenal:"hace 5 min", dispositivo:"GPS-BT-003" },
+  { id:4, animalId:"A-0401", nombre:"Bravo", lat:4.7225, lng:-74.0850, potreroId:4, potreroNom:"Potrero 4", bateria:91, activo:true, ultimaSenal:"hace 3 min", dispositivo:"GPS-BT-004" },
+  { id:5, animalId:"A-0215", nombre:"Tormenta", lat:4.7190, lng:-74.0800, potreroId:3, potreroNom:"Potrero 3", bateria:43, activo:true, ultimaSenal:"hace 8 min", dispositivo:"GPS-BT-005" },
+  { id:6, animalId:"A-0133", nombre:"Palmera", lat:4.7180, lng:-74.0795, potreroId:3, potreroNom:"Potrero 3", bateria:28, activo:true, ultimaSenal:"hace 12 min", dispositivo:"GPS-BT-006" },
+  { id:7, animalId:"A-0319", nombre:"Luna", lat:4.7200, lng:-74.0820, potreroId:3, potreroNom:"Potrero 3", bateria:66, activo:true, ultimaSenal:"hace 4 min", dispositivo:"GPS-BT-007" },
+  { id:8, animalId:"A-0712", nombre:"Perla", lat:4.7112, lng:-74.0730, potreroId:1, potreroNom:"Potrero 1", bateria:11, activo:false, ultimaSenal:"hace 45 min", dispositivo:"GPS-BT-008" },
+];
+
 // ─── API Sync Helpers ─────────────────────────────────────────────────────────
 
 async function apiGet<T>(path: string): Promise<T | null> {
@@ -111,6 +131,8 @@ type Insumo = typeof initialInsumos[0];
 type Personal = typeof initialPersonal[0];
 type Reproduccion = typeof initialReproduccion[0];
 type Alerta = typeof initialAlertas[0];
+type Pesaje = typeof initialPesajes[0];
+type GpsUbicacion = typeof initialGps[0];
 
 interface AppStateType {
   animals: Animal[];
@@ -125,6 +147,10 @@ interface AppStateType {
   setReproduccion: React.Dispatch<React.SetStateAction<Reproduccion[]>>;
   alertas: Alerta[];
   setAlertas: React.Dispatch<React.SetStateAction<Alerta[]>>;
+  pesajes: Pesaje[];
+  setPesajes: React.Dispatch<React.SetStateAction<Pesaje[]>>;
+  gpsUbicaciones: GpsUbicacion[];
+  setGpsUbicaciones: React.Dispatch<React.SetStateAction<GpsUbicacion[]>>;
   resetAll: () => void;
 }
 
@@ -137,8 +163,9 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [personal, _setPersonal] = useLocal('personal', initialPersonal);
   const [reproduccion, _setReproduccion] = useLocal('reproduccion', initialReproduccion);
   const [alertas, _setAlertas] = useLocal('alertas', initialAlertas);
+  const [pesajes, _setPesajes] = useLocal('pesajes', initialPesajes);
+  const [gpsUbicaciones, _setGpsUbicaciones] = useLocal('gps', initialGps);
 
-  // ── Hydrate from API on mount ─────────────────────────────────────────────
   useEffect(() => {
     apiGet<Animal[]>("/animals").then(data => { if (data && data.length > 0) _setAnimals(data); }).catch(() => {});
     apiGet<Potrero[]>("/potreros").then(data => { if (data && data.length > 0) _setPotreros(data); }).catch(() => {});
@@ -146,10 +173,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     apiGet<Personal[]>("/personal").then(data => { if (data && data.length > 0) _setPersonal(data); }).catch(() => {});
     apiGet<Reproduccion[]>("/reproduccion").then(data => { if (data && data.length > 0) _setReproduccion(data); }).catch(() => {});
     apiGet<Alerta[]>("/alertas").then(data => { if (data && data.length > 0) _setAlertas(data); }).catch(() => {});
+    apiGet<Pesaje[]>("/pesajes").then(data => { if (data && data.length > 0) _setPesajes(data); }).catch(() => {});
+    apiGet<GpsUbicacion[]>("/gps").then(data => { if (data && data.length > 0) _setGpsUbicaciones(data); }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── API-synced setters ────────────────────────────────────────────────────
   const setAnimals = useCallback((action: React.SetStateAction<Animal[]>) => {
     _setAnimals(prev => {
       const next = typeof action === "function" ? (action as (p: Animal[]) => Animal[])(prev) : action;
@@ -198,6 +226,22 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setAlertas]);
 
+  const setPesajes = useCallback((action: React.SetStateAction<Pesaje[]>) => {
+    _setPesajes(prev => {
+      const next = typeof action === "function" ? (action as (p: Pesaje[]) => Pesaje[])(prev) : action;
+      apiPost("/pesajes/bulk", { pesajes: next });
+      return next;
+    });
+  }, [_setPesajes]);
+
+  const setGpsUbicaciones = useCallback((action: React.SetStateAction<GpsUbicacion[]>) => {
+    _setGpsUbicaciones(prev => {
+      const next = typeof action === "function" ? (action as (p: GpsUbicacion[]) => GpsUbicacion[])(prev) : action;
+      apiPost("/gps/bulk", { ubicaciones: next });
+      return next;
+    });
+  }, [_setGpsUbicaciones]);
+
   const resetAll = useCallback(() => {
     _setAnimals(initialAnimals);
     _setPotreros(initialPotreros);
@@ -205,15 +249,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPersonal(initialPersonal);
     _setReproduccion(initialReproduccion);
     _setAlertas(initialAlertas);
-    ['animals','potreros','insumos','personal','reproduccion','alertas'].forEach(k => {
+    _setPesajes(initialPesajes);
+    _setGpsUbicaciones(initialGps);
+    ['animals','potreros','insumos','personal','reproduccion','alertas','pesajes','gps'].forEach(k => {
       try { localStorage.removeItem(`ganader_${k}`); } catch {}
     });
     apiPost("/seed", {});
-  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas]);
+  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones]);
 
   return React.createElement(
     AppStateContext.Provider,
-    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, resetAll } },
+    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, pesajes, setPesajes, gpsUbicaciones, setGpsUbicaciones, resetAll } },
     children
   );
 }

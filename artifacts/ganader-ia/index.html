@@ -3,38 +3,35 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>GanaderIA — Ganadería Inteligente</title>
-    <meta name="description" content="Sistema inteligente de gestión ganadera. Inventario, producción, reproducción, genética y finanzas." />
-    <meta name="theme-color" content="#1a4a2e" />
+    <title>CIVAC — Control Inteligente de Valor Agropecuario</title>
+    <meta name="description" content="CIVAC: Sistema PRO de gestión ganadera con IA. Inventario, pesaje BT, GPS, reproducción, genética, finanzas y más. Offline-ready PWA." />
+    <meta name="theme-color" content="#00f5d4" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="GanaderIA" />
+    <meta name="apple-mobile-web-app-title" content="CIVAC" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Apply saved theme before React mounts to avoid flash of wrong theme
       (function() {
         var saved = localStorage.getItem('ganader_theme');
         if (!saved || saved === 'dark') {
           document.documentElement.classList.add('dark');
         }
       })();
-
-      // Register real service worker for PWA install support
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .then(function(reg) { console.log('[SW] Registered, scope:', reg.scope); })
-            .catch(function(err) { console.warn('[SW] Registration failed:', err); });
+            .then(function(reg) { console.log('[CIVAC SW] Registered, scope:', reg.scope); })
+            .catch(function(err) { console.warn('[CIVAC SW] Registration failed:', err); });
         });
       }
     </script>

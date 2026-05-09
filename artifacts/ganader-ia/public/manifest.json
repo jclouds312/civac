@@ -1,13 +1,13 @@
 {
-  "name": "GanaderIA — Ganadería Inteligente PRO",
-  "short_name": "GanaderIA",
-  "description": "Sistema PRO de gestión ganadera: inventario, producción, pesaje Bluetooth, GPS, reproducción, genética, finanzas y más. Offline-ready.",
+  "name": "CIVAC — Control Inteligente de Valor Agropecuario",
+  "short_name": "CIVAC",
+  "description": "CIVAC: Sistema PRO de gestión ganadera con IA. Pesaje BT, GPS, reproducción, genética, finanzas. Offline-ready PWA.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#080f0a",
-  "theme_color": "#1a4a2e",
+  "background_color": "#020d09",
+  "theme_color": "#00f5d4",
   "categories": ["business", "productivity", "agriculture"],
   "lang": "es",
   "dir": "ltr",
@@ -17,13 +17,13 @@
     { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml" }
   ],
   "shortcuts": [
-    { "name": "Dashboard PRO", "url": "/", "description": "Ver tablero principal" },
+    { "name": "Dashboard PRO", "url": "/", "description": "Tablero principal CIVAC" },
     { "name": "Pesaje BT", "url": "/pesaje", "description": "Báscula Bluetooth" },
-    { "name": "GPS Ganado", "url": "/gps", "description": "Rastreo GPS en tiempo real" },
+    { "name": "GPS Ganado", "url": "/gps", "description": "Rastreo GPS" },
     { "name": "Inventario", "url": "/inventario", "description": "Ver animales" },
-    { "name": "Alertas", "url": "/alertas", "description": "Ver alertas activas" }
+    { "name": "Planes", "url": "/planes", "description": "Planes CIVAC · Wompi" }
   ],
   "screenshots": [
-    { "src": "/opengraph.jpg", "sizes": "1200x630", "type": "image/jpeg", "label": "Tablero principal GanaderIA PRO" }
+    { "src": "/opengraph.jpg", "sizes": "1200x630", "type": "image/jpeg", "label": "CIVAC — Dashboard PRO" }
   ]
 }

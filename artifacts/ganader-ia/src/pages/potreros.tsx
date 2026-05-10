@@ -63,7 +63,7 @@ export default function Potreros() {
     setOpenAdd(false);
   };
 
-  const getEstadoColor = (estado: string) => {
+  function getEstadoColor(estado: string) {
     switch (estado) {
       case 'Disponible': return 'text-green-400 border-green-400/40 bg-green-400/5';
       case 'Ocupado': return 'text-orange-400 border-orange-400/40 bg-orange-400/5';
@@ -71,7 +71,7 @@ export default function Potreros() {
       case 'Descanso': return 'text-blue-400 border-blue-400/40 bg-blue-400/5';
       default: return 'text-muted-foreground border-border bg-muted/10';
     }
-  };
+  }
 
   return (
     <div className="space-y-5 pb-8">

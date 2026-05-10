@@ -5,7 +5,7 @@ import {
   Settings, BookOpen, UserCircle, HelpCircle, Menu, X, Sun, Moon,
   LogOut, Download, Scale, ChevronDown, ChevronRight, Search,
   PanelLeftClose, PanelLeftOpen, Star, WifiOff, RefreshCw, Zap,
-  Home, Smartphone,
+  Home, Smartphone, CreditCard,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "./ui/button";
@@ -170,10 +170,11 @@ export function Layout({ children }: LayoutProps) {
       id: 'sistema',
       title: 'Sistema',
       items: [
-        { href: '/usuarios',      icon: UserCircle, label: 'Usuarios',      section: 'sistema' },
-        { href: '/configuracion', icon: Settings,   label: 'Configuración', section: 'sistema' },
-        { href: '/documentacion', icon: BookOpen,   label: 'Documentación', section: 'sistema' },
-        { href: '/manual',        icon: HelpCircle, label: 'Manual de Uso', section: 'sistema' },
+        { href: '/usuarios',      icon: UserCircle,  label: 'Usuarios',      section: 'sistema' },
+        { href: '/configuracion', icon: Settings,    label: 'Configuración', section: 'sistema' },
+        { href: '/documentacion', icon: BookOpen,    label: 'Documentación', section: 'sistema' },
+        { href: '/manual',        icon: HelpCircle,  label: 'Manual de Uso', section: 'sistema' },
+        { href: '/planes',        icon: CreditCard,  label: 'Planes',        section: 'sistema' },
       ],
     },
   ], [alertasBadge, insumosBadge, reprodBadge]);

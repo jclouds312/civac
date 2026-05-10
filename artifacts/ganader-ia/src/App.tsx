@@ -30,6 +30,7 @@ import Configuracion from "./pages/configuracion";
 import Documentacion from "./pages/documentacion";
 import Manual from "./pages/manual";
 import Pesaje from "./pages/pesaje";
+import Planes from "./pages/planes";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ function AuthGate() {
         <Route path="/configuracion" component={Configuracion} />
         <Route path="/documentacion" component={Documentacion} />
         <Route path="/manual" component={Manual} />
+        <Route path="/planes" component={Planes} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

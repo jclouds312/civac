@@ -196,8 +196,45 @@ export default function Login() {
           )}
         </div>
 
-        <p className="text-center text-white/25 text-xs mt-4">
-          GanaderIA v2.0 · Ganadería Inteligente Colombia · {new Date().getFullYear()}
+        {/* Features strip */}
+        <div className="mt-6 border border-white/10 rounded-2xl p-4 bg-white/3 backdrop-blur">
+          <p className="text-center text-white/30 text-[10px] uppercase tracking-widest font-semibold mb-3">
+            16+ módulos incluidos
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {[
+              { icon: '🐄', label: 'Inventario RFID' },
+              { icon: '🥛', label: 'Producción' },
+              { icon: '🔁', label: 'Reproducción' },
+              { icon: '⚖️', label: 'Pesaje' },
+              { icon: '🧬', label: 'Genética DEP' },
+              { icon: '🌿', label: 'Potreros' },
+              { icon: '🌾', label: 'Alimentación' },
+              { icon: '💊', label: 'Insumos' },
+              { icon: '🧪', label: 'Semen/Embriones' },
+              { icon: '💰', label: 'Costos P&G' },
+              { icon: '👷', label: 'Personal' },
+              { icon: '🤖', label: 'Predicción IA' },
+              { icon: '🌱', label: 'CO₂ IPCC' },
+              { icon: '🗺️', label: 'Multi-Finca' },
+              { icon: '📱', label: 'PWA Offline' },
+              { icon: '🔔', label: 'Alertas' },
+            ].map(f => (
+              <span key={f.label} className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-2.5 py-1 text-[11px] text-white/50">
+                <span>{f.icon}</span>
+                <span>{f.label}</span>
+              </span>
+            ))}
+          </div>
+          <div className="text-center mt-3">
+            <a href="/planes" className="text-emerald-400/70 text-xs hover:text-emerald-400 transition-colors">
+              Ver planes y precios →
+            </a>
+          </div>
+        </div>
+
+        <p className="text-center text-white/20 text-xs mt-4">
+          GanaderIA v3.0 · Ganadería Inteligente Colombia · {new Date().getFullYear()}
         </p>
       </div>
     </div>

@@ -4,25 +4,46 @@
   "description": "Sistema inteligente de gestión ganadera. Inventario, producción, reproducción, genética, finanzas y más.",
   "start_url": "/",
   "scope": "/",
+  "id": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
   "background_color": "#111714",
   "theme_color": "#1a4a2e",
-  "categories": ["business", "productivity", "agriculture"],
+  "categories": ["business", "productivity", "agriculture", "utilities"],
   "lang": "es",
   "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/favicon.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "maskable" },
     { "src": "/favicon.svg", "sizes": "192x192", "type": "image/svg+xml" },
     { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml" }
   ],
   "shortcuts": [
-    { "name": "Dashboard", "url": "/", "description": "Ver tablero principal" },
-    { "name": "Inventario", "url": "/inventario", "description": "Ver animales" },
-    { "name": "Producción", "url": "/produccion", "description": "Ver producción lechera" },
-    { "name": "Alertas", "url": "/alertas", "description": "Ver alertas activas" }
+    { "name": "Tablero KPIs",     "short_name": "Tablero",    "url": "/",             "description": "Ver tablero principal con KPIs" },
+    { "name": "Alertas",          "short_name": "Alertas",    "url": "/alertas",      "description": "Ver alertas activas" },
+    { "name": "Inventario",       "short_name": "Inventario", "url": "/inventario",   "description": "Animales registrados" },
+    { "name": "Producción",       "short_name": "Producción", "url": "/produccion",   "description": "Producción lechera" },
+    { "name": "Reproducción",     "short_name": "Reprod.",    "url": "/reproduccion", "description": "Celos, partos y gestación" },
+    { "name": "Básculas y Pesaje","short_name": "Pesaje",     "url": "/pesaje",       "description": "Registro de pesos" },
+    { "name": "Potreros",         "short_name": "Potreros",   "url": "/potreros",     "description": "Rotación de potreros" },
+    { "name": "Insumos",          "short_name": "Insumos",    "url": "/insumos",      "description": "Stock de medicamentos e insumos" },
+    { "name": "Costos y P&G",     "short_name": "Costos",     "url": "/costos",       "description": "Finanzas y pérdidas y ganancias" },
+    { "name": "Predicciones IA",  "short_name": "IA",         "url": "/prediccion",   "description": "Análisis y predicciones con IA" }
   ],
   "screenshots": [
-    { "src": "/opengraph.jpg", "sizes": "1200x630", "type": "image/jpeg", "label": "Tablero principal de GanaderIA" }
-  ]
+    {
+      "src": "/opengraph.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "label": "Tablero principal de GanaderIA",
+      "form_factor": "wide"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  }
 }

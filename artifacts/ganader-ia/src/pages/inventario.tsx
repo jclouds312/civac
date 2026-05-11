@@ -81,22 +81,25 @@ export default function Inventario() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#1a5c2e] to-[#2d8a4e] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">🐄</div>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#001a11 0%,#002e1a 100%)', border:'1px solid rgba(0,245,212,0.35)', boxShadow:'0 0 40px rgba(0,245,212,0.1), inset 0 1px 0 rgba(0,245,212,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #00f5d4, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(0,245,212,0.1)', border:'1px solid rgba(0,245,212,0.4)', boxShadow:'0 0 16px rgba(0,245,212,0.2)'}}>🐄</div>
           <div>
-            <h1 className="text-xl font-bold text-white">Inventario Animal — {animals.length} cabezas</h1>
-            <p className="text-white/70 text-sm">Registro completo · RFID GES3S · Básculas Tru-Test · Offline</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Inventario Animal — {animals.length} cabezas</h1>
+            <p className="text-sm" style={{color:'rgba(0,245,212,0.7)'}}>Registro RFID GES3S · Básculas Tru-Test · Hato completo · Offline</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,245,212,0.08)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4'}}>
             <Download size={14} /> CSV
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+              <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.4)', color:'#fff'}}>
                 <Plus size={14} /> Agregar
               </Button>
             </DialogTrigger>
@@ -148,16 +151,18 @@ export default function Inventario() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label:'TOTAL ANIMALES', val: String(animals.length), sub:'en sistema', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'EN PRODUCCIÓN', val:'5', sub:'ordeño activo', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
-          { label:'GESTANTES', val:'1', sub:'confirmadas', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
-          { label:'EN TRATAMIENTO', val:'1', sub:'revisar hoy', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
-          { label:'LECHE/DÍA', val:`${totalLeche.toFixed(0)}L`, sub:'producción total', gradient:'linear-gradient(135deg,#e65100,#f57c00)' },
+          { label:'TOTAL CABEZAS', val: String(animals.length), sub:'en sistema', c:'#00f5d4' },
+          { label:'EN PRODUCCIÓN', val:String(animals.filter(a=>a.estado==='Producción').length), sub:'ordeño activo', c:'#00c8ff' },
+          { label:'GESTANTES', val:String(animals.filter(a=>a.estado==='Gestante').length), sub:'confirmadas', c:'#bf00ff' },
+          { label:'EN TRATAMIENTO', val:String(animals.filter(a=>a.estado==='Tratamiento').length), sub:'revisar hoy', c:'#ff006e' },
+          { label:'LECHE/DÍA', val:`${totalLeche.toFixed(0)}L`, sub:'producción total', c:'#ff9500' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
-            <div className="text-[10px] text-white/60">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>
@@ -182,17 +187,10 @@ export default function Inventario() {
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#1a4a2e] hover:bg-[#1a4a2e] border-b border-[#2d6a3f]">
-              <TableHead className="text-white font-semibold text-xs uppercase py-3">Arete</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase">Nombre</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase">Raza</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase">Categoría</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase">Peso</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase">Lote</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase">Estado</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase text-right">L/Día</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase text-right">Partos</TableHead>
-              <TableHead className="text-white font-semibold text-xs uppercase text-center">Acc.</TableHead>
+            <TableRow className="hover:bg-transparent border-b border-border" style={{background:'rgba(0,245,212,0.06)'}}>
+              {['ARETE','NOMBRE','RAZA','CATEGORÍA','PESO','LOTE','ESTADO','L/DÍA','PARTOS','ACC.'].map(h=>(
+                <TableHead key={h} className="font-semibold text-[10px] uppercase py-3" style={{color:'rgba(0,245,212,0.75)'}}>{h}</TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>

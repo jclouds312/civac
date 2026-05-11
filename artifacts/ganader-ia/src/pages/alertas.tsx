@@ -30,35 +30,40 @@ export default function Alertas() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#7f1d1d] to-[#b91c1c] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#1a000d 0%,#2e0011 100%)', border:'1px solid rgba(255,0,110,0.4)', boxShadow:'0 0 40px rgba(255,0,110,0.12), inset 0 1px 0 rgba(255,0,110,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #ff006e, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{background:'rgba(255,0,110,0.12)', border:'1px solid rgba(255,0,110,0.4)', boxShadow:'0 0 16px rgba(255,0,110,0.2)'}}>
             <Bell size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Alertas y Notificaciones</h1>
-            <p className="text-white/70 text-sm">Centro de alertas · Monitoreo continuo · Resolución de eventos</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Alertas y Notificaciones</h1>
+            <p className="text-sm" style={{color:'rgba(255,100,150,0.8)'}}>Centro de alertas · Monitoreo continuo · Resolución de eventos</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="bg-white/20 border border-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-full">{criticas} Críticas</span>
-          <span className="bg-white/10 border border-white/20 text-white/80 text-xs font-medium px-3 py-1.5 rounded-full">{advertencias} Advertencias</span>
+        <div className="relative flex items-center gap-2">
+          <span className="text-xs font-bold px-3 py-1.5 rounded-full" style={{background:'rgba(255,0,110,0.2)', border:'1px solid rgba(255,0,110,0.4)', color:'#ff6090'}}>{criticas} Críticas</span>
+          <span className="text-xs font-medium px-3 py-1.5 rounded-full" style={{background:'rgba(255,150,0,0.15)', border:'1px solid rgba(255,150,0,0.3)', color:'#ff9500'}}>{advertencias} Advertencias</span>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:'CRÍTICAS ACTIVAS', val:String(criticas), sub:'requieren acción ya', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
-          { label:'ADVERTENCIAS', val:String(advertencias), sub:'seguimiento', gradient:'linear-gradient(135deg,#e65100,#f57c00)' },
-          { label:'RESUELTAS', val:String(resolved.size), sub:'hoy', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'TOTAL', val:String(allAlertas.length), sub:'en el período', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
+          { label:'CRÍTICAS ACTIVAS', val:String(criticas), sub:'requieren acción ya', c:'#ff006e' },
+          { label:'ADVERTENCIAS', val:String(advertencias), sub:'seguimiento', c:'#ff9500' },
+          { label:'RESUELTAS', val:String(resolved.size), sub:'hoy', c:'#39ff7e' },
+          { label:'TOTAL', val:String(allAlertas.length), sub:'en el período', c:'#00c8ff' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
-            <div className="text-[10px] text-white/60">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.18, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>

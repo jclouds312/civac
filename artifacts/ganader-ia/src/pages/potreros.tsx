@@ -27,22 +27,25 @@ export default function Potreros() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#0d4a3d] to-[#00796b] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#001a0d 0%,#002e14 100%)', border:'1px solid rgba(57,255,126,0.35)', boxShadow:'0 0 40px rgba(57,255,126,0.1), inset 0 1px 0 rgba(57,255,126,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #39ff7e, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{background:'rgba(57,255,126,0.1)', border:'1px solid rgba(57,255,126,0.4)', boxShadow:'0 0 16px rgba(57,255,126,0.2)'}}>
             <Layers size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Potreros y Praderas</h1>
-            <p className="text-white/70 text-sm">Mapa interactivo · Semáforo de rotación · Carga animal · Aforo</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Potreros y Praderas</h1>
+            <p className="text-sm" style={{color:'rgba(57,255,126,0.75)'}}>Mapa interactivo · Semáforo de rotación · Carga animal · Aforo</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(57,255,126,0.08)', border:'1px solid rgba(57,255,126,0.3)', color:'#39ff7e'}}>
             <Download size={14} /> CSV
           </Button>
-          <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+          <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(57,255,126,0.15)', border:'1px solid rgba(57,255,126,0.4)', color:'#fff'}}>
             <Plus size={14} /> Potrero
           </Button>
         </div>
@@ -51,16 +54,18 @@ export default function Potreros() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label:'POTREROS', val:`${potreros.length}`, sub:'registrados', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'ÁREA TOTAL', val:`${totalHa.toFixed(1)} ha`, sub:'hectáreas', gradient:'linear-gradient(135deg,#00695c,#00897b)' },
-          { label:'DISPONIBLES', val:'1', sub:'para uso', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
-          { label:'EN DESCANSO', val:'1', sub:'recuperando', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
-          { label:'ROTAR URGENTE', val:'1', sub:'revisar hoy', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
+          { label:'POTREROS', val:`${potreros.length}`, sub:'registrados', c:'#39ff7e' },
+          { label:'ÁREA TOTAL', val:`${totalHa.toFixed(1)} ha`, sub:'hectáreas', c:'#00f5d4' },
+          { label:'DISPONIBLES', val:String(potreros.filter(p=>p.estado==='Disponible').length), sub:'para uso', c:'#bf00ff' },
+          { label:'EN DESCANSO', val:String(potreros.filter(p=>p.estado==='Descanso').length), sub:'recuperando', c:'#00c8ff' },
+          { label:'ROTAR URGENTE', val:String(potreros.filter(p=>p.estado==='Rotar pronto').length), sub:'revisar hoy', c:'#ff006e' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
-            <div className="text-[10px] text-white/60">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>

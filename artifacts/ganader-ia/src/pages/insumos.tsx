@@ -51,22 +51,25 @@ export default function Insumos() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#7c3d10] to-[#e65100] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">💊</div>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#1a0f00 0%,#2e1200 100%)', border:'1px solid rgba(255,149,0,0.4)', boxShadow:'0 0 40px rgba(255,149,0,0.12), inset 0 1px 0 rgba(255,149,0,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #ff9500, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(255,149,0,0.1)', border:'1px solid rgba(255,149,0,0.4)', boxShadow:'0 0 16px rgba(255,149,0,0.2)'}}>💊</div>
           <div>
-            <h1 className="text-xl font-bold text-white">Insumos y Kardex</h1>
-            <p className="text-white/70 text-sm">Control de stock · Medicamentos · Vacunas · Alertas de reposición</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Insumos y Kardex</h1>
+            <p className="text-sm" style={{color:'rgba(255,180,80,0.8)'}}>Control de stock · Medicamentos · Vacunas · Alertas de reposición</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(255,149,0,0.08)', border:'1px solid rgba(255,149,0,0.3)', color:'#ff9500'}}>
             <Download size={14} /> CSV
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+              <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(255,149,0,0.15)', border:'1px solid rgba(255,149,0,0.4)', color:'#fff'}}>
                 <Plus size={14} /> Insumo
               </Button>
             </DialogTrigger>
@@ -106,15 +109,17 @@ export default function Insumos() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:'STOCK MÍNIMO', val:String(criticos.length), sub:'a reponer urgente', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
-          { label:'PRODUCTOS', val:String(insumos.length), sub:'registrados', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'VALOR INVENTARIO', val:`$${(valorInventario/1000000).toFixed(1)}M`, sub:'COP estimado', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
-          { label:'CATEGORÍAS', val:'6', sub:'tipos activos', gradient:'linear-gradient(135deg,#00695c,#00897b)' },
+          { label:'STOCK MÍNIMO', val:String(criticos.length), sub:'a reponer urgente', c:'#ff006e' },
+          { label:'PRODUCTOS', val:String(insumos.length), sub:'registrados', c:'#39ff7e' },
+          { label:'VALOR INVENTARIO', val:`$${(valorInventario/1000000).toFixed(1)}M`, sub:'COP estimado', c:'#bf00ff' },
+          { label:'CATEGORÍAS', val:'6', sub:'tipos activos', c:'#ff9500' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
-            <div className="text-[10px] text-white/60">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>
@@ -136,7 +141,7 @@ export default function Insumos() {
 
       {/* Inventario */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-[#7c3d10] to-[#e65100] px-5 py-3 flex items-center justify-between">
+        <div className="px-5 py-3 flex items-center justify-between" style={{background:'linear-gradient(135deg,#1a0f00,#2e1200)', borderBottom:'1px solid rgba(255,149,0,0.2)'}}>
           <div className="flex items-center gap-2">
             <span className="text-base">📦</span>
             <div>

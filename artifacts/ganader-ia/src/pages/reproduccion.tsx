@@ -45,17 +45,27 @@ export default function Reproduccion() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">🔁 Reproducción y Ciclos</h1>
-          <p className="text-muted-foreground text-sm">Control de montas, I.A. y partos · IEP · Protocolos</p>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#130020 0%,#220030 100%)', border:'1px solid rgba(191,0,255,0.35)', boxShadow:'0 0 40px rgba(191,0,255,0.1), inset 0 1px 0 rgba(191,0,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #bf00ff, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(191,0,255,0.1)', border:'1px solid rgba(191,0,255,0.4)', boxShadow:'0 0 16px rgba(191,0,255,0.2)'}}>🔁</div>
+          <div>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Reproducción y Ciclos</h1>
+            <p className="text-sm" style={{color:'rgba(191,0,255,0.75)'}}>Control de montas, I.A. y partos · IEP · Protocolos</p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="h-9 gap-1.5 text-sm"><Download size={14} /> CSV</Button>
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(191,0,255,0.08)', border:'1px solid rgba(191,0,255,0.3)', color:'#bf00ff'}}>
+            <Download size={14} /> CSV
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="h-9 gap-1.5 text-sm"><Plus size={14} /> Registrar Evento</Button>
+              <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(191,0,255,0.15)', border:'1px solid rgba(191,0,255,0.4)', color:'#fff'}}>
+                <Plus size={14} /> Registrar Evento
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <form onSubmit={handleAdd}>
@@ -90,34 +100,37 @@ export default function Reproduccion() {
         </div>
       </div>
 
-      {/* Top KPI cards (bordered style) */}
+      {/* Top KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {kpisTop.map(k => (
-          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">{k.label}</span>
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${k.dot}`} />
+        {kpisTop.map((k,i) => {
+          const cols = ['#ff9500','#39ff7e','#ff006e','#00f5d4','#ff006e'];
+          const c = cols[i];
+          return (
+            <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+              style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+              <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+              <div className="text-2xl font-bold" style={{color:c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+              <div className="text-[10px] mt-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
             </div>
-            <div className="text-2xl font-bold text-foreground">{k.val}</div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">{k.sub}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* 2-col: Próximos partos + Anestros */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Próximos partos */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-gradient-to-r from-[#1b5e20]/40 to-[#2e7d32]/20">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border" style={{background:'rgba(191,0,255,0.06)'}}>
             <div className="font-semibold text-sm">🐄 Próximos partos esperados</div>
             <Button size="sm" className="h-8 text-xs gap-1"><Plus size={12} /> Agregar</Button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#1a4a2e] border-b border-[#2d6a3f]">
+                <tr className="border-b border-border" style={{background:'rgba(191,0,255,0.06)'}}>
                   {['Arete','Animal','Servicio','Fecha Parto','Días','Partos Prev.','Estado',''].map(h => (
-                    <th key={h} className="text-white/70 font-semibold text-[10px] uppercase px-3 py-2.5 text-left whitespace-nowrap">{h}</th>
+                    <th key={h} className="font-semibold text-[10px] uppercase px-3 py-2.5 text-left whitespace-nowrap" style={{color:'rgba(191,0,255,0.75)'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -172,16 +185,19 @@ export default function Reproduccion() {
 
       {/* Bottom KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {kpisBot.map(k => (
-          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">{k.label}</span>
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${k.dot}`} />
+        {kpisBot.map((k,i) => {
+          const cols = ['#ff9500','#ff9500','#ff006e','#39ff7e'];
+          const c = cols[i];
+          return (
+            <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+              style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+              <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+              <div className="text-2xl font-bold" style={{color:c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+              <div className="text-[10px] mt-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
             </div>
-            <div className="text-2xl font-bold text-foreground">{k.val}</div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">{k.sub}</div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

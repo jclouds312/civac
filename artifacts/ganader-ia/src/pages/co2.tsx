@@ -19,27 +19,35 @@ const evolucion = [
 export default function Co2() {
   return (
     <div className="space-y-5 pb-8">
-      <div>
-        <h1 className="text-2xl font-bold">🌱 Huella de Carbono — IPCC 2019</h1>
-        <p className="text-muted-foreground text-sm">Emisiones GEI · Captura praderas · Benchmarking regional</p>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#001a06 0%,#002e0a 100%)', border:'1px solid rgba(57,255,126,0.35)', boxShadow:'0 0 40px rgba(57,255,126,0.1), inset 0 1px 0 rgba(57,255,126,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #39ff7e, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(57,255,126,0.1)', border:'1px solid rgba(57,255,126,0.4)', boxShadow:'0 0 16px rgba(57,255,126,0.2)'}}>🌱</div>
+          <div>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Huella de Carbono — IPCC 2019</h1>
+            <p className="text-sm" style={{color:'rgba(57,255,126,0.75)'}}>Emisiones GEI · Captura praderas · Benchmarking regional</p>
+          </div>
+        </div>
       </div>
 
-      {/* 5 KPI cards (bordered) */}
+      {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
-          { label:'EMISIÓN BRUTA', val:'46.1 t', sub:'CO₂eq/mes', dot:'bg-green-400' },
-          { label:'INTENSIDAD LECHE', val:'0.82 kg/L', sub:'CO₂eq/L ✓', dot:'bg-green-400' },
-          { label:'CAPTURA PRADERAS', val:'12.4 t', sub:'CO₂eq/mes', dot:'bg-green-400' },
-          { label:'HUELLA NETA', val:'33.7 t', sub:'CO₂eq/mes', dot:'bg-green-400' },
-          { label:'VS LATAM PROM.', val:'-55%', sub:'mejor que región', dot:'bg-green-400' },
+          { label:'EMISIÓN BRUTA', val:'46.1 t', sub:'CO₂eq/mes', c:'#ff9500' },
+          { label:'INTENSIDAD LECHE', val:'0.82 kg/L', sub:'CO₂eq/L ✓', c:'#39ff7e' },
+          { label:'CAPTURA PRADERAS', val:'12.4 t', sub:'CO₂eq/mes', c:'#00f5d4' },
+          { label:'HUELLA NETA', val:'33.7 t', sub:'CO₂eq/mes', c:'#39ff7e' },
+          { label:'VS LATAM PROM.', val:'-55%', sub:'mejor que región', c:'#00c8ff' },
         ].map(k => (
-          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground leading-tight">{k.label}</span>
-              <span className={`w-2 h-2 rounded-full ${k.dot}`} />
-            </div>
-            <div className="text-xl font-bold text-foreground">{k.val}</div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px] mt-0.5" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>
@@ -109,7 +117,7 @@ export default function Co2() {
                   <XAxis dataKey="name" stroke="#444" tick={{fill:'#888',fontSize:10}} />
                   <YAxis stroke="#444" tick={{fill:'#888',fontSize:9}} width={32} domain={[0.7, 1.0]} />
                   <RechartsTooltip contentStyle={{backgroundColor:'#111',borderColor:'#333',color:'#fff'}} />
-                  <Bar dataKey="val" fill="#22c55e" radius={[3,3,0,0]}>
+                  <Bar dataKey="val" fill="#39ff7e" radius={[3,3,0,0]}>
                     <LabelList dataKey="val" position="top" style={{fill:'#888',fontSize:9}} />
                   </Bar>
                 </BarChart>

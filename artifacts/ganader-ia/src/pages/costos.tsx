@@ -1,4 +1,4 @@
-import { Download, Plus } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const fmt = (n: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
@@ -28,28 +28,40 @@ const costoLitro = [
 export default function Costos() {
   return (
     <div className="space-y-5 pb-8">
-      {/* Title */}
-      <div>
-        <h1 className="text-2xl font-bold">💰 Costos y Estado de Resultados</h1>
-        <p className="text-muted-foreground text-sm">Rentabilidad y análisis financiero mensual</p>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#001a11 0%,#002e1a 100%)', border:'1px solid rgba(0,245,212,0.35)', boxShadow:'0 0 40px rgba(0,245,212,0.1), inset 0 1px 0 rgba(0,245,212,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #00f5d4, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(0,245,212,0.1)', border:'1px solid rgba(0,245,212,0.4)', boxShadow:'0 0 16px rgba(0,245,212,0.2)'}}>💰</div>
+          <div>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Costos y Estado de Resultados</h1>
+            <p className="text-sm" style={{color:'rgba(0,245,212,0.7)'}}>Rentabilidad y análisis financiero mensual · P&G detallado</p>
+          </div>
+        </div>
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,245,212,0.08)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4'}}>
+            <Download size={14} /> CSV
+          </Button>
+        </div>
       </div>
 
-      {/* 5 KPI Cards (bordered style with color dot) */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
-          { label:'INGRESOS', val:'$85.750.000', sub:'total mes', dot:'bg-green-400' },
-          { label:'EGRESOS', val:'$45.500.000', sub:'total mes', dot:'bg-red-400' },
-          { label:'UTILIDAD', val:'$40.250.000', sub:'46.9% margen', dot:'bg-green-400' },
-          { label:'COSTO/LITRO', val:'$820', sub:'Meta <$800', dot:'bg-orange-400' },
-          { label:'MARGEN/LITRO', val:'$430', sub:'34.4%', dot:'bg-green-400' },
+          { label:'INGRESOS', val:'$85.750.000', sub:'total mes', c:'#39ff7e' },
+          { label:'EGRESOS', val:'$45.500.000', sub:'total mes', c:'#ff006e' },
+          { label:'UTILIDAD', val:'$40.250.000', sub:'46.9% margen', c:'#00f5d4' },
+          { label:'COSTO/LITRO', val:'$820', sub:'Meta <$800', c:'#ff9500' },
+          { label:'MARGEN/LITRO', val:'$430', sub:'34.4%', c:'#bf00ff' },
         ].map(k => (
-          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{k.label}</span>
-              <span className={`w-2 h-2 rounded-full ${k.dot}`} />
-            </div>
-            <div className="text-lg font-bold text-foreground">{k.val}</div>
-            <div className="text-[10px] text-muted-foreground">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-lg font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>

@@ -42,24 +42,27 @@ export default function Semen() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#0d3d4a] to-[#00838f] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#00101a 0%,#001a2e 100%)', border:'1px solid rgba(0,200,255,0.35)', boxShadow:'0 0 40px rgba(0,200,255,0.1), inset 0 1px 0 rgba(0,200,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #00c8ff, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{background:'rgba(0,200,255,0.1)', border:'1px solid rgba(0,200,255,0.4)', boxShadow:'0 0 16px rgba(0,200,255,0.2)'}}>
             <Snowflake size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Semen y Embriones</h1>
-            <p className="text-white/70 text-sm">Inventario criogénico · Donantes · Transferencia de embriones</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Semen y Embriones</h1>
+            <p className="text-sm" style={{color:'rgba(0,200,255,0.75)'}}>Inventario criogénico · Donantes · Transferencia de embriones</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,200,255,0.08)', border:'1px solid rgba(0,200,255,0.3)', color:'#00c8ff'}}>
             <Download size={14} /> CSV
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+              <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,200,255,0.15)', border:'1px solid rgba(0,200,255,0.4)', color:'#fff'}}>
                 <Plus size={14} /> Registro
               </Button>
             </DialogTrigger>
@@ -87,30 +90,32 @@ export default function Semen() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:'TOROS DISPONIBLES', val:String(semen.length), sub:'en inventario', gradient:'linear-gradient(135deg,#0d3d4a,#00838f)' },
-          { label:'TOTAL PAJILLAS', val:String(semen.reduce((s,r)=>s+r.pajillas,0)), sub:'en criopreservación', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'EMBRIONES', val:String(embriones.length), sub:'lotes registrados', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
-          { label:'CANECAS', val:String(semen.reduce((s,r)=>s+r.canecas,0)), sub:'nitrógeno líquido', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
+          { label:'TOROS DISPONIBLES', val:String(semen.length), sub:'en inventario', c:'#00c8ff' },
+          { label:'TOTAL PAJILLAS', val:String(semen.reduce((s,r)=>s+r.pajillas,0)), sub:'en criopreservación', c:'#39ff7e' },
+          { label:'EMBRIONES', val:String(embriones.length), sub:'lotes registrados', c:'#bf00ff' },
+          { label:'CANECAS', val:String(semen.reduce((s,r)=>s+r.canecas,0)), sub:'nitrógeno líquido', c:'#00f5d4' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
-            <div className="text-[10px] text-white/60">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Semen table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-[#0d3d4a] to-[#00838f] px-5 py-3">
+        <div className="px-5 py-3" style={{background:'linear-gradient(135deg,#00101a,#001a2e)', borderBottom:'1px solid rgba(0,200,255,0.2)'}}>
           <div className="font-semibold text-white text-sm">❄️ Inventario de Semen</div>
-          <div className="text-white/60 text-xs">{semen.length} toros registrados en stock criogénico</div>
+          <div className="text-xs" style={{color:'rgba(0,200,255,0.6)'}}>{semen.length} toros registrados en stock criogénico</div>
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0a3040] hover:bg-[#0a3040] border-b border-teal-900/40">
+            <TableRow className="hover:bg-transparent border-b border-border" style={{background:'rgba(0,200,255,0.06)'}}>
               {['ID','Toro','Raza','DEP','Pajillas','Tipo','Origen','Año Cría',''].map(h => (
-                <TableHead key={h} className="text-white/70 font-semibold text-xs uppercase">{h}</TableHead>
+                <TableHead key={h} className="font-semibold text-[10px] uppercase" style={{color:'rgba(0,200,255,0.75)'}}>{h}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
@@ -145,9 +150,9 @@ export default function Semen() {
         </div>
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#1a4a2e] hover:bg-[#1a4a2e] border-b border-[#2d6a3f]">
+            <TableRow className="hover:bg-transparent border-b border-border" style={{background:'rgba(191,0,255,0.06)'}}>
               {['ID','Donante','Receptor','Raza','Fecha TE','Estado'].map(h => (
-                <TableHead key={h} className="text-white/70 font-semibold text-xs uppercase">{h}</TableHead>
+                <TableHead key={h} className="font-semibold text-[10px] uppercase" style={{color:'rgba(191,0,255,0.75)'}}>{h}</TableHead>
               ))}
             </TableRow>
           </TableHeader>

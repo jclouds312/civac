@@ -47,19 +47,22 @@ export default function Ficha() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#1e3a5f] to-[#1565c0] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#000d1a 0%,#001a2e 100%)', border:'1px solid rgba(0,200,255,0.35)', boxShadow:'0 0 40px rgba(0,200,255,0.1), inset 0 1px 0 rgba(0,200,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #00c8ff, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{background:'rgba(0,200,255,0.1)', border:'1px solid rgba(0,200,255,0.4)', boxShadow:'0 0 16px rgba(0,200,255,0.2)'}}>
             <ClipboardList size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Ficha Individual</h1>
-            <p className="text-white/70 text-sm">Historia clínica · Pesajes · Vacunas · Partos · Eventos</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Ficha Individual</h1>
+            <p className="text-sm" style={{color:'rgba(0,200,255,0.75)'}}>Historia clínica · Pesajes · Vacunas · Partos · Eventos</p>
           </div>
         </div>
         <Select value={selId} onValueChange={setSelId}>
-          <SelectTrigger className="w-52 bg-white/10 border-white/30 text-white">
+          <SelectTrigger className="w-52" style={{background:'rgba(0,200,255,0.08)', border:'1px solid rgba(0,200,255,0.35)', color:'#fff'}}>
             <SelectValue placeholder="Seleccionar animal" />
           </SelectTrigger>
           <SelectContent>
@@ -112,9 +115,9 @@ export default function Ficha() {
           <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#1a4a2e] border-b border-[#2d6a3f]">
+                <tr className="border-b border-border" style={{background:'rgba(0,200,255,0.06)'}}>
                   {['Fecha','Vacuna','Dosis','Aplicador'].map(h => (
-                    <th key={h} className="text-white/70 font-semibold text-xs uppercase px-4 py-3 text-left">{h}</th>
+                    <th key={h} className="font-semibold text-[10px] uppercase px-4 py-3 text-left" style={{color:'rgba(0,200,255,0.75)'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -136,9 +139,9 @@ export default function Ficha() {
           <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#1a4a2e] border-b border-[#2d6a3f]">
+                <tr className="border-b border-border" style={{background:'rgba(0,200,255,0.06)'}}>
                   {['Fecha','Peso (kg)','Variación'].map(h => (
-                    <th key={h} className="text-white/70 font-semibold text-xs uppercase px-4 py-3 text-left">{h}</th>
+                    <th key={h} className="font-semibold text-[10px] uppercase px-4 py-3 text-left" style={{color:'rgba(0,200,255,0.75)'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -167,9 +170,9 @@ export default function Ficha() {
           <div className="bg-card border border-border rounded-xl overflow-hidden mt-3">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#1a4a2e] border-b border-[#2d6a3f]">
+                <tr className="border-b border-border" style={{background:'rgba(0,200,255,0.06)'}}>
                   {['#','Fecha','Tipo','Cría','Peso Nac.','Complicaciones'].map(h => (
-                    <th key={h} className="text-white/70 font-semibold text-xs uppercase px-4 py-3 text-left">{h}</th>
+                    <th key={h} className="font-semibold text-[10px] uppercase px-4 py-3 text-left" style={{color:'rgba(0,200,255,0.75)'}}>{h}</th>
                   ))}
                 </tr>
               </thead>

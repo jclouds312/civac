@@ -15,26 +15,34 @@ const ranking = [
 export default function Genetica() {
   return (
     <div className="space-y-5 pb-8">
-      <div>
-        <h1 className="text-2xl font-bold">🧪 Genética y Pedigrí</h1>
-        <p className="text-muted-foreground text-sm">Evaluación y progreso genético del hato · DEP · Índices</p>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#0d001a 0%,#1a002e 100%)', border:'1px solid rgba(191,0,255,0.35)', boxShadow:'0 0 40px rgba(191,0,255,0.1), inset 0 1px 0 rgba(191,0,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #bf00ff, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(191,0,255,0.1)', border:'1px solid rgba(191,0,255,0.4)', boxShadow:'0 0 16px rgba(191,0,255,0.2)'}}>🧪</div>
+          <div>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Genética y Pedigrí</h1>
+            <p className="text-sm" style={{color:'rgba(191,0,255,0.75)'}}>Evaluación y progreso genético del hato · DEP · Índices</p>
+          </div>
+        </div>
       </div>
 
-      {/* KPI cards (bordered) */}
+      {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:'SCORE PROM. HATO', val:'70.8', sub:'promedio', dot:'bg-green-400' },
-          { label:'CON EVALUACIÓN DEP', val:'11', sub:'animales', dot:'bg-blue-400' },
-          { label:'MEJOR DEP LECHE', val:'+820', sub:'Rosaura', dot:'bg-green-400' },
-          { label:'TOTAL EVALUADOS', val:'11 / de 13', sub:'animales', dot:'bg-green-400' },
+          { label:'SCORE PROM. HATO', val:'70.8', sub:'promedio', c:'#39ff7e' },
+          { label:'CON EVALUACIÓN DEP', val:'11', sub:'animales', c:'#00c8ff' },
+          { label:'MEJOR DEP LECHE', val:'+820', sub:'Rosaura', c:'#bf00ff' },
+          { label:'TOTAL EVALUADOS', val:'11 / de 13', sub:'animales', c:'#00f5d4' },
         ].map(k => (
-          <div key={k.label} className="bg-card border border-border rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{k.label}</span>
-              <span className={`w-2 h-2 rounded-full ${k.dot}`} />
-            </div>
-            <div className="text-2xl font-bold text-foreground">{k.val}</div>
-            <div className="text-[10px] text-muted-foreground">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>
@@ -43,9 +51,9 @@ export default function Genetica() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Ranking genético */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#1a5c2e] to-[#2d8a4e] px-5 py-3">
+          <div className="px-5 py-3" style={{background:'linear-gradient(135deg,#0d001a,#1a002e)', borderBottom:'1px solid rgba(191,0,255,0.2)'}}>
             <div className="font-semibold text-white text-sm">🏆 Ranking genético DEP (Leche)</div>
-            <div className="text-white/60 text-xs">Evaluación índice compuesto 2025</div>
+            <div className="text-xs" style={{color:'rgba(191,0,255,0.6)'}}>Evaluación índice compuesto 2025</div>
           </div>
           <div className="p-4 space-y-3">
             {ranking.map(a => (
@@ -69,9 +77,9 @@ export default function Genetica() {
 
         {/* Pedigrí */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#1a5c2e] to-[#2d8a4e] px-5 py-3">
+          <div className="px-5 py-3" style={{background:'linear-gradient(135deg,#0d001a,#1a002e)', borderBottom:'1px solid rgba(191,0,255,0.2)'}}>
             <div className="font-semibold text-white text-sm">🧬 Pedigrí — Rosaura</div>
-            <div className="text-white/60 text-xs">Árbol genealógico y progenie registrada</div>
+            <div className="text-xs" style={{color:'rgba(191,0,255,0.6)'}}>Árbol genealógico y progenie registrada</div>
           </div>
           <div className="p-5 space-y-4">
             {/* Header */}

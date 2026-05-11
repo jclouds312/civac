@@ -158,25 +158,27 @@ export default function Pesaje() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#78290f] via-[#a33a1a] to-[#c0621c] rounded-xl p-5 shadow-lg relative overflow-hidden">
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-10">
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#1a0d00 0%,#2e1500 100%)', border:'1px solid rgba(255,149,0,0.4)', boxShadow:'0 0 40px rgba(255,149,0,0.12), inset 0 1px 0 rgba(255,149,0,0.08)'}}>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
           <Scale className="w-32 h-32 text-white" />
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{background:'rgba(255,149,0,0.1)', border:'1px solid rgba(255,149,0,0.4)', boxShadow:'0 0 16px rgba(255,149,0,0.2)'}}>
               <Scale className="text-white" size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Pesaje de Animales</h1>
-              <p className="text-white/70 text-sm">Bluetooth · Tru-Test · Gallagher · Manual · RFID</p>
+              <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Pesaje de Animales</h1>
+              <p className="text-sm" style={{color:'rgba(255,180,80,0.8)'}}>Bluetooth · Tru-Test · Gallagher · Manual · RFID</p>
             </div>
           </div>
           <div className="flex gap-2">
             <Dialog open={manualOpen} onOpenChange={setManualOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+                <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(255,149,0,0.15)', border:'1px solid rgba(255,149,0,0.4)', color:'#fff'}}>
                   <Plus size={14} /> Pesaje Manual
                 </Button>
               </DialogTrigger>
@@ -228,15 +230,17 @@ export default function Pesaje() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label:'PESAJES REGISTRADOS', val: String(totalPesajes), sub:'historial completo', g:'linear-gradient(135deg,#78290f,#a33a1a)', icon:'⚖️' },
-          { label:'VÍA BLUETOOTH', val: String(btPesajes), sub:'básculas digitales', g:'linear-gradient(135deg,#1a237e,#283593)', icon:'📡' },
-          { label:'PESO PROMEDIO', val:`${pesoPromedio}kg`, sub:'todos los registros', g:'linear-gradient(135deg,#1b5e20,#2e7d32)', icon:'📊' },
-          { label:'PESAJES HOY', val: String(hoy), sub:'jornada actual', g:'linear-gradient(135deg,#4a148c,#6a1b9a)', icon:'📅' },
+          { label:'PESAJES REGISTRADOS', val: String(totalPesajes), sub:'historial completo', c:'#ff9500', icon:'⚖️' },
+          { label:'VÍA BLUETOOTH', val: String(btPesajes), sub:'básculas digitales', c:'#00c8ff', icon:'📡' },
+          { label:'PESO PROMEDIO', val:`${pesoPromedio}kg`, sub:'todos los registros', c:'#39ff7e', icon:'📊' },
+          { label:'PESAJES HOY', val: String(hoy), sub:'jornada actual', c:'#bf00ff', icon:'📅' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.g}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.icon} {k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
-            <div className="text-[10px] text-white/60">{k.sub}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.icon} {k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
           </div>
         ))}
       </div>
@@ -414,9 +418,9 @@ export default function Pesaje() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#3d1a08] border-b border-[#7c3a1a]">
+                  <tr className="border-b border-border" style={{background:'rgba(255,149,0,0.07)'}}>
                     {['Fecha','Hora','Animal','Arete','Peso','Anterior','Diferencia','Método','Dispositivo','Operador','Acc.'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-white text-xs uppercase font-semibold whitespace-nowrap">{h}</th>
+                      <th key={h} className="text-left px-4 py-3 text-xs uppercase font-semibold whitespace-nowrap" style={{color:'rgba(255,149,0,0.75)'}}>{h}</th>
                     ))}
                   </tr>
                 </thead>

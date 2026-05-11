@@ -28,9 +28,18 @@ export default function Prediccion() {
 
   return (
     <div className="space-y-5 pb-8">
-      <div>
-        <h1 className="text-2xl font-bold">🤖 Predicciones IA — Simulador 12M</h1>
-        <p className="text-muted-foreground text-sm">Proyecciones basadas en datos históricos · SoftGan IA engine</p>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#0d0020 0%,#1a003a 100%)', border:'1px solid rgba(191,0,255,0.35)', boxShadow:'0 0 40px rgba(191,0,255,0.1), inset 0 1px 0 rgba(191,0,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #bf00ff, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(191,0,255,0.1)', border:'1px solid rgba(191,0,255,0.4)', boxShadow:'0 0 16px rgba(191,0,255,0.2)'}}>🤖</div>
+          <div>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Predicciones IA — Simulador 12M</h1>
+            <p className="text-sm" style={{color:'rgba(191,0,255,0.75)'}}>Proyecciones basadas en datos históricos · CIVAC IA engine</p>
+          </div>
+        </div>
       </div>
 
       {/* Diagnóstico IA */}
@@ -69,7 +78,7 @@ export default function Prediccion() {
                 <XAxis dataKey="name" stroke="#444" tick={{fill:'#888',fontSize:11}} />
                 <YAxis stroke="#444" tick={{fill:'#888',fontSize:10}} width={42} tickFormatter={v=>`${(v/1000).toFixed(0)}K`} />
                 <RechartsTooltip contentStyle={{backgroundColor:'#111',borderColor:'#333',color:'#fff'}} formatter={(v:number)=>[`${v.toLocaleString('es-CO')} L`,'Litros']} />
-                <Bar dataKey="litros" fill="#2e7d32" radius={[4,4,0,0]}>
+                <Bar dataKey="litros" fill="#bf00ff" radius={[4,4,0,0]}>
                   <LabelList dataKey="litros" position="top" style={{fill:'#888',fontSize:9}} formatter={(v:number)=>`${(v/1000).toFixed(0)}K`} />
                 </Bar>
               </BarChart>

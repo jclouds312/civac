@@ -48,22 +48,25 @@ export default function Produccion() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#0f3460] to-[#1565c0] rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">🥛</div>
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#000d1a 0%,#001a2e 100%)', border:'1px solid rgba(0,200,255,0.35)', boxShadow:'0 0 40px rgba(0,200,255,0.1), inset 0 1px 0 rgba(0,200,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #00c8ff, transparent 70%)'}} />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(0,200,255,0.1)', border:'1px solid rgba(0,200,255,0.4)', boxShadow:'0 0 16px rgba(0,200,255,0.2)'}}>🥛</div>
           <div>
-            <h1 className="text-xl font-bold text-white">Producción Leche y Carne</h1>
-            <p className="text-white/70 text-sm">Ordeños diarios · Tendencias · Ranking de vacas · Análisis financiero</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Producción Leche y Carne</h1>
+            <p className="text-sm" style={{color:'rgba(0,200,255,0.75)'}}>Ordeños diarios · Tendencias · Ranking de vacas · Análisis financiero</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 h-9 gap-1.5 text-sm">
+        <div className="relative flex gap-2">
+          <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,200,255,0.08)', border:'1px solid rgba(0,200,255,0.3)', color:'#00c8ff'}}>
             <Download size={14} /> CSV
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm">
+              <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,200,255,0.15)', border:'1px solid rgba(0,200,255,0.4)', color:'#fff'}}>
                 <Plus size={14} /> Registrar
               </Button>
             </DialogTrigger>
@@ -97,15 +100,17 @@ export default function Produccion() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label:'PRODUCCIÓN MES', val:'9.855 L', gradient:'linear-gradient(135deg,#0d47a1,#1565c0)' },
-          { label:'PRECIO LITRO', val:'$1.250', gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)' },
-          { label:'INGRESO BRUTO', val:'$12.3M', gradient:'linear-gradient(135deg,#e65100,#f57c00)' },
-          { label:'COSTO/LITRO', val:'$820', gradient:'linear-gradient(135deg,#b71c1c,#c62828)' },
-          { label:'MARGEN', val:'34.4%', gradient:'linear-gradient(135deg,#4a148c,#6a1b9a)' },
+          { label:'PRODUCCIÓN MES', val:'9.855 L', c:'#00c8ff' },
+          { label:'PRECIO LITRO', val:'$1.250', c:'#39ff7e' },
+          { label:'INGRESO BRUTO', val:'$12.3M', c:'#ff9500' },
+          { label:'COSTO/LITRO', val:'$820', c:'#ff006e' },
+          { label:'MARGEN', val:'34.4%', c:'#bf00ff' },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white shadow" style={{background:k.gradient}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-white/70 mb-1">{k.label}</div>
-            <div className="text-2xl font-bold">{k.val}</div>
+          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.label}</div>
+            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
           </div>
         ))}
       </div>
@@ -127,7 +132,7 @@ export default function Produccion() {
                 <span className="w-6 h-6 rounded-full bg-primary/15 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">{v.rank}</span>
                 <span className="text-sm font-medium w-20">{v.nombre}</span>
                 <div className="flex-1 bg-muted/30 rounded-full h-2.5">
-                  <div className="h-2.5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400" style={{width:`${(v.litros/20)*100}%`}} />
+                  <div className="h-2.5 rounded-full" style={{width:`${(v.litros/20)*100}%`, background:'linear-gradient(90deg,#00c8ff,#39ff7e)'}} />
                 </div>
                 <span className="text-xs font-bold text-cyan-400 w-14 text-right">{v.litros}L/d</span>
               </div>
@@ -151,7 +156,7 @@ export default function Produccion() {
                 <XAxis dataKey="name" stroke="#444" tick={{fill:'#888',fontSize:10}} />
                 <YAxis stroke="#444" tick={{fill:'#888',fontSize:10}} width={42} />
                 <RechartsTooltip contentStyle={{backgroundColor:'#111',borderColor:'#333',color:'#fff'}} />
-                <Bar dataKey="litros" fill="#1565c0" radius={[4,4,0,0]}>
+                <Bar dataKey="litros" fill="#00c8ff" radius={[4,4,0,0]}>
                   <LabelList dataKey="litros" position="top" style={{fill:'#888',fontSize:9}} formatter={(v: number) => `${(v/1000).toFixed(0)}K`} />
                 </Bar>
               </BarChart>
@@ -176,7 +181,7 @@ export default function Produccion() {
 
       {/* Registros diarios */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-[#0f3460] to-[#1565c0] px-5 py-3 flex items-center justify-between">
+        <div className="px-5 py-3 flex items-center justify-between" style={{background:'linear-gradient(135deg,#000d1a,#001a2e)', borderBottom:'1px solid rgba(0,200,255,0.2)'}}>
           <div className="flex items-center gap-2">
             <span className="text-base">📋</span>
             <div>
@@ -187,9 +192,9 @@ export default function Produccion() {
         </div>
         <table className="w-full">
           <thead>
-            <tr className="bg-[#1a3a6e] border-b border-blue-900/50">
+            <tr className="border-b border-border" style={{background:'rgba(0,200,255,0.06)'}}>
               {['FECHA','LITROS','PRECIO/L','INGRESO BRUTO','ANOTACIÓN'].map(h => (
-                <th key={h} className="text-white/70 font-semibold text-xs uppercase px-4 py-3 text-left">{h}</th>
+                <th key={h} className="font-semibold text-[10px] uppercase px-4 py-3 text-left" style={{color:'rgba(0,200,255,0.75)'}}>{h}</th>
               ))}
             </tr>
           </thead>

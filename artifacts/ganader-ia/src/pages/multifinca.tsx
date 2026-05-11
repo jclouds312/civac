@@ -74,23 +74,23 @@ export default function Multifinca() {
 
   return (
     <div className="space-y-6">
-      {/* Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-[#1a3a5c] via-[#1a4a5c] to-[#0d2a3a] p-6 text-white relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-72 h-full opacity-10">
-          <Map className="w-full h-full" />
+      {/* CIVAC Banner */}
+      <div className="rounded-xl p-5 relative overflow-hidden civac-animate"
+        style={{background:'linear-gradient(135deg,#000d1a 0%,#001a2e 100%)', border:'1px solid rgba(0,200,255,0.35)', boxShadow:'0 0 40px rgba(0,200,255,0.1), inset 0 1px 0 rgba(0,200,255,0.08)'}}>
+        <div className="absolute right-0 top-0 w-72 h-full opacity-5 pointer-events-none">
+          <Map className="w-full h-full text-white" />
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Map size={20} className="text-blue-300" />
-              <Badge className="bg-blue-500/30 text-blue-200 border-blue-400/30 text-xs">3 Fincas activas</Badge>
+              <Map size={20} style={{color:'#00c8ff'}} />
+              <Badge className="text-xs" style={{background:'rgba(0,200,255,0.15)', border:'1px solid rgba(0,200,255,0.35)', color:'#00c8ff'}}>3 Fincas activas</Badge>
             </div>
-            <h1 className="text-2xl font-bold mb-1">Multi-Finca</h1>
-            <p className="text-blue-200/70 text-sm">Gestión unificada · Cundinamarca · Boyacá · Antioquia</p>
+            <h1 className="text-2xl font-bold text-white mb-1" style={{fontFamily:'Sora,sans-serif'}}>Multi-Finca</h1>
+            <p className="text-sm" style={{color:'rgba(0,200,255,0.75)'}}>Gestión unificada · Cundinamarca · Boyacá · Antioquia</p>
           </div>
-          <Button className="bg-white/15 hover:bg-white/25 border border-white/20 text-white gap-2">
-            <Plus size={16} />
-            Agregar Finca
+          <Button className="h-9 gap-2 text-sm" style={{background:'rgba(0,200,255,0.15)', border:'1px solid rgba(0,200,255,0.4)', color:'#fff'}}>
+            <Plus size={16} /> Agregar Finca
           </Button>
         </div>
       </div>
@@ -98,21 +98,21 @@ export default function Multifinca() {
       {/* Consolidated KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {[
-          { label: "Total Animales", value: consolidado.animales, icon: Beef, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Producción/día", value: `${consolidado.produccion} L`, icon: Milk, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "Margen prom.", value: `${consolidado.margenPromedio}%`, icon: TrendingUp, color: "text-green-500", bg: "bg-green-500/10" },
-          { label: "Hectáreas", value: consolidado.hectareas, icon: Leaf, color: "text-teal-500", bg: "bg-teal-500/10" },
-          { label: "Personal", value: consolidado.personal, icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: "Total Animales", value: consolidado.animales, icon: Beef, c: '#00f5d4' },
+          { label: "Producción/día", value: `${consolidado.produccion} L`, icon: Milk, c: '#00c8ff' },
+          { label: "Margen prom.", value: `${consolidado.margenPromedio}%`, icon: TrendingUp, c: '#39ff7e' },
+          { label: "Hectáreas", value: consolidado.hectareas, icon: Leaf, c: '#39ff7e' },
+          { label: "Personal", value: consolidado.personal, icon: Users, c: '#bf00ff' },
         ].map((kpi) => (
-          <Card key={kpi.label} className="border-border">
-            <CardContent className="p-4">
-              <div className={`w-8 h-8 rounded-lg ${kpi.bg} flex items-center justify-center mb-2`}>
-                <kpi.icon size={16} className={kpi.color} />
-              </div>
-              <p className="text-xl font-bold text-foreground">{kpi.value}</p>
-              <p className="text-xs text-muted-foreground">{kpi.label}</p>
-            </CardContent>
-          </Card>
+          <div key={kpi.label} className="rounded-xl p-4 text-white relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:kpi.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}} />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{background:`${kpi.c}18`, border:`1px solid ${kpi.c}40`}}>
+              <kpi.icon size={16} style={{color:kpi.c}} />
+            </div>
+            <p className="text-xl font-bold" style={{color:kpi.c, fontFamily:'Sora,sans-serif'}}>{kpi.value}</p>
+            <p className="text-xs" style={{color:'rgba(255,255,255,0.4)'}}>{kpi.label}</p>
+          </div>
         ))}
       </div>
 
@@ -202,14 +202,10 @@ export default function Multifinca() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#1a4a2e] text-white">
-                  <th className="text-left px-4 py-3 font-semibold text-xs">Finca</th>
-                  <th className="text-right px-4 py-3 font-semibold text-xs">Animales</th>
-                  <th className="text-right px-4 py-3 font-semibold text-xs">Prod./día</th>
-                  <th className="text-right px-4 py-3 font-semibold text-xs">L/vaca</th>
-                  <th className="text-right px-4 py-3 font-semibold text-xs">Margen</th>
-                  <th className="text-right px-4 py-3 font-semibold text-xs">CO₂/L</th>
-                  <th className="text-right px-4 py-3 font-semibold text-xs">Encargado</th>
+                <tr style={{background:'rgba(0,200,255,0.06)'}}>
+                  {['Finca','Animales','Prod./día','L/vaca','Margen','CO₂/L','Encargado'].map(h=>(
+                    <th key={h} className="px-4 py-3 font-semibold text-xs text-left" style={{color:'rgba(0,200,255,0.75)'}}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>

@@ -1,85 +1,141 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
-// ─── Initial Seed Data ────────────────────────────────────────────────────────
+// ─── Initial Seed Data — CIVAC PRO v3.0 ─────────────────────────────────────
 
 export const initialAnimals = [
-  { id:"A-0042", nombre:"Rosaura", raza:"Holstein", categoria:"Vaca adulta", peso:520, lote:"Lote A", estado:"Producción", litrosDia:18.4, partos:4 },
-  { id:"A-0604", nombre:"Estrella", raza:"Holstein", categoria:"Vaca adulta", peso:535, lote:"Lote A", estado:"Producción", litrosDia:17.8, partos:3 },
-  { id:"A-0087", nombre:"Cielo", raza:"Simmental", categoria:"Vaca adulta", peso:502, lote:"Lote A", estado:"Producción", litrosDia:16.9, partos:3 },
-  { id:"A-0445", nombre:"Niebla", raza:"Holstein", categoria:"Vaca adulta", peso:505, lote:"Lote B", estado:"Producción", litrosDia:15.8, partos:3 },
-  { id:"A-0133", nombre:"Palmera", raza:"Gyr X", categoria:"Vaca adulta", peso:488, lote:"Lote B", estado:"Producción", litrosDia:15.2, partos:2 },
-  { id:"A-0712", nombre:"Perla", raza:"Holstein", categoria:"Vaca adulta", peso:510, lote:"Lote A", estado:"Tratamiento", litrosDia:12.1, partos:2 },
-  { id:"A-0108", nombre:"Canela", raza:"Brahman", categoria:"Vaca adulta", peso:498, lote:"Lote B", estado:"Seca", litrosDia:0, partos:5 },
-  { id:"A-0319", nombre:"Luna", raza:"Simmental", categoria:"Novilla", peso:287, lote:"Lote C", estado:"Abierta", litrosDia:0, partos:0 },
-  { id:"A-0551", nombre:"Aurora", raza:"Holstein", categoria:"Novilla", peso:295, lote:"Lote C", estado:"Abierta", litrosDia:0, partos:0 },
-  { id:"A-0215", nombre:"Tormenta", raza:"Gyr", categoria:"Novilla", peso:312, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0 },
-  { id:"A-0401", nombre:"Bravo", raza:"Brahman", categoria:"Toro", peso:810, lote:"Lote D", estado:"Activo", litrosDia:0, partos:0 },
-  { id:"A-0667", nombre:"Brisa", raza:"Brahman", categoria:"Ternero", peso:72, lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
-  { id:"A-0512", nombre:"Manchas", raza:"Holstein", categoria:"Ternero", peso:88, lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
+  // Lote A — Vacas en Producción
+  { id:"A-0042", nombre:"Rosaura",   raza:"Holstein",   categoria:"Vaca adulta", peso:520, lote:"Lote A", estado:"Producción", litrosDia:18.4, partos:4 },
+  { id:"A-0604", nombre:"Estrella",  raza:"Holstein",   categoria:"Vaca adulta", peso:535, lote:"Lote A", estado:"Producción", litrosDia:17.8, partos:3 },
+  { id:"A-0087", nombre:"Cielo",     raza:"Simmental",  categoria:"Vaca adulta", peso:502, lote:"Lote A", estado:"Producción", litrosDia:16.9, partos:3 },
+  { id:"A-0712", nombre:"Perla",     raza:"Holstein",   categoria:"Vaca adulta", peso:510, lote:"Lote A", estado:"Tratamiento",litrosDia:12.1, partos:2 },
+  { id:"A-0188", nombre:"Diamante",  raza:"Holstein",   categoria:"Vaca adulta", peso:528, lote:"Lote A", estado:"Producción", litrosDia:17.2, partos:3 },
+  { id:"A-0394", nombre:"Nube",      raza:"Simmental",  categoria:"Vaca adulta", peso:495, lote:"Lote A", estado:"Producción", litrosDia:15.6, partos:2 },
+  // Lote B — Vacas en Producción
+  { id:"A-0445", nombre:"Niebla",    raza:"Holstein",   categoria:"Vaca adulta", peso:505, lote:"Lote B", estado:"Producción", litrosDia:15.8, partos:3 },
+  { id:"A-0133", nombre:"Palmera",   raza:"Gyr X",      categoria:"Vaca adulta", peso:488, lote:"Lote B", estado:"Producción", litrosDia:15.2, partos:2 },
+  { id:"A-0108", nombre:"Canela",    raza:"Brahman",    categoria:"Vaca adulta", peso:498, lote:"Lote B", estado:"Seca",       litrosDia:0,    partos:5 },
+  { id:"A-0560", nombre:"Fortuna",   raza:"Jersey",     categoria:"Vaca adulta", peso:412, lote:"Lote B", estado:"Producción", litrosDia:14.8, partos:2 },
+  { id:"A-0273", nombre:"Selva",     raza:"Gyr X",      categoria:"Vaca adulta", peso:476, lote:"Lote B", estado:"Producción", litrosDia:13.9, partos:2 },
+  { id:"A-0819", nombre:"Copete",    raza:"Holstein",   categoria:"Vaca adulta", peso:518, lote:"Lote B", estado:"Gestante",   litrosDia:10.4, partos:3 },
+  // Lote C — Novillas
+  { id:"A-0319", nombre:"Luna",      raza:"Simmental",  categoria:"Novilla", peso:287, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
+  { id:"A-0551", nombre:"Aurora",    raza:"Holstein",   categoria:"Novilla", peso:295, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
+  { id:"A-0215", nombre:"Tormenta",  raza:"Gyr",        categoria:"Novilla", peso:312, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0 },
+  { id:"A-0466", nombre:"Brisa",     raza:"Holstein",   categoria:"Novilla", peso:278, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
+  { id:"A-0700", nombre:"Princesa",  raza:"Simmental",  categoria:"Novilla", peso:301, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
+  { id:"A-0388", nombre:"Galaxia",   raza:"Gyr X",      categoria:"Novilla", peso:318, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0 },
+  // Lote D — Toros
+  { id:"A-0401", nombre:"Bravo",     raza:"Brahman",    categoria:"Toro", peso:810, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0 },
+  { id:"A-0622", nombre:"Titan",     raza:"Simmental",  categoria:"Toro", peso:875, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0 },
+  { id:"A-0755", nombre:"Colosal",   raza:"Brahman",    categoria:"Toro", peso:798, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0 },
+  // Lote E — Terneros/as
+  { id:"A-0667", nombre:"Manchas",   raza:"Holstein",   categoria:"Ternero", peso:88,  lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
+  { id:"A-0512", nombre:"Pulgarcito",raza:"Brahman",    categoria:"Ternero", peso:72,  lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
+  { id:"A-0844", nombre:"Cariño",    raza:"Simmental",  categoria:"Ternera", peso:65,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0 },
+  { id:"A-0901", nombre:"Florita",   raza:"Holstein",   categoria:"Ternera", peso:79,  lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
+  { id:"A-0963", nombre:"Copito",    raza:"Gyr X",      categoria:"Ternero", peso:58,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0 },
+  // Lote F — Animales Secos / Secado
+  { id:"A-0334", nombre:"Victoria",  raza:"Holstein",   categoria:"Vaca adulta", peso:540, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:6 },
+  { id:"A-0480", nombre:"Mariposa",  raza:"Jersey",     categoria:"Vaca adulta", peso:408, lote:"Lote F", estado:"Gestante",litrosDia:0,   partos:4 },
+  { id:"A-0531", nombre:"Esperanza", raza:"Holstein",   categoria:"Vaca adulta", peso:512, lote:"Lote F", estado:"Gestante",litrosDia:6.2, partos:5 },
+  { id:"A-0150", nombre:"Libertad",  raza:"Simmental",  categoria:"Vaca adulta", peso:488, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:3 },
 ];
 
 export const initialPotreros = [
-  { id:1, nombre:"Potrero 1", pasto:"Kikuyo", hectareas:4.5, estado:"Ocupado", diasOcupado:6, diasRotacion:30, animales:22 },
-  { id:2, nombre:"Potrero 2", pasto:"Raigrás", hectareas:3.8, estado:"Descanso", diasDescanso:8, diasRotacion:22, animales:0 },
-  { id:3, nombre:"Potrero 3", pasto:"Brachiaria", hectareas:5.1, estado:"Ocupado", diasOcupado:14, diasRotacion:34, animales:20 },
-  { id:4, nombre:"Potrero 4", pasto:"Estrella", hectareas:4.2, estado:"Rotar pronto", diasRestantes:3, diasRotacion:28, animales:26 },
-  { id:5, nombre:"Potrero 5", pasto:"Pasto nativo", hectareas:6.0, estado:"Disponible", diasDescanso:21, animales:0 },
-  { id:6, nombre:"Potrero 6", pasto:"Kikuyo", hectareas:3.5, estado:"Ocupado", diasOcupado:18, diasRotacion:23, animales:22 },
+  { id:1, nombre:"Potrero Norte",    pasto:"Kikuyo",       hectareas:4.5, estado:"Ocupado",      diasOcupado:6,  diasRotacion:30, animales:22 },
+  { id:2, nombre:"Potrero Sur",      pasto:"Raigrás",      hectareas:3.8, estado:"Descanso",     diasDescanso:8, diasRotacion:22, animales:0  },
+  { id:3, nombre:"Potrero Central",  pasto:"Brachiaria",   hectareas:5.1, estado:"Ocupado",      diasOcupado:14, diasRotacion:34, animales:20 },
+  { id:4, nombre:"Potrero Este",     pasto:"Estrella",     hectareas:4.2, estado:"Rotar pronto", diasRestantes:3,diasRotacion:28, animales:26 },
+  { id:5, nombre:"Potrero Ladera",   pasto:"Pasto nativo", hectareas:6.0, estado:"Disponible",   diasDescanso:21,diasRotacion:35, animales:0  },
+  { id:6, nombre:"Potrero Bajo",     pasto:"Kikuyo",       hectareas:3.5, estado:"Ocupado",      diasOcupado:18, diasRotacion:23, animales:22 },
+  { id:7, nombre:"Potrero Alto",     pasto:"Penisetum",    hectareas:4.8, estado:"Descanso",     diasDescanso:15,diasRotacion:30, animales:0  },
+  { id:8, nombre:"Potrero Maternidad",pasto:"Kikuyo",      hectareas:2.2, estado:"Ocupado",      diasOcupado:4,  diasRotacion:15, animales:8  },
 ];
 
 export const initialInsumos = [
-  { nombre:"Sal mineralizada", categoria:"Alimentacion", stock:180, maximo:300, minimo:60, unidad:"kg" },
-  { nombre:"Concentrado 16%", categoria:"Alimentacion", stock:1200, maximo:2000, minimo:400, unidad:"kg" },
-  { nombre:"Prostaglandina", categoria:"Reproductivo", stock:8, maximo:30, minimo:15, unidad:"frascos" },
-  { nombre:"Calcio i.v.", categoria:"Mineral", stock:6, maximo:25, minimo:12, unidad:"frascos" },
-  { nombre:"Antibiotico L.A.", categoria:"Antibiotico", stock:18, maximo:30, minimo:10, unidad:"jeringas" },
-  { nombre:"Vacuna IBR/BVD", categoria:"Biologico", stock:180, maximo:500, minimo:250, unidad:"dosis" },
-  { nombre:"Ivermectina 1%", categoria:"Antiparasitario", stock:12, maximo:40, minimo:10, unidad:"frascos" },
-  { nombre:"Oxitocina 10UI", categoria:"Reproductivo", stock:3, maximo:30, minimo:10, unidad:"frascos" },
+  { nombre:"Sal mineralizada",   categoria:"Alimentacion",  stock:180, maximo:300, minimo:60,  unidad:"kg" },
+  { nombre:"Concentrado 16%",    categoria:"Alimentacion",  stock:1200,maximo:2000,minimo:400, unidad:"kg" },
+  { nombre:"Heno de raigrás",    categoria:"Alimentacion",  stock:850, maximo:2000,minimo:500, unidad:"kg" },
+  { nombre:"Melaza",             categoria:"Alimentacion",  stock:240, maximo:500, minimo:100, unidad:"kg" },
+  { nombre:"Prostaglandina",     categoria:"Reproductivo",  stock:8,   maximo:30,  minimo:15,  unidad:"frascos" },
+  { nombre:"Oxitocina 10UI",     categoria:"Reproductivo",  stock:3,   maximo:30,  minimo:10,  unidad:"frascos" },
+  { nombre:"GnRH (Cystorelin)",  categoria:"Reproductivo",  stock:12,  maximo:40,  minimo:10,  unidad:"dosis" },
+  { nombre:"Calcio i.v.",        categoria:"Mineral",       stock:6,   maximo:25,  minimo:12,  unidad:"frascos" },
+  { nombre:"Fósforo inyectable", categoria:"Mineral",       stock:14,  maximo:30,  minimo:10,  unidad:"frascos" },
+  { nombre:"Antibiótico L.A.",   categoria:"Antibiotico",   stock:18,  maximo:30,  minimo:10,  unidad:"jeringas" },
+  { nombre:"Penicilina 4M",      categoria:"Antibiotico",   stock:24,  maximo:50,  minimo:15,  unidad:"frascos" },
+  { nombre:"Vacuna IBR/BVD",     categoria:"Biologico",     stock:180, maximo:500, minimo:250, unidad:"dosis" },
+  { nombre:"Vacuna Carbón",      categoria:"Biologico",     stock:95,  maximo:200, minimo:100, unidad:"dosis" },
+  { nombre:"Ivermectina 1%",     categoria:"Antiparasitario",stock:12, maximo:40,  minimo:10,  unidad:"frascos" },
+  { nombre:"Albendazol 10%",     categoria:"Antiparasitario",stock:28, maximo:60,  minimo:15,  unidad:"frascos" },
+  { nombre:"Diclofenac 5%",      categoria:"Antiinflamatorio",stock:9, maximo:20,  minimo:8,   unidad:"frascos" },
+  { nombre:"Flunixin megl.",     categoria:"Antiinflamatorio",stock:5, maximo:20,  minimo:8,   unidad:"frascos" },
+  { nombre:"Desinfectante yodo", categoria:"Sanidad",       stock:8,   maximo:20,  minimo:5,   unidad:"L" },
 ];
 
 export const initialPersonal = [
-  { nombre:"Carlos Meza", cargo:"Vaquero jefe", cedula:"0801-1985-12345", ingreso:"01/03/2020", salario:1600000, hExtras:8, eps:"Sanitas", arl:"Positiva" },
-  { nombre:"Luis Patiño", cargo:"Ordeñador", cedula:"0801-1990-23456", ingreso:"15/06/2021", salario:1420000, hExtras:6, eps:"Colsanitas", arl:"Sura" },
-  { nombre:"Sandra Roa", cargo:"Ordeñadora", cedula:"0801-1992-34567", ingreso:"10/01/2022", salario:1420000, hExtras:4, eps:"Sanitas", arl:"Positiva" },
-  { nombre:"Pedro Villa", cargo:"Inseminador", cedula:"0801-1983-45678", ingreso:"05/08/2019", salario:2100000, hExtras:12, eps:"Compensar", arl:"Sura" },
-  { nombre:"Ana Gomez", cargo:"Administradora", cedula:"0801-1986-56789", ingreso:"01/02/2020", salario:2800000, hExtras:0, eps:"Colsanitas", arl:"Positiva" },
-  { nombre:"Jorge Cruz", cargo:"Mantenimiento", cedula:"0801-1995-67890", ingreso:"20/09/2023", salario:1420000, hExtras:8, eps:"Sanitas", arl:"Sura" },
+  { nombre:"Carlos Meza",    cargo:"Vaquero jefe",    cedula:"0801-1985-12345", ingreso:"01/03/2020", salario:1600000, hExtras:8,  eps:"Sanitas",    arl:"Positiva" },
+  { nombre:"Luis Patiño",    cargo:"Ordeñador",       cedula:"0801-1990-23456", ingreso:"15/06/2021", salario:1420000, hExtras:6,  eps:"Colsanitas", arl:"Sura" },
+  { nombre:"Sandra Roa",     cargo:"Ordeñadora",      cedula:"0801-1992-34567", ingreso:"10/01/2022", salario:1420000, hExtras:4,  eps:"Sanitas",    arl:"Positiva" },
+  { nombre:"Pedro Villa",    cargo:"Inseminador",     cedula:"0801-1983-45678", ingreso:"05/08/2019", salario:2100000, hExtras:12, eps:"Compensar",  arl:"Sura" },
+  { nombre:"Ana Gómez",      cargo:"Administradora",  cedula:"0801-1986-56789", ingreso:"01/02/2020", salario:2800000, hExtras:0,  eps:"Colsanitas", arl:"Positiva" },
+  { nombre:"Jorge Cruz",     cargo:"Mantenimiento",   cedula:"0801-1995-67890", ingreso:"20/09/2023", salario:1420000, hExtras:8,  eps:"Sanitas",    arl:"Sura" },
+  { nombre:"Martha Ríos",    cargo:"Veterinaria",     cedula:"0801-1988-78901", ingreso:"12/04/2021", salario:3200000, hExtras:5,  eps:"Compensar",  arl:"Positiva" },
+  { nombre:"Felipe Mora",    cargo:"Tractorista",     cedula:"0801-1991-89012", ingreso:"03/07/2022", salario:1550000, hExtras:10, eps:"Sanitas",    arl:"Sura" },
+  { nombre:"Lucía Vargas",   cargo:"Auxiliar campo",  cedula:"0801-1997-90123", ingreso:"05/01/2024", salario:1300000, hExtras:4,  eps:"Colsanitas", arl:"Positiva" },
 ];
 
 export const initialReproduccion = [
-  { arete:"A-0042", animal:"Rosaura", servicio:"IA Altisimo", fechaParto:"10/05/2025", dias:11, partosPrev:4, estado:"Normal" },
-  { arete:"A-0215", animal:"Tormenta", servicio:"IA Furacao", fechaParto:"18/05/2025", dias:19, partosPrev:0, estado:"Primipara" },
-  { arete:"A-0087", animal:"Cielo", servicio:"Monta natural", fechaParto:"22/05/2025", dias:23, partosPrev:2, estado:"Normal" },
-  { arete:"A-0133", animal:"Palmera", servicio:"IA Altisimo", fechaParto:"01/06/2025", dias:33, partosPrev:3, estado:"Vigilar" },
-  { arete:"A-0604", animal:"Estrella", servicio:"IA Titan USA", fechaParto:"05/06/2025", dias:37, partosPrev:3, estado:"Normal" },
+  { arete:"A-0042", animal:"Rosaura",   servicio:"IA Altísimo",  fechaParto:"10/05/2025", dias:11, partosPrev:4, estado:"Normal" },
+  { arete:"A-0215", animal:"Tormenta",  servicio:"IA Furacao",   fechaParto:"18/05/2025", dias:19, partosPrev:0, estado:"Primipara" },
+  { arete:"A-0087", animal:"Cielo",     servicio:"Monta natural",fechaParto:"22/05/2025", dias:23, partosPrev:2, estado:"Normal" },
+  { arete:"A-0133", animal:"Palmera",   servicio:"IA Altísimo",  fechaParto:"01/06/2025", dias:33, partosPrev:3, estado:"Vigilar" },
+  { arete:"A-0604", animal:"Estrella",  servicio:"IA Titan USA", fechaParto:"05/06/2025", dias:37, partosPrev:3, estado:"Normal" },
+  { arete:"A-0388", animal:"Galaxia",   servicio:"IA Furacao",   fechaParto:"14/06/2025", dias:46, partosPrev:0, estado:"Primipara" },
+  { arete:"A-0819", animal:"Copete",    servicio:"IA Altísimo",  fechaParto:"28/06/2025", dias:60, partosPrev:3, estado:"Normal" },
+  { arete:"A-0480", animal:"Mariposa",  servicio:"Monta natural",fechaParto:"10/07/2025", dias:72, partosPrev:4, estado:"Normal" },
+  { arete:"A-0531", animal:"Esperanza", servicio:"IA Titan USA", fechaParto:"22/07/2025", dias:84, partosPrev:5, estado:"Vigilar" },
 ];
 
 export const initialAlertas = [
-  { id: 1, title: "Potrero 4 requiere rotación", desc: "Días de ocupación superados", type: "warning", time: "1h ago" },
-  { id: 2, title: "Vaca Perla en tratamiento", desc: "Antibiótico L.A. día 2/3", type: "danger", time: "3h ago" },
-  { id: 3, title: "Stock bajo: Oxitocina", desc: "3 frascos restantes (Min: 10)", type: "warning", time: "5h ago" },
-  { id: 4, title: "Rosaura próximo parto", desc: "Faltan 11 días", type: "info", time: "1d ago" },
+  { id:1,  title:"Potrero Este requiere rotación",     desc:"Días de ocupación superados — mover en 3 días",   type:"warning", time:"1h ago" },
+  { id:2,  title:"Vaca Perla en tratamiento",          desc:"Antibiótico L.A. día 2/3 · Revisar temperatura",  type:"danger",  time:"3h ago" },
+  { id:3,  title:"Stock bajo: Oxitocina 10UI",         desc:"3 frascos restantes (Mínimo: 10)",                type:"warning", time:"5h ago" },
+  { id:4,  title:"Rosaura próximo parto",              desc:"Faltan 11 días — preparar maternidad",            type:"info",    time:"1d ago" },
+  { id:5,  title:"Stock bajo: Prostaglandina",         desc:"8 frascos restantes (Mínimo: 15)",                type:"warning", time:"2h ago" },
+  { id:6,  title:"GPS Perla sin señal",                desc:"Última señal hace 45 min — verificar dispositivo",type:"danger",  time:"45min ago" },
+  { id:7,  title:"Flunixin meglumina crítico",         desc:"5 frascos restantes (Mínimo: 8) — pedir urgente", type:"danger",  time:"6h ago" },
+  { id:8,  title:"Tormenta primípara vigilar",         desc:"Primera gestación · Faltan 19 días parto",        type:"info",    time:"12h ago" },
 ];
 
 export const initialPesajes = [
-  { id:1, animalId:"A-0042", animalNombre:"Rosaura", peso:520, pesoAnterior:512, fecha:"09/05/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Peso estable, buena condición", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:2, animalId:"A-0604", animalNombre:"Estrella", peso:535, pesoAnterior:528, fecha:"09/05/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:3, animalId:"A-0087", animalNombre:"Cielo", peso:502, pesoAnterior:498, fecha:"09/05/2025", hora:"08:00", metodo:"manual", dispositivo:"", operador:"Luis Patiño", observacion:"Pesaje manual báscula corriente", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:4, animalId:"A-0401", animalNombre:"Bravo", peso:810, pesoAnterior:805, fecha:"08/05/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro en excelente condición corporal", lote:"Lote D", categoria:"Toro" },
-  { id:5, animalId:"A-0667", animalNombre:"Brisa", peso:72, pesoAnterior:65, fecha:"08/05/2025", hora:"10:00", metodo:"manual", dispositivo:"", operador:"Luis Patiño", observacion:"Buen desarrollo ternero", lote:"Lote E", categoria:"Ternero" },
-  { id:6, animalId:"A-0512", animalNombre:"Manchas", peso:88, pesoAnterior:80, fecha:"07/05/2025", hora:"10:20", metodo:"manual", dispositivo:"", operador:"Luis Patiño", observacion:"", lote:"Lote E", categoria:"Ternero" },
+  { id:1,  animalId:"A-0042", animalNombre:"Rosaura",    peso:520, pesoAnterior:512, fecha:"09/05/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Peso estable, buena condición corporal", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:2,  animalId:"A-0604", animalNombre:"Estrella",   peso:535, pesoAnterior:528, fecha:"09/05/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:3,  animalId:"A-0087", animalNombre:"Cielo",      peso:502, pesoAnterior:498, fecha:"09/05/2025", hora:"08:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Pesaje manual báscula corriente", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:4,  animalId:"A-0401", animalNombre:"Bravo",      peso:810, pesoAnterior:805, fecha:"08/05/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro en excelente condición corporal", lote:"Lote D", categoria:"Toro" },
+  { id:5,  animalId:"A-0667", animalNombre:"Manchas",    peso:88,  pesoAnterior:80,  fecha:"08/05/2025", hora:"10:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Buen desarrollo ternero", lote:"Lote E", categoria:"Ternero" },
+  { id:6,  animalId:"A-0512", animalNombre:"Pulgarcito", peso:72,  pesoAnterior:65,  fecha:"07/05/2025", hora:"10:20", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"", lote:"Lote E", categoria:"Ternero" },
+  { id:7,  animalId:"A-0445", animalNombre:"Niebla",     peso:505, pesoAnterior:499, fecha:"07/05/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"", lote:"Lote B", categoria:"Vaca adulta" },
+  { id:8,  animalId:"A-0133", animalNombre:"Palmera",    peso:488, pesoAnterior:481, fecha:"06/05/2025", hora:"08:00", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"Peso gestante, normal", lote:"Lote B", categoria:"Vaca adulta" },
+  { id:9,  animalId:"A-0319", animalNombre:"Luna",       peso:287, pesoAnterior:278, fecha:"06/05/2025", hora:"08:30", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Ganancia de peso correcta", lote:"Lote C", categoria:"Novilla" },
+  { id:10, animalId:"A-0622", animalNombre:"Titan",      peso:875, pesoAnterior:868, fecha:"05/05/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro sementral excelente CC", lote:"Lote D", categoria:"Toro" },
+  { id:11, animalId:"A-0188", animalNombre:"Diamante",   peso:528, pesoAnterior:522, fecha:"05/05/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
+  { id:12, animalId:"A-0560", animalNombre:"Fortuna",    peso:412, pesoAnterior:406, fecha:"04/05/2025", hora:"08:15", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Jersey buen peso", lote:"Lote B", categoria:"Vaca adulta" },
 ];
 
 export const initialGps = [
-  { id:1, animalId:"A-0042", nombre:"Rosaura", lat:4.7110, lng:-74.0721, potreroId:1, potreroNom:"Potrero 1", bateria:87, activo:true, ultimaSenal:"hace 2 min", dispositivo:"GPS-BT-001" },
-  { id:2, animalId:"A-0604", nombre:"Estrella", lat:4.7115, lng:-74.0718, potreroId:1, potreroNom:"Potrero 1", bateria:72, activo:true, ultimaSenal:"hace 1 min", dispositivo:"GPS-BT-002" },
-  { id:3, animalId:"A-0087", nombre:"Cielo", lat:4.7108, lng:-74.0725, potreroId:1, potreroNom:"Potrero 1", bateria:55, activo:true, ultimaSenal:"hace 5 min", dispositivo:"GPS-BT-003" },
-  { id:4, animalId:"A-0401", nombre:"Bravo", lat:4.7225, lng:-74.0850, potreroId:4, potreroNom:"Potrero 4", bateria:91, activo:true, ultimaSenal:"hace 3 min", dispositivo:"GPS-BT-004" },
-  { id:5, animalId:"A-0215", nombre:"Tormenta", lat:4.7190, lng:-74.0800, potreroId:3, potreroNom:"Potrero 3", bateria:43, activo:true, ultimaSenal:"hace 8 min", dispositivo:"GPS-BT-005" },
-  { id:6, animalId:"A-0133", nombre:"Palmera", lat:4.7180, lng:-74.0795, potreroId:3, potreroNom:"Potrero 3", bateria:28, activo:true, ultimaSenal:"hace 12 min", dispositivo:"GPS-BT-006" },
-  { id:7, animalId:"A-0319", nombre:"Luna", lat:4.7200, lng:-74.0820, potreroId:3, potreroNom:"Potrero 3", bateria:66, activo:true, ultimaSenal:"hace 4 min", dispositivo:"GPS-BT-007" },
-  { id:8, animalId:"A-0712", nombre:"Perla", lat:4.7112, lng:-74.0730, potreroId:1, potreroNom:"Potrero 1", bateria:11, activo:false, ultimaSenal:"hace 45 min", dispositivo:"GPS-BT-008" },
+  { id:1, animalId:"A-0042", nombre:"Rosaura",    lat:4.7110, lng:-74.0721, potreroId:1, potreroNom:"Potrero Norte",   bateria:87, activo:true,  ultimaSenal:"hace 2 min",  dispositivo:"GPS-BT-001" },
+  { id:2, animalId:"A-0604", nombre:"Estrella",   lat:4.7115, lng:-74.0718, potreroId:1, potreroNom:"Potrero Norte",   bateria:72, activo:true,  ultimaSenal:"hace 1 min",  dispositivo:"GPS-BT-002" },
+  { id:3, animalId:"A-0087", nombre:"Cielo",      lat:4.7108, lng:-74.0725, potreroId:1, potreroNom:"Potrero Norte",   bateria:55, activo:true,  ultimaSenal:"hace 5 min",  dispositivo:"GPS-BT-003" },
+  { id:4, animalId:"A-0401", nombre:"Bravo",      lat:4.7225, lng:-74.0850, potreroId:4, potreroNom:"Potrero Este",    bateria:91, activo:true,  ultimaSenal:"hace 3 min",  dispositivo:"GPS-BT-004" },
+  { id:5, animalId:"A-0215", nombre:"Tormenta",   lat:4.7190, lng:-74.0800, potreroId:3, potreroNom:"Potrero Central", bateria:43, activo:true,  ultimaSenal:"hace 8 min",  dispositivo:"GPS-BT-005" },
+  { id:6, animalId:"A-0133", nombre:"Palmera",    lat:4.7180, lng:-74.0795, potreroId:3, potreroNom:"Potrero Central", bateria:28, activo:true,  ultimaSenal:"hace 12 min", dispositivo:"GPS-BT-006" },
+  { id:7, animalId:"A-0319", nombre:"Luna",       lat:4.7200, lng:-74.0820, potreroId:3, potreroNom:"Potrero Central", bateria:66, activo:true,  ultimaSenal:"hace 4 min",  dispositivo:"GPS-BT-007" },
+  { id:8, animalId:"A-0712", nombre:"Perla",      lat:4.7112, lng:-74.0730, potreroId:1, potreroNom:"Potrero Norte",   bateria:11, activo:false, ultimaSenal:"hace 45 min", dispositivo:"GPS-BT-008" },
+  { id:9, animalId:"A-0622", nombre:"Titan",      lat:4.7230, lng:-74.0855, potreroId:4, potreroNom:"Potrero Este",    bateria:78, activo:true,  ultimaSenal:"hace 2 min",  dispositivo:"GPS-BT-009" },
+  { id:10,animalId:"A-0445", nombre:"Niebla",     lat:4.7095, lng:-74.0695, potreroId:6, potreroNom:"Potrero Bajo",    bateria:62, activo:true,  ultimaSenal:"hace 6 min",  dispositivo:"GPS-BT-010" },
+  { id:11,animalId:"A-0188", nombre:"Diamante",   lat:4.7105, lng:-74.0710, potreroId:1, potreroNom:"Potrero Norte",   bateria:84, activo:true,  ultimaSenal:"hace 3 min",  dispositivo:"GPS-BT-011" },
+  { id:12,animalId:"A-0755", nombre:"Colosal",    lat:4.7220, lng:-74.0840, potreroId:4, potreroNom:"Potrero Este",    bateria:95, activo:true,  ultimaSenal:"hace 1 min",  dispositivo:"GPS-BT-012" },
 ];
 
 // ─── API Sync Helpers ─────────────────────────────────────────────────────────
@@ -107,7 +163,7 @@ async function apiPost(path: string, body: unknown): Promise<void> {
 function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     try {
-      const stored = localStorage.getItem(`ganader_${key}`);
+      const stored = localStorage.getItem(`civac_${key}`);
       return stored ? JSON.parse(stored) : initial;
     } catch { return initial; }
   });
@@ -115,7 +171,7 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
   const setPersisted = useCallback((action: React.SetStateAction<T>) => {
     setState(prev => {
       const next = typeof action === "function" ? (action as (p: T) => T)(prev) : action;
-      try { localStorage.setItem(`ganader_${key}`, JSON.stringify(next)); } catch {}
+      try { localStorage.setItem(`civac_${key}`, JSON.stringify(next)); } catch {}
       return next;
     });
   }, [key]) as React.Dispatch<React.SetStateAction<T>>;
@@ -252,7 +308,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPesajes(initialPesajes);
     _setGpsUbicaciones(initialGps);
     ['animals','potreros','insumos','personal','reproduccion','alertas','pesajes','gps'].forEach(k => {
-      try { localStorage.removeItem(`ganader_${k}`); } catch {}
+      try { localStorage.removeItem(`civac_${k}`); } catch {}
     });
     apiPost("/seed", {});
   }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones]);

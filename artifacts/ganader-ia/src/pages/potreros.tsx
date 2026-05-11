@@ -146,7 +146,7 @@ export default function Potreros() {
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-muted-foreground">Ciclo Rotación</span>
-                    <span className="font-semibold text-foreground">{p.cicloRotacion || '—'} días</span>
+                    <span className="font-semibold text-foreground">{p.diasRotacion || '—'} días</span>
                   </div>
                   {p.animales != null && (
                     <div className="flex justify-between text-xs">

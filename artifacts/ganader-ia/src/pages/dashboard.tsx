@@ -470,8 +470,8 @@ export default function Dashboard() {
             {gpsUbicaciones.slice(0,5).map(g=>(
               <div key={g.id} className="flex items-center gap-2 py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
                 <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:g.activo?'#39ff7e':'#ff4d6d',boxShadow:`0 0 5px ${g.activo?'#39ff7e':'#ff4d6d'}80`}}/>
-                <span className="text-xs font-medium text-white/80 flex-1">{g.animalNombre}</span>
-                <span className="text-[10px] text-white/35 truncate max-w-[80px]">{g.potrero}</span>
+                <span className="text-xs font-medium text-white/80 flex-1">{g.nombre}</span>
+                <span className="text-[10px] text-white/35 truncate max-w-[80px]">{g.potreroNom}</span>
                 <span className="text-[10px] font-bold" style={{color:g.bateria&&g.bateria<30?'#ff4d6d':'#39ff7e'}}>{g.bateria||85}%</span>
               </div>
             ))}

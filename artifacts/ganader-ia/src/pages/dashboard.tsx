@@ -29,21 +29,6 @@ const dataFinanzas = [
 
 const PIE_COLORS = ['#00f5d4','#00c8ff','#39ff7e','#a855f7'];
 
-const pieData = [
-  { name:'Vacas adultas', value:7, pct:'54%' },
-  { name:'Novillas', value:3, pct:'23%' },
-  { name:'Terneros/as', value:2, pct:'15%' },
-  { name:'Toros', value:1, pct:'8%' },
-];
-
-const kpiCards = [
-  { label:'Total Animales', emoji:'🐄', val:'13', sub:'Meta: 250', grad:'linear-gradient(135deg,#003d2e,#00593f)', neon:'#00f5d4', glow:'rgba(0,245,212,0.35)' },
-  { label:'Litros Hoy', emoji:'🥛', val:'84 L', sub:'5 vacas · 16.8 L/vaca', grad:'linear-gradient(135deg,#001d36,#003060)', neon:'#00c8ff', glow:'rgba(0,200,255,0.35)' },
-  { label:'Peso Promedio', emoji:'⚖️', val:'417 kg', sub:'Hato general', grad:'linear-gradient(135deg,#2a1200,#3d1f00)', neon:'#ff9a3c', glow:'rgba(255,154,60,0.35)' },
-  { label:'Gestantes', emoji:'🤰', val:'1', sub:'8% del hato', grad:'linear-gradient(135deg,#1a0030,#2d0050)', neon:'#a855f7', glow:'rgba(168,85,247,0.35)' },
-  { label:'En Tratamiento', emoji:'🏥', val:'1', sub:'⚠ Revisar hoy', grad:'linear-gradient(135deg,#2d0010,#450015)', neon:'#ff4d6d', glow:'rgba(255,77,109,0.35)' },
-  { label:'Valor del Hato', emoji:'💰', val:'$51.2M', sub:'COP estimado', grad:'linear-gradient(135deg,#1a1500,#2a2200)', neon:'#fbbf24', glow:'rgba(251,191,36,0.35)' },
-];
 
 const modulos = [
   { emoji:'🐄', title:'Inventario', desc:'Registro y seguimiento de animales', badge:'13', href:'/inventario', neon:'#00f5d4' },

@@ -4,41 +4,41 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 
 export const initialAnimals = [
   // Lote A — Vacas en Producción
-  { id:"A-0042", nombre:"Rosaura",   raza:"Holstein",   categoria:"Vaca adulta", peso:520, lote:"Lote A", estado:"Producción", litrosDia:18.4, partos:4 },
-  { id:"A-0604", nombre:"Estrella",  raza:"Holstein",   categoria:"Vaca adulta", peso:535, lote:"Lote A", estado:"Producción", litrosDia:17.8, partos:3 },
-  { id:"A-0087", nombre:"Cielo",     raza:"Simmental",  categoria:"Vaca adulta", peso:502, lote:"Lote A", estado:"Producción", litrosDia:16.9, partos:3 },
-  { id:"A-0712", nombre:"Perla",     raza:"Holstein",   categoria:"Vaca adulta", peso:510, lote:"Lote A", estado:"Tratamiento",litrosDia:12.1, partos:2 },
-  { id:"A-0188", nombre:"Diamante",  raza:"Holstein",   categoria:"Vaca adulta", peso:528, lote:"Lote A", estado:"Producción", litrosDia:17.2, partos:3 },
-  { id:"A-0394", nombre:"Nube",      raza:"Simmental",  categoria:"Vaca adulta", peso:495, lote:"Lote A", estado:"Producción", litrosDia:15.6, partos:2 },
+  { id:"A-0042", nombre:"Rosaura",   raza:"Holstein",   categoria:"Vaca adulta", peso:520, lote:"Lote A", estado:"Producción", litrosDia:18.4, partos:4, fechaNacimiento:"2020-03-15", registro:"SI", numeroRegistro:"REG-0042", valorKilo:0 },
+  { id:"A-0604", nombre:"Estrella",  raza:"Holstein",   categoria:"Vaca adulta", peso:535, lote:"Lote A", estado:"Producción", litrosDia:17.8, partos:3, fechaNacimiento:"2021-06-10", registro:"SI", numeroRegistro:"REG-0604", valorKilo:0 },
+  { id:"A-0087", nombre:"Cielo",     raza:"Simmental",  categoria:"Vaca adulta", peso:502, lote:"Lote A", estado:"Producción", litrosDia:16.9, partos:3, fechaNacimiento:"2021-01-20", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0712", nombre:"Perla",     raza:"Holstein",   categoria:"Vaca adulta", peso:510, lote:"Lote A", estado:"Tratamiento",litrosDia:12.1, partos:2, fechaNacimiento:"2022-05-08", registro:"SI", numeroRegistro:"REG-0712", valorKilo:0 },
+  { id:"A-0188", nombre:"Diamante",  raza:"Holstein",   categoria:"Vaca adulta", peso:528, lote:"Lote A", estado:"Producción", litrosDia:17.2, partos:3, fechaNacimiento:"2021-09-22", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0394", nombre:"Nube",      raza:"Simmental",  categoria:"Vaca adulta", peso:495, lote:"Lote A", estado:"Producción", litrosDia:15.6, partos:2, fechaNacimiento:"2022-03-11", registro:"NO", numeroRegistro:"", valorKilo:0 },
   // Lote B — Vacas en Producción
-  { id:"A-0445", nombre:"Niebla",    raza:"Holstein",   categoria:"Vaca adulta", peso:505, lote:"Lote B", estado:"Producción", litrosDia:15.8, partos:3 },
-  { id:"A-0133", nombre:"Palmera",   raza:"Gyr X",      categoria:"Vaca adulta", peso:488, lote:"Lote B", estado:"Producción", litrosDia:15.2, partos:2 },
-  { id:"A-0108", nombre:"Canela",    raza:"Brahman",    categoria:"Vaca adulta", peso:498, lote:"Lote B", estado:"Seca",       litrosDia:0,    partos:5 },
-  { id:"A-0560", nombre:"Fortuna",   raza:"Jersey",     categoria:"Vaca adulta", peso:412, lote:"Lote B", estado:"Producción", litrosDia:14.8, partos:2 },
-  { id:"A-0273", nombre:"Selva",     raza:"Gyr X",      categoria:"Vaca adulta", peso:476, lote:"Lote B", estado:"Producción", litrosDia:13.9, partos:2 },
-  { id:"A-0819", nombre:"Copete",    raza:"Holstein",   categoria:"Vaca adulta", peso:518, lote:"Lote B", estado:"Gestante",   litrosDia:10.4, partos:3 },
+  { id:"A-0445", nombre:"Niebla",    raza:"Holstein",   categoria:"Vaca adulta", peso:505, lote:"Lote B", estado:"Producción", litrosDia:15.8, partos:3, fechaNacimiento:"2021-07-30", registro:"SI", numeroRegistro:"REG-0445", valorKilo:0 },
+  { id:"A-0133", nombre:"Palmera",   raza:"Gyr X",      categoria:"Vaca adulta", peso:488, lote:"Lote B", estado:"Producción", litrosDia:15.2, partos:2, fechaNacimiento:"2022-02-14", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0108", nombre:"Canela",    raza:"Brahman",    categoria:"Vaca adulta", peso:498, lote:"Lote B", estado:"Seca",       litrosDia:0,    partos:5, fechaNacimiento:"2019-11-05", registro:"SI", numeroRegistro:"REG-0108", valorKilo:0 },
+  { id:"A-0560", nombre:"Fortuna",   raza:"Jersey",     categoria:"Vaca adulta", peso:412, lote:"Lote B", estado:"Producción", litrosDia:14.8, partos:2, fechaNacimiento:"2022-08-17", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0273", nombre:"Selva",     raza:"Gyr X",      categoria:"Vaca adulta", peso:476, lote:"Lote B", estado:"Producción", litrosDia:13.9, partos:2, fechaNacimiento:"2022-01-25", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0819", nombre:"Copete",    raza:"Holstein",   categoria:"Vaca adulta", peso:518, lote:"Lote B", estado:"Gestante",   litrosDia:10.4, partos:3, fechaNacimiento:"2021-04-02", registro:"SI", numeroRegistro:"REG-0819", valorKilo:0 },
   // Lote C — Novillas
-  { id:"A-0319", nombre:"Luna",      raza:"Simmental",  categoria:"Novilla", peso:287, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
-  { id:"A-0551", nombre:"Aurora",    raza:"Holstein",   categoria:"Novilla", peso:295, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
-  { id:"A-0215", nombre:"Tormenta",  raza:"Gyr",        categoria:"Novilla", peso:312, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0 },
-  { id:"A-0466", nombre:"Brisa",     raza:"Holstein",   categoria:"Novilla", peso:278, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
-  { id:"A-0700", nombre:"Princesa",  raza:"Simmental",  categoria:"Novilla", peso:301, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0 },
-  { id:"A-0388", nombre:"Galaxia",   raza:"Gyr X",      categoria:"Novilla", peso:318, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0 },
+  { id:"A-0319", nombre:"Luna",      raza:"Simmental",  categoria:"Novilla", peso:287, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0, fechaNacimiento:"2023-06-18", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0551", nombre:"Aurora",    raza:"Holstein",   categoria:"Novilla", peso:295, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0, fechaNacimiento:"2023-08-09", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0215", nombre:"Tormenta",  raza:"Gyr",        categoria:"Novilla", peso:312, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0, fechaNacimiento:"2023-03-22", registro:"SI", numeroRegistro:"REG-0215", valorKilo:0 },
+  { id:"A-0466", nombre:"Brisa",     raza:"Holstein",   categoria:"Novilla", peso:278, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0, fechaNacimiento:"2023-10-01", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0700", nombre:"Princesa",  raza:"Simmental",  categoria:"Novilla", peso:301, lote:"Lote C", estado:"Abierta",  litrosDia:0, partos:0, fechaNacimiento:"2023-05-14", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0388", nombre:"Galaxia",   raza:"Gyr X",      categoria:"Novilla", peso:318, lote:"Lote C", estado:"Gestante", litrosDia:0, partos:0, fechaNacimiento:"2023-01-30", registro:"NO", numeroRegistro:"", valorKilo:0 },
   // Lote D — Toros
-  { id:"A-0401", nombre:"Bravo",     raza:"Brahman",    categoria:"Toro", peso:810, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0 },
-  { id:"A-0622", nombre:"Titan",     raza:"Simmental",  categoria:"Toro", peso:875, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0 },
-  { id:"A-0755", nombre:"Colosal",   raza:"Brahman",    categoria:"Toro", peso:798, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0 },
+  { id:"A-0401", nombre:"Bravo",     raza:"Brahman",    categoria:"Toro", peso:810, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0, fechaNacimiento:"2019-07-12", registro:"SI", numeroRegistro:"REG-0401", valorKilo:0 },
+  { id:"A-0622", nombre:"Titan",     raza:"Simmental",  categoria:"Toro", peso:875, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0, fechaNacimiento:"2018-12-01", registro:"SI", numeroRegistro:"REG-0622", valorKilo:0 },
+  { id:"A-0755", nombre:"Colosal",   raza:"Brahman",    categoria:"Toro", peso:798, lote:"Lote D", estado:"Activo",  litrosDia:0, partos:0, fechaNacimiento:"2020-02-28", registro:"SI", numeroRegistro:"REG-0755", valorKilo:0 },
   // Lote E — Terneros/as
-  { id:"A-0667", nombre:"Manchas",   raza:"Holstein",   categoria:"Ternero", peso:88,  lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
-  { id:"A-0512", nombre:"Pulgarcito",raza:"Brahman",    categoria:"Ternero", peso:72,  lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
-  { id:"A-0844", nombre:"Cariño",    raza:"Simmental",  categoria:"Ternera", peso:65,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0 },
-  { id:"A-0901", nombre:"Florita",   raza:"Holstein",   categoria:"Ternera", peso:79,  lote:"Lote E", estado:"Destete", litrosDia:0, partos:0 },
-  { id:"A-0963", nombre:"Copito",    raza:"Gyr X",      categoria:"Ternero", peso:58,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0 },
+  { id:"A-0667", nombre:"Manchas",   raza:"Holstein",   categoria:"Ternero", peso:88,  lote:"Lote E", estado:"Destete",  litrosDia:0, partos:0, fechaNacimiento:"2024-09-10", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0512", nombre:"Pulgarcito",raza:"Brahman",    categoria:"Ternero", peso:72,  lote:"Lote E", estado:"Destete",  litrosDia:0, partos:0, fechaNacimiento:"2024-11-03", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0844", nombre:"Cariño",    raza:"Simmental",  categoria:"Ternera", peso:65,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0, fechaNacimiento:"2025-01-15", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0901", nombre:"Florita",   raza:"Holstein",   categoria:"Ternera", peso:79,  lote:"Lote E", estado:"Destete",  litrosDia:0, partos:0, fechaNacimiento:"2024-10-20", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0963", nombre:"Copito",    raza:"Gyr X",      categoria:"Ternero", peso:58,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0, fechaNacimiento:"2025-02-08", registro:"NO", numeroRegistro:"", valorKilo:0 },
   // Lote F — Animales Secos / Secado
-  { id:"A-0334", nombre:"Victoria",  raza:"Holstein",   categoria:"Vaca adulta", peso:540, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:6 },
-  { id:"A-0480", nombre:"Mariposa",  raza:"Jersey",     categoria:"Vaca adulta", peso:408, lote:"Lote F", estado:"Gestante",litrosDia:0,   partos:4 },
-  { id:"A-0531", nombre:"Esperanza", raza:"Holstein",   categoria:"Vaca adulta", peso:512, lote:"Lote F", estado:"Gestante",litrosDia:6.2, partos:5 },
-  { id:"A-0150", nombre:"Libertad",  raza:"Simmental",  categoria:"Vaca adulta", peso:488, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:3 },
+  { id:"A-0334", nombre:"Victoria",  raza:"Holstein",   categoria:"Vaca adulta", peso:540, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:6, fechaNacimiento:"2018-04-25", registro:"SI", numeroRegistro:"REG-0334", valorKilo:0 },
+  { id:"A-0480", nombre:"Mariposa",  raza:"Jersey",     categoria:"Vaca adulta", peso:408, lote:"Lote F", estado:"Gestante",litrosDia:0,   partos:4, fechaNacimiento:"2020-08-13", registro:"SI", numeroRegistro:"REG-0480", valorKilo:0 },
+  { id:"A-0531", nombre:"Esperanza", raza:"Holstein",   categoria:"Vaca adulta", peso:512, lote:"Lote F", estado:"Gestante",litrosDia:6.2, partos:5, fechaNacimiento:"2019-06-30", registro:"SI", numeroRegistro:"REG-0531", valorKilo:0 },
+  { id:"A-0150", nombre:"Libertad",  raza:"Simmental",  categoria:"Vaca adulta", peso:488, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:3, fechaNacimiento:"2020-12-18", registro:"NO", numeroRegistro:"", valorKilo:0 },
 ];
 
 export const initialPotreros = [
@@ -138,6 +138,8 @@ export const initialGps = [
   { id:12,animalId:"A-0755", nombre:"Colosal",    lat:4.7220, lng:-74.0840, potreroId:4, potreroNom:"Potrero Este",    bateria:95, activo:true,  ultimaSenal:"hace 1 min",  dispositivo:"GPS-BT-012" },
 ];
 
+export const initialLotes: MovimientoLote[] = [];
+
 // ─── API Sync Helpers ─────────────────────────────────────────────────────────
 
 async function apiGet<T>(path: string): Promise<T | null> {
@@ -179,16 +181,34 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
   return [state, setPersisted];
 }
 
-// ─── App State Context ────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-type Animal = typeof initialAnimals[0];
-type Potrero = typeof initialPotreros[0];
-type Insumo = typeof initialInsumos[0];
-type Personal = typeof initialPersonal[0];
-type Reproduccion = typeof initialReproduccion[0];
-type Alerta = typeof initialAlertas[0];
-type Pesaje = typeof initialPesajes[0];
-type GpsUbicacion = typeof initialGps[0];
+export type Animal = typeof initialAnimals[0];
+export type Potrero = typeof initialPotreros[0];
+export type Insumo = typeof initialInsumos[0];
+export type Personal = typeof initialPersonal[0];
+export type Reproduccion = typeof initialReproduccion[0];
+export type Alerta = typeof initialAlertas[0];
+export type Pesaje = typeof initialPesajes[0];
+export type GpsUbicacion = typeof initialGps[0];
+
+export interface MovimientoLote {
+  id: number;
+  tipo: string;
+  nombreLote: string;
+  cantidadAnimales: number;
+  pesoTotalLote: number;
+  promedioPesoAnimal: number;
+  costoKilo: number;
+  valorTotalLote: number;
+  fecha: string;
+  notas: string;
+  reciboGenerado: boolean;
+  proveedor: string;
+  destino: string;
+}
+
+// ─── App State Context ────────────────────────────────────────────────────────
 
 interface AppStateType {
   animals: Animal[];
@@ -207,6 +227,8 @@ interface AppStateType {
   setPesajes: React.Dispatch<React.SetStateAction<Pesaje[]>>;
   gpsUbicaciones: GpsUbicacion[];
   setGpsUbicaciones: React.Dispatch<React.SetStateAction<GpsUbicacion[]>>;
+  lotes: MovimientoLote[];
+  setLotes: React.Dispatch<React.SetStateAction<MovimientoLote[]>>;
   resetAll: () => void;
 }
 
@@ -221,6 +243,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [alertas, _setAlertas] = useLocal('alertas', initialAlertas);
   const [pesajes, _setPesajes] = useLocal('pesajes', initialPesajes);
   const [gpsUbicaciones, _setGpsUbicaciones] = useLocal('gps', initialGps);
+  const [lotes, _setLotes] = useLocal<MovimientoLote[]>('lotes', initialLotes);
 
   useEffect(() => {
     apiGet<Animal[]>("/animals").then(data => { if (data && data.length > 0) _setAnimals(data); }).catch(() => {});
@@ -231,6 +254,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     apiGet<Alerta[]>("/alertas").then(data => { if (data && data.length > 0) _setAlertas(data); }).catch(() => {});
     apiGet<Pesaje[]>("/pesajes").then(data => { if (data && data.length > 0) _setPesajes(data); }).catch(() => {});
     apiGet<GpsUbicacion[]>("/gps").then(data => { if (data && data.length > 0) _setGpsUbicaciones(data); }).catch(() => {});
+    apiGet<MovimientoLote[]>("/lotes").then(data => { if (data) _setLotes(data); }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -298,6 +322,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setGpsUbicaciones]);
 
+  const setLotes = useCallback((action: React.SetStateAction<MovimientoLote[]>) => {
+    _setLotes(prev => {
+      const next = typeof action === "function" ? (action as (p: MovimientoLote[]) => MovimientoLote[])(prev) : action;
+      apiPost("/lotes/bulk", { lotes: next });
+      return next;
+    });
+  }, [_setLotes]);
+
   const resetAll = useCallback(() => {
     _setAnimals(initialAnimals);
     _setPotreros(initialPotreros);
@@ -307,15 +339,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setAlertas(initialAlertas);
     _setPesajes(initialPesajes);
     _setGpsUbicaciones(initialGps);
-    ['animals','potreros','insumos','personal','reproduccion','alertas','pesajes','gps'].forEach(k => {
+    _setLotes(initialLotes);
+    ['animals','potreros','insumos','personal','reproduccion','alertas','pesajes','gps','lotes'].forEach(k => {
       try { localStorage.removeItem(`civac_${k}`); } catch {}
     });
     apiPost("/seed", {});
-  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones]);
+  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones, _setLotes]);
 
   return React.createElement(
     AppStateContext.Provider,
-    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, pesajes, setPesajes, gpsUbicaciones, setGpsUbicaciones, resetAll } },
+    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, pesajes, setPesajes, gpsUbicaciones, setGpsUbicaciones, lotes, setLotes, resetAll } },
     children
   );
 }

@@ -43,6 +43,7 @@ const MODULES: Record<string, {
   '/documentacion': { from:'#38bdf8', to:'#0369a1', glow:'56,189,248',  emoji:'📚', label:'Documentación',       shortLabel:'Docs' },
   '/manual':        { from:'#2dd4bf', to:'#0d9488', glow:'45,212,191',  emoji:'📖', label:'Manual de Uso',       shortLabel:'Manual' },
   '/planes':        { from:'#fbbf24', to:'#ea580c', glow:'251,191,36',  emoji:'👑', label:'Planes · Wompi',      shortLabel:'Planes' },
+  '/lotes':         { from:'#00c8ff', to:'#0891b2', glow:'0,200,255',   emoji:'🐂', label:'Movimiento Lotes',    shortLabel:'Lotes' },
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -259,6 +260,7 @@ export function Layout({ children }: LayoutProps) {
           </Section>
           <Section title="Animales">
             <NavItem href="/inventario"/>
+            <NavItem href="/lotes" accent="NEW" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25"/>
             <NavItem href="/ficha"/>
             <NavItem href="/reproduccion"/>
             <NavItem href="/produccion"/>

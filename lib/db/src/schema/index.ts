@@ -4,17 +4,21 @@ import { z } from "zod";
 
 // ── Animals ──────────────────────────────────────────────────────────────────
 export const animalsTable = pgTable("animals", {
-  id:         text("id").primaryKey(),
-  nombre:     text("nombre").notNull(),
-  raza:       text("raza").notNull().default(""),
-  categoria:  text("categoria").notNull().default(""),
-  peso:       real("peso").notNull().default(0),
-  lote:       text("lote").notNull().default(""),
-  estado:     text("estado").notNull().default(""),
-  litrosDia:  real("litros_dia").notNull().default(0),
-  partos:     integer("partos").notNull().default(0),
-  createdAt:  timestamp("created_at").defaultNow(),
-  updatedAt:  timestamp("updated_at").defaultNow(),
+  id:              text("id").primaryKey(),
+  nombre:          text("nombre").notNull(),
+  raza:            text("raza").notNull().default(""),
+  categoria:       text("categoria").notNull().default(""),
+  peso:            real("peso").notNull().default(0),
+  lote:            text("lote").notNull().default(""),
+  estado:          text("estado").notNull().default(""),
+  litrosDia:       real("litros_dia").notNull().default(0),
+  partos:          integer("partos").notNull().default(0),
+  fechaNacimiento: text("fecha_nacimiento").notNull().default(""),
+  registro:        text("registro").notNull().default("NO"),
+  numeroRegistro:  text("numero_registro").notNull().default(""),
+  valorKilo:       real("valor_kilo").notNull().default(0),
+  createdAt:       timestamp("created_at").defaultNow(),
+  updatedAt:       timestamp("updated_at").defaultNow(),
 });
 export const insertAnimalSchema = createInsertSchema(animalsTable).omit({ createdAt: true, updatedAt: true });
 export type InsertAnimal = z.infer<typeof insertAnimalSchema>;
@@ -162,3 +166,24 @@ export const usuariosTable = pgTable("usuarios_sistema", {
 export const insertUsuarioSchema = createInsertSchema(usuariosTable).omit({ createdAt: true, updatedAt: true });
 export type InsertUsuario = z.infer<typeof insertUsuarioSchema>;
 export type UsuarioSistema = typeof usuariosTable.$inferSelect;
+
+// ── Movimientos de Lote ───────────────────────────────────────────────────────
+export const movimientosLoteTable = pgTable("movimientos_lote", {
+  id:                  serial("id").primaryKey(),
+  tipo:                text("tipo").notNull().default("ingreso"),
+  nombreLote:          text("nombre_lote").notNull().default(""),
+  cantidadAnimales:    integer("cantidad_animales").notNull().default(0),
+  pesoTotalLote:       real("peso_total_lote").notNull().default(0),
+  promedioPesoAnimal:  real("promedio_peso_animal").notNull().default(0),
+  costoKilo:           real("costo_kilo").notNull().default(0),
+  valorTotalLote:      real("valor_total_lote").notNull().default(0),
+  fecha:               text("fecha").notNull().default(""),
+  notas:               text("notas").notNull().default(""),
+  reciboGenerado:      boolean("recibo_generado").notNull().default(false),
+  proveedor:           text("proveedor").notNull().default(""),
+  destino:             text("destino").notNull().default(""),
+  createdAt:           timestamp("created_at").defaultNow(),
+});
+export const insertMovimientoLoteSchema = createInsertSchema(movimientosLoteTable).omit({ id: true, createdAt: true });
+export type InsertMovimientoLote = z.infer<typeof insertMovimientoLoteSchema>;
+export type MovimientoLote = typeof movimientosLoteTable.$inferSelect;

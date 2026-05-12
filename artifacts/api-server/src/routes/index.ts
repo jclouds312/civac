@@ -10,6 +10,7 @@ import seedRouter from "./seed";
 import pesajesRouter from "./pesajes";
 import gpsRouter from "./gps";
 import usuariosRouter from "./usuarios";
+import lotesRouter from "./lotes";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(seedRouter);
 router.use(pesajesRouter);
 router.use(gpsRouter);
 router.use(usuariosRouter);
+router.use(lotesRouter);
 
 export default router;

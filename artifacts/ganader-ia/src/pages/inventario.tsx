@@ -342,7 +342,7 @@ function FichaDetalle({ a }: { a: ReturnType<typeof useAppState>['animals'][0] }
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Inventario() {
-  const { animals, setAnimals } = useAppState();
+  const { animals, setAnimals, pesajes, setPesajes } = useAppState();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("Todos");
@@ -353,6 +353,50 @@ export default function Inventario() {
   const [fichaAnimal, setFichaAnimal] = useState<typeof animals[0] | null>(null);
   const [activeTab, setActiveTab] = useState("tabla");
   const [etiqSearch, setEtiqSearch] = useState("");
+
+  // Pesaje Rápido state
+  type PesajeRow = { animalId: string; peso: string; valorKilo: string; saved: boolean; btLoading: boolean };
+  const [pesajeRows, setPesajeRows] = useState<Record<string, PesajeRow>>({});
+  const [printPesajeData, setPrintPesajeData] = useState<typeof animals[0] | null>(null);
+  const [pesajeLoteFilter, setPesajeLoteFilter] = useState("Todos");
+
+  const getPRow = (a: typeof animals[0]): PesajeRow =>
+    pesajeRows[a.id] ?? { animalId: a.id, peso: String(a.peso), valorKilo: String(a.valorKilo || 0), saved: false, btLoading: false };
+
+  const updatePRow = (id: string, patch: Partial<PesajeRow>) =>
+    setPesajeRows(prev => ({ ...prev, [id]: { ...getPRow(animals.find(x=>x.id===id)!), ...patch } }));
+
+  const autoCalcRazaPesaje = (a: typeof animals[0]) => {
+    const p = PESOS_RAZA[a.raza]?.[a.categoria] || a.peso;
+    updatePRow(a.id, { peso: String(p), saved: false });
+  };
+
+  const btSimPesaje = (a: typeof animals[0]) => {
+    updatePRow(a.id, { btLoading: true });
+    const pesoEsp = PESOS_RAZA[a.raza]?.[a.categoria] || a.peso;
+    setTimeout(() => {
+      const pesoBT = (pesoEsp + (Math.random() - 0.5) * 18).toFixed(1);
+      updatePRow(a.id, { peso: pesoBT, btLoading: false, saved: false });
+    }, 1400);
+  };
+
+  const registrarPesajeRapido = (a: typeof animals[0]) => {
+    const row = getPRow(a);
+    const newPesaje = {
+      id: Date.now(),
+      animalId: a.id, animalNombre: a.nombre,
+      peso: Number(row.peso), pesoAnterior: a.peso,
+      fecha: new Date().toLocaleDateString('es-CO'),
+      hora: new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' }),
+      metodo: 'manual', dispositivo: '',
+      operador: user?.nombre || 'Admin',
+      observacion: `Pesaje rápido — raza ${a.raza}`,
+      lote: a.lote, categoria: a.categoria,
+    };
+    setPesajes(prev => [newPesaje, ...prev]);
+    setAnimals(prev => prev.map(x => x.id === a.id ? { ...x, peso: Number(row.peso) } : x));
+    updatePRow(a.id, { saved: true });
+  };
 
   // Form state
   const [formRegistro, setFormRegistro] = useState("NO");
@@ -717,7 +761,8 @@ export default function Inventario() {
             { val:'tabla', icon:<TableProperties size={14}/>, label:'Tabla', c:'#00f5d4' },
             { val:'fichas', icon:<Grid3x3 size={14}/>, label:'Fichas', c:'#a78bfa' },
             { val:'etiquetas', icon:<Tag size={14}/>, label:'Etiquetas', c:'#39ff7e' },
-            { val:'estadisticas', icon:<BarChart3 size={14}/>, label:'Estadísticas', c:'#ff9500' },
+            { val:'pesaje', icon:<Scale size={14}/>, label:'Pesaje Rápido', c:'#ff9500' },
+            { val:'estadisticas', icon:<BarChart3 size={14}/>, label:'Estadísticas', c:'#f472b6' },
           ].map(t => (
             <TabsTrigger key={t.val} value={t.val}
               className="flex-1 gap-1.5 h-9 text-sm font-semibold transition-all"
@@ -1101,7 +1146,312 @@ export default function Inventario() {
             </div>
           </div>
         </TabsContent>
+        {/* ─── PESAJE RÁPIDO ─── */}
+        <TabsContent value="pesaje">
+          {/* Banner */}
+          <div className="rounded-xl p-4 mb-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between"
+            style={{background:'linear-gradient(135deg,#0d0800,#1a0f00)',border:'1px solid rgba(255,149,0,0.3)',boxShadow:'0 0 30px rgba(255,149,0,0.06)'}}>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                style={{background:'rgba(255,149,0,0.12)',border:'1px solid rgba(255,149,0,0.35)'}}>⚖️</div>
+              <div>
+                <div className="font-black text-base text-white">Pesaje Rápido — Un Clic por Animal</div>
+                <p className="text-xs" style={{color:'rgba(255,149,0,0.6)'}}>
+                  Auto-cálculo por raza · Báscula BT · Guardar y actualizar · Recibo PDF imprimible
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <Select value={pesajeLoteFilter} onValueChange={setPesajeLoteFilter}>
+                <SelectTrigger className="w-28 text-xs bg-black/30" style={{border:'1px solid rgba(255,149,0,0.25)',color:'rgba(255,149,0,0.8)'}}>
+                  <SelectValue placeholder="Lote"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {['Todos','Lote A','Lote B','Lote C','Lote D','Lote E','Lote F'].map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button className="h-8 text-xs gap-1.5" onClick={() => window.print()}
+                style={{background:'rgba(255,149,0,0.1)',border:'1px solid rgba(255,149,0,0.35)',color:'#ff9500'}}>
+                <Printer size={12}/> Imprimir Sesión
+              </Button>
+            </div>
+          </div>
+
+          {/* Pesos raza reference */}
+          <div className="rounded-xl p-4 mb-4 overflow-x-auto" style={{background:'rgba(255,149,0,0.04)',border:'1px solid rgba(255,149,0,0.12)'}}>
+            <div className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{color:'rgba(255,149,0,0.5)'}}>
+              📊 Tabla de Pesos Estándar por Raza (kg)
+            </div>
+            <table className="w-full text-[10px] min-w-[480px]">
+              <thead>
+                <tr>
+                  <th className="text-left py-1.5 pr-3 font-bold" style={{color:'rgba(255,149,0,0.6)'}}>Raza</th>
+                  {['Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(c => (
+                    <th key={c} className="text-center py-1.5 px-2 font-bold" style={{color:'rgba(255,149,0,0.6)'}}>{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(PESOS_RAZA).map(([raza, cats]) => (
+                  <tr key={raza} className="border-t border-white/5">
+                    <td className="py-1.5 pr-3 font-semibold text-white/70">{raza}</td>
+                    {['Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(c => (
+                      <td key={c} className="py-1.5 px-2 text-center font-mono" style={{color:'#ff9500'}}>
+                        {cats[c]} kg
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Animal rows */}
+          <div className="space-y-2">
+            {animals
+              .filter(a => pesajeLoteFilter === 'Todos' || a.lote === pesajeLoteFilter)
+              .map(a => {
+                const cc = CAT_CONFIG[a.categoria] || CAT_CONFIG["Vaca adulta"];
+                const row = getPRow(a);
+                const pesoNum = Number(row.peso) || 0;
+                const vkNum = Number(row.valorKilo) || 0;
+                const valorTotal = pesoNum * vkNum;
+                const pesoRaza = PESOS_RAZA[a.raza]?.[a.categoria] || a.peso;
+                const pct = Math.min(100, Math.round((pesoNum / pesoRaza) * 100));
+                const diff = pesoNum - a.peso;
+                const isNew = pesajes.some(p => p.animalId === a.id && p.fecha === new Date().toLocaleDateString('es-CO'));
+
+                return (
+                  <div key={a.id} className="rounded-xl p-3 transition-all"
+                    style={{
+                      background: row.saved ? 'rgba(57,255,126,0.06)' : 'linear-gradient(135deg,#050e07,#060c08)',
+                      border: row.saved
+                        ? '1px solid rgba(57,255,126,0.25)'
+                        : `1px solid rgba(${cc.glow},0.15)`,
+                    }}>
+                    <div className="flex flex-wrap gap-3 items-center">
+                      {/* Animal info */}
+                      <div className="flex items-center gap-2 min-w-[160px]">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0"
+                          style={{background:cc.bg, border:`1px solid ${cc.border}`}}>
+                          {cc.emoji}
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-white">{a.nombre}</div>
+                          <div className="text-[10px] flex items-center gap-1.5" style={{color:'rgba(255,255,255,0.35)'}}>
+                            <span className="font-mono" style={{color:cc.color}}>#{a.id}</span>
+                            <span>·</span>
+                            <span>{a.raza}</span>
+                            <span>·</span>
+                            <span style={{color:LOTE_COLOR[a.lote]||'#888'}}>{a.lote}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Peso anterior */}
+                      <div className="text-center min-w-[70px]">
+                        <div className="text-[9px] text-white/30 uppercase tracking-wide">Anterior</div>
+                        <div className="font-mono font-bold text-xs text-white/50">{a.peso} kg</div>
+                      </div>
+
+                      {/* Peso input */}
+                      <div className="flex items-center gap-1.5 flex-1 min-w-[180px]">
+                        <Input
+                          type="number" step="0.1"
+                          value={row.peso}
+                          onChange={e => updatePRow(a.id, { peso: e.target.value, saved: false })}
+                          className="w-24 text-center font-mono font-bold text-base h-9"
+                          style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${cc.glow},0.3)`,color:cc.color}}
+                        />
+                        <span className="text-xs text-white/30">kg</span>
+                        {diff !== 0 && !isNaN(diff) && (
+                          <span className="text-xs font-bold px-1.5 py-0.5 rounded-full"
+                            style={{
+                              background: diff > 0 ? 'rgba(57,255,126,0.12)' : 'rgba(248,113,113,0.12)',
+                              color: diff > 0 ? '#39ff7e' : '#f87171',
+                            }}>
+                            {diff > 0 ? '+' : ''}{diff.toFixed(1)} kg
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Valor/kg input */}
+                      <div className="flex items-center gap-1.5 min-w-[140px]">
+                        <span className="text-[10px] text-white/30">$/kg</span>
+                        <Input
+                          type="number" step="100"
+                          value={row.valorKilo}
+                          onChange={e => updatePRow(a.id, { valorKilo: e.target.value, saved: false })}
+                          className="w-24 text-center font-mono h-9 text-xs"
+                          style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(57,255,126,0.2)',color:'#39ff7e'}}
+                        />
+                      </div>
+
+                      {/* Valor total */}
+                      {valorTotal > 0 && (
+                        <div className="text-center min-w-[90px]">
+                          <div className="text-[9px] text-white/30">Valor total</div>
+                          <div className="font-black text-xs" style={{color:'#39ff7e'}}>{fmt(valorTotal)}</div>
+                        </div>
+                      )}
+
+                      {/* Peso bar */}
+                      <div className="flex-1 min-w-[80px] hidden md:block">
+                        <div className="flex justify-between text-[9px] mb-0.5">
+                          <span className="text-white/25">vs. raza</span>
+                          <span style={{color:cc.color}}>{pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-white/5">
+                          <div className="h-1.5 rounded-full transition-all" style={{width:`${pct}%`,background:cc.color}}/>
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex gap-1.5 flex-shrink-0 flex-wrap">
+                        {/* Auto-calc raza */}
+                        <button onClick={() => autoCalcRazaPesaje(a)}
+                          title={`Auto peso estándar ${a.raza}: ${pesoRaza} kg`}
+                          className="h-8 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all hover:opacity-90"
+                          style={{background:'rgba(255,149,0,0.12)',border:'1px solid rgba(255,149,0,0.3)',color:'#ff9500'}}>
+                          <Zap size={11}/> Raza
+                        </button>
+                        {/* BT simulado */}
+                        <button onClick={() => btSimPesaje(a)} disabled={row.btLoading}
+                          title="Simular báscula Bluetooth"
+                          className="h-8 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all hover:opacity-90"
+                          style={{background:'rgba(0,200,255,0.1)',border:'1px solid rgba(0,200,255,0.3)',color:'#00c8ff'}}>
+                          <Bluetooth size={11} className={row.btLoading ? 'animate-pulse' : ''}/>
+                          {row.btLoading ? '…' : 'BT'}
+                        </button>
+                        {/* Registrar */}
+                        <button onClick={() => registrarPesajeRapido(a)} disabled={row.saved}
+                          className="h-8 px-3 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                          style={row.saved
+                            ? {background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.2)',color:'rgba(57,255,126,0.5)'}
+                            : {background:'rgba(57,255,126,0.15)',border:'1px solid rgba(57,255,126,0.4)',color:'#39ff7e'}}>
+                          {row.saved ? <>✓ Guardado</> : <><Scale size={11}/> Registrar</>}
+                        </button>
+                        {/* Imprimir recibo */}
+                        <button onClick={() => { setPrintPesajeData(a); setTimeout(()=>window.print(), 100); }}
+                          className="h-8 px-2.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all hover:opacity-90"
+                          style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
+                          <Printer size={11}/> PDF
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Saved indicator */}
+                    {row.saved && (
+                      <div className="mt-2 flex items-center gap-1.5 text-[10px]" style={{color:'#39ff7e'}}>
+                        <CheckCircle2 size={11}/>
+                        <span>Pesaje registrado · {new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})} · Peso actualizado a {row.peso} kg</span>
+                      </div>
+                    )}
+                    {isNew && !row.saved && (
+                      <div className="mt-2 flex items-center gap-1.5 text-[10px] text-white/30">
+                        <Clock size={10}/> Pesaje previo hoy registrado
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+
+          {/* Session pesajes */}
+          {pesajes.filter(p => p.fecha === new Date().toLocaleDateString('es-CO')).length > 0 && (
+            <div className="mt-5 rounded-xl p-4" style={{background:'rgba(57,255,126,0.05)',border:'1px solid rgba(57,255,126,0.15)'}}>
+              <div className="font-bold text-sm mb-3 flex items-center gap-2">
+                <CheckCircle2 size={14} style={{color:'#39ff7e'}}/>
+                <span>Pesajes registrados hoy ({pesajes.filter(p=>p.fecha===new Date().toLocaleDateString('es-CO')).length})</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{borderBottom:'1px solid rgba(57,255,126,0.1)'}}>
+                      {['Animal','Arete','Peso','Anterior','Cambio','Hora','Operador'].map(h=>(
+                        <th key={h} className="text-left py-2 pr-3 text-[10px] font-bold uppercase tracking-wider" style={{color:'rgba(57,255,126,0.5)'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pesajes.filter(p=>p.fecha===new Date().toLocaleDateString('es-CO')).map(p => {
+                      const d = p.peso - p.pesoAnterior;
+                      return (
+                        <tr key={p.id} className="border-b border-white/5">
+                          <td className="py-2 pr-3 font-bold text-white">{p.animalNombre}</td>
+                          <td className="py-2 pr-3 font-mono text-white/40">#{p.animalId}</td>
+                          <td className="py-2 pr-3 font-black text-orange-400">{p.peso} kg</td>
+                          <td className="py-2 pr-3 text-white/30">{p.pesoAnterior} kg</td>
+                          <td className="py-2 pr-3">
+                            <span style={{color: d>=0?'#39ff7e':'#f87171', fontWeight:'bold'}}>
+                              {d>=0?'+':''}{d} kg
+                            </span>
+                          </td>
+                          <td className="py-2 pr-3 text-white/40">{p.hora}</td>
+                          <td className="py-2 pr-3 text-white/40">{p.operador}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
       </Tabs>
+
+      {/* Hidden print receipt for pesaje */}
+      {printPesajeData && (() => {
+        const a = printPesajeData;
+        const row = getPRow(a);
+        const pesoNum = Number(row.peso) || a.peso;
+        const vkNum = Number(row.valorKilo) || 0;
+        const valorTotal = pesoNum * vkNum;
+        const pesoRaza = PESOS_RAZA[a.raza]?.[a.categoria] || a.peso;
+        const pct = Math.min(100, Math.round((pesoNum/pesoRaza)*100));
+        const diff = pesoNum - a.peso;
+        return (
+          <div id="recibo-pesaje-print" className="print-only" style={{
+            display:'none', fontFamily:'Sora,sans-serif', color:'#000',
+            padding:'24px', background:'#fff', maxWidth:480, margin:'0 auto',
+          }}>
+            <div style={{textAlign:'center', borderBottom:'2px solid #000', paddingBottom:12, marginBottom:16}}>
+              <div style={{fontSize:22, fontWeight:900}}>🐄 CIVAC PRO</div>
+              <div style={{fontSize:11, color:'#555'}}>Control Inteligente de Valor Agropecuario · Colombia</div>
+              <div style={{fontSize:18, fontWeight:800, marginTop:8}}>RECIBO DE PESAJE</div>
+              <div style={{fontSize:10, color:'#888'}}>Fecha: {new Date().toLocaleDateString('es-CO')} · Hora: {new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>
+            </div>
+            <table style={{width:'100%', fontSize:12, borderCollapse:'collapse', marginBottom:12}}>
+              <tbody>
+                {[
+                  ['Animal', a.nombre],
+                  ['Arete / ID', `#${a.id}`],
+                  ['Raza', a.raza],
+                  ['Categoría', a.categoria],
+                  ['Lote', a.lote],
+                  ['Estado', a.estado],
+                  ['Peso registrado', `${pesoNum} kg`],
+                  ['Peso anterior', `${a.peso} kg`],
+                  ['Variación', `${diff>=0?'+':''}${diff.toFixed(1)} kg`],
+                  ['Peso estándar raza', `${pesoRaza} kg (${pct}%)`],
+                  ['Valor por kilo', vkNum > 0 ? fmt(vkNum) : '—'],
+                  ['Valor total estimado', valorTotal > 0 ? fmt(valorTotal) : '—'],
+                  ['Operador', user?.nombre || 'Admin'],
+                ].map(([k,v]) => (
+                  <tr key={k} style={{borderBottom:'1px solid #eee'}}>
+                    <td style={{padding:'5px 8px', color:'#666', width:160, fontWeight:600}}>{k}</td>
+                    <td style={{padding:'5px 8px', fontWeight:700}}>{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{borderTop:'2px solid #000', paddingTop:10, fontSize:9, color:'#aaa', textAlign:'center'}}>
+              CIVAC PRO v3.0 · GanaderIA Colombia · {new Date().getFullYear()} · Impreso: {new Date().toLocaleString('es-CO')}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Ficha detalle dialog */}
       <Dialog open={!!fichaAnimal} onOpenChange={v => { if(!v) setFichaAnimal(null); }}>

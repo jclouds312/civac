@@ -268,3 +268,54 @@ input:focus, textarea:focus, select:focus {
   border-color: rgba(0,245,212,0.5) !important;
   box-shadow: 0 0 0 2px rgba(0,245,212,0.12), 0 0 10px rgba(0,245,212,0.15) !important;
 }
+
+/* ─── PRINT / PDF STYLES ─────────────────────────────────────────────────── */
+@media print {
+  /* Hide everything by default */
+  body > * { display: none !important; }
+
+  /* Show only printable sections */
+  .print-only,
+  .etiqueta-animal,
+  #recibo-pesaje-print {
+    display: block !important;
+  }
+
+  /* Reset page */
+  @page {
+    margin: 12mm 10mm;
+    size: A4 portrait;
+  }
+
+  html, body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Etiquetas grid for print */
+  .etiqueta-animal {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #000 !important;
+    margin-bottom: 8px;
+  }
+
+  /* Receipt */
+  #recibo-pesaje-print {
+    display: block !important;
+    max-width: 100%;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* Remove nav, buttons, sidebar */
+  nav, aside, header, footer,
+  [role="navigation"],
+  button:not(.print-keep),
+  .no-print { display: none !important; }
+}

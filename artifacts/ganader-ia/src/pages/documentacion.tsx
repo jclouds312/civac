@@ -1,281 +1,103 @@
 import { useState } from "react";
 import {
   BookOpen, Download, Smartphone, WifiOff, Bluetooth, Navigation, BarChart3, Users,
-  Monitor, Globe, Play, CheckCircle, Cloud, FileDown, Upload, Database,
-  Apple, ChevronRight, Star, Lock, Shield
+  Monitor, Globe, Cloud, FileDown, Database, Apple, CheckCircle, Scale,
+  Shield, Beef, Baby, Droplets, Dna, Wheat, Package, DollarSign,
+  MapPin, Bell, Zap, CreditCard, Settings, RefreshCw, Printer,
+  Tag, Grid3x3, Heart, Activity, FlaskConical, TreePine, ChevronRight, Award
 } from "lucide-react";
 import { exportToDrive, getDriveFiles, downloadLocalBackup, downloadCSV } from "@/lib/drive";
 import { useAppState } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
 const SECTIONS = [
-  { id: "inicio", label: "Primeros pasos", icon: Play },
-  { id: "pwa", label: "Instalar PWA", icon: Smartphone },
-  { id: "offline", label: "Uso sin internet", icon: WifiOff },
-  { id: "bluetooth", label: "Pesaje Bluetooth", icon: Bluetooth },
-  { id: "gps", label: "GPS Ganado", icon: Navigation },
-  { id: "drive", label: "Sync con Drive", icon: Cloud },
-  { id: "dashboard", label: "Dashboard PRO", icon: BarChart3 },
-  { id: "usuarios", label: "Gestión de usuarios", icon: Users },
-  { id: "descarga", label: "Descargar datos", icon: FileDown },
+  { id: "inicio",       label: "Primeros pasos",      icon: BookOpen },
+  { id: "modulos",      label: "Módulos del sistema",  icon: Grid3x3 },
+  { id: "inventario",   label: "Inventario Animal",    icon: Beef },
+  { id: "pesaje",       label: "Pesaje Bluetooth",     icon: Scale },
+  { id: "lotes",        label: "Movimiento de Lotes",  icon: Tag },
+  { id: "reproduccion", label: "Reproducción",         icon: Heart },
+  { id: "produccion",   label: "Producción Leche",     icon: Droplets },
+  { id: "pwa",          label: "Instalar PWA",         icon: Smartphone },
+  { id: "offline",      label: "Modo Offline",         icon: WifiOff },
+  { id: "gps",          label: "GPS Ganado",           icon: Navigation },
+  { id: "drive",        label: "Sync & Backups",       icon: Cloud },
+  { id: "usuarios",     label: "Usuarios y Roles",     icon: Users },
+  { id: "descarga",     label: "Exportar datos",       icon: FileDown },
 ];
 
-function PwaIllustration() {
+function SectionBanner({ emoji, title, subtitle, c1, c2, border }: {
+  emoji: string; title: string; subtitle: string; c1: string; c2: string; border: string;
+}) {
   return (
-    <svg viewBox="0 0 500 240" className="w-full max-w-lg mx-auto rounded-xl" style={{filter:"drop-shadow(0 4px 32px rgba(0,200,100,0.18))"}}>
-      <defs>
-        <linearGradient id="pwaBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#0d1f14"/><stop offset="100%" stopColor="#0a1a10"/></linearGradient>
-        <linearGradient id="pwaGreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#16a34a"/><stop offset="100%" stopColor="#059669"/></linearGradient>
-        <linearGradient id="pwaBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#2563eb"/><stop offset="100%" stopColor="#1d4ed8"/></linearGradient>
-      </defs>
-      <rect width="500" height="240" rx="14" fill="url(#pwaBg)" stroke="#1f3a27" strokeWidth="1.5"/>
-      {/* Browser chrome */}
-      <rect x="20" y="15" width="290" height="175" rx="10" fill="#0d1510" stroke="#1a3a22" strokeWidth="1.2"/>
-      <rect x="20" y="15" width="290" height="34" rx="10" fill="#1a2e1e"/>
-      <rect x="20" y="39" width="290" height="10" fill="#1a2e1e"/>
-      <circle cx="38" cy="32" r="4.5" fill="#ef4444" opacity="0.8"/>
-      <circle cx="53" cy="32" r="4.5" fill="#f59e0b" opacity="0.8"/>
-      <circle cx="68" cy="32" r="4.5" fill="#22c55e" opacity="0.8"/>
-      <rect x="82" y="24" width="190" height="16" rx="8" fill="#0d1f14"/>
-      <text x="177" y="34.5" textAnchor="middle" fill="#4ade80" fontSize="8" fontFamily="monospace">ganader.ia</text>
-      {/* Install banner */}
-      <rect x="30" y="58" width="270" height="42" rx="8" fill="#14532d" stroke="#16a34a" strokeWidth="1"/>
-      <text x="42" y="73" fill="#86efac" fontSize="9" fontWeight="bold">📲 Instalar GanaderIA como app</text>
-      <text x="42" y="86" fill="#4ade80" fontSize="7.5">Sin ocupar espacio · Funciona sin internet · 1 clic</text>
-      <rect x="238" y="63" width="52" height="26" rx="7" fill="url(#pwaGreen)"/>
-      <text x="264" y="79" textAnchor="middle" fill="white" fontSize="8.5" fontWeight="bold">Instalar</text>
-      {/* Page content preview */}
-      <rect x="30" y="108" width="120" height="60" rx="6" fill="#0a1a10"/>
-      <rect x="33" y="111" width="114" height="12" rx="3" fill="#1a3a22"/>
-      <text x="90" y="120" textAnchor="middle" fill="#4ade80" fontSize="7">GanaderIA PRO</text>
-      {[0,1,2].map(i=><rect key={i} x="33" y={127+i*13} width={80+i*10} height="8" rx="2" fill="#1a2e1e"/>)}
-      <rect x="158" y="108" width="120" height="60" rx="6" fill="#0a1a10"/>
-      <text x="218" y="125" textAnchor="middle" fill="#60a5fa" fontSize="8" fontWeight="bold">Dashboard</text>
-      {[52,60,55,65,58].map((h,i)=><rect key={i} x={163+i*22} y={135+(65-h)*0.3} width="16" height={h*0.3} rx="2" fill="#16a34a" opacity={0.7+i*0.05}/>)}
-      {/* Phone showing homescreen */}
-      <rect x="335" y="25" width="120" height="195" rx="18" fill="#080f0a" stroke="#1f3a27" strokeWidth="1.5"/>
-      <rect x="342" y="40" width="106" height="165" rx="8" fill="#0d1a10"/>
-      <text x="395" y="60" textAnchor="middle" fill="#6ee7b7" fontSize="7.5">Pantalla de inicio</text>
-      {[
-        {x:354,y:70,bg:"url(#pwaGreen)",e:"🐄",n:"GanaderIA"},
-        {x:392,y:70,bg:"#1e3a5f",e:"📊",n:"Dashboard"},
-        {x:430,y:70,bg:"#3b1f5e",e:"📡",n:"GPS"},
-        {x:354,y:120,bg:"#2d1b00",e:"⚖️",n:"Pesaje BT"},
-        {x:392,y:120,bg:"#14532d",e:"🥛",n:"Producción"},
-        {x:430,y:120,bg:"#1e1e3f",e:"💰",n:"Costos"},
-      ].map((ic,i)=>(
-        <g key={i}>
-          <rect x={ic.x} y={ic.y} width="30" height="30" rx="8" fill={ic.bg}/>
-          <text x={ic.x+15} y={ic.y+19} textAnchor="middle" fontSize="13">{ic.e}</text>
-          <text x={ic.x+15} y={ic.y+41} textAnchor="middle" fill="#4ade80" fontSize="5.5">{ic.n}</text>
-        </g>
-      ))}
-      <rect x="370" y="195" width="50" height="5" rx="3" fill="#1a3a22"/>
-      {/* Arrow */}
-      <path d="M 318 110 L 340 110" stroke="#4ade80" strokeWidth="2" strokeDasharray="4,3"/>
-      <polygon points="338,106 345,110 338,114" fill="#4ade80"/>
-      {/* Steps */}
-      <text x="177" y="202" textAnchor="middle" fill="#6ee7b7" fontSize="9.5" fontWeight="bold">① Clic "Instalar"  →  ② Aceptar  →  ③ Abierto desde inicio</text>
-      <text x="177" y="218" textAnchor="middle" fill="#4ade80" fontSize="8">✓ Android · iOS · Windows · Mac · Sin tienda de apps</text>
-    </svg>
+    <div className="rounded-2xl p-5 mb-5 relative overflow-hidden"
+      style={{background:`linear-gradient(135deg,${c1},${c2})`, border:`1px solid ${border}`}}>
+      <div className="absolute right-0 top-0 w-32 h-full opacity-10 pointer-events-none"
+        style={{background:'radial-gradient(ellipse at right, white, transparent 70%)'}}/>
+      <div className="relative flex items-center gap-4">
+        <div className="text-4xl">{emoji}</div>
+        <div>
+          <h2 className="text-2xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>{title}</h2>
+          <p className="text-sm mt-1 text-white/70">{subtitle}</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
-function OfflineIllustration() {
+function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode; title: string; desc: string; color: string }) {
   return (
-    <svg viewBox="0 0 500 190" className="w-full max-w-lg mx-auto rounded-xl">
-      <defs>
-        <linearGradient id="offL" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#1a0505"/><stop offset="100%" stopColor="#0a0f1a"/></linearGradient>
-      </defs>
-      <rect width="500" height="190" rx="14" fill="url(#offL)" stroke="#2a1515" strokeWidth="1.5"/>
-      <circle cx="90" cy="95" r="55" fill="#1a0808" stroke="#ef4444" strokeWidth="1.5"/>
-      <text x="90" y="88" textAnchor="middle" fill="#ef4444" fontSize="30">📵</text>
-      <text x="90" y="110" textAnchor="middle" fill="#ef4444" fontSize="9" fontWeight="bold">Sin internet</text>
-      <text x="90" y="124" textAnchor="middle" fill="#ef4444" fontSize="7.5">Sin señal WiFi / 4G</text>
-      <path d="M 155 95 L 195 95" stroke="#4ade80" strokeWidth="3" strokeLinecap="round"/>
-      <polygon points="193,89 205,95 193,101" fill="#4ade80"/>
-      <rect x="210" y="25" width="265" height="140" rx="12" fill="#0a1f14" stroke="#1a4a2e" strokeWidth="1.5"/>
-      <text x="342" y="50" textAnchor="middle" fill="#4ade80" fontSize="10" fontWeight="bold">GanaderIA — Modo Offline ✓</text>
-      {[
-        {x:220,y:58,w:115,h:28,fill:"#14532d",t:"🐄 13 animales",s:"Inventario completo"},
-        {x:348,y:58,w:117,h:28,fill:"#1e3a5f",t:"⚖️ Pesaje BT",s:"Báscula conectada"},
-        {x:220,y:94,w:115,h:28,fill:"#2d1b00",t:"📡 GPS activo",s:"6 collares online"},
-        {x:348,y:94,w:117,h:28,fill:"#1f1f3a",t:"🔔 Alertas",s:"3 activas"},
-      ].map((c,i)=>(
-        <g key={i}>
-          <rect x={c.x} y={c.y} width={c.w} height={c.h} rx="6" fill={c.fill}/>
-          <text x={c.x+8} y={c.y+13} fill="white" fontSize="7.5" fontWeight="bold">{c.t}</text>
-          <text x={c.x+8} y={c.y+23} fill="#6ee7b7" fontSize="6.5">{c.s}</text>
-        </g>
-      ))}
-      <rect x="220" y="130" width="245" height="22" rx="5" fill="#1a3a10"/>
-      <text x="342" y="143" textAnchor="middle" fill="#4ade80" fontSize="7.5" fontWeight="bold">✓ Datos guardados localmente · Sincroniza al reconectar</text>
-      <text x="90" y="165" textAnchor="middle" fill="#ef4444" fontSize="7.5" fontWeight="bold">× Desconectado</text>
-      <text x="342" y="178" textAnchor="middle" fill="#4ade80" fontSize="7.5" fontWeight="bold">La app funciona igual — 100% offline</text>
-    </svg>
+    <div className="rounded-xl p-4 space-y-2" style={{background:`rgba(255,255,255,0.03)`, border:`1px solid ${color}25`}}>
+      <div className="flex items-center gap-2 mb-1" style={{color}}>
+        {icon}
+        <span className="font-bold text-sm text-white">{title}</span>
+      </div>
+      <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
+    </div>
   );
 }
 
-function BluetoothIllustration() {
+function Step({ n, text, color }: { n: number; text: string; color: string }) {
   return (
-    <svg viewBox="0 0 500 210" className="w-full max-w-lg mx-auto rounded-xl">
-      <rect width="500" height="210" rx="14" fill="#080c1a" stroke="#1e2a4a" strokeWidth="1.5"/>
-      <rect x="20" y="50" width="130" height="110" rx="12" fill="#0d1533" stroke="#1e40af" strokeWidth="1.5"/>
-      <text x="85" y="90" textAnchor="middle" fill="#60a5fa" fontSize="26">⚖️</text>
-      <text x="85" y="112" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold">520 kg</text>
-      <text x="85" y="128" textAnchor="middle" fill="#93c5fd" fontSize="7.5">Tru-Test XR3000</text>
-      <text x="85" y="142" textAnchor="middle" fill="#3b82f6" fontSize="7">● BT activo</text>
-      {[0,1,2,3].map(i=>(
-        <ellipse key={i} cx="185" cy="105" rx={18+i*16} ry={12+i*10} fill="none" stroke="#3b82f6" strokeWidth={1.2-i*0.2} opacity={0.7-i*0.12} strokeDasharray="5,4"/>
-      ))}
-      <text x="185" y="109" textAnchor="middle" fill="#3b82f6" fontSize="14">᪥</text>
-      <text x="185" y="170" textAnchor="middle" fill="#60a5fa" fontSize="7.5">Señal Bluetooth</text>
-      <rect x="240" y="30" width="85" height="150" rx="14" fill="#0a0f1a" stroke="#0ea5e9" strokeWidth="1.5"/>
-      <rect x="247" y="46" width="71" height="118" rx="6" fill="#0f1e2a"/>
-      <text x="282" y="62" textAnchor="middle" fill="#4ade80" fontSize="7" fontWeight="bold">GanaderIA</text>
-      <rect x="250" y="66" width="65" height="24" rx="4" fill="#1a3a1a" stroke="#16a34a" strokeWidth="0.8"/>
-      <text x="282" y="79" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">520 kg</text>
-      <text x="282" y="88" textAnchor="middle" fill="#4ade80" fontSize="6">Rosaura · A-0042</text>
-      <rect x="250" y="94" width="65" height="14" rx="3" fill="#1e3a5f"/>
-      <text x="282" y="103" textAnchor="middle" fill="#93c5fd" fontSize="6">▲ +8 kg vs anterior</text>
-      <rect x="250" y="113" width="65" height="14" rx="3" fill="#14532d"/>
-      <text x="282" y="122" textAnchor="middle" fill="#86efac" fontSize="6">GMD: 0.53 kg/día</text>
-      <rect x="250" y="131" width="65" height="22" rx="4" fill="#16a34a"/>
-      <text x="282" y="144" textAnchor="middle" fill="white" fontSize="7" fontWeight="bold">✓ Guardar pesaje</text>
-      <text x="282" y="180" textAnchor="middle" fill="#0ea5e9" fontSize="7">App GanaderIA</text>
-      {[
-        {y:58,t:"① Active Bluetooth en su cel",c:"#94a3b8"},
-        {y:76,t:"② Encienda la báscula",c:"#94a3b8"},
-        {y:94,t:"③ Clic «Conectar BT»",c:"#4ade80",bold:true},
-        {y:112,t:"④ Peso en tiempo real ✓",c:"#4ade80",bold:true},
-        {y:130,t:"⑤ Seleccione animal",c:"#94a3b8"},
-        {y:148,t:"⑥ Guardar historial",c:"#94a3b8"},
-      ].map(s=>(
-        <text key={s.y} x="350" y={s.y} fill={s.c} fontSize="8.5" fontWeight={s.bold?"bold":"normal"}>{s.t}</text>
-      ))}
-    </svg>
+    <div className="flex items-start gap-3">
+      <div className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 text-black"
+        style={{background:color}}>{n}</div>
+      <p className="text-sm text-white/70 pt-0.5">{text}</p>
+    </div>
   );
 }
 
-function GpsIllustration() {
+function CredTable() {
   return (
-    <svg viewBox="0 0 500 210" className="w-full max-w-lg mx-auto rounded-xl">
-      <rect width="500" height="210" rx="14" fill="#060e09" stroke="#1a4a2e" strokeWidth="1.5"/>
-      {[0,1,2,3,4,5].map(i=>(
-        <line key={`h${i}`} x1="15" y1={30+i*32} x2="485" y2={30+i*32} stroke="#1a2e1e" strokeWidth="0.5"/>
-      ))}
-      {[0,1,2,3,4,5,6,7].map(i=>(
-        <line key={`v${i}`} x1={15+i*68} y1="30" x2={15+i*68} y2="190" stroke="#1a2e1e" strokeWidth="0.5"/>
-      ))}
-      {[
-        {x:25,y:35,w:110,h:80,fill:"#14532d",stroke:"#16a34a",label:"Potrero 1"},
-        {x:160,y:40,w:95,h:70,fill:"#1e3a5f",stroke:"#3b82f6",label:"Potrero 3"},
-        {x:295,y:32,w:120,h:90,fill:"#3b1f5e",stroke:"#7c3aed",label:"Potrero 4"},
-        {x:30,y:140,w:90,h:45,fill:"#14532d",stroke:"#16a34a",label:"Potrero 2"},
-        {x:160,y:132,w:95,h:50,fill:"#2d1b00",stroke:"#f59e0b",label:"Potrero 5"},
-      ].map(z=>(
-        <g key={z.label}>
-          <rect x={z.x} y={z.y} width={z.w} height={z.h} rx="8" fill={z.fill} opacity="0.45" stroke={z.stroke} strokeWidth="1"/>
-          <text x={z.x+z.w/2} y={z.y+z.h/2+3} textAnchor="middle" fill={z.stroke} fontSize="7.5" fontWeight="bold">{z.label}</text>
-        </g>
-      ))}
-      {[
-        {x:60,y:58,n:"Rosaura",c:"#4ade80"},{x:80,y:72,n:"Estrella",c:"#34d399"},
-        {x:50,y:90,n:"Cielo",c:"#6ee7b7"},{x:200,y:65,n:"Tormenta",c:"#60a5fa"},
-        {x:220,y:82,n:"Palmera",c:"#93c5fd"},{x:340,y:60,n:"Bravo",c:"#c084fc"},
-        {x:355,y:85,n:"Niebla",c:"#a78bfa"},
-      ].map(a=>(
-        <g key={a.n}>
-          <circle cx={a.x} cy={a.y} r="6" fill={a.c} opacity="0.9"/>
-          <circle cx={a.x} cy={a.y} r="11" fill={a.c} opacity="0.18"/>
-          <text x={a.x} y={a.y-10} textAnchor="middle" fill={a.c} fontSize="5.5" fontWeight="bold">{a.n}</text>
-        </g>
-      ))}
-      {/* Alert */}
-      <circle cx="340" cy="60" r="9" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="3,2"/>
-      <text x="362" y="53" fill="#f59e0b" fontSize="6.5">⚠ Batería 28%</text>
-      {/* Fence break */}
-      <circle cx="435" cy="70" r="7" fill="#ef4444" opacity="0.9"/>
-      <circle cx="435" cy="70" r="13" fill="#ef4444" opacity="0.15"/>
-      <text x="435" y="62" textAnchor="middle" fill="#ef4444" fontSize="6">⚠</text>
-      <text x="435" y="90" textAnchor="middle" fill="#ef4444" fontSize="6.5">Fuera de zona</text>
-      {/* Legend */}
-      <rect x="15" y="193" width="470" height="14" rx="4" fill="#0a1a10"/>
-      <text x="30" y="202" fill="#4ade80" fontSize="6.5">● En potrero</text>
-      <text x="110" y="202" fill="#f59e0b" fontSize="6.5">⚠ Batería baja</text>
-      <text x="200" y="202" fill="#ef4444" fontSize="6.5">● Fuera de geocerca</text>
-      <text x="320" y="202" fill="#60a5fa" fontSize="6.5">📡 7 collares activos · Actualiza c/2 min</text>
-    </svg>
-  );
-}
-
-function DashboardIllustration() {
-  return (
-    <svg viewBox="0 0 500 230" className="w-full max-w-lg mx-auto rounded-xl">
-      <rect width="500" height="230" rx="14" fill="#060e09" stroke="#1a4a2e" strokeWidth="1.5"/>
-      <rect x="0" y="0" width="72" height="230" rx="14" fill="#0a1510" stroke="#1a2e1e" strokeWidth="0.5"/>
-      <rect x="8" y="12" width="56" height="22" rx="6" fill="#14532d"/>
-      <text x="36" y="26" textAnchor="middle" fill="#4ade80" fontSize="9" fontWeight="bold">GIA PRO</text>
-      {["🐄","🔁","🥛","⚖️","📡","💰","🤖","👥"].map((e,i)=>(
-        <g key={i}>
-          <rect x="10" y={42+i*22} width="52" height="18" rx="5" fill={i===0?"#14532d":"transparent"} opacity="0.8"/>
-          <text x="22" y={54+i*22} fill="#4ade80" fontSize="11">{e}</text>
-        </g>
-      ))}
-      {/* KPI row */}
-      {[
-        {x:82,label:"🐄 Animales",val:"13",c1:"#14532d",c2:"#16a34a"},
-        {x:168,label:"🥛 Litros/día",val:"84 L",c1:"#1e3a5f",c2:"#3b82f6"},
-        {x:254,label:"⚖️ Peso prom",val:"417kg",c1:"#2d1b00",c2:"#f59e0b"},
-        {x:340,label:"📡 GPS Live",val:"7 🟢",c1:"#0d2030",c2:"#0ea5e9"},
-        {x:426,label:"💰 Utilidad",val:"47%",c1:"#1a1a10",c2:"#84cc16"},
-      ].map(k=>(
-        <g key={k.x}>
-          <rect x={k.x} y="12" width="74" height="48" rx="7" fill={k.c1} stroke={k.c2} strokeWidth="1"/>
-          <text x={k.x+8} y="27" fill={k.c2} fontSize="7">{k.label}</text>
-          <text x={k.x+8} y="48" fill="white" fontSize={k.val.length>5?"11":"14"} fontWeight="bold">{k.val}</text>
-        </g>
-      ))}
-      {/* Main chart */}
-      <rect x="82" y="68" width="200" height="90" rx="7" fill="#0a1510" stroke="#1a2e1e" strokeWidth="1"/>
-      <text x="92" y="82" fill="#4ade80" fontSize="7" fontWeight="bold">Producción Lechera · 7 meses</text>
-      {[52000,55000,58000,62000,60000,56000,61300].map((v,i)=>(
-        <g key={i}>
-          <rect x={90+i*25} y={85+(62000-v)/1000*0.8} width="19" height={(v-50000)/1000*0.8} rx="2" fill="#16a34a" opacity={0.65+i*0.05}/>
-          <text x={99+i*25} y={150} textAnchor="middle" fill="#6ee7b7" fontSize="5.5">{["Oct","Nov","Dic","Ene","Feb","Mar","Abr"][i]}</text>
-        </g>
-      ))}
-      {/* GPS Widget */}
-      <rect x="290" y="68" width="200" height="90" rx="7" fill="#0a1510" stroke="#1a2e1e" strokeWidth="1"/>
-      <text x="300" y="82" fill="#0ea5e9" fontSize="7" fontWeight="bold">📡 GPS Ganado — Live</text>
-      {[
-        {n:"Rosaura",p:"Potrero 1",b:87,c:"#4ade80"},{n:"Estrella",p:"Potrero 1",b:72,c:"#4ade80"},
-        {n:"Bravo",p:"Potrero 4",b:91,c:"#4ade80"},{n:"Palmera",p:"Potrero 3",b:28,c:"#ef4444"},
-      ].map((a,i)=>(
-        <g key={a.n}>
-          <circle cx="302" cy={91+i*15} r="3" fill={a.c}/>
-          <text x="309" y={95+i*15} fill="#e2e8f0" fontSize="6.5">{a.n}</text>
-          <text x="355" y={95+i*15} fill="#94a3b8" fontSize="6">{a.p}</text>
-          <text x="418" y={95+i*15} fill={a.c} fontSize="6.5" fontWeight="bold">{a.b}%</text>
-        </g>
-      ))}
-      {/* Pesaje Widget */}
-      <rect x="82" y="165" width="200" height="55" rx="7" fill="#0a1510" stroke="#1a2e1e" strokeWidth="1"/>
-      <text x="92" y="179" fill="#f59e0b" fontSize="7" fontWeight="bold">⚖️ Pesaje BT — Últimos registros</text>
-      {[{n:"Rosaura",p:520,d:"+8"},{n:"Estrella",p:535,d:"+7"},{n:"Bravo",p:810,d:"+5"}].map((a,i)=>(
-        <g key={a.n}>
-          <text x="92" y={191+i*11} fill="#94a3b8" fontSize="6.5">{a.n}</text>
-          <text x="185" y={191+i*11} fill="#f59e0b" fontSize="6.5" fontWeight="bold">{a.p} kg</text>
-          <text x="228" y={191+i*11} fill="#4ade80" fontSize="6.5">{a.d} kg</text>
-        </g>
-      ))}
-      {/* Alerts */}
-      <rect x="290" y="165" width="200" height="55" rx="7" fill="#0a1510" stroke="#1a2e1e" strokeWidth="1"/>
-      <text x="300" y="179" fill="#ef4444" fontSize="7" fontWeight="bold">🔔 Alertas activas</text>
-      {["⚠ Potrero 4: rotar pronto","🏥 Perla: en tratamiento","💊 Oxitocina: stock bajo"].map((a,i)=>(
-        <text key={i} x="300" y={191+i*11} fill={i===1?"#ef4444":"#f59e0b"} fontSize="6.5">{a}</text>
-      ))}
-    </svg>
+    <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
+      <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{background:'rgba(0,245,212,0.08)',color:'#00f5d4'}}>
+        Credenciales de acceso demo
+      </div>
+      <table className="w-full text-xs">
+        <thead>
+          <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+            {['Perfil','Email','Contraseña','Acceso'].map(h=>(
+              <th key={h} className="text-left py-2.5 px-4 text-white/30 font-semibold uppercase text-[10px] tracking-wide">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {[
+            {p:'👑 Admin',      e:'admin@ganader.ia',  pw:'admin',     a:'Total — todos los módulos'},
+            {p:'🩺 Veterinario', e:'vet@ganader.ia',    pw:'vet2025',   a:'Clínico + GPS + Reproducción'},
+            {p:'🐄 Campo',       e:'luis@ganader.ia',   pw:'campo2025', a:'Inventario + Pesaje BT'},
+            {p:'💼 Visor',       e:'visor@ganader.ia',  pw:'visor',     a:'Solo lectura'},
+          ].map(r=>(
+            <tr key={r.p} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+              <td className="py-2.5 px-4 font-bold text-white">{r.p}</td>
+              <td className="py-2.5 px-4 font-mono" style={{color:'#00c8ff'}}>{r.e}</td>
+              <td className="py-2.5 px-4 font-mono font-bold" style={{color:'#fbbf24'}}>{r.pw}</td>
+              <td className="py-2.5 px-4 text-white/40">{r.a}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -309,417 +131,566 @@ export default function Documentacion() {
 
   const sections: Record<string, React.ReactNode> = {
     inicio: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-2xl p-5">
-          <h2 className="text-xl font-bold mb-2">Bienvenido a GanaderIA PRO</h2>
-          <p className="text-muted-foreground text-sm">Sistema integral de gestión ganadera con IA, pesaje Bluetooth, GPS en tiempo real y PWA offline completa.</p>
-        </div>
+      <div className="space-y-6">
+        <SectionBanner emoji="🚀" title="GanaderIA CIVAC PRO" c1="rgba(0,30,20,0.9)" c2="rgba(0,50,30,0.9)"
+          border="rgba(0,245,212,0.35)" subtitle="Sistema integral de gestión ganadera · Colombia · v3.0"/>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            {icon:"🐄",title:"Gestión completa del hato",desc:"Inventario, fichas individuales, pesajes, reproducción y genética.",color:"border-emerald-500/30 bg-emerald-500/5"},
-            {icon:"⚖️",title:"Pesaje Bluetooth",desc:"Báscula Tru-Test vía BT. Pesos en tiempo real, GMD y análisis.",color:"border-amber-500/30 bg-amber-500/5"},
-            {icon:"📡",title:"GPS Ganado en tiempo real",desc:"Rastreo, geocercas, alertas de escape y batería de collares.",color:"border-cyan-500/30 bg-cyan-500/5"},
-            {icon:"🤖",title:"Predicciones IA",desc:"Alertas inteligentes, riesgo sanitario y partos estimados.",color:"border-purple-500/30 bg-purple-500/5"},
-            {icon:"📱",title:"PWA Offline",desc:"Instale en cualquier dispositivo. Funciona sin internet.",color:"border-blue-500/30 bg-blue-500/5"},
-            {icon:"☁",title:"Google Drive Sync",desc:"Respaldo y exportación en JSON/CSV a Google Drive.",color:"border-green-500/30 bg-green-500/5"},
-          ].map(c=>(
-            <div key={c.title} className={`border rounded-xl p-4 ${c.color}`}>
-              <div className="text-2xl mb-2">{c.icon}</div>
-              <h3 className="font-semibold text-sm mb-1">{c.title}</h3>
-              <p className="text-xs text-muted-foreground">{c.desc}</p>
+            { emoji:'🐄', title:'Inventario Completo',    desc:'30+ animales con fichas individuales, categorías, etiquetas, estadísticas y pesaje integrado.', c:'#00f5d4' },
+            { emoji:'⚖️', title:'Pesaje Bluetooth',        desc:'Báscula Tru-Test / Gallagher vía BT. Auto-cálculo por raza, recibos PDF por animal.', c:'#ff9500' },
+            { emoji:'📡', title:'GPS Ganado en vivo',      desc:'Rastreo, geocercas, alertas de escape y batería de collares GPS.', c:'#00c8ff' },
+            { emoji:'🤖', title:'Predicciones IA',         desc:'Alertas inteligentes, riesgo sanitario, partos estimados y peso futuro.', c:'#a78bfa' },
+            { emoji:'📱', title:'PWA Offline 100%',        desc:'Instale en cualquier dispositivo. Funciona sin internet. Se sincroniza al reconectar.', c:'#4ade80' },
+            { emoji:'🐂', title:'Movimiento de Lotes',     desc:'Ingreso, venta y compra de lotes con recibos automáticos y cálculo de valores.', c:'#00c8ff' },
+            { emoji:'🥛', title:'Producción Lechera',      desc:'Ordeños diarios, ranking de vacas, tendencias mensuales e ingresos.', c:'#60a5fa' },
+            { emoji:'🔁', title:'Reproducción',            desc:'Celos, inseminaciones, partos esperados, ecografías y manejo reproductivo.', c:'#f472b6' },
+            { emoji:'☁',  title:'Backup Google Drive',    desc:'Exporta JSON/CSV a Drive. Respaldo automático. Descarga local también disponible.', c:'#fbbf24' },
+          ].map(c => (
+            <div key={c.title} className="rounded-xl p-4" style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${c.c}20`}}>
+              <div className="text-2xl mb-2">{c.emoji}</div>
+              <div className="font-bold text-sm text-white mb-1">{c.title}</div>
+              <p className="text-xs text-white/45 leading-relaxed">{c.desc}</p>
             </div>
           ))}
         </div>
-        <div className="bg-card border border-border rounded-xl p-4 overflow-x-auto">
-          <h3 className="font-semibold text-sm mb-3">Credenciales de acceso demo</h3>
-          <table className="w-full text-xs min-w-[400px]">
-            <thead><tr className="border-b border-border">
-              <th className="text-left py-2 text-muted-foreground">Perfil</th>
-              <th className="text-left py-2 text-muted-foreground">Email</th>
-              <th className="text-left py-2 text-muted-foreground">Contraseña</th>
-              <th className="text-left py-2 text-muted-foreground">Acceso</th>
-            </tr></thead>
-            <tbody>
-              {[
-                {p:"Admin 👑",e:"admin@ganader.ia",pw:"admin",a:"Total"},
-                {p:"Veterinario 🩺",e:"vet@ganader.ia",pw:"vet2025",a:"Clínico + GPS"},
-                {p:"Campo 🐄",e:"luis@ganader.ia",pw:"campo2025",a:"Inventario + Pesaje BT"},
-                {p:"Visor 💼",e:"visor@ganader.ia",pw:"visor",a:"Solo lectura"},
-              ].map(r=>(
-                <tr key={r.p} className="border-b border-border/40 last:border-0">
-                  <td className="py-2 font-medium">{r.p}</td>
-                  <td className="py-2 font-mono text-blue-400">{r.e}</td>
-                  <td className="py-2 font-mono text-amber-400">{r.pw}</td>
-                  <td className="py-2 text-muted-foreground">{r.a}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        <CredTable/>
+
+        <div className="rounded-xl p-4" style={{background:'rgba(0,245,212,0.05)',border:'1px solid rgba(0,245,212,0.2)'}}>
+          <div className="font-bold text-sm mb-3 flex items-center gap-2" style={{color:'#00f5d4'}}>
+            <Database size={14}/> Base de datos actual
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            {[
+              {label:'Animales',   val:animals.length,        c:'#00f5d4', emoji:'🐄'},
+              {label:'Pesajes',    val:pesajes.length,        c:'#ff9500', emoji:'⚖️'},
+              {label:'GPS activos',val:gpsUbicaciones.filter(g=>g.activo).length, c:'#00c8ff', emoji:'📡'},
+            ].map(s => (
+              <div key={s.label} className="rounded-lg p-3" style={{background:'rgba(0,0,0,0.3)'}}>
+                <div className="text-xl mb-1">{s.emoji}</div>
+                <div className="font-black text-xl" style={{color:s.c}}>{s.val}</div>
+                <div className="text-[10px] text-white/30">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     ),
-    pwa: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 rounded-2xl p-5">
-          <h2 className="text-xl font-bold mb-2">Instalar GanaderIA como app</h2>
-          <p className="text-muted-foreground text-sm">PWA instalable en cualquier dispositivo. Sin tienda de apps. Funciona offline. Actualización automática.</p>
+
+    modulos: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🗂" title="Módulos del Sistema" subtitle="CIVAC PRO incluye 20+ módulos integrados. Todos sincronizados offline."
+          c1="rgba(5,5,20,0.9)" c2="rgba(10,10,35,0.9)" border="rgba(167,139,250,0.35)"/>
+
+        <div className="space-y-3">
+          {[
+            { emoji:'📊', label:'Dashboard PRO',      ruta:'/',              desc:'KPIs en tiempo real, alertas, producción, GPS live, pesajes recientes, valor del hato.', c:'#00f5d4' },
+            { emoji:'🔔', label:'Alertas',            ruta:'/alertas',       desc:'Alertas sanitarias, de inventario, reproductivas y de GPS. Clasificadas por urgencia.', c:'#f87171' },
+            { emoji:'🐄', label:'Inventario Animal',  ruta:'/inventario',    desc:'5 tabs: Tabla, Fichas, Etiquetas, Pesaje Rápido, Estadísticas. 30+ animales con todos los campos.', c:'#39ff7e' },
+            { emoji:'📋', label:'Ficha Individual',   ruta:'/ficha',         desc:'Ficha completa por animal con historial médico, reproductivo y de pesajes.', c:'#00f5d4' },
+            { emoji:'🔁', label:'Reproducción',       ruta:'/reproduccion',  desc:'Partos esperados, días restantes, celos, inseminaciones, ecografías y servicios.', c:'#f472b6' },
+            { emoji:'🥛', label:'Producción Leche',   ruta:'/produccion',    desc:'Registro de ordeños, litros/día por vaca, tendencias mensuales, ingresos.', c:'#60a5fa' },
+            { emoji:'🧬', label:'Genética y Pedigrí', ruta:'/genetica',      desc:'Árbol genealógico, MEP, índice genético, toros disponibles, cruzamiento.', c:'#a78bfa' },
+            { emoji:'🌿', label:'Potreros',           ruta:'/potreros',      desc:'Mapa de potreros, estado (ocupado/descanso/rotar), días de ocupación, rotación.', c:'#84ef34' },
+            { emoji:'🌾', label:'Alimentación',       ruta:'/alimentacion',  desc:'Raciones por categoría, consumo diario, costo de alimentación, análisis.', c:'#ffd166' },
+            { emoji:'⚖️', label:'Pesaje Bluetooth',   ruta:'/pesaje',        desc:'Módulo dedicado: conexión BT, historial completo, facturas por pesaje, análisis GMD.', c:'#ff9500' },
+            { emoji:'💊', label:'Insumos',            ruta:'/insumos',       desc:'Stock de medicamentos, alertas de mínimos, consumo y registro de aplicaciones.', c:'#fbbf24' },
+            { emoji:'🧪', label:'Semen y Embriones',  ruta:'/semen',         desc:'Inventario de pajillas, toros, dosis disponibles y registro de uso.', c:'#818cf8' },
+            { emoji:'💰', label:'Costos y P&G',       ruta:'/costos',        desc:'Ingresos vs egresos, utilidad neta, costo por litro, análisis mensual.', c:'#34d399' },
+            { emoji:'👥', label:'Personal',           ruta:'/personal',      desc:'Empleados, contratos, horas extra, EPS, ARL, pagos y novedades.', c:'#94a3b8' },
+            { emoji:'🤖', label:'Predicciones IA',    ruta:'/prediccion',    desc:'Predicción de peso a 30/60/90 días, riesgo de mastitis, detección de celo, partos.', c:'#e879f9' },
+            { emoji:'🌱', label:'Huella de Carbono',  ruta:'/co2',           desc:'Emisiones por animal, compensación, biogás, indicadores de sostenibilidad.', c:'#4ade80' },
+            { emoji:'🗺️', label:'Multi-Finca',        ruta:'/multifinca',    desc:'Gestión de múltiples fincas en un solo panel. Comparativa entre unidades.', c:'#22d3ee' },
+            { emoji:'📡', label:'Rastreo GPS',        ruta:'/gps',           desc:'Mapa en tiempo real, 12 collares, geocercas, historial de movimiento, alertas de batería.', c:'#00c8ff' },
+            { emoji:'🐂', label:'Movimiento Lotes',   ruta:'/lotes',         desc:'Ingreso, venta y compra de lotes con recibos, cálculo automático de valores.', c:'#00c8ff' },
+            { emoji:'👤', label:'Usuarios',           ruta:'/usuarios',      desc:'Gestión de usuarios, roles, permisos, actividad y control de acceso.', c:'#c084fc' },
+            { emoji:'⚙️', label:'Configuración',      ruta:'/configuracion', desc:'Datos de la finca, alertas automáticas, idioma, unidades, temas y preferencias.', c:'#9ca3af' },
+            { emoji:'📚', label:'Documentación',      ruta:'/documentacion', desc:'Guía completa de uso, tutoriales, credenciales demo, exportación de datos.', c:'#38bdf8' },
+            { emoji:'👑', label:'Planes · Wompi',     ruta:'/planes',        desc:'Suscripción PRO, Premium y Platino vía Wompi. Pagos seguros en COP.', c:'#fbbf24' },
+          ].map(m => (
+            <div key={m.ruta} className="rounded-xl px-4 py-3 flex items-center gap-4"
+              style={{background:'rgba(255,255,255,0.02)',border:`1px solid ${m.c}18`}}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                style={{background:`${m.c}15`, border:`1px solid ${m.c}30`}}>
+                {m.emoji}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm text-white">{m.label}</span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded" style={{background:'rgba(0,0,0,0.4)',color:m.c}}>{m.ruta}</span>
+                </div>
+                <p className="text-xs text-white/40 truncate">{m.desc}</p>
+              </div>
+              <ChevronRight size={14} style={{color:`${m.c}50`, flexShrink:0}}/>
+            </div>
+          ))}
         </div>
-        <PwaIllustration />
+      </div>
+    ),
+
+    inventario: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🐄" title="Inventario Animal" subtitle="Registro RFID · Fichas · Etiquetas · Pesaje Rápido · Estadísticas"
+          c1="rgba(0,20,10,0.9)" c2="rgba(0,35,15,0.9)" border="rgba(57,255,126,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Grid3x3 size={14}/>} color="#39ff7e" title="Tab: Tabla"
+            desc="Tabla completa con todos los campos: Arete, Nombre, Raza, Categoría, Fecha nacimiento/Edad auto-calculada, Peso, Valor total, Litros/día, Lote, Estado, Registro. Filtros por categoría + estado + lote + búsqueda."/>
+          <FeatureCard icon={<Beef size={14}/>} color="#a78bfa" title="Tab: Fichas"
+            desc="Tarjetas visuales con degradado por categoría, barra de condición corporal vs. raza, todos los datos del animal, botones de editar/eliminar/ver ficha, y valor económico."/>
+          <FeatureCard icon={<Tag size={14}/>} color="#39ff7e" title="Tab: Etiquetas"
+            desc="Etiquetas imprimibles por animal con: Arete, Nombre, Raza, Categoría, Peso, Edad, Estado, Registro N°, código QR (RFID), valor estimado. Botón 'Imprimir Todas'."/>
+          <FeatureCard icon={<Scale size={14}/>} color="#ff9500" title="Tab: Pesaje Rápido"
+            desc="Por cada animal: botón 'Raza' → auto-completa peso estándar de la raza/categoría, botón 'BT' → simula báscula Bluetooth, campo valor/kg, calcular valor total, Registrar y Imprimir PDF."/>
+          <FeatureCard icon={<BarChart3 size={14}/>} color="#f472b6" title="Tab: Estadísticas"
+            desc="Gráficas: Animales por Raza (barras), Estado Sanitario (dona multicolor), Distribución por Categoría (barras horizontales), Valor por Lote (con total COP + leche/día)."/>
+          <FeatureCard icon={<Zap size={14}/>} color="#ff9500" title="Auto-cálculos"
+            desc="Al seleccionar raza + categoría: edad calculada desde fecha nacimiento, peso sugerido por raza, valor total = peso × $/kg. Todo en tiempo real, un solo clic."/>
+        </div>
+
+        <div className="rounded-xl p-4" style={{background:'rgba(57,255,126,0.05)',border:'1px solid rgba(57,255,126,0.15)'}}>
+          <div className="font-bold text-sm mb-3" style={{color:'#39ff7e'}}>Campos por animal</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {['Arete RFID','Nombre','Raza','Categoría','Estado','Lote','Peso (kg)','F. Nacimiento','Edad auto','Registro N°','Litros/día','N° Partos','$/kg','Valor total'].map(f => (
+              <div key={f} className="flex items-center gap-1.5 text-xs text-white/60">
+                <CheckCircle size={10} style={{color:'#39ff7e', flexShrink:0}}/>
+                {f}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ),
+
+    pesaje: (
+      <div className="space-y-6">
+        <SectionBanner emoji="⚖️" title="Pesaje Bluetooth" subtitle="Básculas Tru-Test · Gallagher · Auto-cálculo por raza · Recibos PDF"
+          c1="rgba(15,8,0,0.9)" c2="rgba(30,15,0,0.9)" border="rgba(255,149,0,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Bluetooth size={14}/>} color="#00c8ff" title="Conexión Bluetooth"
+            desc="Compatible con básculas Tru-Test XR3000, Gallagher W210 y similares. Activa el BT en tu celular, enciende la báscula y toca 'Conectar BT'. El peso llega en tiempo real."/>
+          <FeatureCard icon={<Zap size={14}/>} color="#ff9500" title="Auto-cálculo por raza"
+            desc="6 razas × 5 categorías = 30 combinaciones. Al hacer clic en '⚡ Raza', el sistema calcula el peso estándar para esa raza y categoría. Ajusta si es necesario."/>
+          <FeatureCard icon={<Scale size={14}/>} color="#ff9500" title="Pesaje Rápido (en Inventario)"
+            desc="Desde el módulo Inventario → tab ⚖️ Pesaje Rápido: tabla de todos los animales con botones 'Raza', 'BT' y 'Registrar' por fila. Actualiza el peso y guarda el historial."/>
+          <FeatureCard icon={<Printer size={14}/>} color="#a78bfa" title="Recibo PDF imprimible"
+            desc="Cada pesaje genera un recibo con: animal, arete, raza, peso nuevo/anterior, variación, peso estándar de raza (%), valor estimado, operador, fecha y hora."/>
+          <FeatureCard icon={<Activity size={14}/>} color="#4ade80" title="GMD — Ganancia Media Diaria"
+            desc="El módulo /pesaje calcula automáticamente la GMD (kg/día ganados desde el pesaje anterior). Ideal para seguimiento de terneros y novillas."/>
+          <FeatureCard icon={<BarChart3 size={14}/>} color="#f472b6" title="Historial y análisis"
+            desc="Historial completo de pesajes con fecha, hora, método (BT/manual), dispositivo, operador, y observaciones. Filtrable por animal, lote o fecha."/>
+        </div>
+
+        <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,149,0,0.2)'}}>
+          <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{background:'rgba(255,149,0,0.08)',color:'#ff9500'}}>
+            Tabla de pesos estándar por raza (kg)
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr style={{borderBottom:'1px solid rgba(255,149,0,0.1)'}}>
+                  {['Raza','Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(h => (
+                    <th key={h} className="text-left py-2.5 px-4 font-bold" style={{color:'rgba(255,149,0,0.6)'}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {r:'Holstein',  va:560, no:330, te:80, ta:75, to:820},
+                  {r:'Simmental', va:600, no:360, te:90, ta:85, to:870},
+                  {r:'Brahman',   va:490, no:300, te:65, ta:60, to:780},
+                  {r:'Gyr X',     va:470, no:290, te:62, ta:58, to:730},
+                  {r:'Gyr',       va:460, no:285, te:60, ta:56, to:720},
+                  {r:'Jersey',    va:400, no:245, te:52, ta:49, to:600},
+                ].map(r => (
+                  <tr key={r.r} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
+                    <td className="py-2.5 px-4 font-bold text-white">{r.r}</td>
+                    {[r.va,r.no,r.te,r.ta,r.to].map((v,i) => (
+                      <td key={i} className="py-2.5 px-4 font-mono" style={{color:'#ff9500'}}>{v} kg</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="rounded-xl p-4 space-y-3" style={{background:'rgba(255,149,0,0.05)',border:'1px solid rgba(255,149,0,0.15)'}}>
+          <div className="font-bold text-sm" style={{color:'#ff9500'}}>Pasos para pesaje con báscula BT</div>
+          {[
+            'Active el Bluetooth en su celular o tablet',
+            'Encienda la báscula Tru-Test XR3000 o Gallagher W210',
+            'Vaya a módulo Pesaje (/pesaje) o Inventario → tab Pesaje Rápido',
+            'Haga clic en "Conectar BT" — el peso aparece en tiempo real',
+            'Seleccione el animal o confírmelo desde la lista',
+            'Haga clic en "Guardar Pesaje" para registrar en el historial',
+            'Opcional: Imprimir recibo PDF con botón 🖨',
+          ].map((s,i) => <Step key={i} n={i+1} text={s} color="#ff9500"/>)}
+        </div>
+      </div>
+    ),
+
+    lotes: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🐂" title="Movimiento de Lotes" subtitle="Ingreso · Venta · Compra · Recibos automáticos · Cálculo de valores"
+          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,30,0.9)" border="rgba(0,200,255,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FeatureCard icon={<Package size={14}/>} color="#39ff7e" title="Ingresar Lote"
+            desc="Registra la entrada de animales: nombre del lote, cantidad, peso total, costo por kilo, valor total calculado automáticamente, fecha, proveedor y notas."/>
+          <FeatureCard icon={<DollarSign size={14}/>} color="#f87171" title="Vender Lote"
+            desc="Registra la venta de animales: lote, cantidad, precio por kilo, total a recibir, fecha, destino (nombre del comprador) y notas de la operación."/>
+          <FeatureCard icon={<Beef size={14}/>} color="#00c8ff" title="Comprar Lote"
+            desc="Registra compra de nuevos animales: cantidad, peso promedio, precio por kilo, valor total pagado, proveedor y fecha de ingreso a la finca."/>
+        </div>
+
+        <div className="rounded-xl p-4 space-y-3" style={{background:'rgba(0,200,255,0.05)',border:'1px solid rgba(0,200,255,0.15)'}}>
+          <div className="font-bold text-sm" style={{color:'#00c8ff'}}>Auto-cálculos en movimiento de lote</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-white/60">
+            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Valor total = cantidad × peso promedio × $ por kilo</span></div>
+            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Peso promedio por animal = peso total ÷ cantidad</span></div>
+            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Recibo generado automáticamente al confirmar</span></div>
+            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Historial de movimientos con fecha y tipo</span></div>
+          </div>
+        </div>
+      </div>
+    ),
+
+    reproduccion: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🔁" title="Reproducción" subtitle="Partos · Inseminaciones · Celos · Ecografías · Manejo reproductivo"
+          c1="rgba(20,0,20,0.9)" c2="rgba(35,0,35,0.9)" border="rgba(244,114,182,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Heart size={14}/>} color="#f472b6" title="Control de partos"
+            desc="Lista de vacas gestantes con días restantes al parto, servicio utilizado (IA o monta natural), número de partos previos y estado (Normal / Vigilar / Primípara)."/>
+          <FeatureCard icon={<Baby size={14}/>} color="#c084fc" title="Inseminación Artificial"
+            desc="Registro de servicios con toro / pajilla, fecha, técnico inseminador y resultado (confirmado / pendiente / fallido)."/>
+          <FeatureCard icon={<Activity size={14}/>} color="#f472b6" title="Detección de celos"
+            desc="Alertas automáticas por IA cuando se detecta patrón de celo basado en producción de leche y comportamiento GPS."/>
+          <FeatureCard icon={<Shield size={14}/>} color="#a78bfa" title="Ecografías"
+            desc="Registro de ecografías con fecha, resultado y diagnóstico de preñez. Seguimiento de cada gestación."/>
+        </div>
+      </div>
+    ),
+
+    produccion: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🥛" title="Producción Lechera" subtitle="Ordeños · Ranking de vacas · Tendencias · Ingresos diarios"
+          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,35,0.9)" border="rgba(96,165,250,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Droplets size={14}/>} color="#60a5fa" title="Registro de ordeños"
+            desc="Registro diario de litros, precio por litro e ingreso. Historial completo con notas por ordeño (vacuna, lluvia, eventos especiales)."/>
+          <FeatureCard icon={<BarChart3 size={14}/>} color="#4ade80" title="Tendencias mensuales"
+            desc="Gráfica de barras con producción mensual en litros. Comparativa entre meses, identificación de picos y valles."/>
+          <FeatureCard icon={<Award size={14}/>} color="#fbbf24" title="Ranking de vacas"
+            desc="Top vacas productoras con litros/día y clasificación por posición. Identifica las mejores productoras del hato."/>
+          <FeatureCard icon={<DollarSign size={14}/>} color="#39ff7e" title="Ingresos diarios"
+            desc="Cálculo automático: litros × precio = ingreso. Acumulado mensual y anual visible en el dashboard."/>
+        </div>
+      </div>
+    ),
+
+    pwa: (
+      <div className="space-y-6">
+        <SectionBanner emoji="📱" title="Instalar como App (PWA)" subtitle="Sin tienda de apps · Funciona offline · Actualización automática"
+          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,35,0.9)" border="rgba(56,189,248,0.35)"/>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            {platform:"Windows",icon:<Monitor className="w-5 h-5"/>,color:"from-blue-600 to-blue-800",
-              steps:["Abra Chrome o Edge","Menú ⋮ → «Instalar GanaderIA»","La app aparece en el escritorio","Funciona sin internet"]},
-            {platform:"Android",icon:<Globe className="w-5 h-5"/>,color:"from-green-600 to-green-800",
-              steps:["Abra Chrome","Banner automático aparece","Toque «Instalar»","Icono en pantalla de inicio"]},
-            {platform:"iPhone/iPad",icon:<Apple className="w-5 h-5"/>,color:"from-slate-600 to-slate-800",
-              steps:["Abra Safari","Icono compartir ↑","«Agregar a pantalla de inicio»","Confirme el nombre"]},
-            {platform:"Mac / Linux",icon:<Globe className="w-5 h-5"/>,color:"from-purple-600 to-purple-800",
-              steps:["Chrome o Edge","Ícono instalar en barra URL","Instalar y confirmar","Acceso desde dock/apps"]},
-          ].map(p=>(
-            <div key={p.platform} className="bg-card border border-border rounded-xl overflow-hidden">
-              <div className={`bg-gradient-to-r ${p.color} p-3 flex items-center gap-2`}>
-                <div className="text-white">{p.icon}</div>
-                <span className="text-white font-bold text-sm">{p.platform}</span>
+            { platform:'Android', icon:'🤖', color:'#4ade80',
+              steps:['Abra Chrome en su celular','Banner automático aparece','Toque "Instalar"','Icono aparece en pantalla de inicio'] },
+            { platform:'iPhone / iPad', icon:'🍎', color:'#94a3b8',
+              steps:['Abra Safari (no Chrome)','Toque ícono compartir ↑','«Agregar a pantalla de inicio»','Confirme el nombre y listo'] },
+            { platform:'Windows', icon:'🪟', color:'#60a5fa',
+              steps:['Abra Chrome o Edge','Menú ⋮ → «Instalar GanaderIA»','Confirmar instalación','Acceso desde escritorio'] },
+            { platform:'Mac / Linux', icon:'💻', color:'#a78bfa',
+              steps:['Chrome o Edge','Ícono instalar (✚) en barra URL','Instalar y confirmar','Acceso desde Launchpad / Apps'] },
+          ].map(p => (
+            <div key={p.platform} className="rounded-xl overflow-hidden" style={{border:`1px solid ${p.color}25`}}>
+              <div className="p-3 flex items-center gap-2" style={{background:`${p.color}15`}}>
+                <span className="text-2xl">{p.icon}</span>
+                <span className="font-bold text-sm text-white">{p.platform}</span>
               </div>
-              <div className="p-3">
-                <ol className="space-y-1.5">
-                  {p.steps.map((s,i)=>(
-                    <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                      <span className="w-4 h-4 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-[9px] flex-shrink-0">{i+1}</span>{s}
-                    </li>
-                  ))}
-                </ol>
+              <div className="p-3 space-y-2">
+                {p.steps.map((s,i) => <Step key={i} n={i+1} text={s} color={p.color}/>)}
               </div>
             </div>
           ))}
         </div>
-        {/* Windows download highlight */}
-        <div className="bg-gradient-to-r from-blue-900/40 to-blue-800/30 border border-blue-500/40 rounded-2xl p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl flex-shrink-0">
-              <Monitor className="w-7 h-7 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-lg">GanaderIA para Windows</h3>
-              <p className="text-muted-foreground text-sm">Instale desde Chrome o Edge. Compatible con Windows 10/11. Sin instalador, sin tienda.</p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {["Chrome 88+","Edge 90+","Offline-ready","Gratis","Sin tienda"].map(t=>(
-                  <span key={t} className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full">{t}</span>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-2 flex-shrink-0">
-              <button
-                onClick={()=>{
-                  const p = (window as any).__pwaInstallPrompt;
-                  if(p){p.prompt();}
-                  else{toast({title:"Instalar en Windows",description:"Haga clic en el ícono de instalación (⊕) en la barra de dirección de Chrome/Edge"});}
-                }}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-lg text-sm"
-              >
-                <Download className="w-4 h-4" />
-                Descargar para Windows
-              </button>
-              <p className="text-[10px] text-muted-foreground text-center">PWA · Chrome/Edge · Sin instalador .exe</p>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            {icon:"⚡",title:"Carga instantánea",desc:"Menos de 1 segundo"},
-            {icon:"📵",title:"Offline completo",desc:"Sin internet funciona"},
-            {icon:"🔄",title:"Auto actualización",desc:"Siempre última versión"},
-            {icon:"🔒",title:"Datos seguros",desc:"Todo en su dispositivo"},
-          ].map(b=>(
-            <div key={b.title} className="bg-card border border-border rounded-xl p-3 text-center">
-              <div className="text-xl mb-1">{b.icon}</div>
-              <p className="font-semibold text-xs">{b.title}</p>
-              <p className="text-[10px] text-muted-foreground">{b.desc}</p>
+            { emoji:'⚡', title:'Sin espacio en memoria', desc:'La PWA no ocupa espacio como las apps normales. Vive en el navegador.' },
+            { emoji:'🔄', title:'Actualización automática', desc:'Cada vez que hay una mejora, la app se actualiza sola al abrir con internet.' },
+            { emoji:'🔒', title:'Segura y privada', desc:'HTTPS siempre activo. Datos locales en su dispositivo. Sin acceso de terceros.' },
+          ].map(f => (
+            <div key={f.title} className="rounded-xl p-4 text-center" style={{background:'rgba(56,189,248,0.05)',border:'1px solid rgba(56,189,248,0.15)'}}>
+              <div className="text-3xl mb-2">{f.emoji}</div>
+              <div className="font-bold text-sm text-white mb-1">{f.title}</div>
+              <p className="text-xs text-white/45">{f.desc}</p>
             </div>
           ))}
         </div>
       </div>
     ),
+
     offline: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-slate-700/30 to-gray-700/20 border border-slate-500/30 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-2"><WifiOff className="w-6 h-6 text-slate-400" /><h2 className="text-xl font-bold">Uso sin conexión a internet</h2></div>
-          <p className="text-muted-foreground text-sm">GanaderIA guarda todo localmente. Trabaje en el campo sin señal y sincronice al reconectar.</p>
-        </div>
-        <OfflineIllustration />
+      <div className="space-y-6">
+        <SectionBanner emoji="📵" title="Modo Offline Completo" subtitle="100% funcional sin internet · Sincroniza al reconectar · IndexedDB + localStorage"
+          c1="rgba(20,0,0,0.9)" c2="rgba(30,5,5,0.9)" border="rgba(248,113,113,0.35)"/>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm text-green-400 mb-3">✓ Disponible sin internet</h3>
-            <ul className="space-y-2">
-              {["Dashboard y KPIs en tiempo real","Inventario completo de animales","Registro de pesajes (Bluetooth)","Crear y ver alertas","Producción lechera y ordeños","Potreros y rotaciones","Fichas individuales por animal","Insumos y kardex de stock"].map(f=>(
-                <li key={f} className="flex items-center gap-2 text-xs"><CheckCircle className="w-3.5 h-3.5 text-green-400 flex-shrink-0"/>{f}</li>
-              ))}
-            </ul>
+          <FeatureCard icon={<WifiOff size={14}/>} color="#f87171" title="¿Cómo funciona offline?"
+            desc="GanaderIA guarda todos los datos en localStorage del navegador. Al abrir la app sin internet, carga los datos locales. Todo funciona: inventario, pesaje, alertas, GPS (si hay collar BT activo)."/>
+          <FeatureCard icon={<RefreshCw size={14}/>} color="#4ade80" title="Sincronización al reconectar"
+            desc="Al volver a tener internet, la app detecta la conexión y sincroniza automáticamente todos los cambios realizados offline hacia el servidor PostgreSQL."/>
+          <FeatureCard icon={<Database size={14}/>} color="#00c8ff" title="Base de datos interna"
+            desc="Backend Express + PostgreSQL + Drizzle ORM. Todos los datos persisten en BD real. Si hay servidor local en red local (LAN), funciona también sin internet global."/>
+          <FeatureCard icon={<Shield size={14}/>} color="#a78bfa" title="Sin pérdida de datos"
+            desc="Todos los cambios se guardan primero en localStorage (instantáneo) y luego se sincronizan con el servidor (fire-and-forget). Si falla la red, los datos locales están seguros."/>
+        </div>
+
+        <div className="rounded-xl p-4" style={{background:'rgba(248,113,113,0.05)',border:'1px solid rgba(248,113,113,0.15)'}}>
+          <div className="font-bold text-sm mb-3" style={{color:'#f87171'}}>Módulos disponibles 100% offline</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {['Inventario Animal','Pesaje (manual)','Alertas','Reproducción','Producción Leche','Insumos','Personal','Costos','Potreros','Alimentación','Genética','Semen','Dashboard (cached)','GPS (si BT activo)'].map(m => (
+              <div key={m} className="flex items-center gap-1.5 text-xs text-white/60">
+                <CheckCircle size={10} style={{color:'#4ade80',flexShrink:0}}/>
+                {m}
+              </div>
+            ))}
           </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm text-amber-400 mb-3">⚡ Sincronización automática</h3>
-            <div className="space-y-3">
-              {[
-                {s:"1",t:"Trabaje normalmente",d:"Todos los cambios se guardan localmente en tiempo real."},
-                {s:"2",t:"Reconecte internet",d:"El sistema detecta la conexión automáticamente."},
-                {s:"3",t:"Sincronización en segundo plano",d:"Datos locales se sincronizan con el servidor."},
-                {s:"4",t:"Conflictos resueltos",d:"Se conserva la versión más reciente en caso de conflicto."},
-              ].map(s=>(
-                <div key={s.s} className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 font-bold text-xs flex items-center justify-center flex-shrink-0">{s.s}</div>
-                  <div><p className="text-xs font-semibold">{s.t}</p><p className="text-[10px] text-muted-foreground">{s.d}</p></div>
+        </div>
+      </div>
+    ),
+
+    gps: (
+      <div className="space-y-6">
+        <SectionBanner emoji="📡" title="Rastreo GPS Ganado" subtitle="12 collares en tiempo real · Geocercas · Alertas · Batería · Mapa"
+          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,30,0.9)" border="rgba(0,200,255,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Navigation size={14}/>} color="#00c8ff" title="Mapa en tiempo real"
+            desc="Mapa interactivo con Leaflet y OpenStreetMap. Cada animal aparece como punto de color con su nombre. Actualización cada 2 minutos."/>
+          <FeatureCard icon={<MapPin size={14}/>} color="#f87171" title="Geocercas"
+            desc="Defina zonas virtuales (potreros). Si un animal sale de su geocerca, se genera una alerta inmediata con el nombre del animal y la zona de escape."/>
+          <FeatureCard icon={<Bell size={14}/>} color="#fbbf24" title="Alertas automáticas"
+            desc="Alertas de: batería baja (< 20%), animal fuera de zona, sin señal por más de 30 min, y collar desactivado."/>
+          <FeatureCard icon={<Activity size={14}/>} color="#4ade80" title="Historial de movimiento"
+            desc="Rastree dónde estuvo cada animal en las últimas 24h/7 días. Identifica patrones de comportamiento y movimientos inusuales."/>
+        </div>
+
+        <div className="rounded-xl p-4" style={{background:'rgba(0,200,255,0.05)',border:'1px solid rgba(0,200,255,0.15)'}}>
+          <div className="font-bold text-sm mb-3" style={{color:'#00c8ff'}}>Collares GPS compatibles</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-white/60">
+            {['Nedap Smarttag · Collar','HerdDogg · BT + GPS','Moocall · Sensor de parto','Afimilk · Podómetro + GPS','SmaXtec · Bolus ruminal','Collar LTE / NB-IoT genérico'].map(c => (
+              <div key={c} className="flex items-center gap-1.5">
+                <span className="text-green-400">●</span>{c}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ),
+
+    drive: (
+      <div className="space-y-6">
+        <SectionBanner emoji="☁" title="Sync & Backups" subtitle="Google Drive · Descarga local · JSON · CSV · Respaldo automático"
+          c1="rgba(5,10,0,0.9)" c2="rgba(10,20,0,0.9)" border="rgba(251,191,36,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <FeatureCard icon={<Cloud size={14}/>} color="#fbbf24" title="Google Drive"
+            desc="Exporte cualquier módulo de datos directamente a su Google Drive. El archivo JSON queda guardado en la nube con fecha y hora."/>
+          <FeatureCard icon={<Download size={14}/>} color="#4ade80" title="Descarga local"
+            desc="Descargue un backup JSON completo de todos sus datos directamente al dispositivo. Sin internet necesario."/>
+          <FeatureCard icon={<FileDown size={14}/>} color="#60a5fa" title="Exportar CSV"
+            desc="Exporte el inventario de animales en formato CSV compatible con Excel y Google Sheets para análisis externo."/>
+        </div>
+
+        <div className="rounded-xl p-4" style={{background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.15)'}}>
+          <div className="font-bold text-sm mb-4" style={{color:'#fbbf24'}}>Exportar datos ahora</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button disabled={exportLoading} onClick={() => handleExportDrive('Animales', animals)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90 disabled:opacity-50"
+              style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24'}}>
+              <Cloud size={14}/> Drive — Animales
+            </button>
+            <button onClick={() => handleDownload('TodosLosDatos', { animals, pesajes, gpsUbicaciones })}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90"
+              style={{background:'rgba(74,222,128,0.12)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80'}}>
+              <Download size={14}/> Backup completo .json
+            </button>
+            <button onClick={() => handleCSV('Inventario', animals)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90"
+              style={{background:'rgba(96,165,250,0.12)',border:'1px solid rgba(96,165,250,0.3)',color:'#60a5fa'}}>
+              <FileDown size={14}/> Inventario .csv
+            </button>
+          </div>
+        </div>
+
+        {driveFiles.length > 0 && (
+          <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(251,191,36,0.15)'}}>
+            <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{background:'rgba(251,191,36,0.07)',color:'rgba(251,191,36,0.7)'}}>
+              Archivos en Drive ({driveFiles.length})
+            </div>
+            <div className="divide-y" style={{borderColor:'rgba(255,255,255,0.04)'}}>
+              {driveFiles.map((f, i) => (
+                <div key={i} className="px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Cloud size={12} style={{color:'#fbbf24'}}/>
+                    <span className="text-sm font-mono text-white/70">{f.name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-white/30">
+                    <span>{f.size}</span>
+                    <span>{f.date}</span>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
     ),
-    bluetooth: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-blue-700/20 to-indigo-700/20 border border-blue-500/30 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-2"><Bluetooth className="w-6 h-6 text-blue-400" /><h2 className="text-xl font-bold">Pesaje con báscula Bluetooth</h2></div>
-          <p className="text-muted-foreground text-sm">Conecte su báscula ganadera vía Bluetooth y registre pesos en tiempo real.</p>
-        </div>
-        <BluetoothIllustration />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm mb-3">Básculas compatibles</h3>
-            {[
-              {name:"Tru-Test XR3000",status:"✓ Probada",c:"text-green-400"},
-              {name:"Tru-Test S3",status:"✓ Probada",c:"text-green-400"},
-              {name:"Gallagher W210",status:"✓ Compatible",c:"text-green-400"},
-              {name:"VETEK VE-3K",status:"⚠ En prueba",c:"text-amber-400"},
-              {name:"BT genérico UART",status:"✓ Compatible",c:"text-green-400"},
-            ].map(b=>(
-              <div key={b.name} className="flex justify-between text-xs py-1.5 border-b border-border/40 last:border-0">
-                <span>{b.name}</span><span className={b.c}>{b.status}</span>
-              </div>
-            ))}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm mb-3">Paso a paso</h3>
-            <ol className="space-y-2">
-              {[
-                "Active el Bluetooth en su teléfono o tablet",
-                "Encienda la báscula y active modo BT en ella",
-                "Vaya a Módulo Pesaje → «Conectar Bluetooth»",
-                "Seleccione su báscula de la lista de dispositivos",
-                "El peso aparece automáticamente en pantalla",
-                "Seleccione el animal, verifique y guarde",
-              ].map((s,i)=>(
-                <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 font-bold text-[9px] flex items-center justify-center flex-shrink-0">{i+1}</span>{s}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      </div>
-    ),
-    gps: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-cyan-700/20 to-blue-700/20 border border-cyan-500/30 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-2"><Navigation className="w-6 h-6 text-cyan-400" /><h2 className="text-xl font-bold">Rastreo GPS del ganado</h2></div>
-          <p className="text-muted-foreground text-sm">Localice su ganado en tiempo real con collares GPS. Alertas de escape, batería baja y geocercas automáticas.</p>
-        </div>
-        <GpsIllustration />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            {icon:"📍",title:"Ubicación en tiempo real",desc:"Vea cada animal en el mapa. Actualiza cada 1–5 minutos según configuración del collar."},
-            {icon:"🔔",title:"Alertas automáticas",desc:"Notificaciones cuando un animal sale de geocerca, batería baja < 30% o sin señal > 30 min."},
-            {icon:"🗺",title:"Historial de movimientos",desc:"Recorrido de cada animal en los últimos 7 días. Detecte comportamientos anómalos."},
-          ].map(c=>(
-            <div key={c.title} className="bg-card border border-border rounded-xl p-4">
-              <div className="text-2xl mb-2">{c.icon}</div>
-              <h3 className="font-semibold text-sm mb-1">{c.title}</h3>
-              <p className="text-xs text-muted-foreground">{c.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-    drive: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-green-700/20 to-blue-700/20 border border-green-500/30 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-2"><Cloud className="w-6 h-6 text-green-400" /><h2 className="text-xl font-bold">Sincronización con Google Drive</h2></div>
-          <p className="text-muted-foreground text-sm">Suba respaldos y descargue sus datos en cualquier momento. JSON y CSV disponibles.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><Upload className="w-4 h-4 text-green-400"/>Subir a Drive</h3>
-            <div className="space-y-2">
-              {[
-                {label:"Backup completo",data:{animals,pesajes,gpsUbicaciones}},
-                {label:"Animales",data:animals},
-                {label:"Pesajes",data:pesajes},
-                {label:"GPS",data:gpsUbicaciones},
-              ].map(e=>(
-                <button key={e.label} onClick={()=>handleExportDrive(e.label,e.data)} disabled={exportLoading}
-                  className="w-full text-left px-3 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-green-300 hover:bg-green-500/20 transition-all flex items-center gap-2">
-                  <Cloud className="w-3.5 h-3.5 flex-shrink-0"/>{e.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><FileDown className="w-4 h-4 text-blue-400"/>Descargar localmente</h3>
-            <div className="space-y-2">
-              {[
-                {label:"Backup completo JSON",data:{animals,pesajes,gpsUbicaciones},csv:null},
-                {label:"Animales CSV",data:null,csv:animals as object[]},
-                {label:"Pesajes CSV",data:null,csv:pesajes as object[]},
-              ].map(e=>(
-                <button key={e.label}
-                  onClick={()=>e.csv?handleCSV(e.label.split(" ")[0],e.csv):handleDownload(e.label.split(" ")[0],e.data!)}
-                  className="w-full text-left px-3 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 hover:bg-blue-500/20 transition-all flex items-center gap-2">
-                  <FileDown className="w-3.5 h-3.5 flex-shrink-0"/>{e.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="bg-card border border-border rounded-xl p-4">
-            <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><Database className="w-4 h-4 text-purple-400"/>Archivos guardados</h3>
-            {driveFiles.length===0?(
-              <div className="text-center py-6 text-muted-foreground"><Cloud className="w-8 h-8 mx-auto mb-2 opacity-30"/><p className="text-xs">Sin archivos aún</p></div>
-            ):(
-              <div className="space-y-2">
-                {driveFiles.slice(0,6).map(f=>(
-                  <div key={f.id} className="flex items-center gap-2 py-1.5 border-b border-border/40 last:border-0">
-                    <Cloud className="w-3 h-3 text-green-400 flex-shrink-0"/>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-medium truncate">{f.name}</p>
-                      <p className="text-[9px] text-muted-foreground">{f.date} · {(f.size/1024).toFixed(1)} KB</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    ),
-    dashboard: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-emerald-700/20 to-green-700/20 border border-emerald-500/30 rounded-2xl p-5">
-          <h2 className="text-xl font-bold mb-2">Dashboard PRO — Tablero central</h2>
-          <p className="text-muted-foreground text-sm">Vista de todos los KPIs críticos de su operación en tiempo real con gráficos interactivos.</p>
-        </div>
-        <DashboardIllustration />
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {[
-            {title:"KPIs superiores",desc:"Total animales, litros/día, peso promedio, gestantes, en tratamiento y valor del hato"},
-            {title:"Gráficos históricos",desc:"Producción lechera y peso de los últimos 7 meses con AreaChart interactivo"},
-            {title:"Composición del hato",desc:"PieChart con vacas, novillas, terneros y toros con porcentajes"},
-            {title:"Widget Pesaje BT",desc:"Últimos pesajes, GMD promedio y acceso rápido al módulo de pesaje"},
-            {title:"Widget GPS Live",desc:"Collares online, baterías, alertas y acceso al mapa GPS en tiempo real"},
-            {title:"KPIs reproductivos",desc:"Concepción, gestantes, destetes y natalidad vs metas. Resumen financiero mensual"},
-          ].map(w=>(
-            <div key={w.title} className="bg-card border border-border rounded-xl p-3">
-              <p className="font-semibold text-xs mb-1">{w.title}</p>
-              <p className="text-[10px] text-muted-foreground">{w.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+
     usuarios: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-purple-700/20 to-indigo-700/20 border border-purple-500/30 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-2"><Users className="w-6 h-6 text-purple-400"/><h2 className="text-xl font-bold">Gestión de usuarios y permisos</h2></div>
-          <p className="text-muted-foreground text-sm">Cree y administre usuarios con roles y permisos para cada miembro del equipo.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-6">
+        <SectionBanner emoji="👤" title="Usuarios y Roles" subtitle="Control de acceso por rol · Admin · Veterinario · Campo · Visor"
+          c1="rgba(10,0,20,0.9)" c2="rgba(18,0,35,0.9)" border="rgba(192,132,252,0.35)"/>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[
-            {role:"👑 Admin",color:"text-emerald-400",border:"border-emerald-500/30",desc:"Acceso total: todos los módulos, gestión de usuarios, configuración y facturación."},
-            {role:"🩺 Veterinario",color:"text-blue-400",border:"border-blue-500/30",desc:"Inventario, reproducción, producción, genética, insumos, pesaje y GPS. Sin finanzas ni usuarios."},
-            {role:"🐄 Campo",color:"text-orange-400",border:"border-orange-500/30",desc:"Inventario, producción, potreros, alimentación, insumos y pesaje BT. Vista simplificada."},
-            {role:"💼 Visor/Propietario",color:"text-purple-400",border:"border-purple-500/30",desc:"Solo lectura: inventario, producción, costos, predicciones y GPS. Sin edición."},
-          ].map(r=>(
-            <div key={r.role} className={`bg-card border ${r.border} rounded-xl p-4`}>
-              <p className={`font-bold text-sm ${r.color} mb-1`}>{r.role}</p>
-              <p className="text-xs text-muted-foreground">{r.desc}</p>
+            { rol:'👑 Administrador',  color:'#00f5d4', acceso:'Acceso total a todos los módulos. Puede crear/editar/eliminar usuarios, configurar la finca y ver reportes financieros.', permisos:['Todos los módulos','Gestión de usuarios','Configuración','Reportes financieros','Exportar datos','Planes y facturación'] },
+            { rol:'🩺 Veterinario',    color:'#00c8ff', acceso:'Acceso a módulos clínicos. Puede ver y editar reproducción, tratamientos, alertas sanitarias y GPS de animales.', permisos:['Inventario (lectura/escritura)','Reproducción','Alertas sanitarias','GPS ganado','Insumos y medicamentos','Predicciones IA'] },
+            { rol:'🐄 Operario de Campo', color:'#39ff7e', acceso:'Acceso a operación diaria. Puede registrar pesajes, alimentación, producción y reportar novedades.', permisos:['Inventario (escritura)','Pesaje Bluetooth','Producción leche','Alimentación','Potreros','Alertas (ver)'] },
+            { rol:'💼 Visor',          color:'#c084fc', acceso:'Solo lectura. Ideal para propietarios que quieren ver el estado de la finca sin poder hacer cambios.', permisos:['Dashboard (lectura)','Inventario (lectura)','GPS (lectura)','Reportes (lectura)','Sin edición','Sin exportación'] },
+          ].map(r => (
+            <div key={r.rol} className="rounded-xl overflow-hidden" style={{border:`1px solid ${r.color}25`}}>
+              <div className="px-4 py-3 flex items-center gap-2" style={{background:`${r.color}10`}}>
+                <div className="font-bold text-base text-white">{r.rol}</div>
+              </div>
+              <div className="p-4 space-y-3">
+                <p className="text-xs text-white/50 leading-relaxed">{r.acceso}</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {r.permisos.map(p => (
+                    <div key={p} className="flex items-center gap-1.5 text-[10px] text-white/55">
+                      <CheckCircle size={9} style={{color:r.color,flexShrink:0}}/>
+                      {p}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ))}
         </div>
+
+        <CredTable/>
       </div>
     ),
+
     descarga: (
-      <div className="space-y-5">
-        <div className="bg-gradient-to-r from-indigo-700/20 to-blue-700/20 border border-indigo-500/30 rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-2"><FileDown className="w-6 h-6 text-indigo-400"/><h2 className="text-xl font-bold">Descargar y exportar todos sus datos</h2></div>
-          <p className="text-muted-foreground text-sm">Exporte en JSON o CSV para respaldo, análisis externo o migración. Los archivos CSV abren en Excel y Sheets.</p>
-        </div>
+      <div className="space-y-6">
+        <SectionBanner emoji="💾" title="Descargar y Exportar" subtitle="JSON · CSV · PDF · Google Drive · Backup completo"
+          c1="rgba(0,10,15,0.9)" c2="rgba(0,18,25,0.9)" border="rgba(56,189,248,0.35)"/>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-            <h3 className="font-semibold text-sm">Exportar JSON</h3>
-            {[
-              {label:"Backup completo del sistema",data:{animals,pesajes,gpsUbicaciones}},
-              {label:"Animales — inventario",data:animals},
-              {label:"Pesajes — historial",data:pesajes},
-              {label:"GPS — ubicaciones",data:gpsUbicaciones},
-            ].map(e=>(
-              <button key={e.label} onClick={()=>handleDownload(e.label.split(" ")[0],e.data)}
-                className="w-full text-left px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/20 rounded-xl text-xs transition-all flex items-center gap-2">
-                <FileDown className="w-4 h-4 flex-shrink-0"/>{e.label}
-              </button>
-            ))}
-          </div>
-          <div className="bg-card border border-border rounded-xl p-5 space-y-3">
-            <h3 className="font-semibold text-sm">Exportar CSV (Excel / Sheets)</h3>
-            {[
-              {label:"Animales — inventario completo",rows:animals as object[]},
-              {label:"Pesajes — historial completo",rows:pesajes as object[]},
-              {label:"GPS — ubicaciones actuales",rows:gpsUbicaciones as object[]},
-            ].map(e=>(
-              <button key={e.label} onClick={()=>handleCSV(e.label.split(" ")[0],e.rows)}
-                className="w-full text-left px-4 py-3 bg-green-500/10 border border-green-500/20 text-green-300 hover:bg-green-500/20 rounded-xl text-xs transition-all flex items-center gap-2">
-                <Download className="w-4 h-4 flex-shrink-0"/>{e.label} (.csv)
-              </button>
-            ))}
-            <div className="p-3 bg-muted/20 rounded-lg">
-              <p className="text-[10px] text-muted-foreground">CSV con encoding UTF-8 + BOM para correcta apertura en Excel con tildes y caracteres especiales.</p>
-            </div>
+          <FeatureCard icon={<FileDown size={14}/>} color="#60a5fa" title="Exportar a CSV"
+            desc="Compatible con Excel y Google Sheets. Incluye todos los campos del inventario: Arete, Nombre, Raza, Categoría, Peso, Lote, Estado, Registro, Valor, etc."/>
+          <FeatureCard icon={<Download size={14}/>} color="#4ade80" title="Backup JSON completo"
+            desc="Descarga local de todos los datos: animales, pesajes, reproducción, GPS, insumos, personal. Ideal para respaldo antes de migrar."/>
+          <FeatureCard icon={<Printer size={14}/>} color="#a78bfa" title="PDF / Imprimir"
+            desc="Fichas de animales, etiquetas con QR, recibos de pesaje y movimientos de lotes son imprimibles desde el navegador (Ctrl+P o botón 🖨)."/>
+          <FeatureCard icon={<Cloud size={14}/>} color="#fbbf24" title="Google Drive Sync"
+            desc="Envíe cualquier módulo directamente a su Google Drive. Los archivos quedan organizados con nombre y fecha para fácil búsqueda."/>
+        </div>
+
+        <div className="rounded-xl p-4 space-y-3" style={{background:'rgba(56,189,248,0.05)',border:'1px solid rgba(56,189,248,0.15)'}}>
+          <div className="font-bold text-sm" style={{color:'#38bdf8'}}>Exportar ahora</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button onClick={() => handleCSV('Animales', animals)}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all"
+              style={{background:'rgba(96,165,250,0.1)',border:'1px solid rgba(96,165,250,0.3)',color:'#60a5fa'}}>
+              <FileDown size={14}/> Inventario completo .csv
+            </button>
+            <button onClick={() => handleDownload('TodosLosDatos', { animals, pesajes, gpsUbicaciones })}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all"
+              style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80'}}>
+              <Download size={14}/> Backup completo .json
+            </button>
+            <button disabled={exportLoading} onClick={() => handleExportDrive('Animales', animals)}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
+              style={{background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24'}}>
+              <Cloud size={14}/> Subir animales a Drive
+            </button>
+            <button onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all"
+              style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
+              <Printer size={14}/> Imprimir esta página
+            </button>
           </div>
         </div>
       </div>
     ),
   };
 
+  const activeConf = SECTIONS.find(s => s.id === activeSection);
+
   return (
-    <div className="flex gap-6 pb-8">
-      {/* Sidebar */}
-      <div className="hidden lg:block w-52 flex-shrink-0">
-        <div className="sticky top-20 bg-card border border-border rounded-xl overflow-hidden">
-          <div className="p-3 border-b border-border bg-muted/20">
-            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5"><BookOpen className="w-3 h-3"/>Documentación</p>
-          </div>
-          <div className="p-1.5">
-            {SECTIONS.map(s=>(
-              <button key={s.id} onClick={()=>setActiveSection(s.id)}
-                className={`w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all ${
-                  activeSection===s.id?"bg-primary/20 text-primary font-semibold":"text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-                }`}>
-                <s.icon className="w-3.5 h-3.5 flex-shrink-0"/>{s.label}
-              </button>
-            ))}
+    <div className="space-y-5 pb-8">
+      {/* Banner */}
+      <div className="rounded-xl p-5 relative overflow-hidden"
+        style={{background:'linear-gradient(135deg,#000d1a 0%,#001a2e 100%)',
+          border:'1px solid rgba(56,189,248,0.35)',
+          boxShadow:'0 0 50px rgba(56,189,248,0.06)'}}>
+        <div className="absolute right-0 top-0 w-48 h-full opacity-10 pointer-events-none"
+          style={{background:'radial-gradient(ellipse at right, #38bdf8, transparent 70%)'}}/>
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+            style={{background:'rgba(56,189,248,0.1)',border:'1px solid rgba(56,189,248,0.4)'}}>📚</div>
+          <div>
+            <h1 className="text-2xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>
+              Documentación CIVAC PRO
+            </h1>
+            <p className="text-sm" style={{color:'rgba(56,189,248,0.7)'}}>
+              Guía completa · {SECTIONS.length} secciones · Todos los módulos documentados
+            </p>
           </div>
         </div>
       </div>
-      {/* Mobile nav */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-card border-t border-border flex gap-1 p-2 overflow-x-auto">
-        {SECTIONS.map(s=>(
-          <button key={s.id} onClick={()=>setActiveSection(s.id)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium whitespace-nowrap flex-shrink-0 transition-all ${
-              activeSection===s.id?"bg-primary text-white":"bg-muted/40 text-muted-foreground"
-            }`}>
-            <s.icon className="w-3 h-3"/>{s.label}
-          </button>
-        ))}
-      </div>
-      {/* Content */}
-      <div className="flex-1 min-w-0 pb-16 lg:pb-0">
-        {sections[activeSection]}
+
+      <div className="flex flex-col lg:flex-row gap-5">
+        {/* Sidebar nav */}
+        <div className="lg:w-56 flex-shrink-0">
+          <div className="rounded-xl overflow-hidden sticky top-4" style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)'}}>
+            {SECTIONS.map(s => {
+              const Icon = s.icon;
+              const isActive = activeSection === s.id;
+              return (
+                <button key={s.id} onClick={() => setActiveSection(s.id)}
+                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold transition-all text-left"
+                  style={isActive
+                    ? {background:'rgba(56,189,248,0.12)',color:'#38bdf8',borderLeft:'2px solid #38bdf8'}
+                    : {color:'rgba(255,255,255,0.4)',borderLeft:'2px solid transparent'}}>
+                  <Icon size={14} style={{flexShrink:0, opacity: isActive ? 1 : 0.6}}/>
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {sections[activeSection] ?? (
+            <div className="text-center py-20 text-white/30">
+              <BookOpen size={48} className="mx-auto mb-3 opacity-20"/>
+              <p>Sección en construcción</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

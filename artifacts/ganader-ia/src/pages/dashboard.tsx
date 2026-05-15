@@ -59,6 +59,28 @@ export default function Dashboard() {
   const hour = now.getHours();
   const greeting = hour < 12 ? '¡Buenos días!' : hour < 18 ? '¡Buenas tardes!' : '¡Buenas noches!';
 
+  const total = animals.length || 13;
+  const vacasN = animals.filter(a => a.categoria === 'Vaca').length || 7;
+  const novillasN = animals.filter(a => a.categoria === 'Novilla').length || 3;
+  const ternerosN = animals.filter(a => (a.categoria||'').toLowerCase().includes('ternero') || (a.categoria||'').toLowerCase().includes('ternera')).length || 2;
+  const torosN = animals.filter(a => a.categoria === 'Toro').length || 1;
+
+  const pieData = [
+    { name: 'Vacas',    value: vacasN,    pct: `${Math.round(vacasN/total*100)}%` },
+    { name: 'Novillas', value: novillasN, pct: `${Math.round(novillasN/total*100)}%` },
+    { name: 'Terneros', value: ternerosN, pct: `${Math.round(ternerosN/total*100)}%` },
+    { name: 'Toros',    value: torosN,    pct: `${Math.round(torosN/total*100)}%` },
+  ];
+
+  const kpiCards = [
+    { label:'Animales',   emoji:'🐄', val: total,                                    sub:'Hato activo CIVAC',       grad:'linear-gradient(135deg,#003d2e,#004d3a)', neon:'#00f5d4', glow:'rgba(0,245,212,0.15)' },
+    { label:'Producción', emoji:'🥛', val:'84 L',                                    sub:'Litros hoy · 5 vacas',    grad:'linear-gradient(135deg,#002040,#003060)', neon:'#00c8ff', glow:'rgba(0,200,255,0.15)' },
+    { label:'Alertas',    emoji:'🔔', val: alertas.filter(a=>!a.resolved).length,    sub:'Requieren atención',      grad:'linear-gradient(135deg,#3d0015,#4d0020)', neon:'#ff4d6d', glow:'rgba(255,77,109,0.15)' },
+    { label:'Potreros',   emoji:'🌿', val: potreros.length,                          sub:'Áreas de pastoreo',       grad:'linear-gradient(135deg,#1a3d00,#224d00)', neon:'#84ef34', glow:'rgba(132,239,52,0.15)' },
+    { label:'Personal',   emoji:'👷', val: personal.length,                          sub:'Empleados activos',       grad:'linear-gradient(135deg,#1a2030,#1a2840)', neon:'#94a3b8', glow:'rgba(148,163,184,0.15)' },
+    { label:'Utilidad',   emoji:'💰', val:'$40.2M',                                  sub:'Mes actual · COP',        grad:'linear-gradient(135deg,#002030,#003020)', neon:'#34d399', glow:'rgba(52,211,153,0.15)' },
+  ];
+
   return (
     <div className="space-y-5 pb-8 civac-animate">
 

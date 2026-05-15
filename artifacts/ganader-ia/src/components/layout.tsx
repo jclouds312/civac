@@ -395,12 +395,12 @@ export function Layout({ children }: LayoutProps) {
                 border: '1px solid rgba(192,132,252,0.4)',
                 boxShadow: '0 0 10px rgba(192,132,252,0.2)',
               }}>
-              📐
+              ⚡
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-black leading-tight" style={{ color: '#c084fc' }}>Pesaje Manual</p>
+              <p className="text-[11px] font-black leading-tight" style={{ color: '#c084fc' }}>Pesaje Automatizado</p>
               <p className="text-[9px] leading-tight" style={{ color: 'rgba(192,132,252,0.55)' }}>
-                CC · GMD · Recibo PDF · BT
+                Foto · IA · Lote · Recibo WA
               </p>
             </div>
             <div className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
@@ -417,7 +417,7 @@ export function Layout({ children }: LayoutProps) {
   const bottomTabs = [
     { href: '/',              emoji: '📊', label: 'Inicio' },
     { href: '/inventario',    emoji: '🐄', label: 'Ganado' },
-    { href: '/pesaje-manual', emoji: '📐', label: 'Pesaje' },
+    { href: '/pesaje-manual', emoji: '⚡', label: 'Pesaje' },
     { href: '/alertas',       emoji: '🔔', label: 'Alertas', badge: 4 },
     { href: '/produccion',    emoji: '🥛', label: 'Leche' },
   ];
@@ -656,7 +656,7 @@ export function Layout({ children }: LayoutProps) {
                   borderRadius: 10,
                   boxShadow: '0 0 12px rgba(192,132,252,0.1)',
                 }}>
-                📐 <span>Pesaje Manual</span>
+                ⚡ <span>Pesaje Automatizado</span>
               </button>
             </Link>
           </div>

@@ -125,9 +125,35 @@ export default function PesajeManual() {
     ? Number(lotePesoTotal) * Number(lotePrecioKg)
     : 0;
 
-  // ── Refs para cámara / upload ──────────────────────────────────────────────
+  // ── Refs para cámara / upload (inventario-session) ────────────────────────
   const fileInputRef  = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Estado formulario standalone Tab 1 ────────────────────────────────────
+  const [sNombre,    setSNombre]    = useState("");
+  const [sRaza,      setSRaza]      = useState("Holstein");
+  const [sCat,       setSCat]       = useState("Vaca adulta");
+  const [sLote,      setSLote]      = useState("Lote A");
+  const [sFechaNac,  setSFechaNac]  = useState("");
+  const [sRegistro,  setSRegistro]  = useState<"si"|"no">("no");
+  const [sNumReg,    setSNumReg]    = useState("");
+  const [sPeso,      setSPeso]      = useState("");
+  const [sCC,        setSCC]        = useState("3.0");
+  const [sValorKilo, setSValorKilo] = useState("11000");
+  const [sFotos,     setSFotos]     = useState<AnimalPhoto[]>([]);
+  const [sObs,       setSobs]       = useState("");
+  const [sSaved,     setSSaved]     = useState(false);
+  const [sBtLoading, setSBtLoading] = useState(false);
+  const [sAiLoading, setSAiLoading] = useState(false);
+  const [invOpen,    setInvOpen]    = useState(true);
+  const [saveToInv,  setSaveToInv]  = useState(false);
+  const [invSearch,  setInvSearch]  = useState("");
+  const [sLog, setSLog] = useState<{
+    id: string; nombre: string; peso: number; anterior: number;
+    cc: string; valor: number; hora: string; raza: string; cat: string; nFotos: number;
+  }[]>([]);
+  const sFileRef = useRef<HTMLInputElement>(null);
+  const sCamRef  = useRef<HTMLInputElement>(null);
 
   // ── Filtros ────────────────────────────────────────────────────────────────
   const lista = animals.filter(a => {
@@ -376,6 +402,176 @@ export default function PesajeManual() {
     setTimeout(() => setNuevoCreado(null), 4000);
     setNuevoNombre(""); setNuevoFechaNac(""); setNuevoPeso(""); setNuevoNumReg("");
     setNuevoRegistro("no");
+  };
+
+  // ── Standalone form computed values ───────────────────────────────────────
+  const sEdad    = calcEdad(sFechaNac);
+  const sPesoN   = Number(sPeso) || 0;
+  const sPesoAuto = PESOS_RAZA[sRaza]?.[sCat] || 400;
+  const sPct     = sPesoN > 0 ? Math.min(100, Math.round((sPesoN / sPesoAuto) * 100)) : 0;
+  const sValor   = sPesoN * (Number(sValorKilo) || 0);
+  const sCatIcon = CAT_ICON[sCat] || CAT_ICON["Vaca adulta"];
+  const sIndFoto = sFotos.find(f => f.tipo === "indicador");
+  const SFRAME: Record<string, { w: number; h: number; label: string }> = {
+    "Ternero":    { w: 88,  h: 66,  label: "Marco pequeño · ternero" },
+    "Ternera":    { w: 88,  h: 66,  label: "Marco pequeño · ternera" },
+    "Novilla":    { w: 120, h: 90,  label: "Marco mediano · novilla" },
+    "Vaca adulta":{ w: 152, h: 110, label: "Marco estándar · vaca" },
+    "Toro":       { w: 192, h: 130, label: "Marco grande · toro" },
+  };
+  const sFrame = SFRAME[sCat] || SFRAME["Vaca adulta"];
+
+  // ── Standalone form handlers ───────────────────────────────────────────────
+  const sFotoUpload = useCallback((files: FileList|null, tipo: AnimalPhoto["tipo"]) => {
+    if (!files?.[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const labels: Record<AnimalPhoto["tipo"], string> = {
+        indicador: "Indicador peso", lateral: "Vista lateral", completa: "Animal completo",
+      };
+      const foto: AnimalPhoto = {
+        id: Date.now() + Math.random().toString(),
+        url: e.target?.result as string, tipo, label: labels[tipo],
+      };
+      setSFotos(prev => tipo === "indicador"
+        ? [...prev.filter(f => f.tipo !== "indicador"), foto]
+        : [...prev, foto]);
+    };
+    reader.readAsDataURL(files[0]);
+  }, []);
+
+  const sRemoveFoto = (fotoId: string) => setSFotos(prev => prev.filter(f => f.id !== fotoId));
+
+  const sBtSim = () => {
+    setSBtLoading(true);
+    const base = PESOS_RAZA[sRaza]?.[sCat] || 400;
+    const sim  = +(base * (0.93 + Math.random() * 0.14)).toFixed(1);
+    setTimeout(() => { setSPeso(String(sim)); setSBtLoading(false); setSSaved(false); }, 1500);
+  };
+
+  const sAiEstimate = () => {
+    setSAiLoading(true);
+    setTimeout(() => {
+      const base  = PESOS_RAZA[sRaza]?.[sCat] || 400;
+      const meses = sEdad.meses || 24;
+      let factor  = meses < 6  ? 0.20 + (meses / 6) * 0.15
+        : meses < 12 ? 0.35 + ((meses -  6) /  6) * 0.20
+        : meses < 24 ? 0.55 + ((meses - 12) / 12) * 0.25
+        : meses < 36 ? 0.80 + ((meses - 24) / 12) * 0.15
+        : 0.95 + Math.random() * 0.10;
+      const ccFactor = 0.85 + (Number(sCC) / 5) * 0.30;
+      const est = +(base * factor * ccFactor * (0.97 + Math.random() * 0.06)).toFixed(1);
+      setSPeso(String(est)); setSAiLoading(false); setSSaved(false);
+    }, 2200);
+  };
+
+  const sPrint = () => {
+    const nombre  = sNombre.trim() || "Animal sin nombre";
+    const ccInfo  = CC_OPTS.find(c => c.val === sCC);
+    const fotosHtml = sFotos.map(f =>
+      `<div style="display:inline-block;margin:4px">
+        <div style="font-size:9px;color:#888">${f.label}</div>
+        <img src="${f.url}" style="width:100px;height:75px;object-fit:cover;border-radius:6px"/>
+      </div>`).join("");
+    const w = window.open("", "_blank", "width=540,height=780");
+    if (!w) return;
+    const now = new Date();
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>Recibo — ${nombre}</title>
+      <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;padding:24px}.logo{font-size:24px;text-align:center;margin-bottom:4px}h2{text-align:center;font-size:15px;font-weight:900;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}.sub{text-align:center;font-size:10px;color:#888;margin-bottom:16px}.big{text-align:center;padding:16px;font-size:52px;font-weight:900;letter-spacing:4px;border:3px solid #111;border-radius:16px;background:#f9f9f9;margin:14px 0}table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}td{padding:6px 10px;border-bottom:1px solid #eee}td:first-child{font-weight:700;color:#555;width:160px}.footer{margin-top:14px;font-size:9px;color:#ccc;text-align:center;border-top:1px solid #eee;padding-top:8px}</style>
+      </head><body>
+      <div class="logo">🐄</div>
+      <h2>CIVAC PRO · Pesaje Automatizado</h2>
+      <div class="sub">${now.toLocaleDateString("es-CO",{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · ${now.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}</div>
+      <div class="big">${sPesoN.toFixed(1)} <span style="font-size:20px;color:#777">kg</span></div>
+      <table><tbody>
+        <tr><td>Animal</td><td><strong>${nombre}</strong></td></tr>
+        <tr><td>Raza</td><td>${sRaza}</td></tr>
+        <tr><td>Categoría</td><td>${sCat}</td></tr>
+        <tr><td>Lote</td><td>${sLote}</td></tr>
+        ${sFechaNac ? `<tr><td>F. Nacimiento</td><td>${sFechaNac} · ${sEdad.anios}a ${sEdad.meses%12}m</td></tr>` : ""}
+        ${sRegistro==="si"&&sNumReg ? `<tr><td>Nº Registro</td><td>${sNumReg}</td></tr>` : ""}
+        <tr><td>Peso registrado</td><td><strong>${sPesoN.toFixed(1)} kg</strong></td></tr>
+        <tr><td>Estándar raza</td><td>${sPesoAuto} kg · ${sPct}%</td></tr>
+        <tr><td>Cond. Corporal</td><td>${ccInfo?.emoji} CC ${sCC} — ${ccInfo?.label}</td></tr>
+        ${sValor>0?`<tr><td>Valor estimado</td><td><strong>${fmt(sValor)}</strong></td></tr>`:""}
+        ${sObs?`<tr><td>Observaciones</td><td>${sObs}</td></tr>`:""}
+        <tr><td>Operador</td><td>${user?.nombre||"Admin"}</td></tr>
+      </tbody></table>
+      ${fotosHtml?`<div style="margin-top:14px"><div style="font-size:10px;font-weight:700;color:#555;margin-bottom:6px">Evidencia fotográfica</div>${fotosHtml}</div>`:""}
+      <div class="footer">CIVAC PRO v3.0 · GanaderIA Colombia · Pesaje Automatizado</div>
+      <script>window.onload=function(){window.print();setTimeout(function(){window.close()},900)}<\/script>
+    </body></html>`);
+    w.document.close();
+  };
+
+  const sWA = () => {
+    const nombre = sNombre.trim() || "Animal";
+    const now    = new Date();
+    const msg    = encodeURIComponent(
+      `🐄 *Pesaje CIVAC PRO*\n\n` +
+      `Animal: *${nombre}*\n` +
+      `Raza: ${sRaza} · ${sCat} · ${sLote}\n\n` +
+      `⚖️ Peso: *${sPesoN.toFixed(1)} kg*\n` +
+      `CC: ${sCC} · Ref raza: ${sPesoAuto} kg\n` +
+      (sValor > 0 ? `Valor: ${fmt(sValor)}\n` : "") +
+      `\n📅 ${now.toLocaleDateString("es-CO")} ${now.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"})}\n` +
+      `Operador: ${user?.nombre||"Admin"}\n— GanaderIA CIVAC PRO`
+    );
+    window.open(`https://wa.me/?text=${msg}`, "_blank");
+  };
+
+  const sSaveData = () => {
+    if (!sPesoN) return;
+    const now    = new Date();
+    const hora   = now.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+    const nombre = sNombre.trim() || `Pesaje ${hora}`;
+    const existingAnimal = animals.find(a => a.nombre.toLowerCase() === nombre.toLowerCase());
+    const animalId = existingAnimal?.id || `P-${Date.now().toString().slice(-5)}`;
+    const pesaje = {
+      id: Date.now(), animalId, animalNombre: nombre,
+      peso: sPesoN, pesoAnterior: existingAnimal?.peso || 0,
+      fecha: now.toLocaleDateString("es-CO"), hora,
+      metodo: "automatizado", dispositivo: "",
+      operador: user?.nombre || "Admin",
+      observacion: `CC: ${sCC}${sObs ? ` | ${sObs}` : ""}`,
+      lote: sLote, categoria: sCat,
+    };
+    setPesajes(p => [pesaje, ...p]);
+    if (existingAnimal) {
+      setAnimals(p => p.map(a => a.id === existingAnimal.id
+        ? { ...a, peso: sPesoN, valorKilo: Number(sValorKilo) || a.valorKilo } : a));
+    } else if (saveToInv) {
+      setAnimals(p => [...p, {
+        id: animalId, nombre, raza: sRaza, categoria: sCat,
+        peso: sPesoN, lote: sLote, estado: "Activo",
+        litrosDia: 0, partos: 0, fechaNacimiento: sFechaNac,
+        registro: sRegistro === "si" ? "SI" : "NO",
+        numeroRegistro: sRegistro === "si" ? sNumReg : "",
+        valorKilo: Number(sValorKilo) || 0,
+      }]);
+    }
+    setSLog(p => [{
+      id: animalId, nombre, peso: sPesoN, anterior: existingAnimal?.peso || 0,
+      cc: sCC, valor: sValor, hora, raza: sRaza, cat: sCat, nFotos: sFotos.length,
+    }, ...p]);
+    setSSaved(true);
+    setTimeout(() => setSSaved(false), 4000);
+  };
+
+  const sReset = () => {
+    setSNombre(""); setSFechaNac(""); setSRegistro("no"); setSNumReg("");
+    setSPeso(""); setSCC("3.0"); setSFotos([]); setSobs("");
+    setSSaved(false); setSBtLoading(false); setSAiLoading(false);
+  };
+
+  const sPrefillFromInventory = (a: typeof animals[0]) => {
+    setSNombre(a.nombre); setSRaza(a.raza); setSCat(a.categoria);
+    setSLote(a.lote); setSFechaNac(a.fechaNacimiento || "");
+    setSRegistro(a.registro === "SI" ? "si" : "no");
+    setSNumReg(a.numeroRegistro || "");
+    setSPeso(String(a.peso)); setSValorKilo(String(a.valorKilo || 11000));
+    setSCC("3.0"); setSFotos([]); setSobs(""); setSSaved(false);
   };
 
   // ── Edad nueva del nuevo animal ───────────────────────────────────────────

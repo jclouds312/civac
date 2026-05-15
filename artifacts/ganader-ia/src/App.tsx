@@ -67,6 +67,7 @@ function AuthGate() {
         <Route path="/documentacion" component={Documentacion} />
         <Route path="/manual" component={Manual} />
         <Route path="/pesaje" component={Pesaje} />
+        <Route path="/pesaje-manual" component={PesajeManual} />
         <Route path="/gps" component={Gps} />
         <Route path="/planes" component={Planes} />
         <Route path="/lotes" component={Lotes} />

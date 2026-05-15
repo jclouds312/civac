@@ -493,6 +493,65 @@ export default function Inventario() {
 
   const handleDelete = (id: string) => setAnimals(animals.filter(a => a.id !== id));
 
+  // ── Movimiento de Lote ──────────────────────────────────────────────────────
+  const [loteFormOpen, setLoteFormOpen] = useState(false);
+  const [loteTipo, setLoteTipo] = useState<'comprar' | 'ingresar' | 'vender'>('comprar');
+  const [loteNombre, setLoteNombre] = useState("");
+  const [loteCantidad, setLoteCantidad] = useState("");
+  const [lotePesoTotal, setLotePesoTotal] = useState("");
+  const [loteCostoKilo, setLoteCostoKilo] = useState("");
+  const [loteProveedor, setLoteProveedor] = useState("");
+  const [loteDestino, setLoteDestino] = useState("");
+  const [loteNotas, setLoteNotas] = useState("");
+  const [loteRecibo, setLoteRecibo] = useState<null | {
+    id: number; tipo: string; nombreLote: string; cantidadAnimales: number;
+    pesoTotalLote: number; promedioPesoAnimal: number; costoKilo: number;
+    valorTotalLote: number; fecha: string; notas: string; proveedor: string; destino: string;
+  }>(null);
+
+  const lotePromedio = Number(loteCantidad) > 0 ? Number(lotePesoTotal) / Number(loteCantidad) : 0;
+  const loteValorTotal = Number(lotePesoTotal) * Number(loteCostoKilo);
+  const lotePrecioAnimal = lotePromedio * Number(loteCostoKilo);
+
+  const resetLoteForm = () => {
+    setLoteNombre(""); setLoteCantidad(""); setLotePesoTotal("");
+    setLoteCostoKilo(""); setLoteProveedor(""); setLoteDestino(""); setLoteNotas("");
+  };
+
+  const openLoteForm = (tipo: 'comprar' | 'ingresar' | 'vender') => {
+    setLoteTipo(tipo);
+    resetLoteForm();
+    setLoteFormOpen(true);
+  };
+
+  const handleSaveLote = () => {
+    if (!loteNombre || !loteCantidad || !lotePesoTotal) return;
+    const entry = {
+      id: Date.now(),
+      tipo: loteTipo,
+      nombreLote: loteNombre,
+      cantidadAnimales: Number(loteCantidad),
+      pesoTotalLote: Number(lotePesoTotal),
+      promedioPesoAnimal: lotePromedio,
+      costoKilo: Number(loteCostoKilo) || 0,
+      valorTotalLote: loteValorTotal,
+      fecha: new Date().toLocaleDateString('es-CO'),
+      notas: loteNotas,
+      reciboGenerado: true,
+      proveedor: loteProveedor,
+      destino: loteDestino,
+    };
+    setLotes((prev: typeof lotes) => [entry, ...prev]);
+    setLoteRecibo(entry);
+    setLoteFormOpen(false);
+    resetLoteForm();
+  };
+
+  const handlePrintLoteRecibo = (m: typeof lotes[0]) => {
+    setLoteRecibo(m as typeof loteRecibo);
+    setTimeout(() => window.print(), 100);
+  };
+
   // Stats
   const totalLeche = animals.reduce((s, a) => s + (a.litrosDia || 0), 0);
   const totalValor = animals.reduce((s, a) => s + (a.peso || 0) * (a.valorKilo || 0), 0);
@@ -764,6 +823,7 @@ export default function Inventario() {
             { val:'fichas', icon:<Grid3x3 size={14}/>, label:'Fichas', c:'#a78bfa' },
             { val:'etiquetas', icon:<Tag size={14}/>, label:'Etiquetas', c:'#39ff7e' },
             { val:'pesaje', icon:<Scale size={14}/>, label:'Pesaje Rápido', c:'#ff9500' },
+            { val:'lotes', icon:<Package size={14}/>, label:'Mov. Lote', c:'#38bdf8' },
             { val:'estadisticas', icon:<BarChart3 size={14}/>, label:'Estadísticas', c:'#f472b6' },
           ].map(t => (
             <TabsTrigger key={t.val} value={t.val}

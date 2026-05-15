@@ -31,9 +31,9 @@ export const initialAnimals = [
   // Lote E — Terneros/as
   { id:"A-0667", nombre:"Manchas",   raza:"Holstein",   categoria:"Ternero", peso:88,  lote:"Lote E", estado:"Destete",  litrosDia:0, partos:0, fechaNacimiento:"2024-09-10", registro:"NO", numeroRegistro:"", valorKilo:0 },
   { id:"A-0512", nombre:"Pulgarcito",raza:"Brahman",    categoria:"Ternero", peso:72,  lote:"Lote E", estado:"Destete",  litrosDia:0, partos:0, fechaNacimiento:"2024-11-03", registro:"NO", numeroRegistro:"", valorKilo:0 },
-  { id:"A-0844", nombre:"Cariño",    raza:"Simmental",  categoria:"Ternera", peso:65,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0, fechaNacimiento:"2025-01-15", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0844", nombre:"Cariño",    raza:"Simmental",  categoria:"Ternera", peso:65,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0, fechaNacimiento:"2026-01-15", registro:"NO", numeroRegistro:"", valorKilo:0 },
   { id:"A-0901", nombre:"Florita",   raza:"Holstein",   categoria:"Ternera", peso:79,  lote:"Lote E", estado:"Destete",  litrosDia:0, partos:0, fechaNacimiento:"2024-10-20", registro:"NO", numeroRegistro:"", valorKilo:0 },
-  { id:"A-0963", nombre:"Copito",    raza:"Gyr X",      categoria:"Ternero", peso:58,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0, fechaNacimiento:"2025-02-08", registro:"NO", numeroRegistro:"", valorKilo:0 },
+  { id:"A-0963", nombre:"Copito",    raza:"Gyr X",      categoria:"Ternero", peso:58,  lote:"Lote E", estado:"Lactancia",litrosDia:0, partos:0, fechaNacimiento:"2026-02-08", registro:"NO", numeroRegistro:"", valorKilo:0 },
   // Lote F — Animales Secos / Secado
   { id:"A-0334", nombre:"Victoria",  raza:"Holstein",   categoria:"Vaca adulta", peso:540, lote:"Lote F", estado:"Seca",    litrosDia:0,   partos:6, fechaNacimiento:"2018-04-25", registro:"SI", numeroRegistro:"REG-0334", valorKilo:0 },
   { id:"A-0480", nombre:"Mariposa",  raza:"Jersey",     categoria:"Vaca adulta", peso:408, lote:"Lote F", estado:"Gestante",litrosDia:0,   partos:4, fechaNacimiento:"2020-08-13", registro:"SI", numeroRegistro:"REG-0480", valorKilo:0 },

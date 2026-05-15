@@ -39,7 +39,7 @@ const MODULES: Record<string, {
   '/configuracion': { from:'#9ca3af', to:'#6b7280', glow:'156,163,175', emoji:'⚙️', label:'Configuración',       shortLabel:'Config.' },
   '/documentacion': { from:'#38bdf8', to:'#0369a1', glow:'56,189,248',  emoji:'📚', label:'Documentación',       shortLabel:'Docs' },
   '/manual':        { from:'#2dd4bf', to:'#0d9488', glow:'45,212,191',  emoji:'📖', label:'Manual de Uso',       shortLabel:'Manual' },
-  '/planes':        { from:'#fbbf24', to:'#ea580c', glow:'251,191,36',  emoji:'👑', label:'Planes · Wompi',      shortLabel:'Planes' },
+  '/planes':        { from:'#fbbf24', to:'#ea580c', glow:'251,191,36',  emoji:'🛡️', label:'Licencia CIVAC',      shortLabel:'Licencia' },
   '/lotes':         { from:'#00c8ff', to:'#0891b2', glow:'0,200,255',   emoji:'🐂', label:'Movimiento Lotes',    shortLabel:'Lotes' },
   '/datos':         { from:'#818cf8', to:'#4f46e5', glow:'129,140,248', emoji:'🗄️', label:'Data Warehouse',       shortLabel:'Datos' },
 };

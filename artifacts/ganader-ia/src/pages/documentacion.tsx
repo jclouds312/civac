@@ -85,8 +85,8 @@ function CredTable() {
         <tbody>
           {[
             {p:'👑 Admin',      e:'admin@ganader.ia',  pw:'admin',     a:'Total — todos los módulos'},
-            {p:'🩺 Veterinario', e:'vet@ganader.ia',    pw:'vet2025',   a:'Clínico + GPS + Reproducción'},
-            {p:'🐄 Campo',       e:'luis@ganader.ia',   pw:'campo2025', a:'Inventario + Pesaje BT'},
+            {p:'🩺 Veterinario', e:'vet@ganader.ia',    pw:'vet2026',   a:'Clínico + GPS + Reproducción'},
+            {p:'🐄 Campo',       e:'luis@ganader.ia',   pw:'campo2026', a:'Inventario + Pesaje BT'},
             {p:'💼 Visor',       e:'visor@ganader.ia',  pw:'visor',     a:'Solo lectura'},
           ].map(r=>(
             <tr key={r.p} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>

@@ -274,18 +274,11 @@ export default function Login() {
 
           {/* Tab switcher */}
           <div className="flex items-center justify-center gap-2 mt-5">
-            {[
-              {id:"login",  label:"Iniciar sesión",  from:"#00f5d4", to:"#00c896"},
-              {id:"planes", label:"Planes · Wompi 💳", from:"#fbbf24", to:"#ea580c"},
-            ].map(t=>(
-              <button key={t.id} onClick={()=>setTab(t.id as any)}
-                className="px-4 sm:px-6 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-250"
-                style={tab===t.id
-                  ?{background:`linear-gradient(135deg,${t.from},${t.to})`,color:t.id==="login"?"black":"white",boxShadow:`0 0 20px ${t.from}55`,transform:"scale(1.04)"}
-                  :{background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.07)"}}>
-                {t.label}
-              </button>
-            ))}
+            <button
+              className="px-6 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-250"
+              style={{background:`linear-gradient(135deg,#00f5d4,#00c896)`,color:"black",boxShadow:`0 0 20px #00f5d455`,transform:"scale(1.04)"}}>
+              Iniciar sesión
+            </button>
           </div>
         </div>
 
@@ -537,26 +530,10 @@ export default function Login() {
                     </button>
                   </form>
 
-                  {/* Mini plan cards */}
+                  {/* Sistema privado CIVAC */}
                   <div className="mt-5 pt-4 border-t" style={{borderColor:"rgba(0,245,212,0.08)"}}>
-                    <p className="text-[9px] sm:text-[10px] text-white/25 text-center mb-3">Planes de suscripción · Wompi Colombia</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        {id:"pro",     label:"PRO",     precio:"$89K/mes",  from:"#00f5d4", to:"#00c896", icon:"⚡"},
-                        {id:"premium", label:"Premium", precio:"$189K/mes", from:"#a855f7", to:"#7c3aed", icon:"⭐"},
-                        {id:"platino", label:"Platino", precio:"$399K/mes", from:"#fbbf24", to:"#ea580c", icon:"👑"},
-                      ].map(p=>(
-                        <button key={p.id} onClick={()=>setTab("planes")}
-                          className="rounded-2xl py-3 text-center transition-all hover:scale-105"
-                          style={{
-                            background:`linear-gradient(135deg,${p.from}14,${p.to}08)`,
-                            border:`1px solid ${p.from}28`,
-                          }}>
-                          <div className="text-base sm:text-lg mb-0.5">{p.icon}</div>
-                          <p className="font-black text-[10px] sm:text-xs" style={{color:p.from}}>{p.label}</p>
-                          <p className="text-[8px] sm:text-[9px] text-white/30 mt-0.5">{p.precio}</p>
-                        </button>
-                      ))}
+                    <div className="flex items-center justify-center gap-2 py-2">
+                      <span className="text-[10px] text-white/20 text-center">Sistema privado CIVAC · Solo acceso autorizado por la empresa</span>
                     </div>
                   </div>
                 </div>
@@ -569,8 +546,7 @@ export default function Login() {
 
         {/* ── Footer ────────────────────────────────────────────────────── */}
         <p className="text-center mt-6 sm:mt-8 text-[9px] sm:text-[10px]" style={{color:"rgba(255,255,255,0.14)"}}>
-          CIVAC PRO v1.0 · Control Inteligente Agropecuario · Colombia {new Date().getFullYear()} · PWA Offline · Pago seguro{" "}
-          <span style={{color:"rgba(0,245,212,0.35)"}}>Wompi</span>
+          CIVAC PRO v1.0 · Control Inteligente Agropecuario · Colombia {new Date().getFullYear()} · Sistema privado · Solo uso empresarial
         </p>
       </div>
     </div>

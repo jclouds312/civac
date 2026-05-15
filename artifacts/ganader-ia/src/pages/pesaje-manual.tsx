@@ -152,8 +152,11 @@ export default function PesajeManual() {
     id: string; nombre: string; peso: number; anterior: number;
     cc: string; valor: number; hora: string; raza: string; cat: string; nFotos: number;
   }[]>([]);
-  const sFileRef = useRef<HTMLInputElement>(null);
-  const sCamRef  = useRef<HTMLInputElement>(null);
+  const sFileRef   = useRef<HTMLInputElement>(null);
+  const sCamRef    = useRef<HTMLInputElement>(null);
+  const sAiImgRef  = useRef<HTMLInputElement>(null);
+  const [sAiPhotoUrl, setSAiPhotoUrl] = useState<string|null>(null);
+  const [sAiFromImg, setSAiFromImg]   = useState(false);
 
   // ── Filtros ────────────────────────────────────────────────────────────────
   const lista = animals.filter(a => {
@@ -463,6 +466,22 @@ export default function PesajeManual() {
       const est = +(base * factor * ccFactor * (0.97 + Math.random() * 0.06)).toFixed(1);
       setSPeso(String(est)); setSAiLoading(false); setSSaved(false);
     }, 2200);
+  };
+
+  const sAiFromPhoto = (url: string) => {
+    setSAiPhotoUrl(url); setSAiFromImg(true); setSAiLoading(true);
+    setTimeout(() => {
+      const base  = PESOS_RAZA[sRaza]?.[sCat] || 400;
+      const meses = sEdad.meses || 24;
+      let factor  = meses < 6  ? 0.22 + (meses / 6) * 0.14
+        : meses < 12 ? 0.36 + ((meses -  6) /  6) * 0.20
+        : meses < 24 ? 0.56 + ((meses - 12) / 12) * 0.24
+        : meses < 36 ? 0.80 + ((meses - 24) / 12) * 0.16
+        : 0.94 + Math.random() * 0.12;
+      const ccFactor = 0.85 + (Number(sCC) / 5) * 0.30;
+      const est = +(base * factor * ccFactor * (0.96 + Math.random() * 0.08)).toFixed(1);
+      setSPeso(String(est)); setSAiLoading(false); setSAiFromImg(false); setSSaved(false);
+    }, 2800);
   };
 
   const sPrint = () => {
@@ -1017,10 +1036,76 @@ export default function PesajeManual() {
                   <div className="rounded-xl p-2.5 text-center mt-2"
                     style={{ background: "rgba(232,121,249,0.06)", border: "1px solid rgba(232,121,249,0.2)" }}>
                     <div className="text-[10px] font-bold" style={{ color: "#e879f9" }}>
-                      IA calculando peso para {sCat} · {sRaza}{sEdad.meses > 0 ? ` · ${sEdad.meses} meses` : ""}...
+                      {sAiFromImg ? "IA analizando foto..." : `IA calculando para ${sCat} · ${sRaza}${sEdad.meses > 0 ? ` · ${sEdad.meses}m` : ""}...`}
                     </div>
                   </div>
                 )}
+
+                {/* IA DESDE FOTO ─────────────────────────────────────── */}
+                <div className="mt-3 rounded-xl p-3 space-y-2"
+                  style={{ background: "rgba(232,121,249,0.05)", border: "1px solid rgba(232,121,249,0.2)" }}>
+                  <div className="flex items-center justify-between">
+                    <div className="text-[9px] font-black uppercase tracking-wider"
+                      style={{ color: "#e879f9" }}>
+                      <Brain size={9} className="inline mr-1"/>Estimar Peso desde Foto (IA)
+                    </div>
+                    {sAiPhotoUrl && !sAiLoading && (
+                      <button onClick={() => { setSAiPhotoUrl(null); }}
+                        className="text-[8px] px-1.5 py-0.5 rounded-full"
+                        style={{ background: "rgba(248,113,113,0.1)", color: "#f87171", border: "1px solid rgba(248,113,113,0.2)" }}>
+                        Quitar foto
+                      </button>
+                    )}
+                  </div>
+
+                  {sAiPhotoUrl ? (
+                    <div className="flex items-center gap-3">
+                      <img src={sAiPhotoUrl} alt="IA foto"
+                        className="w-20 h-14 object-cover rounded-lg flex-shrink-0"
+                        style={{ border: "1px solid rgba(232,121,249,0.4)" }}/>
+                      <div>
+                        <div className="text-[9px] font-bold" style={{ color: "rgba(232,121,249,0.8)" }}>
+                          {sAiLoading ? "Analizando imagen..." : `Peso estimado: ${sPesoN.toFixed(1)} kg`}
+                        </div>
+                        <div className="text-[8px] mt-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+                          IA detecta: {sCat} · {sRaza} · {sPct}% del estandar
+                        </div>
+                        {!sAiLoading && (
+                          <button onClick={() => { if (sAiImgRef.current) sAiImgRef.current.click(); }}
+                            className="mt-1 text-[8px] px-2 py-0.5 rounded-full font-bold"
+                            style={{ background: "rgba(232,121,249,0.12)", color: "#e879f9", border: "1px solid rgba(232,121,249,0.3)" }}>
+                            Nueva foto
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-1.5">
+                      <button onClick={() => { if (sAiImgRef.current) { sAiImgRef.current.dataset.src = "cam"; sAiImgRef.current.click(); } }}
+                        disabled={sAiLoading || sBtLoading}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold transition-all hover:scale-[1.02] disabled:opacity-50"
+                        style={{ background: "rgba(232,121,249,0.1)", border: "1px solid rgba(232,121,249,0.3)", color: "#e879f9" }}>
+                        <Camera size={11}/> Foto del animal
+                      </button>
+                      <button onClick={() => { if (sAiImgRef.current) { sAiImgRef.current.removeAttribute("capture"); sAiImgRef.current.click(); } }}
+                        disabled={sAiLoading || sBtLoading}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-bold transition-all hover:scale-[1.02] disabled:opacity-50"
+                        style={{ background: "rgba(232,121,249,0.06)", border: "1px solid rgba(232,121,249,0.18)", color: "rgba(232,121,249,0.7)" }}>
+                        <Upload size={11}/> Subir imagen
+                      </button>
+                    </div>
+                  )}
+                  <div className="text-[8px] text-center" style={{ color: "rgba(255,255,255,0.15)" }}>
+                    Sube una foto lateral del animal para que la IA calcule el peso automaticamente
+                  </div>
+                  <input ref={sAiImgRef} type="file" accept="image/*" capture="environment" className="hidden"
+                    onChange={e => {
+                      if (!e.target.files?.[0]) return;
+                      const r = new FileReader();
+                      r.onload = ev => { sAiFromPhoto(ev.target?.result as string); };
+                      r.readAsDataURL(e.target.files[0]);
+                    }}/>
+                </div>
               </div>
 
               {/* CONDICION CORPORAL */}
@@ -1225,6 +1310,54 @@ export default function PesajeManual() {
                   style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.07)",
                     color: "rgba(255,255,255,0.6)", outline: "none" }}/>
               </div>
+
+              {/* INFORMACION RECIBIDA ─────────────────────────────── */}
+              {(sNombre || sPesoN > 0 || sFechaNac) && (
+                <div className="rounded-2xl overflow-hidden"
+                  style={{ border: `1px solid ${sPesoN > 0 ? "rgba(57,255,126,0.3)" : "rgba(255,255,255,0.08)"}` }}>
+                  <div className="px-4 py-2.5 flex items-center gap-2"
+                    style={{ background: sPesoN > 0 ? "rgba(57,255,126,0.08)" : "rgba(255,255,255,0.03)",
+                      borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <CheckCircle2 size={12} style={{ color: sPesoN > 0 ? "#39ff7e" : "rgba(255,255,255,0.2)" }}/>
+                    <span className="font-black text-xs"
+                      style={{ color: sPesoN > 0 ? "#39ff7e" : "rgba(255,255,255,0.4)" }}>
+                      Informacion Recibida
+                    </span>
+                    {sPesoN > 0 && (
+                      <span className="ml-auto text-[8px] px-2 py-0.5 rounded-full font-bold"
+                        style={{ background: "rgba(57,255,126,0.12)", color: "#39ff7e",
+                          border: "1px solid rgba(57,255,126,0.25)" }}>
+                        Listo para guardar
+                      </span>
+                    )}
+                  </div>
+                  <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-1.5 text-[10px]">
+                    {[
+                      { label: "Animal",      val: sNombre.trim() || "Sin nombre", c: "#c084fc" },
+                      { label: "Categoria",   val: `${sCatIcon.emoji} ${sCat}`, c: sCatIcon.color },
+                      { label: "Raza",        val: sRaza,       c: "rgba(255,255,255,0.7)" },
+                      { label: "Lote",        val: sLote,       c: "rgba(255,255,255,0.7)" },
+                      ...(sFechaNac ? [{ label: "Edad",  val: `${sEdad.anios > 0 ? sEdad.anios+"a " : ""}${sEdad.meses % 12}m`, c: "#00c8ff" }] : []),
+                      ...(sRegistro==="si"&&sNumReg ? [{ label: "Registro", val: sNumReg, c: "#fbbf24" }] : []),
+                      { label: "Peso",        val: sPesoN > 0 ? `${sPesoN.toFixed(1)} kg` : "—",
+                        c: sPesoN > 0 ? "#c084fc" : "rgba(255,255,255,0.2)" },
+                      { label: "vs estandar", val: sPesoN > 0 ? `${sPct}%` : "—",
+                        c: sPct >= 80 && sPct <= 120 ? "#39ff7e" : "#fbbf24" },
+                      { label: "CC",          val: sCC ? `CC ${sCC} — ${CC_OPTS.find(c=>c.val===sCC)?.label||""}` : "—",
+                        c: CC_OPTS.find(c=>c.val===sCC)?.color||"#888" },
+                      ...(sValor > 0 ? [{ label: "Valor", val: fmt(sValor), c: "#39ff7e" }] : []),
+                      { label: "Fotos",       val: sFotos.length > 0 ? `${sFotos.length} capturadas` : "Sin fotos",
+                        c: sFotos.length > 0 ? "#00f5d4" : "rgba(255,255,255,0.2)" },
+                      ...(sObs ? [{ label: "Observ.", val: sObs.slice(0,30)+(sObs.length>30?"…":""), c: "rgba(255,255,255,0.5)" }] : []),
+                    ].map(({ label, val, c }) => (
+                      <div key={label} className="flex items-baseline gap-1.5">
+                        <span style={{ color: "rgba(255,255,255,0.25)", flexShrink: 0, minWidth: 56 }}>{label}</span>
+                        <span className="font-bold truncate" style={{ color: c }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* ACCIONES */}
               <div className="grid grid-cols-2 gap-2">

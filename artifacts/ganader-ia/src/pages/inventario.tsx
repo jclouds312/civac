@@ -7,6 +7,8 @@ import {
   Beef, Baby, ChevronRight, TrendingUp, TrendingDown, Milestone,
   Droplets, Heart, Scale, Zap, Star, Award, MapPin, Calendar,
   DollarSign, CheckCircle2, XCircle, Clock, Info, FileText, Eye,
+  Activity, ChevronUp, ChevronDown, ClipboardList, AlertTriangle,
+  Layers, FlipHorizontal, Save, RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -353,6 +355,96 @@ export default function Inventario() {
   const [fichaAnimal, setFichaAnimal] = useState<typeof animals[0] | null>(null);
   const [activeTab, setActiveTab] = useState("tabla");
   const [etiqSearch, setEtiqSearch] = useState("");
+
+  // ── Pesaje Manual Avanzado state ──────────────────────────────────────────
+  type AdvRow = { peso: string; valorKilo: string; condicion: string; observacion: string; saved: boolean; modified: boolean };
+  const [advRows, setAdvRows] = useState<Record<string, AdvRow>>({});
+  const [advRazaFilter, setAdvRazaFilter] = useState("Todas");
+  const [advCatFilter, setAdvCatFilter] = useState("Todas");
+  const [advLoteFilter, setAdvLoteFilter] = useState("Todos");
+  const [advSearch, setAdvSearch] = useState("");
+  const [advSortBy, setAdvSortBy] = useState<"nombre"|"peso_desc"|"diferencia">("nombre");
+  const [advRefOpen, setAdvRefOpen] = useState(false);
+  const [advBatchSaving, setAdvBatchSaving] = useState(false);
+  const [advSessionLog, setAdvSessionLog] = useState<{id:number;nombre:string;peso:number;anterior:number;cc:string;hora:string}[]>([]);
+
+  const CC_CONFIG: Record<string, {emoji:string;label:string;color:string;glow:string}> = {
+    "1.0": {emoji:"💀",label:"Muy delgada",color:"#f87171",glow:"248,113,113"},
+    "1.5": {emoji:"😰",label:"Delgada",color:"#fb923c",glow:"251,146,60"},
+    "2.0": {emoji:"⚠️",label:"Bajo normal",color:"#fbbf24",glow:"251,191,36"},
+    "2.5": {emoji:"📊",label:"Normal bajo",color:"#a3e635",glow:"163,230,53"},
+    "3.0": {emoji:"✅",label:"Normal",color:"#4ade80",glow:"74,222,128"},
+    "3.5": {emoji:"🌟",label:"Normal alto",color:"#34d399",glow:"52,211,153"},
+    "4.0": {emoji:"💪",label:"Buena cond.",color:"#00f5d4",glow:"0,245,212"},
+    "4.5": {emoji:"🏆",label:"Excelente",color:"#00c8ff",glow:"0,200,255"},
+    "5.0": {emoji:"🔴",label:"Sobrepeso",color:"#a78bfa",glow:"167,139,250"},
+  };
+
+  const PESOS_RAZA_ADV: Record<string, Record<string, {min:number;max:number;promedio:number}>> = {
+    "Holstein":  {"Vaca adulta":{min:490,max:650,promedio:560},"Novilla":{min:280,max:380,promedio:330},"Ternero":{min:40,max:120,promedio:80},"Ternera":{min:38,max:110,promedio:75},"Toro":{min:700,max:950,promedio:820}},
+    "Simmental": {"Vaca adulta":{min:520,max:700,promedio:600},"Novilla":{min:300,max:420,promedio:360},"Ternero":{min:45,max:130,promedio:90},"Ternera":{min:42,max:125,promedio:85},"Toro":{min:750,max:1000,promedio:870}},
+    "Brahman":   {"Vaca adulta":{min:400,max:580,promedio:490},"Novilla":{min:250,max:360,promedio:300},"Ternero":{min:35,max:100,promedio:65},"Ternera":{min:32,max:95,promedio:60},"Toro":{min:650,max:900,promedio:780}},
+    "Gyr X":     {"Vaca adulta":{min:380,max:550,promedio:470},"Novilla":{min:240,max:350,promedio:290},"Ternero":{min:32,max:95,promedio:62},"Ternera":{min:30,max:90,promedio:58},"Toro":{min:600,max:850,promedio:730}},
+    "Gyr":       {"Vaca adulta":{min:380,max:540,promedio:460},"Novilla":{min:240,max:345,promedio:285},"Ternero":{min:32,max:92,promedio:60},"Ternera":{min:30,max:88,promedio:56},"Toro":{min:590,max:840,promedio:720}},
+    "Jersey":    {"Vaca adulta":{min:330,max:470,promedio:400},"Novilla":{min:200,max:290,promedio:245},"Ternero":{min:25,max:80,promedio:52},"Ternera":{min:24,max:76,promedio:49},"Toro":{min:500,max:700,promedio:600}},
+  };
+  const getPesoEspAdv = (raza:string, cat:string) => PESOS_RAZA_ADV[raza]?.[cat] ?? {min:100,max:800,promedio:400};
+
+  const getNutriRec = (cc:string, cat:string): string => {
+    const n = Number(cc);
+    if (n < 2.0) return "🚨 Emergencia nutricional — ración máxima + suplemento proteico urgente";
+    if (n < 2.5) return "⚠️ Incrementar ración energética · Revisar sanidad · Suplementar minerales";
+    if (n < 3.0) return "📈 Aumentar proteína 15% · Asegurar acceso a sales minerales";
+    if (n > 4.5 && ["Vaca adulta","Novilla"].includes(cat)) return "🔴 Reducir energía — riesgo cetosis posparto · Control estricto";
+    if (n > 4.0 && ["Vaca adulta","Novilla"].includes(cat)) return "↓ Ajustar ración — leve sobrecondición · Monitorear";
+    return "✓ Ración estándar recomendada — condición óptima";
+  };
+
+  const getAdvRow = (a: typeof animals[0]): AdvRow =>
+    advRows[a.id] ?? { peso: String(a.peso), valorKilo: String(a.valorKilo || 11000), condicion:"3.0", observacion:"", saved:false, modified:false };
+
+  const updateAdvRow = (id:string, patch: Partial<AdvRow>) =>
+    setAdvRows(prev => ({...prev, [id]: {...getAdvRow(animals.find(x=>x.id===id)!), ...patch}}));
+
+  const autoFillAdvByRaza = (a: typeof animals[0]) => {
+    const esp = getPesoEspAdv(a.raza, a.categoria);
+    updateAdvRow(a.id, {peso: String(esp.promedio), modified:true, saved:false});
+  };
+
+  const saveAdvRow = (a: typeof animals[0]) => {
+    const row = getAdvRow(a);
+    const pesoN = Number(row.peso);
+    if (!pesoN) return;
+    const newPesaje = {
+      id: Date.now(), animalId: a.id, animalNombre: a.nombre,
+      peso: pesoN, pesoAnterior: a.peso,
+      fecha: new Date().toLocaleDateString('es-CO'),
+      hora: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
+      metodo:'manual', dispositivo:'',
+      operador: user?.nombre || 'Admin',
+      observacion: `CC ${row.condicion} | ${row.observacion}`.trim().replace(/\s*\|\s*$/,''),
+      lote: a.lote, categoria: a.categoria,
+    };
+    setPesajes(prev => [newPesaje, ...prev]);
+    setAnimals(prev => prev.map(x => x.id===a.id ? {...x, peso:pesoN, valorKilo:Number(row.valorKilo)||x.valorKilo} : x));
+    updateAdvRow(a.id, {saved:true, modified:false});
+    setAdvSessionLog(prev => [{
+      id: Date.now(), nombre: a.nombre, peso: pesoN, anterior: a.peso,
+      cc: row.condicion, hora: newPesaje.hora
+    }, ...prev]);
+  };
+
+  const batchSaveAllAdv = () => {
+    setAdvBatchSaving(true);
+    const modified = animals.filter(a => advRows[a.id]?.modified && !advRows[a.id]?.saved);
+    modified.forEach(a => saveAdvRow(a));
+    setTimeout(() => setAdvBatchSaving(false), 600);
+  };
+
+  const resetAllAdvRows = () => {
+    setAdvRows({});
+    setAdvSessionLog([]);
+  };
 
   // Pesaje Rápido state
   type PesajeRow = { animalId: string; peso: string; valorKilo: string; saved: boolean; btLoading: boolean };
@@ -761,7 +853,8 @@ export default function Inventario() {
             { val:'tabla', icon:<TableProperties size={14}/>, label:'Tabla', c:'#00f5d4' },
             { val:'fichas', icon:<Grid3x3 size={14}/>, label:'Fichas', c:'#a78bfa' },
             { val:'etiquetas', icon:<Tag size={14}/>, label:'Etiquetas', c:'#39ff7e' },
-            { val:'pesaje', icon:<Scale size={14}/>, label:'Pesaje Rápido', c:'#ff9500' },
+            { val:'pesaje', icon:<Scale size={14}/>, label:'Pesaje BT', c:'#ff9500' },
+            { val:'pesaje-avanzado', icon:<ClipboardList size={14}/>, label:'Pesaje Manual +', c:'#a78bfa' },
             { val:'estadisticas', icon:<BarChart3 size={14}/>, label:'Estadísticas', c:'#f472b6' },
           ].map(t => (
             <TabsTrigger key={t.val} value={t.val}
@@ -1399,6 +1492,522 @@ export default function Inventario() {
           )}
         </TabsContent>
 
+
+        {/* ─── PESAJE MANUAL AVANZADO ─── */}
+        <TabsContent value="pesaje-avanzado">
+          {/* Banner */}
+          <div className="rounded-xl p-5 mb-4 relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#120020,#1e0035,#120020)',border:'1px solid rgba(167,139,250,0.4)',boxShadow:'0 0 40px rgba(167,139,250,0.1)'}}>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
+              <ClipboardList className="w-28 h-28 text-purple-300"/>
+            </div>
+            <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{background:'rgba(167,139,250,0.12)',border:'1px solid rgba(167,139,250,0.45)',boxShadow:'0 0 20px rgba(167,139,250,0.25)'}}>
+                  <ClipboardList size={26} style={{color:'#a78bfa'}}/>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h2 className="text-xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>Pesaje Manual Avanzado</h2>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{background:'rgba(167,139,250,0.2)',color:'#a78bfa',border:'1px solid rgba(167,139,250,0.4)'}}>PRO</span>
+                  </div>
+                  <p className="text-sm" style={{color:'rgba(196,181,253,0.7)'}}>
+                    CC (Condición Corporal 1–5) · GMD · Alerta nutricional · Referencia por raza · Sesión completa
+                  </p>
+                  <div className="flex flex-wrap gap-3 mt-1.5">
+                    {[
+                      {label:`${animals.length} animales`, c:'#a78bfa'},
+                      {label:`${Object.values(advRows).filter(r=>r.modified&&!r.saved).length} por guardar`, c:'#fbbf24'},
+                      {label:`${advSessionLog.length} pesajes hoy`, c:'#4ade80'},
+                    ].map(b => (
+                      <span key={b.label} className="text-[10px] flex items-center gap-1" style={{color:b.c}}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{background:b.c}}/>{b.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={() => setAdvRefOpen(v=>!v)}
+                  style={{background:'rgba(167,139,250,0.12)',border:'1px solid rgba(167,139,250,0.35)',color:'#a78bfa'}}>
+                  <Layers size={13}/> {advRefOpen ? "Ocultar" : "Mostrar"} Tabla Razas
+                </Button>
+                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={batchSaveAllAdv}
+                  disabled={advBatchSaving || Object.values(advRows).filter(r=>r.modified&&!r.saved).length===0}
+                  style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.35)',color:'#39ff7e'}}>
+                  <Save size={13}/> {advBatchSaving?"Guardando…":"Guardar Todo"}
+                </Button>
+                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={resetAllAdvRows}
+                  style={{background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.25)',color:'#f87171'}}>
+                  <RotateCcw size={13}/> Limpiar Sesión
+                </Button>
+                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={()=>window.print()}
+                  style={{background:'rgba(255,149,0,0.1)',border:'1px solid rgba(255,149,0,0.3)',color:'#ff9500'}}>
+                  <Printer size={13}/> Imprimir
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabla referencia razas (collapsible) */}
+          {advRefOpen && (
+            <div className="rounded-xl p-4 mb-4 overflow-x-auto" style={{background:'rgba(167,139,250,0.04)',border:'1px solid rgba(167,139,250,0.18)'}}>
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{color:'rgba(167,139,250,0.6)'}}>
+                📊 Pesos de Referencia por Raza y Categoría (kg) — FAO/FEDEGAN Colombia
+              </div>
+              <table className="w-full text-[10px] min-w-[600px]">
+                <thead>
+                  <tr style={{borderBottom:'1px solid rgba(167,139,250,0.15)'}}>
+                    <th className="text-left py-2 pr-4 font-bold" style={{color:'rgba(167,139,250,0.7)'}}>Raza</th>
+                    {['Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(c=>(
+                      <th key={c} colSpan={3} className="text-center py-2 px-2 font-bold border-l border-white/5" style={{color:'rgba(167,139,250,0.7)'}}>{c}</th>
+                    ))}
+                  </tr>
+                  <tr style={{borderBottom:'1px solid rgba(167,139,250,0.1)'}}>
+                    <th/>
+                    {['Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(c=>(['Mín','Prom','Máx'].map(l=>(
+                      <th key={c+l} className="text-center py-1 px-1 text-[9px] border-l border-white/5" style={{color:'rgba(255,255,255,0.25)'}}>{l}</th>
+                    ))))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(PESOS_RAZA_ADV).map(([raza, cats])=>(
+                    <tr key={raza} className="border-t border-white/5 hover:bg-purple-500/5">
+                      <td className="py-2 pr-4 font-bold text-white/70">{raza}</td>
+                      {['Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(c=>{
+                        const d = cats[c];
+                        return d ? [
+                          <td key={c+'min'} className="py-2 px-1 text-center text-blue-300/70 border-l border-white/5">{d.min}</td>,
+                          <td key={c+'prom'} className="py-2 px-1 text-center font-black border-l border-white/5" style={{color:'#a78bfa'}}>{d.promedio}</td>,
+                          <td key={c+'max'} className="py-2 px-1 text-center text-blue-300/70 border-l border-white/5">{d.max}</td>,
+                        ] : [<td key={c+'—'} colSpan={3} className="py-2 px-1 text-center text-white/15 border-l border-white/5">—</td>];
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-2 text-[9px] text-white/20">* Valores de referencia promedio Colombia. Condiciones pueden variar por altitud, alimentación y manejo.</div>
+            </div>
+          )}
+
+          {/* CC Scale legend */}
+          <div className="rounded-xl p-3 mb-4 overflow-x-auto" style={{background:'rgba(167,139,250,0.04)',border:'1px solid rgba(167,139,250,0.12)'}}>
+            <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{color:'rgba(167,139,250,0.5)'}}>Escala Condición Corporal (CC) — Método INIA/FAO</div>
+            <div className="flex gap-2 min-w-max">
+              {Object.entries(CC_CONFIG).map(([cc,cfg])=>(
+                <div key={cc} className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg" style={{background:`rgba(${cfg.glow},0.08)`,border:`1px solid rgba(${cfg.glow},0.2)`}}>
+                  <span className="text-base">{cfg.emoji}</span>
+                  <span className="font-black text-xs" style={{color:cfg.color}}>{cc}</span>
+                  <span className="text-[8px] text-white/40 text-center whitespace-nowrap">{cfg.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Filters bar */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={13}/>
+              <Input placeholder="Buscar nombre, arete..." value={advSearch}
+                onChange={e=>setAdvSearch(e.target.value)} className="pl-8 h-9 text-sm bg-muted/30"/>
+            </div>
+            {[
+              {label:'Raza', val:advRazaFilter, set:setAdvRazaFilter, opts:['Todas','Holstein','Simmental','Brahman','Gyr X','Gyr','Jersey']},
+              {label:'Categoría', val:advCatFilter, set:setAdvCatFilter, opts:['Todas','Vaca adulta','Novilla','Ternero','Ternera','Toro']},
+              {label:'Lote', val:advLoteFilter, set:setAdvLoteFilter, opts:['Todos','Lote A','Lote B','Lote C','Lote D','Lote E','Lote F']},
+            ].map((f,i)=>(
+              <Select key={i} value={f.val} onValueChange={f.set}>
+                <SelectTrigger className="w-32 h-9 text-xs bg-muted/30"><SelectValue placeholder={f.label}/></SelectTrigger>
+                <SelectContent>{f.opts.map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
+              </Select>
+            ))}
+            <Select value={advSortBy} onValueChange={v=>setAdvSortBy(v as typeof advSortBy)}>
+              <SelectTrigger className="w-36 h-9 text-xs bg-muted/30"><SelectValue placeholder="Ordenar"/></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nombre">A–Z Nombre</SelectItem>
+                <SelectItem value="peso_desc">Peso ↓ Mayor</SelectItem>
+                <SelectItem value="diferencia">Diferencia ↓</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button size="sm" className="h-9 gap-1.5 text-xs"
+              onClick={() => { animals.filter(a=>advLoteFilter==='Todos'||a.lote===advLoteFilter).forEach(autoFillAdvByRaza); }}
+              style={{background:'rgba(167,139,250,0.12)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
+              <Zap size={12}/> Auto-Raza Todos
+            </Button>
+          </div>
+
+          {/* Quick session KPIs */}
+          {(() => {
+            const filtered = animals.filter(a=>{
+              const ms = a.nombre.toLowerCase().includes(advSearch.toLowerCase()) || a.id.toLowerCase().includes(advSearch.toLowerCase());
+              return ms && (advRazaFilter==='Todas'||a.raza===advRazaFilter) && (advCatFilter==='Todas'||a.categoria===advCatFilter) && (advLoteFilter==='Todos'||a.lote===advLoteFilter);
+            });
+            const modified = filtered.filter(a=>advRows[a.id]?.modified&&!advRows[a.id]?.saved);
+            const savedToday = filtered.filter(a=>advRows[a.id]?.saved);
+            const totalValorSession = advSessionLog.reduce((s,r)=>s + r.peso * (animals.find(a=>a.nombre===r.nombre)?.valorKilo||0), 0);
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                {[
+                  {icon:'🐄', label:'En esta vista', val:String(filtered.length), c:'#a78bfa', glow:'167,139,250'},
+                  {icon:'⚡', label:'Por guardar', val:String(modified.length), c:'#fbbf24', glow:'251,191,36'},
+                  {icon:'✅', label:'Guardados hoy', val:String(savedToday.length + advSessionLog.length), c:'#4ade80', glow:'74,222,128'},
+                  {icon:'💰', label:'Valor sesión', val:totalValorSession > 0 ? `$${(totalValorSession/1000000).toFixed(1)}M` : '—', c:'#39ff7e', glow:'57,255,126'},
+                ].map(k=>(
+                  <div key={k.label} className="rounded-xl p-3 relative overflow-hidden" style={{background:'linear-gradient(135deg,#060410,#090618)',border:`1px solid rgba(${k.glow},0.2)`}}>
+                    <div className="text-base mb-1">{k.icon}</div>
+                    <div className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{color:`rgba(${k.glow},0.55)`}}>{k.label}</div>
+                    <div className="text-lg font-black" style={{color:k.c,fontFamily:'Sora,sans-serif'}}>{k.val}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Animal weighing cards */}
+          <div className="space-y-3">
+            {(() => {
+              let list = animals.filter(a=>{
+                const ms = a.nombre.toLowerCase().includes(advSearch.toLowerCase()) || a.id.toLowerCase().includes(advSearch.toLowerCase());
+                return ms && (advRazaFilter==='Todas'||a.raza===advRazaFilter) && (advCatFilter==='Todas'||a.categoria===advCatFilter) && (advLoteFilter==='Todos'||a.lote===advLoteFilter);
+              });
+              if (advSortBy==='peso_desc') list = [...list].sort((a,b)=>b.peso-a.peso);
+              else if (advSortBy==='diferencia') list = [...list].sort((a,b)=>{
+                const da = Math.abs((Number(getAdvRow(a).peso)||a.peso)-a.peso);
+                const db = Math.abs((Number(getAdvRow(b).peso)||b.peso)-b.peso);
+                return db-da;
+              });
+              else list = [...list].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+
+              return list.map(a => {
+                const row = getAdvRow(a);
+                const cc = CC_CONFIG[row.condicion] || CC_CONFIG["3.0"];
+                const cat = CAT_CONFIG[a.categoria] || CAT_CONFIG["Vaca adulta"];
+                const ec = ESTADO_CONFIG[a.estado] || {color:'#888',emoji:'—'};
+                const pesoN = Number(row.peso) || a.peso;
+                const vkN = Number(row.valorKilo) || 0;
+                const valorTotal = pesoN * vkN;
+                const esp = getPesoEspAdv(a.raza, a.categoria);
+                const pct = Math.min(100, Math.round((pesoN / esp.promedio) * 100));
+                const diff = pesoN - a.peso;
+                const isUnder = pesoN < esp.min;
+                const isOver = pesoN > esp.max;
+                const lastPesaje = pesajes.filter(p=>p.animalId===a.id).sort((x,y)=>y.id-x.id)[0];
+                const gmd = lastPesaje
+                  ? (((pesoN - lastPesaje.peso) / 30)).toFixed(2)
+                  : null;
+                const nutri = getNutriRec(row.condicion, a.categoria);
+                const loteCol = LOTE_COLOR[a.lote] || '#888';
+                const isSavedOrModified = row.saved || row.modified;
+
+                return (
+                  <div key={a.id} className="rounded-xl overflow-hidden transition-all"
+                    style={{
+                      background: row.saved ? 'linear-gradient(135deg,rgba(57,255,126,0.05),rgba(0,30,15,0.8))' : 'linear-gradient(135deg,#05020f,#08041a)',
+                      border: row.saved ? '1px solid rgba(57,255,126,0.3)' : row.modified ? '1px solid rgba(167,139,250,0.4)' : `1px solid rgba(${cat.glow},0.18)`,
+                      boxShadow: row.modified && !row.saved ? '0 0 12px rgba(167,139,250,0.08)' : 'none',
+                    }}>
+                    {/* Top accent bar */}
+                    <div className="h-0.5 w-full" style={{background:`linear-gradient(90deg,${cat.color},${loteCol},transparent)`}}/>
+
+                    <div className="p-4">
+                      {/* Row 1: Animal info + CC + Save */}
+                      <div className="flex flex-wrap gap-4 items-start">
+
+                        {/* Animal identity */}
+                        <div className="flex items-center gap-3 min-w-[200px]">
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                            style={{background:cat.bg,border:`1px solid ${cat.border}`,boxShadow:`0 0 12px rgba(${cat.glow},0.2)`}}>
+                            {cat.emoji}
+                          </div>
+                          <div>
+                            <div className="font-black text-sm text-white">{a.nombre}</div>
+                            <div className="flex items-center gap-1.5 text-[10px] mt-0.5" style={{color:'rgba(255,255,255,0.35)'}}>
+                              <span className="font-mono" style={{color:cat.color}}>#{a.id}</span>
+                              <span>·</span>
+                              <span>{a.raza}</span>
+                            </div>
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{background:cat.bg,color:cat.color,border:`1px solid ${cat.border}`}}>{a.categoria}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{background:ec.bg||'rgba(0,0,0,0.2)',color:ec.color}}>{ec.emoji} {a.estado}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold" style={{background:`${loteCol}18`,color:loteCol}}>📍{a.lote}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Weight section */}
+                        <div className="flex-1 min-w-[280px] space-y-2">
+                          {/* Previous vs new */}
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <div className="text-center">
+                              <div className="text-[9px] text-white/30 uppercase tracking-wide">Anterior</div>
+                              <div className="font-mono font-bold text-sm text-white/50">{a.peso} kg</div>
+                            </div>
+                            <ChevronRight size={14} className="text-white/20"/>
+                            {/* Weight input with +/- */}
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={()=>updateAdvRow(a.id,{peso:String(Math.max(0,Number(row.peso)-0.5)),modified:true,saved:false})}
+                                className="w-7 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-white/10"
+                                style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa'}}>
+                                <ChevronDown size={14}/>
+                              </button>
+                              <Input
+                                type="number" step="0.5" min="0"
+                                value={row.peso}
+                                onChange={e=>updateAdvRow(a.id,{peso:e.target.value,modified:true,saved:false})}
+                                className="w-24 text-center font-mono font-black text-base h-9"
+                                style={{background:'rgba(0,0,0,0.5)',border:`1px solid rgba(${cat.glow},0.4)`,color:cat.color}}
+                              />
+                              <button
+                                onClick={()=>updateAdvRow(a.id,{peso:String(Number(row.peso)+0.5),modified:true,saved:false})}
+                                className="w-7 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-white/10"
+                                style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa'}}>
+                                <ChevronUp size={14}/>
+                              </button>
+                              <span className="text-xs text-white/30">kg</span>
+                            </div>
+                            {diff !== 0 && !isNaN(diff) && (
+                              <span className="text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1"
+                                style={{background:diff>0?'rgba(57,255,126,0.12)':'rgba(248,113,113,0.12)',color:diff>0?'#39ff7e':'#f87171'}}>
+                                {diff>0?<TrendingUp size={11}/>:<TrendingDown size={11}/>}
+                                {diff>0?'+':''}{diff.toFixed(1)} kg
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Auto-fill buttons row */}
+                          <div className="flex gap-1.5 flex-wrap">
+                            <button onClick={()=>autoFillAdvByRaza(a)}
+                              className="text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 transition-all hover:bg-purple-500/15"
+                              style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa'}}>
+                              <Zap size={10}/> Prom. raza ({esp.promedio}kg)
+                            </button>
+                            <button onClick={()=>updateAdvRow(a.id,{peso:String(esp.min),modified:true,saved:false})}
+                              className="text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 transition-all hover:bg-blue-500/10"
+                              style={{background:'rgba(59,130,246,0.07)',border:'1px solid rgba(59,130,246,0.2)',color:'#60a5fa'}}>
+                              Mín {esp.min}kg
+                            </button>
+                            <button onClick={()=>updateAdvRow(a.id,{peso:String(esp.max),modified:true,saved:false})}
+                              className="text-[10px] px-2 py-1 rounded-lg flex items-center gap-1 transition-all hover:bg-cyan-500/10"
+                              style={{background:'rgba(6,182,212,0.07)',border:'1px solid rgba(6,182,212,0.2)',color:'#22d3ee'}}>
+                              Máx {esp.max}kg
+                            </button>
+                          </div>
+
+                          {/* Weight vs breed bar */}
+                          <div>
+                            <div className="flex justify-between text-[9px] mb-1">
+                              <span className="text-white/30">vs. raza {a.raza}</span>
+                              <span style={{color: isUnder?'#f87171': isOver?'#a78bfa':cat.color}}>{pct}%
+                                {isUnder && ' ⚠ Bajo mínimo'}
+                                {isOver && ' ↑ Sobre máximo'}
+                                {!isUnder && !isOver && ' ✓ Dentro del rango'}
+                              </span>
+                            </div>
+                            <div className="relative h-2 rounded-full" style={{background:'rgba(255,255,255,0.06)'}}>
+                              {/* Min/max markers */}
+                              <div className="absolute top-0 bottom-0 w-0.5 bg-blue-400/30 rounded-full" style={{left:`${Math.min(100,(esp.min/esp.max)*100)}%`}}/>
+                              <div className="absolute top-0 bottom-0 w-0.5 bg-cyan-400/30 rounded-full" style={{left:'100%',transform:'translateX(-1px)'}}/>
+                              <div className="h-2 rounded-full transition-all" style={{
+                                width:`${pct}%`,
+                                background: isUnder ? 'linear-gradient(90deg,#f87171,#fb923c)' : isOver ? 'linear-gradient(90deg,#a78bfa,#c084fc)' : `linear-gradient(90deg,${cat.color},${loteCol})`,
+                              }}/>
+                            </div>
+                            <div className="flex justify-between text-[8px] mt-0.5 text-white/20">
+                              <span>Mín {esp.min}kg</span><span>Prom {esp.promedio}kg</span><span>Máx {esp.max}kg</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CC + Valor + Save */}
+                        <div className="flex flex-col gap-2 min-w-[200px]">
+                          {/* CC selector */}
+                          <div>
+                            <div className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(167,139,250,0.5)'}}>Condición Corporal</div>
+                            <Select value={row.condicion} onValueChange={v=>updateAdvRow(a.id,{condicion:v,modified:true,saved:false})}>
+                              <SelectTrigger className="h-9 text-xs" style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${cc.glow},0.35)`,color:cc.color}}>
+                                <SelectValue/>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(CC_CONFIG).map(([val,cfg])=>(
+                                  <SelectItem key={val} value={val}>
+                                    <span className="flex items-center gap-2">
+                                      <span>{cfg.emoji}</span>
+                                      <span style={{color:cfg.color}}>{val} — {cfg.label}</span>
+                                    </span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <div className="flex items-center gap-1.5 mt-1">
+                              <span className="text-base">{cc.emoji}</span>
+                              <span className="text-[10px] font-semibold" style={{color:cc.color}}>{cc.label}</span>
+                            </div>
+                          </div>
+
+                          {/* Valor/kg + total */}
+                          <div>
+                            <div className="text-[9px] font-bold uppercase tracking-wider mb-1 text-white/30">$/kg · Valor Total</div>
+                            <div className="flex items-center gap-1.5">
+                              <Input type="number" step="100"
+                                value={row.valorKilo}
+                                onChange={e=>updateAdvRow(a.id,{valorKilo:e.target.value,modified:true,saved:false})}
+                                className="w-24 h-9 text-xs text-center font-mono"
+                                style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(57,255,126,0.2)',color:'#39ff7e'}}
+                              />
+                              {valorTotal > 0 && (
+                                <span className="font-black text-xs" style={{color:'#39ff7e'}}>{fmt(valorTotal)}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Save button */}
+                          <Button size="sm" className="w-full gap-1.5 text-xs h-9" onClick={()=>saveAdvRow(a)}
+                            disabled={row.saved}
+                            style={row.saved
+                              ? {background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.25)',color:'#39ff7e'}
+                              : {background:'rgba(167,139,250,0.18)',border:'1px solid rgba(167,139,250,0.45)',color:'#c4b5fd'}}>
+                            {row.saved ? <><CheckCircle2 size={13}/> Guardado</> : <><Save size={13}/> Guardar Pesaje</>}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Row 2: GMD + Alerta + Observacion */}
+                      <div className="mt-3 pt-3 border-t border-white/5 flex flex-wrap gap-3">
+                        {/* GMD */}
+                        {gmd !== null && (
+                          <div className="flex items-center gap-2 rounded-lg px-3 py-2"
+                            style={{background:'rgba(0,200,255,0.06)',border:'1px solid rgba(0,200,255,0.15)'}}>
+                            <Activity size={13} style={{color:'#00c8ff',flexShrink:0}}/>
+                            <div>
+                              <div className="text-[9px] text-white/30 uppercase tracking-wide">GMD (ult. 30d)</div>
+                              <div className="font-black text-sm" style={{color:Number(gmd)>0?'#00c8ff':'#f87171'}}>
+                                {Number(gmd)>0?'+':''}{gmd} kg/día
+                              </div>
+                            </div>
+                            {lastPesaje && (
+                              <div className="ml-2">
+                                <div className="text-[9px] text-white/20">Ult. pesaje</div>
+                                <div className="text-[10px] text-white/40">{lastPesaje.fecha} · {lastPesaje.peso}kg</div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Nutritional alert */}
+                        <div className="flex items-center gap-2 rounded-lg px-3 py-2 flex-1 min-w-[200px]"
+                          style={{background:Number(row.condicion)<2.5?'rgba(248,113,113,0.06)':'rgba(74,222,128,0.05)',border:`1px solid ${Number(row.condicion)<2.5?'rgba(248,113,113,0.2)':'rgba(74,222,128,0.12)'}`}}>
+                          {Number(row.condicion)<2.5
+                            ? <AlertTriangle size={13} style={{color:'#f87171',flexShrink:0}}/>
+                            : <CheckCircle2 size={13} style={{color:'#4ade80',flexShrink:0}}/>}
+                          <span className="text-[10px]" style={{color:Number(row.condicion)<2.5?'#fca5a5':'rgba(255,255,255,0.5)'}}>{nutri}</span>
+                        </div>
+
+                        {/* Weight alert */}
+                        {(isUnder || isOver) && (
+                          <div className="flex items-center gap-2 rounded-lg px-3 py-2"
+                            style={{background:isUnder?'rgba(251,191,36,0.06)':'rgba(167,139,250,0.06)',border:`1px solid ${isUnder?'rgba(251,191,36,0.25)':'rgba(167,139,250,0.25)'}`}}>
+                            <AlertTriangle size={13} style={{color:isUnder?'#fbbf24':'#a78bfa',flexShrink:0}}/>
+                            <span className="text-[10px]" style={{color:isUnder?'#fcd34d':'#c4b5fd'}}>
+                              {isUnder ? `Peso bajo mínimo raza (${esp.min}kg) — revisar alimentación` : `Peso sobre máximo (${esp.max}kg) — verificar condición`}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Observaciones */}
+                        <div className="flex-1 min-w-[200px]">
+                          <Input
+                            placeholder="Observaciones (CC, comportamiento, tratamiento...)"
+                            value={row.observacion}
+                            onChange={e=>updateAdvRow(a.id,{observacion:e.target.value,modified:!!e.target.value,saved:false})}
+                            className="h-9 text-xs"
+                            style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.07)'}}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Saved confirmation */}
+                      {row.saved && (
+                        <div className="mt-2 flex items-center gap-1.5 text-[10px]" style={{color:'#39ff7e'}}>
+                          <CheckCircle2 size={11}/>
+                          <span>✓ Pesaje registrado · peso actualizado a {pesoN} kg · CC {row.condicion} ({cc.label})</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+
+          {/* Session summary */}
+          {advSessionLog.length > 0 && (
+            <div className="mt-6 rounded-xl p-4" style={{background:'rgba(167,139,250,0.05)',border:'1px solid rgba(167,139,250,0.2)'}}>
+              <div className="font-bold text-sm mb-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={14} style={{color:'#a78bfa'}}/>
+                  <span>Registro de Sesión — {advSessionLog.length} pesajes guardados hoy</span>
+                </div>
+                <Button size="sm" className="h-7 text-xs gap-1" onClick={()=>window.print()}
+                  style={{background:'rgba(255,149,0,0.1)',border:'1px solid rgba(255,149,0,0.3)',color:'#ff9500'}}>
+                  <Printer size={11}/> Imprimir
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{borderBottom:'1px solid rgba(167,139,250,0.15)'}}>
+                      {['Animal','Peso Nuevo','Anterior','Cambio','CC','GMD estimado','Hora'].map(h=>(
+                        <th key={h} className="text-left py-2 pr-3 text-[10px] font-bold uppercase tracking-wider" style={{color:'rgba(167,139,250,0.55)'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {advSessionLog.map(r=>{
+                      const diff = r.peso - r.anterior;
+                      const ccConf = CC_CONFIG[r.cc] || CC_CONFIG["3.0"];
+                      const gmdEst = ((diff)/30).toFixed(2);
+                      return (
+                        <tr key={r.id} className="border-b border-white/5">
+                          <td className="py-2 pr-3 font-bold text-white">{r.nombre}</td>
+                          <td className="py-2 pr-3 font-black text-purple-300">{r.peso} kg</td>
+                          <td className="py-2 pr-3 text-white/30">{r.anterior} kg</td>
+                          <td className="py-2 pr-3">
+                            <span style={{color:diff>=0?'#39ff7e':'#f87171',fontWeight:'bold'}}>
+                              {diff>=0?'+':''}{diff.toFixed(1)} kg
+                            </span>
+                          </td>
+                          <td className="py-2 pr-3">
+                            <span style={{color:ccConf.color}}>{ccConf.emoji} {r.cc}</span>
+                          </td>
+                          <td className="py-2 pr-3" style={{color:Number(gmdEst)>=0?'#00c8ff':'#f87171'}}>
+                            {Number(gmdEst)>0?'+':''}{gmdEst} kg/d
+                          </td>
+                          <td className="py-2 pr-3 text-white/40">{r.hora}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {/* Session totals */}
+              <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2">
+                {[
+                  {label:'Total pesados', val:String(advSessionLog.length), c:'#a78bfa'},
+                  {label:'Ganancia prom.', val:`${(advSessionLog.reduce((s,r)=>s+(r.peso-r.anterior),0)/advSessionLog.length).toFixed(1)} kg`, c:'#39ff7e'},
+                  {label:'GMD prom. (30d)', val:`${((advSessionLog.reduce((s,r)=>s+(r.peso-r.anterior),0)/advSessionLog.length)/30).toFixed(2)} kg/d`, c:'#00c8ff'},
+                  {label:'CC prom.', val:(advSessionLog.reduce((s,r)=>s+Number(r.cc),0)/advSessionLog.length).toFixed(1), c:'#fbbf24'},
+                ].map(s=>(
+                  <div key={s.label} className="rounded-lg p-2 text-center" style={{background:'rgba(255,255,255,0.03)'}}>
+                    <div className="text-[9px] text-white/30 uppercase tracking-wide">{s.label}</div>
+                    <div className="font-black text-sm" style={{color:s.c}}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </TabsContent>
 
       </Tabs>
 

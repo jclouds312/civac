@@ -848,25 +848,28 @@ export default function Inventario() {
 
       {/* === TABS === */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex w-full mb-4 p-1 gap-1 h-auto" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}>
-          {[
-            { val:'tabla', icon:<TableProperties size={14}/>, label:'Tabla', c:'#00f5d4' },
-            { val:'fichas', icon:<Grid3x3 size={14}/>, label:'Fichas', c:'#a78bfa' },
-            { val:'etiquetas', icon:<Tag size={14}/>, label:'Etiquetas', c:'#39ff7e' },
-            { val:'pesaje', icon:<Scale size={14}/>, label:'Pesaje BT', c:'#ff9500' },
-            { val:'pesaje-avanzado', icon:<ClipboardList size={14}/>, label:'Pesaje Manual +', c:'#a78bfa' },
-            { val:'estadisticas', icon:<BarChart3 size={14}/>, label:'Estadísticas', c:'#f472b6' },
-          ].map(t => (
-            <TabsTrigger key={t.val} value={t.val}
-              className="flex-1 gap-1.5 h-9 text-sm font-semibold transition-all"
-              style={activeTab === t.val
-                ? {background:`rgba(${t.c.replace('#','').match(/../g)?.map(h=>parseInt(h,16)).join(',')},0.15)` || 'rgba(0,245,212,0.15)',
-                   color:t.c, border:`1px solid ${t.c}40`}
-                : {}}>
-              {t.icon} {t.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {/* Scroll wrapper so all 6 tabs are always accessible */}
+        <div className="overflow-x-auto mb-4" style={{WebkitOverflowScrolling:'touch'}}>
+          <TabsList className="inline-flex min-w-max w-full p-1 gap-1 h-auto" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)'}}>
+            {[
+              { val:'tabla',           icon:<TableProperties size={13}/>, label:'Tabla',           c:'#00f5d4' },
+              { val:'fichas',          icon:<Grid3x3 size={13}/>,         label:'Fichas',          c:'#a78bfa' },
+              { val:'etiquetas',       icon:<Tag size={13}/>,             label:'Etiquetas',       c:'#39ff7e' },
+              { val:'pesaje',          icon:<Scale size={13}/>,           label:'Pesaje BT ⚡',    c:'#ff9500' },
+              { val:'pesaje-avanzado', icon:<ClipboardList size={13}/>,   label:'Pesaje Manual +', c:'#c084fc' },
+              { val:'estadisticas',    icon:<BarChart3 size={13}/>,       label:'Estadísticas',    c:'#f472b6' },
+            ].map(t => (
+              <TabsTrigger key={t.val} value={t.val}
+                className="flex-shrink-0 gap-1.5 h-9 px-3 text-xs font-semibold transition-all whitespace-nowrap"
+                style={activeTab === t.val
+                  ? {background:`rgba(${t.c.replace('#','').match(/../g)?.map(h=>parseInt(h,16)).join(',')},0.18)` || 'rgba(0,245,212,0.15)',
+                     color:t.c, border:`1px solid ${t.c}45`, borderRadius:10}
+                  : {borderRadius:10}}>
+                {t.icon} {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {/* ─── TABLA ─── */}
         <TabsContent value="tabla">

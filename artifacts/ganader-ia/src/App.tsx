@@ -33,6 +33,7 @@ import Pesaje from "./pages/pesaje";
 import Gps from "./pages/gps";
 import Planes from "./pages/planes";
 import Lotes from "./pages/lotes";
+import Datos from "./pages/datos";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,7 @@ function AuthGate() {
         <Route path="/gps" component={Gps} />
         <Route path="/planes" component={Planes} />
         <Route path="/lotes" component={Lotes} />
+        <Route path="/datos" component={Datos} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

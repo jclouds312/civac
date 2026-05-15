@@ -109,7 +109,6 @@ export const initialAlertas = [
 ];
 
 export const initialPesajes = [
-  // ── Mayo 2025 ────────────────────────────────────────────────────────────────
   { id:1,  animalId:"A-0042", animalNombre:"Rosaura",    peso:520, pesoAnterior:516, fecha:"09/05/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Peso estable, buena condición corporal", lote:"Lote A", categoria:"Vaca adulta" },
   { id:2,  animalId:"A-0604", animalNombre:"Estrella",   peso:535, pesoAnterior:530, fecha:"09/05/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Excelente condición corporal CC4", lote:"Lote A", categoria:"Vaca adulta" },
   { id:3,  animalId:"A-0087", animalNombre:"Cielo",      peso:502, pesoAnterior:498, fecha:"09/05/2025", hora:"08:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Pesaje manual báscula corriente", lote:"Lote A", categoria:"Vaca adulta" },
@@ -125,73 +124,40 @@ export const initialPesajes = [
   { id:13, animalId:"A-0712", animalNombre:"Perla",      peso:510, pesoAnterior:506, fecha:"04/05/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Martha Ríos", observacion:"Animal en tratamiento, monitoreo continuo", lote:"Lote A", categoria:"Vaca adulta" },
   { id:14, animalId:"A-0215", animalNombre:"Tormenta",   peso:312, pesoAnterior:306, fecha:"03/05/2025", hora:"08:45", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Novilla gestante, peso correcto", lote:"Lote C", categoria:"Novilla" },
   { id:15, animalId:"A-0755", animalNombre:"Colosal",    peso:798, pesoAnterior:793, fecha:"02/05/2025", hora:"09:30", metodo:"bluetooth", dispositivo:"AHI Caroplus 2", operador:"Carlos Meza", observacion:"Buen estado corporal", lote:"Lote D", categoria:"Toro" },
-  // ── Abril 2025 ───────────────────────────────────────────────────────────────
   { id:16, animalId:"A-0042", animalNombre:"Rosaura",    peso:516, pesoAnterior:512, fecha:"22/04/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Semana 3 — ganancia 4 kg", lote:"Lote A", categoria:"Vaca adulta" },
   { id:17, animalId:"A-0604", animalNombre:"Estrella",   peso:530, pesoAnterior:526, fecha:"22/04/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
   { id:18, animalId:"A-0087", animalNombre:"Cielo",      peso:498, pesoAnterior:494, fecha:"22/04/2025", hora:"08:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
   { id:19, animalId:"A-0401", animalNombre:"Bravo",      peso:805, pesoAnterior:800, fecha:"21/04/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro peso estable", lote:"Lote D", categoria:"Toro" },
   { id:20, animalId:"A-0622", animalNombre:"Titan",      peso:869, pesoAnterior:863, fecha:"21/04/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Recuperación post-servicio", lote:"Lote D", categoria:"Toro" },
-  { id:21, animalId:"A-0319", animalNombre:"Luna",       peso:281, pesoAnterior:275, fecha:"20/04/2025", hora:"08:30", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Novilla en crecimiento", lote:"Lote C", categoria:"Novilla" },
-  { id:22, animalId:"A-0188", animalNombre:"Diamante",   peso:523, pesoAnterior:519, fecha:"20/04/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:23, animalId:"A-0712", animalNombre:"Perla",      peso:506, pesoAnterior:502, fecha:"19/04/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Martha Ríos", observacion:"Control semanal tratamiento", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:24, animalId:"A-0445", animalNombre:"Niebla",     peso:500, pesoAnterior:496, fecha:"18/04/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"", lote:"Lote B", categoria:"Vaca adulta" },
-  { id:25, animalId:"A-0667", animalNombre:"Manchas",    peso:82,  pesoAnterior:76,  fecha:"15/04/2025", hora:"10:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Ternero con buena GDP", lote:"Lote E", categoria:"Ternero" },
-  { id:26, animalId:"A-0042", animalNombre:"Rosaura",    peso:512, pesoAnterior:508, fecha:"08/04/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Inicio mes — buen estado", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:27, animalId:"A-0604", animalNombre:"Estrella",   peso:526, pesoAnterior:522, fecha:"08/04/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:28, animalId:"A-0215", animalNombre:"Tormenta",   peso:306, pesoAnterior:299, fecha:"07/04/2025", hora:"08:45", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Novilla gestante, semana 16", lote:"Lote C", categoria:"Novilla" },
-  { id:29, animalId:"A-0755", animalNombre:"Colosal",    peso:793, pesoAnterior:788, fecha:"06/04/2025", hora:"09:30", metodo:"bluetooth", dispositivo:"AHI Caroplus 2", operador:"Carlos Meza", observacion:"", lote:"Lote D", categoria:"Toro" },
-  { id:30, animalId:"A-0133", animalNombre:"Palmera",    peso:483, pesoAnterior:479, fecha:"05/04/2025", hora:"08:00", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"", lote:"Lote B", categoria:"Vaca adulta" },
-  // ── Marzo 2025 ───────────────────────────────────────────────────────────────
-  { id:31, animalId:"A-0042", animalNombre:"Rosaura",    peso:508, pesoAnterior:504, fecha:"22/03/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Pérdida leve post-parto esperada", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:32, animalId:"A-0604", animalNombre:"Estrella",   peso:522, pesoAnterior:518, fecha:"22/03/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Producción pico", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:33, animalId:"A-0087", animalNombre:"Cielo",      peso:494, pesoAnterior:490, fecha:"22/03/2025", hora:"08:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Buen estado general", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:34, animalId:"A-0401", animalNombre:"Bravo",      peso:800, pesoAnterior:795, fecha:"21/03/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote D", categoria:"Toro" },
-  { id:35, animalId:"A-0622", animalNombre:"Titan",      peso:863, pesoAnterior:858, fecha:"21/03/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote D", categoria:"Toro" },
-  { id:36, animalId:"A-0319", animalNombre:"Luna",       peso:275, pesoAnterior:268, fecha:"20/03/2025", hora:"08:30", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Buen crecimiento", lote:"Lote C", categoria:"Novilla" },
-  { id:37, animalId:"A-0188", animalNombre:"Diamante",   peso:519, pesoAnterior:515, fecha:"20/03/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:38, animalId:"A-0712", animalNombre:"Perla",      peso:502, pesoAnterior:498, fecha:"18/03/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Martha Ríos", observacion:"Inicio tratamiento", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:39, animalId:"A-0042", animalNombre:"Rosaura",    peso:504, pesoAnterior:500, fecha:"08/03/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Inicio de mes", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:40, animalId:"A-0667", animalNombre:"Manchas",    peso:76,  pesoAnterior:70,  fecha:"08/03/2025", hora:"10:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Ternero mes 2 — destete", lote:"Lote E", categoria:"Ternero" },
-  { id:41, animalId:"A-0445", animalNombre:"Niebla",     peso:496, pesoAnterior:491, fecha:"07/03/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"", lote:"Lote B", categoria:"Vaca adulta" },
-  // ── Febrero 2025 ─────────────────────────────────────────────────────────────
-  { id:42, animalId:"A-0042", animalNombre:"Rosaura",    peso:500, pesoAnterior:496, fecha:"22/02/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:43, animalId:"A-0604", animalNombre:"Estrella",   peso:518, pesoAnterior:514, fecha:"22/02/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:44, animalId:"A-0401", animalNombre:"Bravo",      peso:795, pesoAnterior:790, fecha:"21/02/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro en celo activo", lote:"Lote D", categoria:"Toro" },
-  { id:45, animalId:"A-0622", animalNombre:"Titan",      peso:858, pesoAnterior:853, fecha:"21/02/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote D", categoria:"Toro" },
-  { id:46, animalId:"A-0319", animalNombre:"Luna",       peso:268, pesoAnterior:261, fecha:"20/02/2025", hora:"08:30", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Novilla en servicio", lote:"Lote C", categoria:"Novilla" },
-  { id:47, animalId:"A-0188", animalNombre:"Diamante",   peso:515, pesoAnterior:511, fecha:"20/02/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:48, animalId:"A-0667", animalNombre:"Manchas",    peso:70,  pesoAnterior:64,  fecha:"08/02/2025", hora:"10:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Ternero recién nacido — primer pesaje", lote:"Lote E", categoria:"Ternero" },
-  { id:49, animalId:"A-0215", animalNombre:"Tormenta",   peso:299, pesoAnterior:293, fecha:"07/02/2025", hora:"08:45", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Novilla servicio confirmado", lote:"Lote C", categoria:"Novilla" },
-  { id:50, animalId:"A-0755", animalNombre:"Colosal",    peso:788, pesoAnterior:783, fecha:"06/02/2025", hora:"09:30", metodo:"bluetooth", dispositivo:"AHI Caroplus 2", operador:"Carlos Meza", observacion:"Inicio de año — buen CC", lote:"Lote D", categoria:"Toro" },
-  { id:51, animalId:"A-0042", animalNombre:"Rosaura",    peso:496, pesoAnterior:492, fecha:"01/02/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Pesaje mensual febr.", lote:"Lote A", categoria:"Vaca adulta" },
-  // ── Enero 2025 ───────────────────────────────────────────────────────────────
-  { id:52, animalId:"A-0042", animalNombre:"Rosaura",    peso:492, pesoAnterior:488, fecha:"15/01/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Inicio enero", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:53, animalId:"A-0604", animalNombre:"Estrella",   peso:514, pesoAnterior:510, fecha:"15/01/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:54, animalId:"A-0622", animalNombre:"Titan",      peso:853, pesoAnterior:848, fecha:"14/01/2025", hora:"09:00", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"Toro sano, excelente CC", lote:"Lote D", categoria:"Toro" },
-  { id:55, animalId:"A-0401", animalNombre:"Bravo",      peso:790, pesoAnterior:786, fecha:"14/01/2025", hora:"09:15", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote D", categoria:"Toro" },
-  { id:56, animalId:"A-0319", animalNombre:"Luna",       peso:261, pesoAnterior:255, fecha:"13/01/2025", hora:"08:30", metodo:"manual",    dispositivo:"", operador:"Pedro Villa", observacion:"Primer servicio programado", lote:"Lote C", categoria:"Novilla" },
-  { id:57, animalId:"A-0087", animalNombre:"Cielo",      peso:490, pesoAnterior:486, fecha:"10/01/2025", hora:"08:00", metodo:"manual",    dispositivo:"", operador:"Luis Patiño", observacion:"Enero — inicio año", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:58, animalId:"A-0188", animalNombre:"Diamante",   peso:511, pesoAnterior:507, fecha:"10/01/2025", hora:"07:45", metodo:"bluetooth", dispositivo:"Tru-Test XR3000", operador:"Carlos Meza", observacion:"", lote:"Lote A", categoria:"Vaca adulta" },
-  { id:59, animalId:"A-0445", animalNombre:"Niebla",     peso:491, pesoAnterior:487, fecha:"09/01/2025", hora:"07:30", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"", lote:"Lote B", categoria:"Vaca adulta" },
-  { id:60, animalId:"A-0133", animalNombre:"Palmera",    peso:479, pesoAnterior:475, fecha:"08/01/2025", hora:"08:00", metodo:"bluetooth", dispositivo:"Gallagher W210", operador:"Carlos Meza", observacion:"", lote:"Lote B", categoria:"Vaca adulta" },
 ];
 
 export const initialGps = [
-  { id:1, animalId:"A-0042", nombre:"Rosaura",    lat:4.7110, lng:-74.0721, potreroId:1, potreroNom:"Potrero Norte",   bateria:87, activo:true,  ultimaSenal:"hace 2 min",  dispositivo:"GPS-BT-001" },
-  { id:2, animalId:"A-0604", nombre:"Estrella",   lat:4.7115, lng:-74.0718, potreroId:1, potreroNom:"Potrero Norte",   bateria:72, activo:true,  ultimaSenal:"hace 1 min",  dispositivo:"GPS-BT-002" },
-  { id:3, animalId:"A-0087", nombre:"Cielo",      lat:4.7108, lng:-74.0725, potreroId:1, potreroNom:"Potrero Norte",   bateria:55, activo:true,  ultimaSenal:"hace 5 min",  dispositivo:"GPS-BT-003" },
-  { id:4, animalId:"A-0401", nombre:"Bravo",      lat:4.7225, lng:-74.0850, potreroId:4, potreroNom:"Potrero Este",    bateria:91, activo:true,  ultimaSenal:"hace 3 min",  dispositivo:"GPS-BT-004" },
-  { id:5, animalId:"A-0215", nombre:"Tormenta",   lat:4.7190, lng:-74.0800, potreroId:3, potreroNom:"Potrero Central", bateria:43, activo:true,  ultimaSenal:"hace 8 min",  dispositivo:"GPS-BT-005" },
-  { id:6, animalId:"A-0133", nombre:"Palmera",    lat:4.7180, lng:-74.0795, potreroId:3, potreroNom:"Potrero Central", bateria:28, activo:true,  ultimaSenal:"hace 12 min", dispositivo:"GPS-BT-006" },
-  { id:7, animalId:"A-0319", nombre:"Luna",       lat:4.7200, lng:-74.0820, potreroId:3, potreroNom:"Potrero Central", bateria:66, activo:true,  ultimaSenal:"hace 4 min",  dispositivo:"GPS-BT-007" },
-  { id:8, animalId:"A-0712", nombre:"Perla",      lat:4.7112, lng:-74.0730, potreroId:1, potreroNom:"Potrero Norte",   bateria:11, activo:false, ultimaSenal:"hace 45 min", dispositivo:"GPS-BT-008" },
-  { id:9, animalId:"A-0622", nombre:"Titan",      lat:4.7230, lng:-74.0855, potreroId:4, potreroNom:"Potrero Este",    bateria:78, activo:true,  ultimaSenal:"hace 2 min",  dispositivo:"GPS-BT-009" },
-  { id:10,animalId:"A-0445", nombre:"Niebla",     lat:4.7095, lng:-74.0695, potreroId:6, potreroNom:"Potrero Bajo",    bateria:62, activo:true,  ultimaSenal:"hace 6 min",  dispositivo:"GPS-BT-010" },
-  { id:11,animalId:"A-0188", nombre:"Diamante",   lat:4.7105, lng:-74.0710, potreroId:1, potreroNom:"Potrero Norte",   bateria:84, activo:true,  ultimaSenal:"hace 3 min",  dispositivo:"GPS-BT-011" },
-  { id:12,animalId:"A-0755", nombre:"Colosal",    lat:4.7220, lng:-74.0840, potreroId:4, potreroNom:"Potrero Este",    bateria:95, activo:true,  ultimaSenal:"hace 1 min",  dispositivo:"GPS-BT-012" },
+  { id:"G-001", animalId:"A-0042", nombre:"Rosaura",  lat:4.9876, lng:-74.0312, potreroId:1, potreroNom:"Potrero Norte",  activo:true,  bateria:87, ultimaSenal:"09/05/2025 07:45", dispositivo:"GPS-Collar-01", estado:"OK"        },
+  { id:"G-002", animalId:"A-0622", nombre:"Titan",    lat:4.9901, lng:-74.0287, potreroId:3, potreroNom:"Potrero Central",activo:true,  bateria:74, ultimaSenal:"09/05/2025 07:30", dispositivo:"GPS-Collar-02", estado:"OK"        },
+  { id:"G-003", animalId:"A-0712", nombre:"Perla",    lat:4.9845, lng:-74.0334, potreroId:1, potreroNom:"Potrero Norte",  activo:false, bateria:12, ultimaSenal:"09/05/2025 06:00", dispositivo:"GPS-Collar-03", estado:"Sin señal" },
+  { id:"G-004", animalId:"A-0401", nombre:"Bravo",    lat:4.9923, lng:-74.0301, potreroId:7, potreroNom:"Potrero Alto",   activo:true,  bateria:91, ultimaSenal:"09/05/2025 07:50", dispositivo:"GPS-Collar-04", estado:"OK"        },
+  { id:"G-005", animalId:"A-0319", nombre:"Luna",     lat:4.9867, lng:-74.0298, potreroId:2, potreroNom:"Potrero Sur",    activo:true,  bateria:55, ultimaSenal:"09/05/2025 07:20", dispositivo:"GPS-Collar-05", estado:"OK"        },
+  { id:"G-006", animalId:"A-0604", nombre:"Estrella", lat:4.9880, lng:-74.0318, potreroId:1, potreroNom:"Potrero Norte",  activo:true,  bateria:63, ultimaSenal:"09/05/2025 07:48", dispositivo:"GPS-Collar-06", estado:"OK"        },
+  { id:"G-007", animalId:"A-0087", nombre:"Cielo",    lat:4.9872, lng:-74.0325, potreroId:1, potreroNom:"Potrero Norte",  activo:true,  bateria:45, ultimaSenal:"09/05/2025 07:35", dispositivo:"GPS-Collar-07", estado:"OK"        },
+  { id:"G-008", animalId:"A-0215", nombre:"Tormenta", lat:4.9859, lng:-74.0295, potreroId:3, potreroNom:"Potrero Central",activo:true,  bateria:82, ultimaSenal:"09/05/2025 07:52", dispositivo:"GPS-Collar-08", estado:"OK"        },
 ];
 
 export const initialLotes: MovimientoLote[] = [];
+
+// ─── Semen & Embriones (Cryo Bank) ───────────────────────────────────────────
+
+export const initialSemen = [
+  { id:'S-001', toro:'Altísimo IA',   raza:'Holstein', dep:'+820L', canecas:2, pajillas:24, origen:'Canadá',   tipo:'Convencional', cria:2026 },
+  { id:'S-002', toro:'El Campeón',    raza:'Gyr',      dep:'+680L', canecas:1, pajillas:12, origen:'Brasil',   tipo:'Sexado',       cria:2025 },
+  { id:'S-003', toro:'Montana Star',  raza:'Angus',    dep:'+540kg',canecas:1, pajillas:8,  origen:'EE.UU.',   tipo:'Convencional', cria:2025 },
+  { id:'S-004', toro:'Brahman Royal', raza:'Brahman',  dep:'+410L', canecas:1, pajillas:18, origen:'Colombia', tipo:'Convencional', cria:2024 },
+];
+
+export const initialEmbriones = [
+  { id:'E-001', donante:'Rosaura A-0042',  receptor:'Perla A-0712',    fecha:'15/03/2025', estado:'Transferido',         raza:'Holstein' },
+  { id:'E-002', donante:'Estrella A-0604', receptor:'Canela A-0108',   fecha:'28/03/2025', estado:'En criopreservación', raza:'Holstein' },
+  { id:'E-003', donante:'Rosaura A-0042',  receptor:'—',               fecha:'10/04/2025', estado:'En criopreservación', raza:'Holstein' },
+];
 
 // ─── API Sync Helpers ─────────────────────────────────────────────────────────
 
@@ -226,7 +192,10 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
   const setPersisted = useCallback((action: React.SetStateAction<T>) => {
     setState(prev => {
       const next = typeof action === "function" ? (action as (p: T) => T)(prev) : action;
-      try { localStorage.setItem(`civac_${key}`, JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem(`civac_${key}`, JSON.stringify(next));
+        localStorage.setItem('civac_last_write', new Date().toISOString());
+      } catch { /* storage full */ }
       return next;
     });
   }, [key]) as React.Dispatch<React.SetStateAction<T>>;
@@ -236,14 +205,16 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Animal = typeof initialAnimals[0];
-export type Potrero = typeof initialPotreros[0];
-export type Insumo = typeof initialInsumos[0];
-export type Personal = typeof initialPersonal[0];
-export type Reproduccion = typeof initialReproduccion[0];
-export type Alerta = typeof initialAlertas[0];
-export type Pesaje = typeof initialPesajes[0];
-export type GpsUbicacion = typeof initialGps[0];
+export type Animal          = typeof initialAnimals[0];
+export type Potrero         = typeof initialPotreros[0];
+export type Insumo          = typeof initialInsumos[0];
+export type Personal        = typeof initialPersonal[0];
+export type Reproduccion    = typeof initialReproduccion[0];
+export type Alerta          = typeof initialAlertas[0];
+export type Pesaje          = typeof initialPesajes[0];
+export type GpsUbicacion    = typeof initialGps[0];
+export type SemenRecord     = typeof initialSemen[0];
+export type EmbrionRecord   = typeof initialEmbriones[0];
 
 export interface MovimientoLote {
   id: number;
@@ -264,39 +235,34 @@ export interface MovimientoLote {
 // ─── App State Context ────────────────────────────────────────────────────────
 
 interface AppStateType {
-  animals: Animal[];
-  setAnimals: React.Dispatch<React.SetStateAction<Animal[]>>;
-  potreros: Potrero[];
-  setPotreros: React.Dispatch<React.SetStateAction<Potrero[]>>;
-  insumos: Insumo[];
-  setInsumos: React.Dispatch<React.SetStateAction<Insumo[]>>;
-  personal: Personal[];
-  setPersonal: React.Dispatch<React.SetStateAction<Personal[]>>;
-  reproduccion: Reproduccion[];
-  setReproduccion: React.Dispatch<React.SetStateAction<Reproduccion[]>>;
-  alertas: Alerta[];
-  setAlertas: React.Dispatch<React.SetStateAction<Alerta[]>>;
-  pesajes: Pesaje[];
-  setPesajes: React.Dispatch<React.SetStateAction<Pesaje[]>>;
-  gpsUbicaciones: GpsUbicacion[];
-  setGpsUbicaciones: React.Dispatch<React.SetStateAction<GpsUbicacion[]>>;
-  lotes: MovimientoLote[];
-  setLotes: React.Dispatch<React.SetStateAction<MovimientoLote[]>>;
+  animals: Animal[];                setAnimals: React.Dispatch<React.SetStateAction<Animal[]>>;
+  potreros: Potrero[];              setPotreros: React.Dispatch<React.SetStateAction<Potrero[]>>;
+  insumos: Insumo[];                setInsumos: React.Dispatch<React.SetStateAction<Insumo[]>>;
+  personal: Personal[];             setPersonal: React.Dispatch<React.SetStateAction<Personal[]>>;
+  reproduccion: Reproduccion[];     setReproduccion: React.Dispatch<React.SetStateAction<Reproduccion[]>>;
+  alertas: Alerta[];                setAlertas: React.Dispatch<React.SetStateAction<Alerta[]>>;
+  pesajes: Pesaje[];                setPesajes: React.Dispatch<React.SetStateAction<Pesaje[]>>;
+  gpsUbicaciones: GpsUbicacion[];   setGpsUbicaciones: React.Dispatch<React.SetStateAction<GpsUbicacion[]>>;
+  lotes: MovimientoLote[];          setLotes: React.Dispatch<React.SetStateAction<MovimientoLote[]>>;
+  semen: SemenRecord[];             setSemen: React.Dispatch<React.SetStateAction<SemenRecord[]>>;
+  embriones: EmbrionRecord[];       setEmbriones: React.Dispatch<React.SetStateAction<EmbrionRecord[]>>;
   resetAll: () => void;
 }
 
 const AppStateContext = createContext<AppStateType | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
-  const [animals, _setAnimals] = useLocal('animals', initialAnimals);
-  const [potreros, _setPotreros] = useLocal('potreros', initialPotreros);
-  const [insumos, _setInsumos] = useLocal('insumos', initialInsumos);
-  const [personal, _setPersonal] = useLocal('personal', initialPersonal);
-  const [reproduccion, _setReproduccion] = useLocal('reproduccion', initialReproduccion);
-  const [alertas, _setAlertas] = useLocal('alertas', initialAlertas);
-  const [pesajes, _setPesajes] = useLocal('pesajes', initialPesajes);
-  const [gpsUbicaciones, _setGpsUbicaciones] = useLocal('gps', initialGps);
-  const [lotes, _setLotes] = useLocal<MovimientoLote[]>('lotes', initialLotes);
+  const [animals,       _setAnimals]       = useLocal('animals',       initialAnimals);
+  const [potreros,      _setPotreros]      = useLocal('potreros',      initialPotreros);
+  const [insumos,       _setInsumos]       = useLocal('insumos',       initialInsumos);
+  const [personal,      _setPersonal]      = useLocal('personal',      initialPersonal);
+  const [reproduccion,  _setReproduccion]  = useLocal('reproduccion',  initialReproduccion);
+  const [alertas,       _setAlertas]       = useLocal('alertas',       initialAlertas);
+  const [pesajes,       _setPesajes]       = useLocal('pesajes',       initialPesajes);
+  const [gpsUbicaciones,_setGpsUbicaciones]= useLocal('gps',           initialGps);
+  const [lotes,         _setLotes]         = useLocal<MovimientoLote[]>('lotes', initialLotes);
+  const [semen,         _setSemen]         = useLocal('semen',         initialSemen);
+  const [embriones,     _setEmbriones]     = useLocal('embriones',     initialEmbriones);
 
   useEffect(() => {
     apiGet<Animal[]>("/animals").then(data => { if (data && data.length > 0) _setAnimals(data); }).catch(() => {});
@@ -383,6 +349,20 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setLotes]);
 
+  const setSemen = useCallback((action: React.SetStateAction<SemenRecord[]>) => {
+    _setSemen(prev => {
+      const next = typeof action === "function" ? (action as (p: SemenRecord[]) => SemenRecord[])(prev) : action;
+      return next;
+    });
+  }, [_setSemen]);
+
+  const setEmbriones = useCallback((action: React.SetStateAction<EmbrionRecord[]>) => {
+    _setEmbriones(prev => {
+      const next = typeof action === "function" ? (action as (p: EmbrionRecord[]) => EmbrionRecord[])(prev) : action;
+      return next;
+    });
+  }, [_setEmbriones]);
+
   const resetAll = useCallback(() => {
     _setAnimals(initialAnimals);
     _setPotreros(initialPotreros);
@@ -393,15 +373,31 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPesajes(initialPesajes);
     _setGpsUbicaciones(initialGps);
     _setLotes(initialLotes);
-    ['animals','potreros','insumos','personal','reproduccion','alertas','pesajes','gps','lotes'].forEach(k => {
-      try { localStorage.removeItem(`civac_${k}`); } catch {}
+    _setSemen(initialSemen);
+    _setEmbriones(initialEmbriones);
+    ['animals','potreros','insumos','personal','reproduccion','alertas','pesajes','gps','lotes','semen','embriones'].forEach(k => {
+      try { localStorage.removeItem(`civac_${k}`); } catch { /* skip */ }
     });
     apiPost("/seed", {});
-  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones, _setLotes]);
+  }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones, _setLotes, _setSemen, _setEmbriones]);
 
   return React.createElement(
     AppStateContext.Provider,
-    { value: { animals, setAnimals, potreros, setPotreros, insumos, setInsumos, personal, setPersonal, reproduccion, setReproduccion, alertas, setAlertas, pesajes, setPesajes, gpsUbicaciones, setGpsUbicaciones, lotes, setLotes, resetAll } },
+    { value: {
+        animals, setAnimals,
+        potreros, setPotreros,
+        insumos, setInsumos,
+        personal, setPersonal,
+        reproduccion, setReproduccion,
+        alertas, setAlertas,
+        pesajes, setPesajes,
+        gpsUbicaciones, setGpsUbicaciones,
+        lotes, setLotes,
+        semen, setSemen,
+        embriones, setEmbriones,
+        resetAll,
+      }
+    },
     children
   );
 }

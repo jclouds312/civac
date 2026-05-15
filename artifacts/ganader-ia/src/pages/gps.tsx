@@ -28,15 +28,15 @@ const POTREROS_BOUNDS: Record<number, { x: number; y: number; w: number; h: numb
   6: { x: 5, y: 74, w: 25, h: 20, label: 'Potrero 6\n3.5 ha · Kikuyo' },
 };
 
-const ANIMAL_POSITIONS: Record<number, { x: number; y: number }> = {
-  1: { x: 18, y: 18 }, // Rosaura - P1
-  2: { x: 24, y: 22 }, // Estrella - P1
-  3: { x: 15, y: 26 }, // Cielo - P1
-  4: { x: 16, y: 52 }, // Bravo - P4
-  5: { x: 80, y: 20 }, // Tormenta - P3
-  6: { x: 76, y: 28 }, // Palmera - P3
-  7: { x: 84, y: 35 }, // Luna - P3
-  8: { x: 28, y: 15 }, // Perla - P1
+const ANIMAL_POSITIONS: Record<string, { x: number; y: number }> = {
+  'G-001': { x: 18, y: 18 }, // Rosaura - P1
+  'G-002': { x: 51, y: 50 }, // Titan - P4/Alto
+  'G-003': { x: 28, y: 15 }, // Perla - P1
+  'G-004': { x: 16, y: 52 }, // Bravo - P4
+  'G-005': { x: 84, y: 35 }, // Luna - P3
+  'G-006': { x: 24, y: 22 }, // Estrella - P1
+  'G-007': { x: 15, y: 26 }, // Cielo - P1
+  'G-008': { x: 80, y: 20 }, // Tormenta - P3
 };
 
 function BatteryIcon({ pct }: { pct: number }) {
@@ -54,7 +54,7 @@ export default function Gps() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [search, setSearch] = useState("");
-  const [hoveredAnimal, setHoveredAnimal] = useState<number | null>(null);
+  const [hoveredAnimal, setHoveredAnimal] = useState<string | null>(null);
   const [selectedAnimal, setSelectedAnimal] = useState<typeof gpsUbicaciones[0] | null>(null);
 
   const refresh = async () => {

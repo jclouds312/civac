@@ -40,6 +40,7 @@ const MODULES: Record<string, {
   '/manual':        { from:'#2dd4bf', to:'#0d9488', glow:'45,212,191',  emoji:'📖', label:'Manual de Uso',       shortLabel:'Manual' },
   '/planes':        { from:'#fbbf24', to:'#ea580c', glow:'251,191,36',  emoji:'👑', label:'Planes · Wompi',      shortLabel:'Planes' },
   '/lotes':         { from:'#00c8ff', to:'#0891b2', glow:'0,200,255',   emoji:'🐂', label:'Movimiento Lotes',    shortLabel:'Lotes' },
+  '/datos':         { from:'#818cf8', to:'#4f46e5', glow:'129,140,248', emoji:'🗄️', label:'Data Warehouse',       shortLabel:'Datos' },
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -402,6 +403,7 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/multifinca" />
           </Section>
           <Section title="Sistema">
+            <NavItem href="/datos" accent="DB" accentColor="bg-indigo-500/15 text-indigo-400 border-indigo-500/25" />
             <NavItem href="/usuarios" />
             <NavItem href="/configuracion" />
             <NavItem href="/documentacion" />

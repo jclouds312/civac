@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, MapPin, Bell, Palette, Shield, Database, Save, RotateCcw, Sun, Moon, Monitor, Trash2, Download, Upload, CheckCircle, AlertTriangle } from "lucide-react";
+import { Settings, MapPin, Bell, Palette, Shield, Database, Save, RotateCcw, Sun, Moon, Monitor, Trash2, Download, Upload, CheckCircle, AlertTriangle, FileJson, RefreshCw } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useAppState } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
+import { exportFullBackup, readBackupFile, applyBackupToLocalStorage, getStorageStats, formatBytes, getTotalStorageBytes, getTotalRecords } from "@/lib/export";
 
 const tabs = ["Finca", "Apariencia", "Notificaciones", "Seguridad", "Datos"];
 
@@ -36,8 +37,9 @@ export default function Configuracion() {
   });
 
   const { theme, setTheme } = useTheme();
-  const { resetAll } = useAppState();
-  const { logout } = useAuth();
+  const state = useAppState();
+  const { resetAll } = state;
+  const { user, logout } = useAuth();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handleSave = () => {
@@ -54,17 +56,33 @@ export default function Configuracion() {
     setShowResetConfirm(false);
   };
 
+  const importRef = useRef<HTMLInputElement>(null);
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
   const handleExport = () => {
-    const data = {
-      finca,
-      exportedAt: new Date().toISOString(),
-      version: "GanaderIA v2.0",
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `ganader-ia-backup-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
+    const { animals, potreros, insumos, personal, reproduccion, alertas, pesajes, gpsUbicaciones, lotes, semen, embriones } = state;
+    exportFullBackup(
+      { animals, potreros, insumos, personal, reproduccion, alertas, pesajes, gps: gpsUbicaciones, lotes, semen, embriones } as Record<string, unknown[]>,
+      user?.nombre
+    );
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportMsg(null);
+    try {
+      const backup = await readBackupFile(file);
+      applyBackupToLocalStorage(backup);
+      setImportMsg({ ok: true, text: 'Backup restaurado. Recargando…' });
+      setTimeout(() => window.location.reload(), 1800);
+    } catch (err: unknown) {
+      setImportMsg({ ok: false, text: String((err as Error).message || 'Error') });
+      setImporting(false);
+    }
+    if (importRef.current) importRef.current.value = '';
   };
 
   return (
@@ -348,96 +366,101 @@ export default function Configuracion() {
       )}
 
       {/* ── Datos ── */}
-      {activeTab === "Datos" && (
-        <div className="grid lg:grid-cols-2 gap-4 max-w-3xl">
-          <Card className="border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2"><Database size={16} className="text-primary" />Base de datos local</CardTitle>
-              <CardDescription>Datos almacenados en este navegador (localStorage)</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
+      {activeTab === "Datos" && (() => {
+        const stats = getStorageStats();
+        const totalBytes = getTotalStorageBytes();
+        const totalRecords = getTotalRecords({ animals: state.animals, potreros: state.potreros, insumos: state.insumos, personal: state.personal, reproduccion: state.reproduccion, alertas: state.alertas, pesajes: state.pesajes, gps: state.gpsUbicaciones, lotes: state.lotes, semen: state.semen, embriones: state.embriones });
+        return (
+          <div className="space-y-4 max-w-3xl">
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3">
               {[
-                { nombre: "Animales", key: "ganader_animals", icon: "🐄" },
-                { nombre: "Potreros", key: "ganader_potreros", icon: "🌿" },
-                { nombre: "Insumos", key: "ganader_insumos", icon: "📦" },
-                { nombre: "Personal", key: "ganader_personal", icon: "👷" },
-                { nombre: "Reproducción", key: "ganader_reproduccion", icon: "🔁" },
-                { nombre: "Alertas", key: "ganader_alertas", icon: "🔔" },
-              ].map(({ nombre, key, icon }) => {
-                let size = 0;
-                try { size = new Blob([localStorage.getItem(key) || '']).size; } catch {}
-                return (
-                  <div key={key} className="flex items-center justify-between py-1 border-b border-border last:border-0">
-                    <span className="text-sm text-foreground flex items-center gap-2">{icon} {nombre}</span>
-                    <div className="flex items-center gap-2">
-                      {size > 0 ? (
-                        <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
-                          {size > 1024 ? `${(size/1024).toFixed(1)} KB` : `${size} B`}
+                { label: 'Registros totales', val: String(totalRecords), icon: <Database size={14} /> },
+                { label: 'Espacio usado', val: formatBytes(totalBytes), icon: <Download size={14} /> },
+                { label: 'Módulos activos', val: `${stats.filter(s => s.hasData).length}/11`, icon: <CheckCircle size={14} /> },
+              ].map(k => (
+                <div key={k.label} className="rounded-xl p-3 border border-border bg-muted/20 text-center">
+                  <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">{k.icon}</div>
+                  <div className="font-black text-lg text-foreground">{k.val}</div>
+                  <div className="text-[10px] text-muted-foreground">{k.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-4">
+              {/* Module list */}
+              <Card className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2"><Database size={16} className="text-primary" />Base de datos local</CardTitle>
+                  <CardDescription>Almacenamiento en este navegador</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-1.5">
+                  {stats.slice(0, 8).map(m => (
+                    <div key={m.key} className="flex items-center justify-between py-1 border-b border-border last:border-0">
+                      <span className="text-sm text-foreground flex items-center gap-2">{m.emoji} {m.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Badge className={`text-[10px] ${m.hasData ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-muted text-muted-foreground'}`}>
+                          {m.hasData ? formatBytes(m.bytes) : 'Semilla'}
                         </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Datos semilla</Badge>
-                      )}
+                        <span className="text-[10px] font-bold text-muted-foreground">{m.count}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+                  ))}
+                </CardContent>
+              </Card>
 
-          <Card className="border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Gestión de datos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                variant="outline"
-                className="w-full gap-2 justify-start border-border"
-                onClick={handleExport}
-              >
-                <Download size={14} />
-                Exportar configuración (JSON)
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full gap-2 justify-start border-border opacity-60 cursor-not-allowed"
-                disabled
-              >
-                <Upload size={14} />
-                Importar datos (próximamente)
-              </Button>
-
-              <div className="pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-3">Esta acción restaura todos los datos al estado inicial de demostración.</p>
-                {!showResetConfirm ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2 border-red-500/30 text-red-500 hover:bg-red-500/10"
-                    onClick={() => setShowResetConfirm(true)}
-                  >
-                    <RotateCcw size={13} />
-                    Restablecer datos de fábrica
+              {/* Export / Import / Reset */}
+              <Card className="border-border">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Gestión de datos</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button variant="outline" className="w-full gap-2 justify-start border-border" onClick={handleExport}>
+                    <FileJson size={14} /> Backup completo (JSON)
                   </Button>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-500 flex items-start gap-2">
-                      <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />
-                      <span>¿Está seguro? Todos los cambios realizados se perderán y los datos volverán al estado inicial.</span>
+                  <Button variant="outline" className="w-full gap-2 justify-start border-border"
+                    onClick={() => importRef.current?.click()}>
+                    {importing
+                      ? <><RefreshCw size={14} className="animate-spin" /> Importando…</>
+                      : <><Upload size={14} /> Restaurar backup (JSON)</>}
+                  </Button>
+                  <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+
+                  {importMsg && (
+                    <div className={`rounded-lg p-2.5 flex items-center gap-2 text-xs ${importMsg.ok ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                      {importMsg.ok ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
+                      {importMsg.text}
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setShowResetConfirm(false)}>Cancelar</Button>
-                      <Button size="sm" className="flex-1 text-xs bg-red-600 hover:bg-red-700 text-white gap-1" onClick={handleReset}>
-                        <Trash2 size={11} />
-                        Confirmar
+                  )}
+
+                  <div className="pt-2 border-t border-border">
+                    <p className="text-xs text-muted-foreground mb-2">Restaurar al estado inicial de demostración.</p>
+                    {!showResetConfirm ? (
+                      <Button variant="outline" size="sm" className="w-full gap-2 border-red-500/30 text-red-500 hover:bg-red-500/10"
+                        onClick={() => setShowResetConfirm(true)}>
+                        <RotateCcw size={13} /> Restablecer datos de fábrica
                       </Button>
-                    </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-red-500 flex items-start gap-2">
+                          <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" />
+                          <span>¿Seguro? Todos los cambios se perderán y los datos volverán al estado demo.</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => setShowResetConfirm(false)}>Cancelar</Button>
+                          <Button size="sm" className="flex-1 text-xs bg-red-600 hover:bg-red-700 text-white gap-1" onClick={handleReset}>
+                            <Trash2 size={11} /> Confirmar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

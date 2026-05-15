@@ -24,6 +24,7 @@ const SECTIONS = [
   { id: "drive",        label: "Sync & Backups",       icon: Cloud },
   { id: "usuarios",     label: "Usuarios y Roles",     icon: Users },
   { id: "descarga",     label: "Exportar datos",       icon: FileDown },
+  { id: "ventas",       label: "🇨🇴 Agente de Ventas", icon: DollarSign },
 ];
 
 function SectionBanner({ emoji, title, subtitle, c1, c2, border }: {

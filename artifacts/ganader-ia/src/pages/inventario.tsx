@@ -1500,60 +1500,458 @@ export default function Inventario() {
 
         {/* ─── PESAJE MANUAL AVANZADO ─── */}
         <TabsContent value="pesaje-avanzado">
-          {/* Banner */}
-          <div className="rounded-xl p-5 mb-4 relative overflow-hidden"
-            style={{background:'linear-gradient(135deg,#120020,#1e0035,#120020)',border:'1px solid rgba(167,139,250,0.4)',boxShadow:'0 0 40px rgba(167,139,250,0.1)'}}>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-              <ClipboardList className="w-28 h-28 text-purple-300"/>
-            </div>
-            <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{background:'rgba(167,139,250,0.12)',border:'1px solid rgba(167,139,250,0.45)',boxShadow:'0 0 20px rgba(167,139,250,0.25)'}}>
-                  <ClipboardList size={26} style={{color:'#a78bfa'}}/>
+
+          {/* ════════════════════════════════════════════════════════════════
+              WIDGET DIGITAL DE BÁSCULA — interfaz principal de pesaje
+          ════════════════════════════════════════════════════════════════ */}
+          {(() => {
+            const focusedAnimal = animals.find(a => a.id === focusedAnimalId) ?? null;
+            const fRow = focusedAnimal ? getAdvRow(focusedAnimal) : null;
+            const fCat  = focusedAnimal ? (CAT_CONFIG[focusedAnimal.categoria] || CAT_CONFIG["Vaca adulta"]) : null;
+            const fCC   = fRow ? (CC_CONFIG[fRow.condicion] || CC_CONFIG["3.0"]) : null;
+            const fEsp  = focusedAnimal ? getPesoEspAdv(focusedAnimal.raza, focusedAnimal.categoria) : null;
+            const fPesoN = fRow ? (Number(fRow.peso) || focusedAnimal!.peso) : 0;
+            const fDiff  = focusedAnimal ? (fPesoN - focusedAnimal.peso) : 0;
+            const fPct   = fEsp ? Math.min(100, Math.round((fPesoN / fEsp.promedio) * 100)) : 0;
+            const fUnder = fEsp ? fPesoN < fEsp.min : false;
+            const fOver  = fEsp ? fPesoN > fEsp.max : false;
+            const fLastP = focusedAnimal ? pesajes.filter(p=>p.animalId===focusedAnimal.id).sort((x,y)=>y.id-x.id)[0] : null;
+            const fGmd   = fLastP && focusedAnimal ? ((fPesoN - fLastP.peso) / 30).toFixed(2) : null;
+            const fNutri = fRow ? getNutriRec(fRow.condicion, focusedAnimal?.categoria||"Vaca adulta") : "";
+            const fValor = fRow ? fPesoN * (Number(fRow.valorKilo)||0) : 0;
+            const pending = Object.values(advRows).filter(r=>r.modified&&!r.saved).length;
+            const queueList = animals.filter(a => a.id !== focusedAnimalId && !advRows[a.id]?.saved).slice(0,5);
+
+            /* ── función: guardar foco y avanzar al siguiente ── */
+            const saveAndNext = () => {
+              if (!focusedAnimal || !fRow) return;
+              saveAdvRow(focusedAnimal);
+              const remaining = animals.filter(a => a.id !== focusedAnimalId && !advRows[a.id]?.saved);
+              if (remaining.length > 0) setFocusedAnimalId(remaining[0].id);
+              else setFocusedAnimalId(null);
+            };
+
+            /* ── función: imprimir recibo inmediato del animal enfocado ── */
+            const printFocused = () => {
+              if (!focusedAnimal || !fRow) return;
+              const w = window.open('','_blank','width=520,height=680');
+              if (!w) return;
+              const now = new Date();
+              w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+                <title>Recibo Pesaje — ${focusedAnimal.nombre}</title>
+                <style>
+                  body{font-family:Arial,sans-serif;margin:0;padding:24px;background:#fff;color:#111}
+                  h1{font-size:20px;margin:0 0 2px}
+                  .sub{color:#666;font-size:11px;margin-bottom:16px}
+                  table{width:100%;border-collapse:collapse;font-size:12px}
+                  td{padding:6px 10px;border-bottom:1px solid #eee}
+                  td:first-child{color:#555;font-weight:600;width:160px}
+                  td:last-child{font-weight:700}
+                  .big{font-size:36px;font-weight:900;text-align:center;padding:16px;background:#f0fdf4;border-radius:12px;margin:12px 0;border:2px solid #22c55e;letter-spacing:2px}
+                  .footer{margin-top:20px;font-size:9px;color:#aaa;text-align:center;border-top:1px solid #ddd;padding-top:10px}
+                  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-left:6px}
+                  .diff{color:${fDiff>=0?'#22c55e':'#ef4444'}}
+                  @media print{body{padding:12px}.big{padding:12px}button{display:none}}
+                </style>
+              </head><body>
+                <div style="text-align:center;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:16px">
+                  <div style="font-size:24px;margin-bottom:4px">🐄 CIVAC PRO</div>
+                  <h1>RECIBO DE PESAJE MANUAL</h1>
+                  <div class="sub">Control Inteligente de Valor Agropecuario · Colombia</div>
+                  <div style="font-size:11px;color:#888">${now.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · ${now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <h2 className="text-xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>Pesaje Manual Avanzado</h2>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{background:'rgba(167,139,250,0.2)',color:'#a78bfa',border:'1px solid rgba(167,139,250,0.4)'}}>PRO</span>
+                <div class="big">${fPesoN.toFixed(1)} <span style="font-size:18px;color:#666">kg</span>
+                  <span class="diff" style="font-size:16px"> (${fDiff>=0?'+':''}${fDiff.toFixed(1)} kg)</span>
+                </div>
+                <table><tbody>
+                  <tr><td>Animal</td><td>${focusedAnimal.nombre}</td></tr>
+                  <tr><td>Arete / ID</td><td>#${focusedAnimal.id}</td></tr>
+                  <tr><td>Raza</td><td>${focusedAnimal.raza}</td></tr>
+                  <tr><td>Categoría</td><td>${focusedAnimal.categoria}</td></tr>
+                  <tr><td>Lote</td><td>${focusedAnimal.lote}</td></tr>
+                  <tr><td>Estado</td><td>${focusedAnimal.estado}</td></tr>
+                  <tr><td>Peso anterior</td><td>${focusedAnimal.peso} kg</td></tr>
+                  <tr><td>Peso nuevo</td><td>${fPesoN.toFixed(1)} kg</td></tr>
+                  <tr><td>Variación</td><td class="diff">${fDiff>=0?'+':''}${fDiff.toFixed(1)} kg (${fPct}% del promedio raza)</td></tr>
+                  <tr><td>Condición Corporal</td><td>${fRow?.condicion} — ${fCC?.label}</td></tr>
+                  ${fGmd ? `<tr><td>GMD (30 días)</td><td>${Number(fGmd)>=0?'+':''}${fGmd} kg/día</td></tr>` : ''}
+                  ${(Number(fRow?.valorKilo)||0)>0 ? `<tr><td>Valor estimado</td><td>${new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(fValor)}</td></tr>` : ''}
+                  <tr><td>Observaciones</td><td>${fRow?.observacion||'—'}</td></tr>
+                  <tr><td>Operador</td><td>${user?.nombre||'Admin'}</td></tr>
+                </tbody></table>
+                <div class="footer">CIVAC PRO v3.0 · GanaderIA Colombia · Impreso: ${now.toLocaleString('es-CO')}</div>
+                <script>window.onload=function(){window.print();setTimeout(function(){window.close()},1000)}<\/script>
+              </body></html>`);
+              w.document.close();
+            };
+
+            return (
+              <div className="mb-5">
+                {/* ── Top bar — session counters + actions ── */}
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                      style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.4)'}}>
+                      <ClipboardList size={14} style={{color:'#a78bfa'}}/>
+                    </div>
+                    <div>
+                      <span className="font-black text-white text-sm" style={{fontFamily:'Sora,sans-serif'}}>Pesaje Manual</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full ml-1.5 font-bold"
+                        style={{background:'rgba(167,139,250,0.15)',color:'#a78bfa',border:'1px solid rgba(167,139,250,0.3)'}}>PRO</span>
+                    </div>
                   </div>
-                  <p className="text-sm" style={{color:'rgba(196,181,253,0.7)'}}>
-                    CC (Condición Corporal 1–5) · GMD · Alerta nutricional · Referencia por raza · Sesión completa
-                  </p>
-                  <div className="flex flex-wrap gap-3 mt-1.5">
+                  <div className="flex gap-2 ml-auto flex-wrap">
                     {[
-                      {label:`${animals.length} animales`, c:'#a78bfa'},
-                      {label:`${Object.values(advRows).filter(r=>r.modified&&!r.saved).length} por guardar`, c:'#fbbf24'},
-                      {label:`${advSessionLog.length} pesajes hoy`, c:'#4ade80'},
-                    ].map(b => (
-                      <span key={b.label} className="text-[10px] flex items-center gap-1" style={{color:b.c}}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{background:b.c}}/>{b.label}
-                      </span>
+                      {val:`${animals.length}`,       label:'animales',   c:'167,139,250'},
+                      {val:`${pending}`,               label:'pendientes', c:'251,191,36'},
+                      {val:`${advSessionLog.length}`,  label:'pesados',    c:'74,222,128'},
+                    ].map(b=>(
+                      <div key={b.label} className="flex items-center gap-1 px-2.5 py-1 rounded-full"
+                        style={{background:`rgba(${b.c},0.1)`,border:`1px solid rgba(${b.c},0.25)`}}>
+                        <span className="font-black text-sm" style={{color:`rgb(${b.c})`}}>{b.val}</span>
+                        <span className="text-[10px]" style={{color:`rgba(${b.c},0.6)`}}>{b.label}</span>
+                      </div>
                     ))}
+                    <Button size="sm" className="gap-1 h-8 text-xs" onClick={batchSaveAllAdv}
+                      disabled={advBatchSaving||pending===0}
+                      style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}}>
+                      <Save size={12}/> Guardar Todo
+                    </Button>
+                    <Button size="sm" className="gap-1 h-8 text-xs" onClick={resetAllAdvRows}
+                      style={{background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.2)',color:'#f87171'}}>
+                      <RotateCcw size={12}/> Limpiar
+                    </Button>
+                    <Button size="sm" className="gap-1 h-8 text-xs" onClick={() => setAdvRefOpen(v=>!v)}
+                      style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.25)',color:'#a78bfa'}}>
+                      <Layers size={12}/> Razas
+                    </Button>
                   </div>
                 </div>
+
+                {/* ── DIGITAL SCALE WIDGET ── */}
+                {focusedAnimal && fRow && fCat && fCC && fEsp ? (
+                  <div className="rounded-2xl overflow-hidden mb-4"
+                    style={{background:'linear-gradient(135deg,#0a0118,#120230,#0a0118)',border:'1px solid rgba(167,139,250,0.45)',boxShadow:'0 0 40px rgba(167,139,250,0.12)'}}>
+
+                    {/* Color accent top bar */}
+                    <div className="h-1" style={{background:`linear-gradient(90deg,${fCat.color},#a78bfa,#c084fc,transparent)`}}/>
+
+                    <div className="p-4 md:p-5">
+                      {/* Animal identity row */}
+                      <div className="flex items-center gap-3 mb-4 flex-wrap">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                          style={{background:fCat.bg,border:`1px solid ${fCat.border}`,boxShadow:`0 0 16px rgba(${fCat.glow},0.25)`}}>
+                          {fCat.emoji}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-black text-white text-base leading-tight">{focusedAnimal.nombre}</div>
+                          <div className="text-[10px] mt-0.5" style={{color:'rgba(255,255,255,0.35)'}}>
+                            <span className="font-mono" style={{color:fCat.color}}>#{focusedAnimal.id}</span>
+                            <span className="mx-1.5">·</span>{focusedAnimal.raza}
+                            <span className="mx-1.5">·</span>{focusedAnimal.lote}
+                          </div>
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{background:fCat.bg,color:fCat.color,border:`1px solid ${fCat.border}`}}>{focusedAnimal.categoria}</span>
+                            {fRow.saved && <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{background:'rgba(57,255,126,0.12)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.3)'}}>✓ Guardado</span>}
+                          </div>
+                        </div>
+                        {/* Close widget */}
+                        <button onClick={() => setFocusedAnimalId(null)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-white/10 transition-all"
+                          style={{color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.08)'}}>
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* ── MAIN LAYOUT: scale + controls ── */}
+                      <div className="flex flex-col lg:flex-row gap-4">
+
+                        {/* LEFT: Digital scale display */}
+                        <div className="flex-1">
+                          {/* Big digital weight */}
+                          <div className="rounded-2xl p-4 mb-3 relative" style={{background:'rgba(0,0,0,0.5)',border:'1px solid rgba(167,139,250,0.2)'}}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{color:'rgba(167,139,250,0.5)'}}>⚖ Peso actual</div>
+                            <div className="flex items-center justify-between">
+                              {/* Big - button */}
+                              <div className="flex flex-col gap-1.5">
+                                <button
+                                  onClick={()=>updateAdvRow(focusedAnimal.id,{peso:String(Math.max(0,fPesoN-5).toFixed(1)),modified:true,saved:false})}
+                                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-black transition-all hover:scale-105 active:scale-95"
+                                  style={{background:'rgba(248,113,113,0.12)',border:'1px solid rgba(248,113,113,0.3)',color:'#f87171'}}>−5</button>
+                                <button
+                                  onClick={()=>updateAdvRow(focusedAnimal.id,{peso:String(Math.max(0,fPesoN-1).toFixed(1)),modified:true,saved:false})}
+                                  className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black transition-all hover:scale-105 active:scale-95"
+                                  style={{background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.2)',color:'#fca5a5'}}>−1</button>
+                              </div>
+
+                              {/* Digital display */}
+                              <div className="flex-1 mx-3 text-center">
+                                <input
+                                  type="number" step="0.5" min="0"
+                                  value={fRow.peso}
+                                  onChange={e=>updateAdvRow(focusedAnimal.id,{peso:e.target.value,modified:true,saved:false})}
+                                  className="w-full text-center font-black rounded-2xl border-0 outline-none"
+                                  style={{
+                                    fontFamily:'JetBrains Mono,monospace',
+                                    fontSize:'clamp(36px,8vw,64px)',
+                                    color:'#a78bfa',
+                                    background:'transparent',
+                                    textShadow:'0 0 30px rgba(167,139,250,0.6)',
+                                    lineHeight:1.1,
+                                    letterSpacing:'2px',
+                                  }}
+                                />
+                                <div className="text-sm font-bold mt-1" style={{color:'rgba(167,139,250,0.45)'}}>kilogramos</div>
+                                {/* Diff badge */}
+                                <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                                  <span className="text-xs px-2.5 py-1 rounded-full font-bold"
+                                    style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.3)'}}>
+                                    Ant: {focusedAnimal.peso} kg
+                                  </span>
+                                  {fDiff !== 0 && (
+                                    <span className="text-sm px-3 py-1 rounded-full font-black flex items-center gap-1"
+                                      style={{background:fDiff>0?'rgba(57,255,126,0.15)':'rgba(248,113,113,0.12)',color:fDiff>0?'#39ff7e':'#f87171',border:`1px solid ${fDiff>0?'rgba(57,255,126,0.3)':'rgba(248,113,113,0.3)'}`}}>
+                                      {fDiff>0?<TrendingUp size={12}/>:<TrendingDown size={12}/>}
+                                      {fDiff>0?'+':''}{fDiff.toFixed(1)} kg
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Big + buttons */}
+                              <div className="flex flex-col gap-1.5">
+                                <button
+                                  onClick={()=>updateAdvRow(focusedAnimal.id,{peso:String((fPesoN+5).toFixed(1)),modified:true,saved:false})}
+                                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-black transition-all hover:scale-105 active:scale-95"
+                                  style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}}>+5</button>
+                                <button
+                                  onClick={()=>updateAdvRow(focusedAnimal.id,{peso:String((fPesoN+1).toFixed(1)),modified:true,saved:false})}
+                                  className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black transition-all hover:scale-105 active:scale-95"
+                                  style={{background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.2)',color:'#86efac'}}>+1</button>
+                              </div>
+                            </div>
+
+                            {/* Fine adjustment row */}
+                            <div className="flex gap-1.5 mt-3 justify-center flex-wrap">
+                              {[-0.5, 0.5].map(d=>(
+                                <button key={d}
+                                  onClick={()=>updateAdvRow(focusedAnimal.id,{peso:String(Math.max(0,fPesoN+d).toFixed(1)),modified:true,saved:false})}
+                                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
+                                  style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'#a78bfa'}}>
+                                  {d>0?'+':''}{d} kg
+                                </button>
+                              ))}
+                              <button onClick={()=>autoFillAdvByRaza(focusedAnimal)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105 flex items-center gap-1"
+                                style={{background:'rgba(0,200,255,0.08)',border:'1px solid rgba(0,200,255,0.2)',color:'#00c8ff'}}>
+                                <Zap size={10}/> Prom. raza ({fEsp.promedio}kg)
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Progress vs breed */}
+                          <div className="rounded-xl p-3 mb-3" style={{background:'rgba(167,139,250,0.04)',border:'1px solid rgba(167,139,250,0.12)'}}>
+                            <div className="flex justify-between text-[9px] mb-1.5">
+                              <span style={{color:'rgba(255,255,255,0.3)'}}>vs. estándar {focusedAnimal.raza}</span>
+                              <span style={{color:fUnder?'#f87171':fOver?'#c084fc':'#4ade80'}}>
+                                {fPct}% — {fUnder?'⚠ Bajo mínimo':fOver?'↑ Sobre máximo':'✓ En rango'}
+                              </span>
+                            </div>
+                            <div className="relative h-3 rounded-full" style={{background:'rgba(255,255,255,0.06)'}}>
+                              <div className="absolute top-0 bottom-0 w-0.5 rounded-full" style={{left:`${Math.min(100,(fEsp.min/fEsp.max)*100)}%`,background:'rgba(96,165,250,0.5)'}}/>
+                              <div className="h-3 rounded-full transition-all duration-300" style={{width:`${fPct}%`,background:fUnder?'linear-gradient(90deg,#f87171,#fb923c)':fOver?'linear-gradient(90deg,#a78bfa,#c084fc)':`linear-gradient(90deg,${fCat.color},#a78bfa)`}}/>
+                            </div>
+                            <div className="flex justify-between text-[9px] mt-1" style={{color:'rgba(255,255,255,0.2)'}}>
+                              <span>Mín {fEsp.min}kg</span><span>Prom {fEsp.promedio}kg</span><span>Máx {fEsp.max}kg</span>
+                            </div>
+                          </div>
+
+                          {/* Alerts row */}
+                          {(fUnder || fOver || Number(fRow.condicion) < 2.5) && (
+                            <div className="flex flex-col gap-1.5 mb-3">
+                              {(fUnder || Number(fRow.condicion)<2.5) && (
+                                <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+                                  style={{background:'rgba(248,113,113,0.07)',border:'1px solid rgba(248,113,113,0.22)'}}>
+                                  <AlertTriangle size={13} style={{color:'#f87171',flexShrink:0}}/>
+                                  <span className="text-[10px]" style={{color:'#fca5a5'}}>{fNutri}</span>
+                                </div>
+                              )}
+                              {fOver && (
+                                <div className="flex items-center gap-2 rounded-xl px-3 py-2"
+                                  style={{background:'rgba(167,139,250,0.06)',border:'1px solid rgba(167,139,250,0.2)'}}>
+                                  <AlertTriangle size={13} style={{color:'#a78bfa',flexShrink:0}}/>
+                                  <span className="text-[10px]" style={{color:'#c4b5fd'}}>Sobre el máximo de la raza — verificar condición</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* RIGHT: Controls panel */}
+                        <div className="lg:w-64 flex-shrink-0 space-y-3">
+                          {/* CC Picker */}
+                          <div className="rounded-xl p-3" style={{background:'rgba(0,0,0,0.35)',border:'1px solid rgba(167,139,250,0.2)'}}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{color:'rgba(167,139,250,0.5)'}}>Condición Corporal (CC)</div>
+                            <div className="grid grid-cols-5 gap-1 mb-2">
+                              {Object.entries(CC_CONFIG).map(([val,cfg])=>(
+                                <button key={val} onClick={()=>updateAdvRow(focusedAnimal.id,{condicion:val,modified:true,saved:false})}
+                                  className="flex flex-col items-center gap-0.5 py-1.5 rounded-lg transition-all hover:scale-105"
+                                  style={fRow.condicion===val
+                                    ? {background:`rgba(${cfg.glow},0.2)`,border:`1px solid rgba(${cfg.glow},0.5)`,transform:'scale(1.08)'}
+                                    : {background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                                  <span className="text-sm">{cfg.emoji}</span>
+                                  <span className="font-black text-[9px]" style={{color:cfg.color}}>{val}</span>
+                                </button>
+                              ))}
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-base">{fCC.emoji}</span>
+                              <div>
+                                <div className="font-bold text-xs text-white">{fCC.label}</div>
+                                <div className="text-[9px]" style={{color:'rgba(167,139,250,0.5)'}}>CC {fRow.condicion}</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Valor/kg */}
+                          <div className="rounded-xl p-3" style={{background:'rgba(0,0,0,0.35)',border:'1px solid rgba(57,255,126,0.18)'}}>
+                            <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{color:'rgba(57,255,126,0.5)'}}>Valor Comercial</div>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <div className="text-[9px] text-white/40 w-12 flex-shrink-0">$/kg</div>
+                              <Input type="number" step="500" value={fRow.valorKilo}
+                                onChange={e=>updateAdvRow(focusedAnimal.id,{valorKilo:e.target.value,modified:true,saved:false})}
+                                className="flex-1 h-8 text-xs text-center font-mono"
+                                style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(57,255,126,0.25)',color:'#39ff7e'}}/>
+                            </div>
+                            {fValor > 0 && (
+                              <div className="text-center font-black text-base" style={{color:'#39ff7e',fontFamily:'Sora,sans-serif'}}>
+                                {fmt(fValor)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* GMD display */}
+                          {fGmd !== null && (
+                            <div className="rounded-xl p-3" style={{background:'rgba(0,200,255,0.05)',border:'1px solid rgba(0,200,255,0.15)'}}>
+                              <div className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,200,255,0.5)'}}>GMD (últimos 30d)</div>
+                              <div className="font-black text-xl" style={{color:Number(fGmd)>=0?'#00c8ff':'#f87171',fontFamily:'Sora,sans-serif'}}>
+                                {Number(fGmd)>=0?'+':''}{fGmd} <span className="text-xs font-normal opacity-60">kg/día</span>
+                              </div>
+                              {fLastP && <div className="text-[9px] mt-1" style={{color:'rgba(0,200,255,0.4)'}}>Ult. pesaje: {fLastP.fecha} · {fLastP.peso}kg</div>}
+                            </div>
+                          )}
+
+                          {/* Observaciones */}
+                          <div>
+                            <div className="text-[9px] font-bold uppercase tracking-wider mb-1.5" style={{color:'rgba(255,255,255,0.25)'}}>Observaciones</div>
+                            <textarea
+                              value={fRow.observacion}
+                              onChange={e=>updateAdvRow(focusedAnimal.id,{observacion:e.target.value,modified:!!e.target.value})}
+                              placeholder="Notas, comportamiento, tratamiento..."
+                              rows={2}
+                              className="w-full rounded-xl p-2.5 text-xs resize-none"
+                              style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.6)',outline:'none'}}
+                            />
+                          </div>
+
+                          {/* ACTION BUTTONS */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <button onClick={printFocused}
+                              className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-bold text-xs transition-all hover:scale-105 active:scale-95"
+                              style={{background:'rgba(255,149,0,0.12)',border:'1px solid rgba(255,149,0,0.35)',color:'#ff9500'}}>
+                              <Printer size={13}/> Imprimir recibo
+                            </button>
+                            <button
+                              onClick={() => { saveAdvRow(focusedAnimal); }}
+                              disabled={fRow.saved}
+                              className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-bold text-xs transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                              style={fRow.saved
+                                ? {background:'rgba(57,255,126,0.1)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}
+                                : {background:'rgba(167,139,250,0.18)',border:'1px solid rgba(167,139,250,0.45)',color:'#c4b5fd'}}>
+                              {fRow.saved ? <><CheckCircle2 size={13}/> Guardado</> : <><Save size={13}/> Guardar</>}
+                            </button>
+                          </div>
+
+                          {/* Save & Next */}
+                          {!fRow.saved && (
+                            <button onClick={saveAndNext}
+                              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.99]"
+                              style={{background:'linear-gradient(135deg,rgba(167,139,250,0.25),rgba(192,132,252,0.2))',border:'1px solid rgba(167,139,250,0.5)',color:'#c4b5fd',boxShadow:'0 0 20px rgba(167,139,250,0.15)'}}>
+                              <Save size={14}/> Guardar + Siguiente animal
+                              {queueList.length > 0 && <span className="text-[10px] opacity-60">({queueList.length} restantes)</span>}
+                            </button>
+                          )}
+
+                          {/* Next animal queue */}
+                          {queueList.length > 0 && (
+                            <div>
+                              <div className="text-[9px] font-bold uppercase tracking-wider mb-2" style={{color:'rgba(255,255,255,0.2)'}}>
+                                Cola de pesaje
+                              </div>
+                              <div className="space-y-1">
+                                {queueList.map(a=>{
+                                  const qCat = CAT_CONFIG[a.categoria]||CAT_CONFIG["Vaca adulta"];
+                                  return (
+                                    <button key={a.id} onClick={()=>setFocusedAnimalId(a.id)}
+                                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left transition-all hover:bg-white/5"
+                                      style={{border:'1px solid rgba(255,255,255,0.05)'}}>
+                                      <span className="text-sm flex-shrink-0">{qCat.emoji}</span>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-semibold text-xs text-white/70 truncate">{a.nombre}</div>
+                                        <div className="text-[9px]" style={{color:'rgba(255,255,255,0.25)'}}>{a.raza} · {a.peso}kg</div>
+                                      </div>
+                                      <ChevronRight size={10} style={{color:'rgba(255,255,255,0.2)',flexShrink:0}}/>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── No animal focused: prompt panel ── */
+                  <div className="rounded-2xl p-6 mb-4 text-center relative overflow-hidden"
+                    style={{background:'linear-gradient(135deg,#080114,#10022a)',border:'1px solid rgba(167,139,250,0.2)',boxShadow:'0 0 30px rgba(167,139,250,0.05)'}}>
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-[0.03]">
+                      <ClipboardList className="w-64 h-64 text-purple-300"/>
+                    </div>
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-2xl mx-auto mb-3 flex items-center justify-center text-3xl"
+                        style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',boxShadow:'0 0 30px rgba(167,139,250,0.15)'}}>⚖️</div>
+                      <div className="font-black text-white text-lg mb-1" style={{fontFamily:'Sora,sans-serif'}}>Widget de Báscula Digital</div>
+                      <p className="text-sm mb-4" style={{color:'rgba(167,139,250,0.55)'}}>
+                        Toca un animal de la lista para activar la báscula • Ajuste fino con botones ±1 / ±5 kg<br/>
+                        Impresión inmediata • CC visual • Guardar + avanzar al siguiente
+                      </p>
+                      <div className="flex gap-2 justify-center flex-wrap">
+                        {animals.slice(0, 6).map(a => {
+                          const qc = CAT_CONFIG[a.categoria]||CAT_CONFIG["Vaca adulta"];
+                          return (
+                            <button key={a.id} onClick={()=>{setFocusedAnimalId(a.id);setWidgetStep(0);}}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105"
+                              style={{background:`rgba(${qc.glow},0.1)`,border:`1px solid rgba(${qc.glow},0.25)`,color:qc.color}}>
+                              {qc.emoji} {a.nombre}
+                            </button>
+                          );
+                        })}
+                        {animals.length > 6 && (
+                          <button onClick={()=>focusedAnimalId===null&&setFocusedAnimalId(animals[0].id)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold"
+                            style={{background:'rgba(167,139,250,0.08)',border:'1px solid rgba(167,139,250,0.2)',color:'rgba(167,139,250,0.6)'}}>
+                            +{animals.length-6} más ↓
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-2 flex-wrap">
-                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={() => setAdvRefOpen(v=>!v)}
-                  style={{background:'rgba(167,139,250,0.12)',border:'1px solid rgba(167,139,250,0.35)',color:'#a78bfa'}}>
-                  <Layers size={13}/> {advRefOpen ? "Ocultar" : "Mostrar"} Tabla Razas
-                </Button>
-                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={batchSaveAllAdv}
-                  disabled={advBatchSaving || Object.values(advRows).filter(r=>r.modified&&!r.saved).length===0}
-                  style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.35)',color:'#39ff7e'}}>
-                  <Save size={13}/> {advBatchSaving?"Guardando…":"Guardar Todo"}
-                </Button>
-                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={resetAllAdvRows}
-                  style={{background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.25)',color:'#f87171'}}>
-                  <RotateCcw size={13}/> Limpiar Sesión
-                </Button>
-                <Button size="sm" className="gap-1.5 text-xs h-9" onClick={()=>window.print()}
-                  style={{background:'rgba(255,149,0,0.1)',border:'1px solid rgba(255,149,0,0.3)',color:'#ff9500'}}>
-                  <Printer size={13}/> Imprimir
-                </Button>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
+          {void widgetStep}
 
           {/* Tabla referencia razas (collapsible) */}
           {advRefOpen && (

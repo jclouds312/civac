@@ -789,16 +789,92 @@ export default function PesajeManual() {
 
                     {/* ── EVIDENCIA FOTOGRÁFICA ────────────────────────────── */}
                     <div className="rounded-xl p-3 space-y-3" style={{ background: "rgba(0,245,212,0.04)", border: "1px solid rgba(0,245,212,0.15)" }}>
-                      <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: "rgba(0,245,212,0.5)" }}>
-                        <Camera size={9} className="inline mr-1"/>Evidencia Fotográfica
+                      <div className="flex items-center justify-between">
+                        <div className="text-[9px] font-black uppercase tracking-widest" style={{ color: "rgba(0,245,212,0.5)" }}>
+                          <Camera size={9} className="inline mr-1"/>Evidencia Fotográfica
+                        </div>
+                        <div className="text-[8px] px-1.5 py-0.5 rounded-full"
+                          style={{ background: "rgba(0,245,212,0.08)", color: "rgba(0,245,212,0.5)", border: "1px solid rgba(0,245,212,0.15)" }}>
+                          3 tipos de foto
+                        </div>
                       </div>
 
-                      {/* Botones de captura */}
-                      <div className="grid grid-cols-3 gap-1.5">
+                      {/* ── Visor indicador — tamaño varía por categoría ── */}
+                      {(() => {
+                        const FRAME: Record<string, { w: number; h: number; label: string }> = {
+                          "Ternero":    { w: 80,  h: 60,  label: "Marco pequeño · ternero" },
+                          "Ternera":    { w: 80,  h: 60,  label: "Marco pequeño · ternera" },
+                          "Novilla":    { w: 116, h: 86,  label: "Marco mediano · novilla" },
+                          "Vaca adulta":{ w: 148, h: 106, label: "Marco estándar · vaca" },
+                          "Toro":       { w: 188, h: 126, label: "Marco grande · toro" },
+                        };
+                        const fr = FRAME[focused.categoria] || FRAME["Vaca adulta"];
+                        const indFoto = fRow.fotos?.find(f => f.tipo === "indicador");
+                        return (
+                          <div className="flex flex-col items-center gap-1.5 py-1">
+                            <div className="text-[8px] font-bold uppercase tracking-wide"
+                              style={{ color: "rgba(0,245,212,0.4)" }}>📟 Foto del Indicador de Pesaje</div>
+                            <div className="relative transition-all duration-300 flex items-center justify-center"
+                              style={{ width: fr.w, height: fr.h }}>
+                              {indFoto ? (
+                                <div className="relative w-full h-full">
+                                  <img src={indFoto.url} alt="Indicador"
+                                    className="w-full h-full object-cover rounded-lg"
+                                    style={{ border: "2px solid rgba(0,245,212,0.6)" }}/>
+                                  <button onClick={() => removeFoto(focused.id, indFoto.id)}
+                                    className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black"
+                                    style={{ background: "#f87171", color: "white" }}>✕</button>
+                                </div>
+                              ) : (
+                                <div className="w-full h-full rounded-lg flex flex-col items-center justify-center relative"
+                                  style={{ background: "rgba(0,0,0,0.4)", border: "2px dashed rgba(0,245,212,0.2)" }}>
+                                  {/* Brackets visor */}
+                                  <div className="absolute top-1 left-1 w-3 h-3 border-t-2 border-l-2 rounded-tl" style={{ borderColor: "rgba(0,245,212,0.55)" }}/>
+                                  <div className="absolute top-1 right-1 w-3 h-3 border-t-2 border-r-2 rounded-tr" style={{ borderColor: "rgba(0,245,212,0.55)" }}/>
+                                  <div className="absolute bottom-1 left-1 w-3 h-3 border-b-2 border-l-2 rounded-bl" style={{ borderColor: "rgba(0,245,212,0.55)" }}/>
+                                  <div className="absolute bottom-1 right-1 w-3 h-3 border-b-2 border-r-2 rounded-br" style={{ borderColor: "rgba(0,245,212,0.55)" }}/>
+                                  <span className="text-lg">📟</span>
+                                  <span className="text-[7px] mt-0.5" style={{ color: "rgba(0,245,212,0.3)" }}>sin foto</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-[7px]" style={{ color: "rgba(0,245,212,0.25)" }}>{fr.label}</div>
+                            {/* Quick capture buttons for indicator */}
+                            {!indFoto && (
+                              <div className="flex gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    if (cameraInputRef.current) {
+                                      cameraInputRef.current.dataset.tipo = "indicador";
+                                      cameraInputRef.current.click();
+                                    }
+                                  }}
+                                  className="flex items-center gap-1 px-3 py-1 rounded-lg text-[9px] font-bold transition-all hover:scale-105"
+                                  style={{ background: "rgba(0,245,212,0.12)", border: "1px solid rgba(0,245,212,0.35)", color: "#00f5d4" }}>
+                                  <Camera size={10}/> Cámara
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (fileInputRef.current) {
+                                      fileInputRef.current.dataset.tipo = "indicador";
+                                      fileInputRef.current.click();
+                                    }
+                                  }}
+                                  className="flex items-center gap-1 px-3 py-1 rounded-lg text-[9px] font-bold transition-all hover:scale-105"
+                                  style={{ background: "rgba(0,245,212,0.06)", border: "1px solid rgba(0,245,212,0.2)", color: "rgba(0,245,212,0.6)" }}>
+                                  <Upload size={10}/> Galería
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Botones de captura — lateral y completa */}
+                      <div className="grid grid-cols-2 gap-1.5">
                         {([
-                          { tipo: "indicador" as const, label: "Indicador", icon: "📟" },
-                          { tipo: "lateral"   as const, label: "Lateral",   icon: "📸" },
-                          { tipo: "completa"  as const, label: "Completa",  icon: "🐄" },
+                          { tipo: "lateral"  as const, label: "Lateral",  icon: "📸" },
+                          { tipo: "completa" as const, label: "Completa", icon: "🐄" },
                         ]).map(({ tipo, label, icon }) => (
                           <div key={tipo} className="flex flex-col gap-1">
                             <div className="text-[8px] text-center" style={{ color: "rgba(0,245,212,0.45)" }}>{icon} {label}</div>

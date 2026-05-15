@@ -9,6 +9,7 @@ import {
   DollarSign, CheckCircle2, XCircle, Clock, Info, FileText, Eye,
   Activity, ChevronUp, ChevronDown, ClipboardList, AlertTriangle,
   Layers, FlipHorizontal, Save, RotateCcw,
+  Camera, Upload, Hash, CalendarDays, UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -556,6 +557,60 @@ export default function Inventario() {
   const [formRaza, setFormRaza] = useState("Holstein");
   const [btConnecting, setBtConnecting] = useState(false);
 
+  // ── Ingreso Rápido state ────────────────────────────────────────────────────
+  const [irNombre, setIrNombre] = useState("");
+  const [irCat, setIrCat] = useState("Vaca adulta");
+  const [irRaza, setIrRaza] = useState("Holstein");
+  const [irLote, setIrLote] = useState("Lote A");
+  const [irEstado, setIrEstado] = useState("Producción");
+  const [irFechaNac, setIrFechaNac] = useState("");
+  const [irRegistro, setIrRegistro] = useState<"SI"|"NO">("NO");
+  const [irNumRegistro, setIrNumRegistro] = useState("");
+  const [irPeso, setIrPeso] = useState("");
+  const [irValorKilo, setIrValorKilo] = useState("11000");
+  const [irFotoUrl, setIrFotoUrl] = useState<string|null>(null);
+  const [irObs, setIrObs] = useState("");
+  const [irGuardado, setIrGuardado] = useState<string|null>(null);
+  const irCamRef = useRef<HTMLInputElement>(null);
+  const irFileRef = useRef<HTMLInputElement>(null);
+
+  const irEdad = calcEdad(irFechaNac);
+  const irPesoAuto = PESOS_RAZA[irRaza]?.[irCat] || 400;
+  const irValorTotal = (Number(irPeso) || irPesoAuto) * (Number(irValorKilo) || 0);
+  const irCatCfg = CAT_CONFIG[irCat] || CAT_CONFIG["Vaca adulta"];
+  const IR_FRAME: Record<string, { w: number; h: number; label: string }> = {
+    "Ternero":    { w: 88,  h: 66,  label: "Marco pequeño — ternero" },
+    "Ternera":    { w: 88,  h: 66,  label: "Marco pequeño — ternera" },
+    "Novilla":    { w: 130, h: 96,  label: "Marco mediano — novilla" },
+    "Vaca adulta":{ w: 160, h: 112, label: "Marco estándar — vaca" },
+    "Toro":       { w: 200, h: 136, label: "Marco grande — toro" },
+  };
+  const irFrame = IR_FRAME[irCat] || IR_FRAME["Vaca adulta"];
+
+  const irHandleFoto = (files: FileList|null) => {
+    if (!files?.[0]) return;
+    const r = new FileReader();
+    r.onload = e => setIrFotoUrl(e.target?.result as string);
+    r.readAsDataURL(files[0]);
+  };
+
+  const irSave = () => {
+    if (!irNombre.trim()) return;
+    const newId = `IR${Date.now().toString().slice(-5)}`;
+    setAnimals(prev => [{
+      id: newId, nombre: irNombre, raza: irRaza, categoria: irCat,
+      peso: Number(irPeso) || irPesoAuto, lote: irLote, estado: irEstado,
+      litrosDia: 0, partos: 0, fechaNacimiento: irFechaNac,
+      registro: irRegistro, numeroRegistro: irRegistro === "SI" ? irNumRegistro : "",
+      valorKilo: Number(irValorKilo) || 0,
+    }, ...prev]);
+    setIrGuardado(newId);
+    setTimeout(() => {
+      setIrNombre(""); setIrFechaNac(""); setIrRegistro("NO"); setIrNumRegistro("");
+      setIrPeso(""); setIrFotoUrl(null); setIrObs(""); setIrGuardado(null);
+    }, 5000);
+  };
+
   useEffect(() => { setFormEdad(calcEdad(formFechaNac)); }, [formFechaNac]);
   useEffect(() => {
     const p = Number(formPeso) || 0;
@@ -914,6 +969,7 @@ export default function Inventario() {
               { val:'pesaje-rapido',   icon:<Zap size={13}/>,             label:'Pesaje Rápido',   c:'#00c8ff' },
               { val:'pesaje-avanzado', icon:<ClipboardList size={13}/>,   label:'Pesaje Manual +', c:'#c084fc' },
               { val:'estadisticas',    icon:<BarChart3 size={13}/>,       label:'Estadísticas',    c:'#f472b6' },
+              { val:'ingreso',         icon:<UserPlus size={13}/>,         label:'Ingreso Rápido',  c:'#fbbf24' },
             ].map(t => (
               <TabsTrigger key={t.val} value={t.val}
                 className="flex-shrink-0 gap-1.5 h-9 px-3 text-xs font-semibold transition-all whitespace-nowrap"
@@ -2976,6 +3032,370 @@ export default function Inventario() {
               </div>
             </div>
           )}
+        </TabsContent>
+
+        {/* ─── INGRESO RÁPIDO ─── */}
+        <TabsContent value="ingreso">
+          <div className="max-w-2xl mx-auto space-y-4">
+
+            {/* Banner */}
+            <div className="rounded-2xl p-5 relative overflow-hidden"
+              style={{background:'linear-gradient(135deg,#1a1000,#2e1a00,#1a1000)',border:'1px solid rgba(251,191,36,0.4)',boxShadow:'0 0 40px rgba(251,191,36,0.07)'}}>
+              <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full pointer-events-none opacity-10"
+                style={{background:'radial-gradient(circle,#fbbf24,transparent)'}}/>
+              <div className="relative flex items-center gap-4">
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
+                  style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.4)',boxShadow:'0 0 24px rgba(251,191,36,0.2)'}}>
+                  🐄
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                    <h2 className="font-black text-white text-lg" style={{fontFamily:'Sora,sans-serif'}}>Ingreso Rápido</h2>
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                      style={{background:'rgba(251,191,36,0.12)',color:'#fbbf24',border:'1px solid rgba(251,191,36,0.35)'}}>
+                      Foto indicador · Registro · Edad auto
+                    </span>
+                  </div>
+                  <p className="text-xs" style={{color:'rgba(251,191,36,0.55)'}}>
+                    Fecha de nacimiento · Número de registro · Peso automático · Foto del indicador de báscula
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Success */}
+            {irGuardado && (
+              <div className="rounded-xl p-3.5 flex items-center gap-3"
+                style={{background:'rgba(57,255,126,0.1)',border:'1px solid rgba(57,255,126,0.4)'}}>
+                <CheckCircle2 size={18} style={{color:'#39ff7e',flexShrink:0}}/>
+                <div>
+                  <div className="font-black text-sm" style={{color:'#39ff7e'}}>Animal registrado con ID #{irGuardado}</div>
+                  <div className="text-[10px]" style={{color:'rgba(57,255,126,0.6)'}}>Aparece en Inventario · Tabla · Fichas · Etiquetas</div>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              {/* ── LEFT: Datos del animal ── */}
+              <div className="space-y-3">
+                <div className="rounded-2xl p-4 space-y-3"
+                  style={{background:'rgba(251,191,36,0.03)',border:'1px solid rgba(251,191,36,0.12)'}}>
+                  <div className="text-[9px] font-black uppercase tracking-wider mb-1" style={{color:'rgba(251,191,36,0.5)'}}>
+                    📋 Datos del Animal
+                  </div>
+
+                  {/* Nombre */}
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-wider mb-1 block" style={{color:'rgba(251,191,36,0.5)'}}>
+                      Nombre del Animal *
+                    </label>
+                    <Input value={irNombre} onChange={e=>setIrNombre(e.target.value)}
+                      placeholder="Ej: Margarita, Estrella, Bravo…" className="h-9 text-sm"
+                      style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(251,191,36,0.2)',color:'white'}}/>
+                  </div>
+
+                  {/* Categoría */}
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-wider mb-1 block" style={{color:'rgba(251,191,36,0.5)'}}>
+                      Categoría
+                    </label>
+                    <div className="grid grid-cols-5 gap-1">
+                      {Object.entries(CAT_CONFIG).map(([cat, cfg]) => (
+                        <button key={cat} onClick={()=>setIrCat(cat)}
+                          className="flex flex-col items-center py-1.5 rounded-xl transition-all hover:scale-105"
+                          style={irCat===cat
+                            ? {background:`rgba(${cfg.glow},0.18)`,border:`1px solid rgba(${cfg.glow},0.5)`,transform:'scale(1.05)'}
+                            : {background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)'}}>
+                          <span className="text-base">{cfg.emoji}</span>
+                          <span className="text-[8px] font-bold mt-0.5" style={{color:irCat===cat?cfg.color:'rgba(255,255,255,0.35)'}}>
+                            {cat.split(' ')[0]}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Raza + Lote */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-wider mb-1 block" style={{color:'rgba(251,191,36,0.4)'}}>Raza</label>
+                      <Select value={irRaza} onValueChange={setIrRaza}>
+                        <SelectTrigger className="h-8 text-xs" style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(251,191,36,0.18)',color:'white'}}>
+                          <SelectValue/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['Holstein','Simmental','Brahman','Gyr X','Gyr','Jersey'].map(r=>(
+                            <SelectItem key={r} value={r}>{r}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-black uppercase tracking-wider mb-1 block" style={{color:'rgba(251,191,36,0.4)'}}>Lote</label>
+                      <Select value={irLote} onValueChange={setIrLote}>
+                        <SelectTrigger className="h-8 text-xs" style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(251,191,36,0.18)',color:'white'}}>
+                          <SelectValue/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['Lote A','Lote B','Lote C','Lote D','Lote E','Lote F'].map(l=>(
+                            <SelectItem key={l} value={l}>{l}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Estado */}
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-wider mb-1 block" style={{color:'rgba(251,191,36,0.4)'}}>Estado</label>
+                    <Select value={irEstado} onValueChange={setIrEstado}>
+                      <SelectTrigger className="h-8 text-xs" style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(251,191,36,0.18)',color:'white'}}>
+                        <SelectValue/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['Producción','Gestante','Seca','Abierta','Tratamiento','Destete','Lactancia','Activo'].map(e=>(
+                          <SelectItem key={e} value={e}>{e}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* ── Fecha Nacimiento + Edad Auto ── */}
+                <div className="rounded-2xl p-4 space-y-2"
+                  style={{background:'rgba(0,200,255,0.04)',border:'1px solid rgba(0,200,255,0.18)'}}>
+                  <div className="text-[9px] font-black uppercase tracking-wider" style={{color:'rgba(0,200,255,0.55)'}}>
+                    <CalendarDays size={9} className="inline mr-1"/>Fecha de Nacimiento
+                  </div>
+                  <div className="flex gap-3 items-center">
+                    <Input type="date" value={irFechaNac} onChange={e=>setIrFechaNac(e.target.value)}
+                      className="h-9 flex-1 text-sm"
+                      style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(0,200,255,0.22)',color:'white'}}/>
+                    {irFechaNac && (
+                      <div className="flex-shrink-0 text-right">
+                        <div className="text-[9px]" style={{color:'rgba(0,200,255,0.5)'}}>Edad calculada</div>
+                        <div className="font-black text-xl" style={{color:'#00c8ff',fontFamily:'Sora,sans-serif'}}>{irEdad}</div>
+                      </div>
+                    )}
+                  </div>
+                  {!irFechaNac && (
+                    <div className="text-[10px] text-white/25">Ingresa la fecha para ver la edad automáticamente</div>
+                  )}
+                  {irFechaNac && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {(() => {
+                        const dias = Math.floor((Date.now() - new Date(irFechaNac).getTime()) / 86400000);
+                        const meses = Math.floor(dias / 30);
+                        const anios = Math.floor(meses / 12);
+                        const etapa = anios < 1 ? "Lactante / Destete" : anios < 2 ? "Cría en desarrollo" : anios < 3 ? "Novilla / Joven" : "Animal adulto";
+                        const etapaColor = anios < 1 ? "#fb923c" : anios < 2 ? "#fbbf24" : anios < 3 ? "#a78bfa" : "#00f5d4";
+                        return (
+                          <>
+                            <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                              style={{background:`${etapaColor}18`,color:etapaColor,border:`1px solid ${etapaColor}30`}}>
+                              {etapa}
+                            </span>
+                            <span className="text-[9px] px-2 py-0.5 rounded-full"
+                              style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.3)'}}>
+                              {dias} días · {meses} meses
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Número de Registro ── */}
+                <div className="rounded-2xl p-4 space-y-2"
+                  style={{background:'rgba(57,255,126,0.04)',border:'1px solid rgba(57,255,126,0.15)'}}>
+                  <div className="text-[9px] font-black uppercase tracking-wider" style={{color:'rgba(57,255,126,0.55)'}}>
+                    <Hash size={9} className="inline mr-1"/>Número de Registro
+                  </div>
+                  <div className="flex gap-2">
+                    {(['SI','NO'] as const).map(v => (
+                      <button key={v} onClick={()=>setIrRegistro(v)}
+                        className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                        style={{
+                          background: irRegistro===v ? (v==='SI' ? 'rgba(57,255,126,0.18)' : 'rgba(255,255,255,0.06)') : 'rgba(255,255,255,0.02)',
+                          border: irRegistro===v ? (v==='SI' ? '1px solid rgba(57,255,126,0.45)' : '1px solid rgba(255,255,255,0.18)') : '1px solid rgba(255,255,255,0.06)',
+                          color: irRegistro===v ? (v==='SI' ? '#39ff7e' : 'rgba(255,255,255,0.6)') : 'rgba(255,255,255,0.2)',
+                        }}>
+                        {v==='SI' ? '✓ Sí tiene registro' : '✗ Sin registro'}
+                      </button>
+                    ))}
+                  </div>
+                  {irRegistro==='SI' && (
+                    <Input value={irNumRegistro} onChange={e=>setIrNumRegistro(e.target.value)}
+                      placeholder="Ej: REG-0042, COL-0123, ICA-2024-001…"
+                      className="h-9 text-sm"
+                      style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}}/>
+                  )}
+                </div>
+
+                {/* ── Peso Kg Automático ── */}
+                <div className="rounded-2xl p-4 space-y-2"
+                  style={{background:'rgba(192,132,252,0.04)',border:'1px solid rgba(192,132,252,0.18)'}}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-[9px] font-black uppercase tracking-wider" style={{color:'rgba(192,132,252,0.55)'}}>
+                      ⚖ Peso Kg
+                    </div>
+                    <div className="text-[9px] px-2 py-0.5 rounded-full"
+                      style={{background:'rgba(192,132,252,0.1)',color:'rgba(192,132,252,0.7)',border:'1px solid rgba(192,132,252,0.2)'}}>
+                      Automático por raza: {irPesoAuto} kg
+                    </div>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="number" step="0.5" min="0"
+                      value={irPeso}
+                      onChange={e=>setIrPeso(e.target.value)}
+                      placeholder={String(irPesoAuto)}
+                      className="flex-1 h-10 text-center font-black rounded-xl border-0 outline-none"
+                      style={{
+                        background:'rgba(0,0,0,0.4)',
+                        border:'1px solid rgba(192,132,252,0.3)',
+                        color:'#c084fc',
+                        fontFamily:'JetBrains Mono,monospace',
+                        fontSize:24,
+                        letterSpacing:'1px',
+                      }}
+                    />
+                    <span className="text-sm text-white/30 font-bold">kg</span>
+                    <button onClick={()=>setIrPeso(String(irPesoAuto))}
+                      className="h-10 px-3 rounded-xl text-xs font-bold flex-shrink-0 flex items-center gap-1 transition-all hover:scale-105"
+                      style={{background:'rgba(192,132,252,0.1)',border:'1px solid rgba(192,132,252,0.3)',color:'#c084fc'}}>
+                      <Zap size={11}/> Auto
+                    </button>
+                  </div>
+                  <div className="text-[9px]" style={{color:'rgba(255,255,255,0.2)'}}>
+                    Referencia {irRaza} · {irCat}: promedio {irPesoAuto} kg · o ingresa el peso real del indicador
+                  </div>
+                </div>
+              </div>
+
+              {/* ── RIGHT: Foto indicador + resumen ── */}
+              <div className="space-y-3">
+
+                {/* ── Foto del Indicador de Báscula ── */}
+                <div className="rounded-2xl p-4 space-y-3"
+                  style={{background:'rgba(0,200,255,0.04)',border:'1px solid rgba(0,200,255,0.18)'}}>
+                  <div className="text-[9px] font-black uppercase tracking-wider" style={{color:'rgba(0,200,255,0.55)'}}>
+                    <Camera size={9} className="inline mr-1"/>Foto del Indicador de Pesaje
+                  </div>
+
+                  {/* Viewfinder frame — tamaño varía por categoría */}
+                  <div className="flex flex-col items-center gap-2 py-2">
+                    <div className="relative flex items-center justify-center transition-all duration-300"
+                      style={{width: irFrame.w, height: irFrame.h}}>
+                      {irFotoUrl ? (
+                        <div className="relative w-full h-full">
+                          <img src={irFotoUrl} alt="Indicador de pesaje"
+                            className="w-full h-full object-cover rounded-xl"
+                            style={{border:`2px solid rgba(0,200,255,0.6)`}}/>
+                          <button onClick={()=>setIrFotoUrl(null)}
+                            className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black"
+                            style={{background:'#f87171',color:'white'}}>✕</button>
+                        </div>
+                      ) : (
+                        <div className="w-full h-full rounded-xl flex flex-col items-center justify-center relative"
+                          style={{background:'rgba(0,0,0,0.35)',border:'2px dashed rgba(0,200,255,0.25)'}}>
+                          {/* Corner brackets */}
+                          <div className="absolute top-1 left-1 w-4 h-4 border-t-2 border-l-2 rounded-tl" style={{borderColor:'rgba(0,200,255,0.6)'}}/>
+                          <div className="absolute top-1 right-1 w-4 h-4 border-t-2 border-r-2 rounded-tr" style={{borderColor:'rgba(0,200,255,0.6)'}}/>
+                          <div className="absolute bottom-1 left-1 w-4 h-4 border-b-2 border-l-2 rounded-bl" style={{borderColor:'rgba(0,200,255,0.6)'}}/>
+                          <div className="absolute bottom-1 right-1 w-4 h-4 border-b-2 border-r-2 rounded-br" style={{borderColor:'rgba(0,200,255,0.6)'}}/>
+                          <span className="text-2xl mb-1">📟</span>
+                          <span className="text-[8px] text-center" style={{color:'rgba(0,200,255,0.4)'}}>Indicador</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-[8px] text-center" style={{color:'rgba(0,200,255,0.35)'}}>
+                      {irFrame.label}
+                    </div>
+                  </div>
+
+                  {/* Capture buttons */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={()=>irCamRef.current?.click()}
+                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs transition-all hover:scale-[1.03]"
+                      style={{background:'rgba(0,200,255,0.1)',border:'1px solid rgba(0,200,255,0.35)',color:'#00c8ff'}}>
+                      <Camera size={13}/> Cámara
+                    </button>
+                    <button onClick={()=>irFileRef.current?.click()}
+                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-xs transition-all hover:scale-[1.03]"
+                      style={{background:'rgba(0,200,255,0.06)',border:'1px solid rgba(0,200,255,0.2)',color:'rgba(0,200,255,0.7)'}}>
+                      <Upload size={13}/> Galería
+                    </button>
+                  </div>
+                  <input ref={irCamRef} type="file" accept="image/*" capture="environment" className="hidden"
+                    onChange={e=>irHandleFoto(e.target.files)}/>
+                  <input ref={irFileRef} type="file" accept="image/*" className="hidden"
+                    onChange={e=>irHandleFoto(e.target.files)}/>
+                  <div className="text-[9px] text-center" style={{color:'rgba(255,255,255,0.2)'}}>
+                    Fotografía la pantalla del indicador con el peso visible
+                  </div>
+                </div>
+
+                {/* ── Información Recibida / Resumen ── */}
+                <div className="rounded-2xl overflow-hidden"
+                  style={{border:`1px solid rgba(${irCatCfg.glow},0.25)`}}>
+                  <div className="h-1" style={{background:`linear-gradient(90deg,${irCatCfg.color},transparent)`}}/>
+                  <div className="p-4 space-y-2" style={{background:'rgba(0,0,0,0.25)'}}>
+                    <div className="text-[9px] font-black uppercase tracking-wider mb-2" style={{color:`rgba(${irCatCfg.glow},0.55)`}}>
+                      📋 Información Recibida
+                    </div>
+                    {[
+                      { label: 'Animal', val: irNombre || '—', c: 'white' },
+                      { label: 'Categoría', val: `${irCatCfg.emoji} ${irCat}`, c: irCatCfg.color },
+                      { label: 'Raza', val: irRaza, c: 'rgba(255,255,255,0.7)' },
+                      { label: 'Lote', val: irLote, c: LOTE_COLOR[irLote] || '#888' },
+                      { label: 'Estado', val: irEstado, c: ESTADO_CONFIG[irEstado]?.color || '#888' },
+                      { label: 'F. Nacimiento', val: irFechaNac || '—', c: 'rgba(255,255,255,0.5)' },
+                      { label: 'Edad calculada', val: irFechaNac ? irEdad : '—', c: '#00c8ff' },
+                      { label: 'Registro', val: irRegistro === 'SI' ? `✓ ${irNumRegistro || 'SI'}` : 'No', c: irRegistro==='SI'?'#39ff7e':'rgba(255,255,255,0.3)' },
+                      { label: 'Peso', val: `${Number(irPeso) || irPesoAuto} kg ${!irPeso ? '(auto)' : ''}`, c: '#c084fc' },
+                      { label: 'Valor estimado', val: irValorTotal > 0 ? fmt(irValorTotal) : '—', c: '#39ff7e' },
+                    ].map(({ label, val, c }) => (
+                      <div key={label} className="flex justify-between items-center py-1 border-b border-white/5">
+                        <span className="text-[10px]" style={{color:'rgba(255,255,255,0.3)'}}>{label}</span>
+                        <span className="text-[10px] font-bold text-right" style={{color:c}}>{val}</span>
+                      </div>
+                    ))}
+                    {irFotoUrl && (
+                      <div className="flex justify-between items-center py-1 border-b border-white/5">
+                        <span className="text-[10px]" style={{color:'rgba(255,255,255,0.3)'}}>Foto indicador</span>
+                        <span className="text-[10px] font-bold" style={{color:'#00c8ff'}}>✓ Capturada</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Observaciones */}
+                <div>
+                  <div className="text-[9px] font-black uppercase tracking-wider mb-1.5" style={{color:'rgba(255,255,255,0.2)'}}>Observaciones (opcional)</div>
+                  <textarea value={irObs} onChange={e=>setIrObs(e.target.value)}
+                    placeholder="Notas de ingreso, procedencia, condición inicial…"
+                    rows={2}
+                    className="w-full rounded-xl p-2.5 text-xs resize-none"
+                    style={{background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.07)',color:'rgba(255,255,255,0.6)',outline:'none'}}/>
+                </div>
+
+                {/* Guardar */}
+                <button onClick={irSave} disabled={!irNombre.trim()}
+                  className="w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] disabled:opacity-40"
+                  style={{
+                    background: 'linear-gradient(135deg,rgba(251,191,36,0.2),rgba(245,158,11,0.1))',
+                    border: '1px solid rgba(251,191,36,0.5)',
+                    color: '#fbbf24',
+                    boxShadow: '0 0 24px rgba(251,191,36,0.1)',
+                  }}>
+                  <UserPlus size={16}/> Registrar Animal en Inventario
+                </button>
+              </div>
+            </div>
+          </div>
         </TabsContent>
 
       </Tabs>

@@ -6,7 +6,9 @@ import {
   Grid3x3, TableProperties, Printer, QrCode, Filter, RefreshCw,
   Beef, Baby, ChevronRight, TrendingUp, TrendingDown, Milestone,
   Droplets, Heart, Scale, Zap, Star, Award, MapPin, Calendar,
-  DollarSign, CheckCircle2, XCircle, Clock, Info, FileText, Eye
+  DollarSign, CheckCircle2, XCircle, Clock, Info, FileText, Eye,
+  Package, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Receipt,
+  Layers, ShoppingCart, Banknote, Hash, Weight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -342,7 +344,7 @@ function FichaDetalle({ a }: { a: ReturnType<typeof useAppState>['animals'][0] }
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Inventario() {
-  const { animals, setAnimals, pesajes, setPesajes } = useAppState();
+  const { animals, setAnimals, pesajes, setPesajes, lotes, setLotes } = useAppState();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("Todos");

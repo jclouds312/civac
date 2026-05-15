@@ -635,6 +635,341 @@ export default function Documentacion() {
         </div>
       </div>
     ),
+    ventas: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🇨🇴" title="Kit del Agente de Ventas CIVAC PRO"
+          c1="rgba(0,40,0,0.95)" c2="rgba(0,80,20,0.95)" border="rgba(57,255,126,0.45)"
+          subtitle="Todo lo que necesitas para vender CIVAC PRO en Colombia · Pitch · Demo · Objeciones · Precios" />
+
+        {/* ── Elevator Pitch ── */}
+        <div className="rounded-2xl p-5" style={{background:'linear-gradient(135deg,#001a08,#002a10)',border:'1px solid rgba(57,255,126,0.2)'}}>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">⚡</span>
+            <span className="font-black text-white text-base">Pitch de 30 Segundos</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full ml-auto" style={{background:'rgba(57,255,126,0.12)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.3)'}}>Memorizar</span>
+          </div>
+          <div className="rounded-xl p-4 text-sm leading-relaxed italic" style={{background:'rgba(57,255,126,0.05)',border:'1px solid rgba(57,255,126,0.15)',color:'rgba(255,255,255,0.75)'}}>
+            "¿Lleva sus registros ganaderos en cuadernos o Excel? CIVAC PRO es la única app colombiana que funciona <strong className="text-white">sin internet en el campo</strong>, se conecta a su báscula Bluetooth, registra pesajes, reproducción, GPS del ganado, finanzas y 20 módulos más — todo desde el celular. Desde <strong className="text-white">$89.000 pesos al mes</strong>. Se instala en 2 minutos sin App Store. ¿Le hago una demo de 10 minutos?"
+          </div>
+        </div>
+
+        {/* ── Propuesta de valor ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🎯</span> Propuesta de Valor — Los 5 puntos que cierran ventas</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[
+              { n:'1', title:'Funciona SIN Internet', desc:'En zonas rurales sin señal, CIVAC PRO sigue funcionando. Guarda todo en el celular y sincroniza cuando haya wifi. Sus competidores se caen en el campo.', c:'#39ff7e', glow:'57,255,126', emoji:'🌐' },
+              { n:'2', title:'Se instala en 2 minutos', desc:'No hay App Store, no hay Play Store. El cliente abre civac.pro desde Chrome, toca "Instalar" y listo. Sin IT, sin configuración. Funciona en cualquier celular o tablet.', c:'#00f5d4', glow:'0,245,212', emoji:'⚡' },
+              { n:'3', title:'Pesaje Bluetooth integrado', desc:'Compatible con básculas Tru-Test, Gallagher y Agreto. Pesa el animal y el sistema auto-calcula GMD, valor comercial y condición corporal. Elimina errores manuales.', c:'#3b82f6', glow:'59,130,246', emoji:'⚖️' },
+              { n:'4', title:'20+ módulos, un solo precio', desc:'Inventario, reproducción, genética, GPS, potreros, insumos, personal, finanzas, P&G, alertas, multi-finca y más. No paga por módulo como la competencia.', c:'#a78bfa', glow:'167,139,250', emoji:'🗂️' },
+              { n:'5', title:'Diseñado para Colombia', desc:'Razas criollas (Brahman, Cebú, GyrXHolstein), normativa ICA/FEDEGAN, precios en COP, pago con Nequi/PSE/Daviplata. No es un software extranjero adaptado.', c:'#f59e0b', glow:'245,158,11', emoji:'🇨🇴' },
+              { n:'6', title:'ROI demostrable', desc:'Un ganadero que detecta a tiempo una vaca con pérdida de peso o preñez fallida ahorra millones. El costo del software es mínimo vs. el valor de un animal bien manejado.', c:'#f43f5e', glow:'244,63,94', emoji:'💰' },
+            ].map(p=>(
+              <div key={p.n} className="rounded-xl p-4" style={{background:`rgba(${p.glow},0.05)`,border:`1px solid rgba(${p.glow},0.18)`}}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{p.emoji}</span>
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0" style={{background:`rgba(${p.glow},0.2)`,color:p.c}}>{p.n}</div>
+                  <span className="font-bold text-sm text-white">{p.title}</span>
+                </div>
+                <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.45)'}}>{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Precios ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>💳</span> Planes y Precios (pesos colombianos)</h3>
+          <div className="grid sm:grid-cols-3 gap-3">
+            {[
+              {
+                nombre:'PRO', precio:'$89.000', periodo:'/mes', color:'#00f5d4', glow:'0,245,212',
+                bg:'linear-gradient(135deg,#001a14,#002a20)', border:'rgba(0,245,212,0.3)',
+                badge:'Más vendido',
+                features:['Inventario bovino completo','Pesaje manual + BT básico','Reproducción y partos','Insumos y Kardex','Alertas y notificaciones','Exportar CSV y JSON','Soporte por WhatsApp'],
+              },
+              {
+                nombre:'PREMIUM', precio:'$189.000', periodo:'/mes', color:'#a78bfa', glow:'167,139,250',
+                bg:'linear-gradient(135deg,#0f0020,#1a0035)', border:'rgba(167,139,250,0.35)',
+                badge:'Recomendado',
+                features:['Todo lo de PRO','GPS bovino en tiempo real','Genética y DEP','Multi-finca (3 fincas)','Módulo financiero P&G','Predicciones IA','Huella de carbono','Soporte prioritario'],
+              },
+              {
+                nombre:'PLATINO', precio:'$399.000', periodo:'/mes', color:'#f59e0b', glow:'245,158,11',
+                bg:'linear-gradient(135deg,#1a0c00,#2a1400)', border:'rgba(245,158,11,0.35)',
+                badge:'Para grandes fincas',
+                features:['Todo lo de Premium','Fincas ilimitadas','Usuarios ilimitados','Personalización de marca','Capacitación presencial','SLA 4 horas','API acceso a datos','Consultoría mensual'],
+              },
+            ].map(plan=>(
+              <div key={plan.nombre} className="rounded-2xl overflow-hidden" style={{background:plan.bg,border:`1px solid ${plan.border}`}}>
+                <div className="p-4 border-b" style={{borderColor:plan.border}}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-black text-white text-base">{plan.nombre}</span>
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold" style={{background:`rgba(${plan.glow},0.15)`,color:plan.color,border:`1px solid rgba(${plan.glow},0.3)`}}>{plan.badge}</span>
+                  </div>
+                  <div className="font-black text-3xl" style={{color:plan.color,fontFamily:'Sora,sans-serif'}}>{plan.precio}<span className="text-sm font-normal opacity-50">{plan.periodo}</span></div>
+                  <div className="text-[10px] mt-1" style={{color:`rgba(${plan.glow},0.5)`}}>Pago con Wompi · PSE · Nequi · Daviplata</div>
+                </div>
+                <div className="p-4 space-y-1.5">
+                  {plan.features.map(f=>(
+                    <div key={f} className="flex items-start gap-2 text-xs" style={{color:'rgba(255,255,255,0.6)'}}>
+                      <CheckCircle size={11} className="flex-shrink-0 mt-0.5" style={{color:plan.color}}/>
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 rounded-xl p-3 text-center text-xs" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.35)'}}>
+            Todos los planes incluyen 30 días de prueba gratis · Sin contrato mínimo · Cancela cuando quieras
+          </div>
+        </div>
+
+        {/* ── Perfil del cliente ideal ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🎯</span> ¿A quién le vendo?</h3>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {[
+              { emoji:'🐄', title:'Ganadero mediano/grande', desc:'50–500+ cabezas. Tiene báscula, usa cuadernos o Excel. Pierde dinero por desorganización. Busca reducir costos y mejorar control.', ideal:true, nivel:'Alto potencial' },
+              { emoji:'🏥', title:'Veterinario de campo', desc:'Visita fincas, lleva registros de sus clientes. CIVAC le permite ofrecer servicios de gestión digital. Multiplicador de ventas.', ideal:true, nivel:'Alto potencial' },
+              { emoji:'🌿', title:'Ganadero pequeño (20–50 cab.)', desc:'Quiere profesionalizarse. Precio más sensible. Entrar con plan PRO y hacer upsell a Premium cuando vea el valor.', ideal:false, nivel:'Potencial medio' },
+              { emoji:'🏢', title:'Cooperativas / Asoc. ganaderas', desc:'Una licencia Platino para toda la asociación. Múltiples usuarios, múltiples fincas. Ticket alto, requiere más gestión.', ideal:false, nivel:'Alto ticket' },
+            ].map(c=>(
+              <div key={c.title} className="rounded-xl p-4 flex gap-3" style={{background:c.ideal?'rgba(57,255,126,0.05)':'rgba(255,255,255,0.03)',border:c.ideal?'1px solid rgba(57,255,126,0.2)':'1px solid rgba(255,255,255,0.07)'}}>
+                <span className="text-3xl flex-shrink-0">{c.emoji}</span>
+                <div>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="font-bold text-sm text-white">{c.title}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold" style={{background:c.ideal?'rgba(57,255,126,0.1)':'rgba(255,255,255,0.05)',color:c.ideal?'#39ff7e':'rgba(255,255,255,0.35)'}}>{c.nivel}</span>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.45)'}}>{c.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Manejo de objeciones ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🛡️</span> Manejo de Objeciones — Las más comunes</h3>
+          <div className="space-y-3">
+            {[
+              {
+                obj:'"Tengo Excel y me funciona bien"',
+                resp:'Excel no le avisa cuando una vaca lleva más de 90 días sin parir. No se conecta con su báscula. No funciona en el campo sin internet. CIVAC hace todo eso automáticamente — y más rápido que Excel.',
+                c:'#f59e0b', glow:'245,158,11',
+              },
+              {
+                obj:'"Es muy caro para mi finca"',
+                resp:'$89.000 al mes son menos de $3.000 al día. Si CIVAC le ayuda a detectar a tiempo una sola vaca que no quedó preñada o una con pérdida de peso, ya pagó el año entero. ¿Cuánto vale un ternero perdido?',
+                c:'#f43f5e', glow:'244,63,94',
+              },
+              {
+                obj:'"No soy bueno con la tecnología"',
+                resp:'CIVAC fue diseñado para ganaderos, no para ingenieros. La pantalla de pesaje tiene botones grandes. Hacemos una capacitación de 30 minutos por WhatsApp y lo dejamos listo. Además tiene soporte incluido.',
+                c:'#3b82f6', glow:'59,130,246',
+              },
+              {
+                obj:'"¿Y si se daña el celular y pierdo todo?"',
+                resp:'CIVAC exporta backup completo en JSON que puede guardar en WhatsApp, Google Drive o USB. En otro celular instala CIVAC, importa el backup y en 2 minutos tiene todo de vuelta.',
+                c:'#a78bfa', glow:'167,139,250',
+              },
+              {
+                obj:'"Ya probé una app y no me funcionó"',
+                resp:'La mayoría requieren internet todo el tiempo. CIVAC funciona 100% offline en campo — esa es la diferencia clave. Además fue diseñado para Colombia: razas criollas, precios en COP, normativa ICA.',
+                c:'#14b8a6', glow:'20,184,166',
+              },
+              {
+                obj:'"¿Tiene integración con ICA / FEDEGAN?"',
+                resp:'CIVAC lleva el registro de todos los movimientos en el formato que exige el ICA (arete, fecha, tipo de movimiento). Puede exportar CSV para sus reportes oficiales con un solo clic.',
+                c:'#22c55e', glow:'34,197,94',
+              },
+            ].map(ob=>(
+              <div key={ob.obj} className="rounded-xl overflow-hidden">
+                <div className="px-4 py-2.5 flex items-start gap-2" style={{background:`rgba(${ob.glow},0.08)`,borderLeft:`3px solid rgba(${ob.glow},0.7)`}}>
+                  <span className="text-sm flex-shrink-0 mt-0.5">❓</span>
+                  <span className="font-semibold text-sm italic" style={{color:ob.c}}>{ob.obj}</span>
+                </div>
+                <div className="px-4 py-2.5 flex items-start gap-2" style={{background:'rgba(255,255,255,0.02)',borderLeft:`3px solid rgba(${ob.glow},0.25)`}}>
+                  <span className="text-sm flex-shrink-0 mt-0.5">💬</span>
+                  <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.6)'}}>{ob.resp}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Comparativa vs competencia ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>📊</span> Comparativa vs. Competencia</h3>
+          <div className="rounded-2xl overflow-hidden" style={{border:'1px solid rgba(0,245,212,0.15)'}}>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-xs">
+                <thead>
+                  <tr style={{background:'rgba(0,245,212,0.06)',borderBottom:'1px solid rgba(0,245,212,0.12)'}}>
+                    {['Característica','CIVAC PRO 🇨🇴','SisGan','Agrosoft','Software externo'].map((h,i)=>(
+                      <th key={h} className="text-left px-4 py-3 font-bold"
+                        style={{color:i===1?'#00f5d4':'rgba(255,255,255,0.4)',minWidth:120}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ['Funciona offline (campo)','✅ Sí, 100%','⚠️ Parcial','❌ No','❌ No'],
+                    ['PWA — sin App Store','✅ Sí','❌ No','❌ No','⚠️ Algunos'],
+                    ['Pesaje Bluetooth','✅ Tru-Test, Gallagher','⚠️ Solo Tru-Test','❌ No','✅ Depende'],
+                    ['GPS bovino','✅ Incluido','❌ Módulo extra','❌ No','✅ Caro'],
+                    ['Genética / DEP','✅ Incluido','⚠️ Básico','❌ No','✅ Caro'],
+                    ['Razas criollas Colombia','✅ Brahman, Cebú, Gyr','✅ Sí','⚠️ Limitado','❌ No'],
+                    ['Pago en COP (Nequi/PSE)','✅ Sí','✅ Sí','✅ Sí','❌ USD/EUR'],
+                    ['Precio mensual','✅ $89K–$399K','⚠️ $150K–$600K','⚠️ Licencia anual','❌ +$500K'],
+                    ['Soporte en español','✅ WhatsApp Colombia','⚠️ Solo email','⚠️ Lento','❌ Inglés'],
+                    ['Multi-finca','✅ Incluido','⚠️ Costo extra','❌ No','✅ Caro'],
+                    ['Módulos financieros IA','✅ P&G + Predicción','❌ Básico','❌ No','⚠️ Limitado'],
+                  ].map(row=>(
+                    <tr key={row[0]} className="border-t hover:bg-white/[0.012] transition-colors"
+                      style={{borderColor:'rgba(255,255,255,0.04)'}}>
+                      {row.map((cell,i)=>(
+                        <td key={i} className="px-4 py-2.5"
+                          style={{color:i===0?'rgba(255,255,255,0.6)':i===1?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.35)',
+                            fontWeight:i===1?700:400,
+                            background:i===1?'rgba(0,245,212,0.02)':'transparent'}}>
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Script de demo ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🎬</span> Guión de Demo — 10 minutos</h3>
+          <div className="space-y-2">
+            {[
+              { min:'00:00', paso:'Abrir civac.pro en Chrome del cliente y mostrar el login', tip:'Deje que el cliente toque las 4 tarjetas de perfil — eso ya impresiona', c:'#00f5d4' },
+              { min:'01:30', paso:'Entrar como Admin y mostrar el Dashboard con los KPIs', tip:'Señale los 6 KPIs de arriba: "Todo su negocio en una pantalla"', c:'#3b82f6' },
+              { min:'03:00', paso:'Ir a Inventario → abrir una ficha de animal', tip:'Muestre el historial de pesajes, vacunas y partos — diga "esto es lo que el ICA pide"', c:'#a78bfa' },
+              { min:'04:30', paso:'Demostrar Pesaje Manual: widget de báscula digital', tip:'Seleccione un animal, ajuste el peso con los botones ±5 y ±1, muestre el recibo que se genera', c:'#f59e0b' },
+              { min:'06:00', paso:'Ir a GPS → mostrar el mapa con los collares', tip:'"Sus vacas en tiempo real — si salen de la geocerca, le llega una alerta"', c:'#22c55e' },
+              { min:'07:30', paso:'Mostrar Centro de Respaldo → exportar backup JSON', tip:'"Sus datos están en su celular. Aquí los exporta a WhatsApp o Google Drive"', c:'#f43f5e' },
+              { min:'09:00', paso:'Ir a Configuración → instalar como PWA', tip:'Haga que el CLIENTE toque "Instalar" — el momento de magia cuando aparece el ícono en su pantalla', c:'#c084fc' },
+              { min:'10:00', paso:'Cierre: mostrar los planes y precio', tip:'"¿Con cuál plan empieza?" — no pregunte si quiere, asuma que quiere y pregunta cuál', c:'#39ff7e' },
+            ].map(s=>(
+              <div key={s.min} className="flex gap-3 items-start">
+                <div className="w-10 flex-shrink-0 text-center">
+                  <div className="font-mono font-bold text-xs px-1 py-0.5 rounded" style={{background:`rgba(${s.c==='#00f5d4'?'0,245,212':s.c==='#3b82f6'?'59,130,246':s.c==='#a78bfa'?'167,139,250':s.c==='#f59e0b'?'245,158,11':s.c==='#22c55e'?'34,197,94':s.c==='#f43f5e'?'244,63,94':s.c==='#c084fc'?'192,132,252':'57,255,126'},0.15)`,color:s.c}}>{s.min}</div>
+                </div>
+                <div className="flex-1 rounded-xl px-3 py-2.5" style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.06)'}}>
+                  <div className="font-semibold text-xs text-white mb-0.5">{s.paso}</div>
+                  <div className="text-[10px]" style={{color:'rgba(255,255,255,0.35)'}}>💡 {s.tip}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Comisiones y contacto ── */}
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="rounded-2xl p-5" style={{background:'linear-gradient(135deg,#1a0800,#2a1200)',border:'1px solid rgba(245,158,11,0.25)'}}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">💰</span>
+              <span className="font-black text-white text-sm">Comisiones para Agentes</span>
+            </div>
+            <div className="space-y-2">
+              {[
+                {plan:'Plan PRO', comision:'20%', val:'$17.800/mes', glow:'245,158,11'},
+                {plan:'Plan Premium', comision:'20%', val:'$37.800/mes', glow:'167,139,250'},
+                {plan:'Plan Platino', comision:'20%', val:'$79.800/mes', glow:'244,63,94'},
+                {plan:'Bono por 5+ clientes/mes', comision:'25%', val:'Comisión aumentada', glow:'57,255,126'},
+              ].map(c=>(
+                <div key={c.plan} className="flex items-center justify-between py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.06)'}}>
+                  <span className="text-xs text-white/60">{c.plan}</span>
+                  <div className="text-right">
+                    <span className="font-black text-sm" style={{color:`rgb(${c.glow})`}}>{c.comision}</span>
+                    <div className="text-[9px]" style={{color:`rgba(${c.glow},0.5)`}}>{c.val}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] mt-3" style={{color:'rgba(255,255,255,0.3)'}}>Comisión recurrente mientras el cliente pague · Pago mensual por Nequi o transferencia</p>
+          </div>
+
+          <div className="rounded-2xl p-5" style={{background:'linear-gradient(135deg,#001428,#001e3c)',border:'1px solid rgba(59,130,246,0.25)'}}>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">📞</span>
+              <span className="font-black text-white text-sm">Contacto y Recursos</span>
+            </div>
+            <div className="space-y-3">
+              {[
+                { icon:'💬', label:'WhatsApp ventas', val:'+57 300 000 0000', c:'#25D366' },
+                { icon:'📧', label:'Email comercial', val:'ventas@civac.pro', c:'#3b82f6' },
+                { icon:'🌐', label:'Demo pública', val:'civac.pro', c:'#00f5d4' },
+                { icon:'📹', label:'Video de demo', val:'civac.pro/demo', c:'#f43f5e' },
+                { icon:'📋', label:'Brochure PDF', val:'civac.pro/brochure', c:'#a78bfa' },
+              ].map(c=>(
+                <div key={c.label} className="flex items-center gap-2.5">
+                  <span className="text-lg flex-shrink-0">{c.icon}</span>
+                  <div>
+                    <div className="text-[9px] text-white/30">{c.label}</div>
+                    <div className="font-bold text-sm" style={{color:c.c}}>{c.val}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── FAQ del cliente ── */}
+        <div>
+          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>❓</span> FAQ — Preguntas que hacen los clientes</h3>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {[
+              { q:'¿Necesito internet en el campo?', a:'No. CIVAC funciona 100% offline. Guarda todo en el celular y puede sincronizar cuando llegue a casa o a la oficina.' },
+              { q:'¿Cuántas vacas puedo registrar?', a:'Sin límite. Puede registrar desde 5 hasta 50.000 animales. El sistema maneja cualquier tamaño de hato.' },
+              { q:'¿Puedo usar CIVAC en varios celulares?', a:'Sí. La misma finca puede tener varios usuarios con roles distintos: admin, veterinario, vaquero, solo lectura.' },
+              { q:'¿Qué pasa si cancelo la suscripción?', a:'Todos sus datos siguen en el celular. Puede exportar backup completo y llevarlo a cualquier lugar. Sus datos son suyos.' },
+              { q:'¿Funciona con mi báscula de la finca?', a:'CIVAC se conecta con las principales básculas Bluetooth del mercado colombiano (Tru-Test, Gallagher). Para báscula sin BT, ingresa el peso manualmente.' },
+              { q:'¿Hay soporte en español?', a:'Sí. Soporte por WhatsApp en horario colombiano (7am–7pm). También hay guías de video y documentación completa en español.' },
+            ].map(fq=>(
+              <div key={fq.q} className="rounded-xl p-3.5" style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.07)'}}>
+                <div className="font-semibold text-xs text-white mb-1.5">❓ {fq.q}</div>
+                <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.5)'}}>{fq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Cierre ── */}
+        <div className="rounded-2xl p-5 text-center relative overflow-hidden"
+          style={{background:'linear-gradient(135deg,#001a08,#002a10,#001a08)',border:'1px solid rgba(57,255,126,0.3)'}}>
+          <div className="absolute inset-0 pointer-events-none" style={{background:'radial-gradient(ellipse at 50% 0%,rgba(57,255,126,0.06),transparent 60%)'}}/>
+          <div className="relative">
+            <div className="text-4xl mb-2">🇨🇴</div>
+            <h3 className="font-black text-white text-lg mb-2" style={{fontFamily:'Sora,sans-serif'}}>¡Usted puede vender el mejor software ganadero de Colombia!</h3>
+            <p className="text-sm mb-4 max-w-xl mx-auto" style={{color:'rgba(57,255,126,0.6)'}}>
+              CIVAC PRO está probado, funciona en campo, tiene soporte y un precio justo para el mercado colombiano. Su trabajo es mostrarlo y cerrar. El software se vende solo.
+            </p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              <button onClick={()=>window.print()}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm"
+                style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}}>
+                <Printer size={14}/> Imprimir esta guía
+              </button>
+              <a href="https://wa.me/573000000000?text=Hola, quiero ser agente CIVAC PRO" target="_blank" rel="noreferrer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm"
+                style={{background:'rgba(37,211,102,0.12)',border:'1px solid rgba(37,211,102,0.3)',color:'#25D366'}}>
+                💬 Contactar por WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
   };
 
   const activeConf = SECTIONS.find(s => s.id === activeSection);

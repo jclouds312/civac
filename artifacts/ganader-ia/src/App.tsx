@@ -30,6 +30,7 @@ import Configuracion from "./pages/configuracion";
 import Documentacion from "./pages/documentacion";
 import Manual from "./pages/manual";
 import Pesaje from "./pages/pesaje";
+import PesajeManual from "./pages/pesaje-manual";
 import Gps from "./pages/gps";
 import Planes from "./pages/planes";
 import Lotes from "./pages/lotes";

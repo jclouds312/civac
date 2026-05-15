@@ -25,7 +25,8 @@ const MODULES: Record<string, {
   '/genetica':      { from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  emoji:'🧬', label:'Genética y Pedigrí',  shortLabel:'Genética' },
   '/potreros':      { from:'#84ef34', to:'#65a30d', glow:'132,239,52',  emoji:'🌿', label:'Potreros',            shortLabel:'Potreros' },
   '/alimentacion':  { from:'#ffd166', to:'#f59e0b', glow:'255,209,102', emoji:'🌾', label:'Alimentación',        shortLabel:'Alimento' },
-  '/pesaje':        { from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  emoji:'⚖️', label:'Pesaje Bluetooth',    shortLabel:'Pesaje' },
+  '/pesaje':        { from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  emoji:'⚖️', label:'Básculas BT',         shortLabel:'BT' },
+  '/pesaje-manual': { from:'#c084fc', to:'#7c3aed', glow:'192,132,252', emoji:'📐', label:'Pesaje Manual',        shortLabel:'Manual' },
   '/insumos':       { from:'#fbbf24', to:'#d97706', glow:'251,191,36',  emoji:'💊', label:'Insumos y Medicinas', shortLabel:'Insumos' },
   '/semen':         { from:'#818cf8', to:'#4f46e5', glow:'129,140,248', emoji:'🧪', label:'Semen y Embriones',   shortLabel:'Semen' },
   '/costos':        { from:'#34d399', to:'#059669', glow:'52,211,153',  emoji:'💰', label:'Costos y P&G',        shortLabel:'Costos' },
@@ -279,9 +280,9 @@ export function Layout({ children }: LayoutProps) {
 
   const isActive = (p: string) => location === p;
 
-  /* ── Nav item ─────────────────────────────────────────────────────────── */
-  const NavItem = ({ href, badge, accent, accentColor }: {
-    href: string; badge?: number | string; accent?: string; accentColor?: string;
+  /* ── Nav item — full-color icons ──────────────────────────────────────── */
+  const NavItem = ({ href, badge, accent, accentColor, pulse }: {
+    href: string; badge?: number | string; accent?: string; accentColor?: string; pulse?: boolean;
   }) => {
     const active = isActive(href);
     const m = MODULES[href] || MODULES['/'];
@@ -291,76 +292,120 @@ export function Layout({ children }: LayoutProps) {
           className="flex items-center gap-2.5 px-2 py-1.5 mx-1.5 my-0.5 cursor-pointer group relative overflow-hidden transition-all duration-150"
           style={{
             borderRadius: 14,
-            ...(active ? {
-              background: `linear-gradient(135deg,${m.from}22,${m.to}10)`,
-              border: `1px solid ${m.from}40`,
-              boxShadow: `0 0 16px rgba(${m.glow},0.14)`,
-            } : { border: '1px solid transparent' }),
+            background: active
+              ? `linear-gradient(135deg,rgba(${m.glow},0.18),rgba(${m.glow},0.07))`
+              : `rgba(${m.glow},0.04)`,
+            border: active
+              ? `1px solid rgba(${m.glow},0.45)`
+              : `1px solid rgba(${m.glow},0.10)`,
+            boxShadow: active ? `0 0 18px rgba(${m.glow},0.15)` : 'none',
           }}
         >
+          {/* Left accent bar */}
           {active && (
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
               style={{ background: m.from, boxShadow: `0 0 10px ${m.from}cc` }} />
           )}
+          {/* Colored icon — always visible, brighter when active */}
           <div
-            className={`flex-shrink-0 flex items-center justify-center transition-all duration-200 ${active ? '' : 'opacity-55 group-hover:opacity-90'}`}
+            className="flex-shrink-0 flex items-center justify-center transition-all duration-200 group-hover:scale-110"
             style={{
               width: 28, height: 28, fontSize: 13, borderRadius: 10,
-              background: active ? `linear-gradient(135deg,${m.from},${m.to})` : 'rgba(255,255,255,0.06)',
-              boxShadow: active ? `0 0 12px rgba(${m.glow},0.5)` : 'none',
+              background: active
+                ? `linear-gradient(135deg,${m.from},${m.to})`
+                : `linear-gradient(135deg,rgba(${m.glow},0.22),rgba(${m.glow},0.10))`,
+              border: active ? 'none' : `1px solid rgba(${m.glow},0.25)`,
+              boxShadow: active
+                ? `0 0 14px rgba(${m.glow},0.6), inset 0 1px 0 rgba(255,255,255,0.2)`
+                : `0 0 6px rgba(${m.glow},0.18)`,
             }}
           >
-            <span style={active ? { filter: 'drop-shadow(0 0 3px rgba(0,0,0,0.5))' } : {}}>{m.emoji}</span>
+            <span style={{ filter: active ? 'drop-shadow(0 0 3px rgba(0,0,0,0.4))' : 'none' }}>{m.emoji}</span>
           </div>
           {!collapsed && (
             <>
-              <span className={`flex-1 text-[12.5px] font-medium leading-none transition-colors truncate ${active ? 'text-white font-semibold' : 'text-white/50 group-hover:text-white/85'}`}>
+              <span
+                className="flex-1 text-[12.5px] font-medium leading-none transition-all truncate"
+                style={{ color: active ? 'white' : `rgba(${m.glow},0.72)`, fontWeight: active ? 600 : 400 }}
+              >
                 {m.label}
               </span>
               {badge != null && (
-                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500 text-white min-w-[18px] text-center">{badge}</span>
+                <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full text-white min-w-[18px] text-center flex items-center gap-0.5"
+                  style={{ background: 'rgba(255,77,109,0.9)', boxShadow: '0 0 8px rgba(255,77,109,0.6)' }}>
+                  {pulse && <span className="w-1 h-1 rounded-full bg-white animate-pulse" />}
+                  {badge}
+                </span>
               )}
               {accent && !badge && (
                 <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full border ${accentColor || 'bg-[#00f5d4]/15 text-[#00f5d4] border-[#00f5d4]/25'}`}>{accent}</span>
               )}
             </>
           )}
+          {/* Collapsed badge */}
+          {collapsed && badge != null && (
+            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full text-white text-[7px] font-black flex items-center justify-center"
+              style={{ background: 'rgba(255,77,109,0.9)', boxShadow: '0 0 6px rgba(255,77,109,0.7)' }}>
+              {badge}
+            </span>
+          )}
         </div>
       </Link>
     );
   };
 
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="mb-0.5">
-      {!collapsed && <p className="px-4 pt-3 pb-1 text-[9px] uppercase font-bold tracking-[0.15em] text-white/22">{title}</p>}
-      {collapsed && <div className="mx-3 my-2 border-t border-white/8" />}
-      {children}
-    </div>
-  );
+  const SECTION_COLORS: Record<string, string> = {
+    'Principal':   '#00f5d4', 'Animales': '#39ff7e', 'Campo': '#84ef34',
+    'Gestión':     '#fbbf24', 'IA & Analytics': '#e879f9', 'Sistema': '#818cf8',
+  };
+  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => {
+    const c = SECTION_COLORS[title] || '#00f5d4';
+    return (
+      <div className="mb-0.5">
+        {!collapsed && (
+          <div className="px-4 pt-3 pb-1 flex items-center gap-2">
+            <div className="w-1 h-3 rounded-full flex-shrink-0" style={{ background: c, boxShadow: `0 0 6px ${c}99` }} />
+            <p className="text-[9px] uppercase font-black tracking-[0.18em]" style={{ color: `${c}99` }}>{title}</p>
+          </div>
+        )}
+        {collapsed && <div className="mx-3 my-2 border-t border-white/8" />}
+        {children}
+      </div>
+    );
+  };
 
   const sideW = collapsed ? 'w-[58px]' : 'w-[226px]';
 
-  /* ── Quick-access Pesaje Rápido (sidebar banner) ─────────────────────── */
+  /* ── Quick-access Pesaje Manual (sidebar banner) ─────────────────────── */
   const PesajeQuickAccess = () => {
     if (collapsed) return null;
     return (
-      <Link href="/inventario">
-        <div className="mx-2 mb-2 px-3 py-2.5 cursor-pointer pesaje-quick-btn group"
-          style={{ borderRadius: 14 }}>
+      <Link href="/pesaje-manual">
+        <div className="mx-2 mb-2 px-3 py-2.5 cursor-pointer group transition-all hover:scale-[1.02]"
+          style={{
+            borderRadius: 14,
+            background: 'linear-gradient(135deg,rgba(192,132,252,0.12),rgba(124,58,237,0.08))',
+            border: '1px solid rgba(192,132,252,0.28)',
+            boxShadow: '0 0 12px rgba(192,132,252,0.08)',
+          }}>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-              style={{ background: 'rgba(255,149,0,0.18)', border: '1px solid rgba(255,149,0,0.4)' }}>
-              ⚖️
+              style={{
+                background: 'linear-gradient(135deg,rgba(192,132,252,0.25),rgba(124,58,237,0.15))',
+                border: '1px solid rgba(192,132,252,0.4)',
+                boxShadow: '0 0 10px rgba(192,132,252,0.2)',
+              }}>
+              📐
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-black text-white leading-tight">Pesaje Rápido</p>
-              <p className="text-[9px] leading-tight" style={{ color: 'rgba(255,149,0,0.7)' }}>
-                Auto-cálculo · BT · PDF
+              <p className="text-[11px] font-black leading-tight" style={{ color: '#c084fc' }}>Pesaje Manual</p>
+              <p className="text-[9px] leading-tight" style={{ color: 'rgba(192,132,252,0.55)' }}>
+                CC · GMD · Recibo PDF · BT
               </p>
             </div>
-            <div className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-              style={{ background: 'rgba(255,149,0,0.18)', color: '#ff9500', border: '1px solid rgba(255,149,0,0.3)' }}>
-              ⚡
+            <div className="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+              style={{ background: 'rgba(192,132,252,0.15)', color: '#c084fc', border: '1px solid rgba(192,132,252,0.3)' }}>
+              PRO
             </div>
           </div>
         </div>
@@ -370,11 +415,11 @@ export function Layout({ children }: LayoutProps) {
 
   /* ── Bottom nav mobile tabs ───────────────────────────────────────────── */
   const bottomTabs = [
-    { href: '/',           emoji: '📊', label: 'Inicio' },
-    { href: '/inventario', emoji: '🐄', label: 'Ganado' },
-    { href: '/pesaje',     emoji: '⚖️', label: 'Pesaje' },
-    { href: '/alertas',    emoji: '🔔', label: 'Alertas', badge: 4 },
-    { href: '/produccion', emoji: '🥛', label: 'Leche' },
+    { href: '/',              emoji: '📊', label: 'Inicio' },
+    { href: '/inventario',    emoji: '🐄', label: 'Ganado' },
+    { href: '/pesaje-manual', emoji: '📐', label: 'Pesaje' },
+    { href: '/alertas',       emoji: '🔔', label: 'Alertas', badge: 4 },
+    { href: '/produccion',    emoji: '🥛', label: 'Leche' },
   ];
 
   return (
@@ -499,6 +544,7 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/produccion" />
             <NavItem href="/genetica" />
             <NavItem href="/pesaje" accent="BT⚡" accentColor="bg-[#ff9500]/15 text-[#ff9500] border-[#ff9500]/25" />
+            <NavItem href="/pesaje-manual" accent="CC" accentColor="bg-[#c084fc]/15 text-[#c084fc] border-[#c084fc]/25" />
           </Section>
           <Section title="Campo">
             <NavItem href="/potreros" />
@@ -600,17 +646,17 @@ export function Layout({ children }: LayoutProps) {
               <Wifi size={10} /><span>PWA Offline</span>
             </div>
 
-            {/* ⚖️ Pesaje quick-access en topbar */}
-            <Link href="/inventario">
-              <button className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold transition-all hover:opacity-90"
+            {/* 📐 Pesaje Manual quick-access en topbar */}
+            <Link href="/pesaje-manual">
+              <button className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold transition-all hover:scale-[1.04]"
                 style={{
-                  color: '#ff9500',
-                  background: 'rgba(255,149,0,0.10)',
-                  border: '1px solid rgba(255,149,0,0.30)',
+                  color: '#c084fc',
+                  background: 'rgba(192,132,252,0.10)',
+                  border: '1px solid rgba(192,132,252,0.30)',
                   borderRadius: 10,
-                  boxShadow: '0 0 12px rgba(255,149,0,0.08)',
+                  boxShadow: '0 0 12px rgba(192,132,252,0.1)',
                 }}>
-                ⚖️ <span>Pesaje Rápido</span>
+                📐 <span>Pesaje Manual</span>
               </button>
             </Link>
           </div>

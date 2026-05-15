@@ -1461,6 +1461,347 @@ export default function Inventario() {
           )}
         </TabsContent>
 
+        {/* ─── MOVIMIENTO DE LOTE ─── */}
+        <TabsContent value="lotes">
+          {/* Banner */}
+          <div className="rounded-xl p-4 mb-5 relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,#020b16,#041a2e)',border:'1px solid rgba(56,189,248,0.35)',boxShadow:'0 0 40px rgba(56,189,248,0.06)'}}>
+            <div className="absolute right-0 top-0 bottom-0 w-48 pointer-events-none opacity-10"
+              style={{background:'radial-gradient(ellipse at right, #38bdf8, transparent 70%)'}}/>
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{background:'rgba(56,189,248,0.12)',border:'1px solid rgba(56,189,248,0.4)',boxShadow:'0 0 18px rgba(56,189,248,0.2)'}}>
+                  📦
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>
+                    Movimiento de Lote
+                  </h2>
+                  <p className="text-xs mt-0.5" style={{color:'rgba(56,189,248,0.65)'}}>
+                    Comprar · Ingresar · Vender · Recibo automático · Cálculo de valor total
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2.5 py-1 rounded-full font-bold"
+                  style={{background:'rgba(56,189,248,0.12)',color:'#38bdf8',border:'1px solid rgba(56,189,248,0.3)'}}>
+                  {lotes.length} movimiento{lotes.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3 Action cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+            {([
+              { tipo:'comprar' as const, label:'Comprar Lote', sub:'Adquisición de animales', icon:<ShoppingCart size={22}/>, c:'#4ade80', glow:'74,222,128', emoji:'🛒' },
+              { tipo:'ingresar' as const, label:'Ingresar Lote', sub:'Entrada interna / traslado', icon:<ArrowDownToLine size={22}/>, c:'#38bdf8', glow:'56,189,248', emoji:'📥' },
+              { tipo:'vender' as const, label:'Vender Lote', sub:'Salida y venta de animales', icon:<ArrowUpFromLine size={22}/>, c:'#f87171', glow:'248,113,113', emoji:'📤' },
+            ] as const).map(ac => (
+              <button key={ac.tipo} onClick={() => openLoteForm(ac.tipo)}
+                className="rounded-xl p-4 text-left transition-all hover:scale-[1.02] active:scale-100 group"
+                style={{background:`linear-gradient(135deg,rgba(${ac.glow},0.06),rgba(${ac.glow},0.02))`,
+                  border:`1px solid rgba(${ac.glow},0.25)`,
+                  boxShadow:`0 0 20px rgba(${ac.glow},0)`,}}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{background:`rgba(${ac.glow},0.12)`,border:`1px solid rgba(${ac.glow},0.3)`}}>
+                    <span style={{color:ac.c}}>{ac.icon}</span>
+                  </div>
+                  <div>
+                    <div className="font-black text-base text-white">{ac.label}</div>
+                    <div className="text-[10px]" style={{color:`rgba(${ac.glow},0.6)`}}>{ac.sub}</div>
+                  </div>
+                </div>
+                <div className="text-xs font-semibold flex items-center gap-1"
+                  style={{color:`rgba(${ac.glow},0.7)`}}>
+                  <Plus size={11}/> Registrar movimiento
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Form panel */}
+          {loteFormOpen && (() => {
+            const tipoConf = {
+              comprar: { label:'Comprar Lote', c:'#4ade80', glow:'74,222,128', emoji:'🛒' },
+              ingresar: { label:'Ingresar Lote', c:'#38bdf8', glow:'56,189,248', emoji:'📥' },
+              vender:  { label:'Vender Lote',  c:'#f87171', glow:'248,113,113', emoji:'📤' },
+            }[loteTipo];
+            return (
+              <div className="rounded-xl p-5 mb-5"
+                style={{background:'linear-gradient(135deg,#040e14,#060c10)',border:`1px solid rgba(${tipoConf.glow},0.3)`}}>
+                {/* Form header */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl"
+                      style={{background:`rgba(${tipoConf.glow},0.12)`,border:`1px solid rgba(${tipoConf.glow},0.3)`}}>
+                      {tipoConf.emoji}
+                    </div>
+                    <div>
+                      <div className="font-black text-base text-white">{tipoConf.label}</div>
+                      <div className="text-[10px]" style={{color:`rgba(${tipoConf.glow},0.6)`}}>
+                        Complete los datos del lote · Los cálculos son automáticos
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => { setLoteFormOpen(false); resetLoteForm(); }}
+                    className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white/40 hover:text-white">
+                    <XCircle size={16}/>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  {/* Nombre del lote */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:`rgba(${tipoConf.glow},0.7)`}}>
+                      Nombre del Lote
+                    </Label>
+                    <Input value={loteNombre} onChange={e => setLoteNombre(e.target.value)}
+                      placeholder="Ej. Lote Noviembre 2025"
+                      style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${tipoConf.glow},0.25)`,color:'#fff'}}/>
+                  </div>
+
+                  {/* Cantidad de animales */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:`rgba(${tipoConf.glow},0.7)`}}>
+                      Cantidad de Animales
+                    </Label>
+                    <Input type="number" min="1" value={loteCantidad} onChange={e => setLoteCantidad(e.target.value)}
+                      placeholder="0"
+                      style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${tipoConf.glow},0.25)`,color:'#fff'}}/>
+                  </div>
+
+                  {/* Peso total */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:`rgba(${tipoConf.glow},0.7)`}}>
+                      Peso Total del Lote (kg)
+                    </Label>
+                    <Input type="number" step="0.1" value={lotePesoTotal} onChange={e => setLotePesoTotal(e.target.value)}
+                      placeholder="0.0 kg"
+                      style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${tipoConf.glow},0.25)`,color:'#fff'}}/>
+                  </div>
+
+                  {/* Promedio auto-calculado */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:'rgba(255,149,0,0.7)'}}>
+                      Promedio de Peso por Animal — Auto
+                    </Label>
+                    <div className="h-10 rounded-lg px-3 flex items-center gap-2"
+                      style={{background:'rgba(255,149,0,0.06)',border:'1px solid rgba(255,149,0,0.2)'}}>
+                      <Scale size={13} style={{color:'#ff9500',flexShrink:0}}/>
+                      <span className="font-black text-base" style={{color:lotePromedio > 0 ? '#ff9500' : 'rgba(255,255,255,0.2)'}}>
+                        {lotePromedio > 0 ? `${lotePromedio.toFixed(1)} kg` : '— kg'}
+                      </span>
+                      {lotePromedio > 0 && (
+                        <span className="text-[10px] text-white/30 ml-1">
+                          = {lotePesoTotal} ÷ {loteCantidad}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Costo por kilo */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:'rgba(57,255,126,0.7)'}}>
+                      $ Costo por Kilo (COP)
+                    </Label>
+                    <Input type="number" step="100" value={loteCostoKilo} onChange={e => setLoteCostoKilo(e.target.value)}
+                      placeholder="$ 0"
+                      style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(57,255,126,0.25)',color:'#39ff7e'}}/>
+                  </div>
+
+                  {/* Valor total auto-calculado */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:'rgba(57,255,126,0.7)'}}>
+                      Valor Total del Lote — Auto
+                    </Label>
+                    <div className="h-10 rounded-lg px-3 flex items-center gap-2"
+                      style={{background:'rgba(57,255,126,0.07)',border:'1px solid rgba(57,255,126,0.25)'}}>
+                      <DollarSign size={13} style={{color:'#39ff7e',flexShrink:0}}/>
+                      <span className="font-black text-base" style={{color:loteValorTotal > 0 ? '#39ff7e' : 'rgba(255,255,255,0.2)'}}>
+                        {loteValorTotal > 0 ? fmt(loteValorTotal) : '—'}
+                      </span>
+                      {loteValorTotal > 0 && (
+                        <span className="text-[10px] text-white/30 ml-1">
+                          = {loteCostoKilo} × {lotePesoTotal} kg
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Proveedor / Destino según tipo */}
+                  {loteTipo !== 'vender' ? (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold uppercase tracking-wider" style={{color:`rgba(${tipoConf.glow},0.7)`}}>
+                        Proveedor / Origen
+                      </Label>
+                      <Input value={loteProveedor} onChange={e => setLoteProveedor(e.target.value)}
+                        placeholder="Nombre del proveedor"
+                        style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${tipoConf.glow},0.25)`,color:'#fff'}}/>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-bold uppercase tracking-wider" style={{color:`rgba(${tipoConf.glow},0.7)`}}>
+                        Destino / Comprador
+                      </Label>
+                      <Input value={loteDestino} onChange={e => setLoteDestino(e.target.value)}
+                        placeholder="Nombre del comprador o destino"
+                        style={{background:'rgba(0,0,0,0.4)',border:`1px solid rgba(${tipoConf.glow},0.25)`,color:'#fff'}}/>
+                    </div>
+                  )}
+
+                  {/* Notas */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-bold uppercase tracking-wider" style={{color:'rgba(255,255,255,0.4)'}}>
+                      Notas / Observaciones
+                    </Label>
+                    <Input value={loteNotas} onChange={e => setLoteNotas(e.target.value)}
+                      placeholder="Opcional"
+                      style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,255,255,0.1)',color:'#fff'}}/>
+                  </div>
+                </div>
+
+                {/* Live summary card */}
+                {(lotePromedio > 0 || loteValorTotal > 0) && (
+                  <div className="rounded-xl p-4 mb-4 grid grid-cols-2 sm:grid-cols-4 gap-3"
+                    style={{background:`rgba(${tipoConf.glow},0.05)`,border:`1px solid rgba(${tipoConf.glow},0.15)`}}>
+                    {[
+                      { label:'Animales', val:`${Number(loteCantidad)||0}`, sub:'cabezas', c:'#fff' },
+                      { label:'Peso total', val:`${Number(lotePesoTotal)||0} kg`, sub:'del lote', c:'#ff9500' },
+                      { label:'Prom/animal', val:`${lotePromedio.toFixed(1)} kg`, sub:'auto-calculado', c:'#ff9500' },
+                      { label:'Valor total', val:loteValorTotal > 0 ? fmt(loteValorTotal) : '—', sub:'COP estimado', c:'#39ff7e' },
+                    ].map(s => (
+                      <div key={s.label} className="text-center">
+                        <div className="text-[9px] uppercase tracking-wider text-white/30 mb-0.5">{s.label}</div>
+                        <div className="font-black text-sm" style={{color:s.c, fontFamily:'Sora,sans-serif'}}>{s.val}</div>
+                        <div className="text-[9px] text-white/25">{s.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Precio por animal reference */}
+                {lotePrecioAnimal > 0 && (
+                  <div className="rounded-lg px-4 py-2.5 mb-4 flex items-center gap-3"
+                    style={{background:'rgba(251,191,36,0.07)',border:'1px solid rgba(251,191,36,0.2)'}}>
+                    <Banknote size={15} style={{color:'#fbbf24',flexShrink:0}}/>
+                    <div className="flex-1 text-xs text-white/50">
+                      Precio estimado por animal: <strong className="text-[#fbbf24] text-sm">{fmt(lotePrecioAnimal)}</strong>
+                      <span className="text-white/30 ml-2">= {fmt(Number(loteCostoKilo))} × {lotePromedio.toFixed(1)} kg</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2 justify-end flex-wrap">
+                  <Button type="button" variant="outline" onClick={() => { setLoteFormOpen(false); resetLoteForm(); }}
+                    className="text-sm">
+                    Cancelar
+                  </Button>
+                  <Button type="button" onClick={() => { handleSaveLote(); setTimeout(() => window.print(), 200); }}
+                    disabled={!loteNombre || !loteCantidad || !lotePesoTotal}
+                    className="gap-2 text-sm"
+                    style={{background:'rgba(167,139,250,0.15)',border:'1px solid rgba(167,139,250,0.4)',color:'#a78bfa'}}>
+                    <Printer size={14}/> Guardar y Generar Recibo
+                  </Button>
+                  <Button type="button" onClick={handleSaveLote}
+                    disabled={!loteNombre || !loteCantidad || !lotePesoTotal}
+                    className="gap-2 text-sm"
+                    style={{background:`rgba(${tipoConf.glow},0.15)`,border:`1px solid rgba(${tipoConf.glow},0.4)`,color:tipoConf.c}}>
+                    <CheckCircle2 size={14}/> Guardar Movimiento
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Movement history */}
+          {lotes.length > 0 ? (
+            <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(56,189,248,0.12)'}}>
+              <div className="px-4 py-3 flex items-center gap-2" style={{background:'rgba(56,189,248,0.06)',borderBottom:'1px solid rgba(56,189,248,0.12)'}}>
+                <Layers size={14} style={{color:'#38bdf8'}}/>
+                <span className="font-bold text-sm text-white">Historial de Movimientos</span>
+                <span className="ml-auto text-xs text-white/30">{lotes.length} registros</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{background:'rgba(56,189,248,0.05)',borderBottom:'1px solid rgba(56,189,248,0.1)'}}>
+                      {['TIPO','LOTE','FECHA','ANIMALES','PESO TOTAL','PROM/ANIMAL','$/KG','VALOR TOTAL','PROVEEDOR/DESTINO','ACC.'].map(h=>(
+                        <th key={h} className="text-left px-3 py-3 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap"
+                          style={{color:'rgba(56,189,248,0.65)'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lotes.map(m => {
+                      const tipoColor = m.tipo==='comprar'?'#4ade80':m.tipo==='vender'?'#f87171':'#38bdf8';
+                      const tipoBg = m.tipo==='comprar'?'rgba(74,222,128,0.12)':m.tipo==='vender'?'rgba(248,113,113,0.12)':'rgba(56,189,248,0.12)';
+                      const tipoEmoji = m.tipo==='comprar'?'🛒':m.tipo==='vender'?'📤':'📥';
+                      return (
+                        <tr key={m.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
+                          <td className="px-3 py-2.5">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold capitalize"
+                              style={{background:tipoBg,color:tipoColor}}>
+                              {tipoEmoji} {m.tipo}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 font-bold text-white text-xs">{m.nombreLote}</td>
+                          <td className="px-3 py-2.5 text-xs text-white/50 whitespace-nowrap">{m.fecha}</td>
+                          <td className="px-3 py-2.5 text-center font-mono font-bold text-white">{m.cantidadAnimales}</td>
+                          <td className="px-3 py-2.5 font-bold text-orange-300 whitespace-nowrap">{m.pesoTotalLote} kg</td>
+                          <td className="px-3 py-2.5 text-xs text-white/60 whitespace-nowrap">{m.promedioPesoAnimal.toFixed(1)} kg</td>
+                          <td className="px-3 py-2.5 text-xs text-white/50">{m.costoKilo > 0 ? fmt(m.costoKilo) : '—'}</td>
+                          <td className="px-3 py-2.5">
+                            {m.valorTotalLote > 0
+                              ? <span className="font-black text-xs" style={{color:'#39ff7e'}}>{fmt(m.valorTotalLote)}</span>
+                              : <span className="text-white/20">—</span>}
+                          </td>
+                          <td className="px-3 py-2.5 text-xs text-white/40 max-w-[120px] truncate">
+                            {m.proveedor || m.destino || <span className="text-white/20">—</span>}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <button onClick={() => handlePrintLoteRecibo(m)}
+                              title="Imprimir recibo"
+                              className="p-1.5 rounded hover:bg-white/10 transition-colors"
+                              style={{color:'rgba(167,139,250,0.7)'}}>
+                              <Receipt size={13}/>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Summary row */}
+              <div className="px-4 py-3 grid grid-cols-3 sm:grid-cols-4 gap-4 border-t border-white/5"
+                style={{background:'rgba(56,189,248,0.03)'}}>
+                {[
+                  { label:'Total movimientos', val:String(lotes.length), c:'#38bdf8' },
+                  { label:'Total animales movilizados', val:String(lotes.reduce((s,m)=>s+m.cantidadAnimales,0)), c:'#ff9500' },
+                  { label:'Valor acumulado', val:fmt(lotes.reduce((s,m)=>s+m.valorTotalLote,0)), c:'#39ff7e' },
+                  { label:'Compras / Ventas', val:`${lotes.filter(m=>m.tipo==='comprar').length} / ${lotes.filter(m=>m.tipo==='vender').length}`, c:'#a78bfa' },
+                ].map(s => (
+                  <div key={s.label}>
+                    <div className="text-[9px] uppercase tracking-wider text-white/30">{s.label}</div>
+                    <div className="font-black text-sm" style={{color:s.c}}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl py-16 text-center" style={{background:'rgba(56,189,248,0.03)',border:'1px dashed rgba(56,189,248,0.15)'}}>
+              <Package size={40} className="mx-auto mb-3" style={{color:'rgba(56,189,248,0.25)'}}/>
+              <p className="text-white/30 text-sm">No hay movimientos registrados aún</p>
+              <p className="text-white/20 text-xs mt-1">Usa los botones de arriba para registrar una compra, ingreso o venta de lote</p>
+            </div>
+          )}
+        </TabsContent>
+
       </Tabs>
 
       {/* Hidden print receipt for pesaje */}
@@ -1514,6 +1855,60 @@ export default function Inventario() {
           </div>
         );
       })()}
+
+      {/* Hidden print receipt for lote movement */}
+      {loteRecibo && (
+        <div id="recibo-lote-print" className="print-only" style={{
+          display:'none', fontFamily:'Sora,sans-serif', color:'#000',
+          padding:'24px', background:'#fff', maxWidth:500, margin:'0 auto',
+        }}>
+          <div style={{textAlign:'center', borderBottom:'2px solid #000', paddingBottom:12, marginBottom:16}}>
+            <div style={{fontSize:22, fontWeight:900}}>🐄 CIVAC PRO</div>
+            <div style={{fontSize:11, color:'#555'}}>Control Inteligente de Valor Agropecuario · Colombia</div>
+            <div style={{fontSize:18, fontWeight:800, marginTop:8}}>
+              RECIBO DE {(loteRecibo.tipo).toUpperCase()} DE LOTE
+            </div>
+            <div style={{fontSize:10, color:'#888'}}>
+              Fecha: {loteRecibo.fecha} · Generado: {new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
+            </div>
+          </div>
+
+          <table style={{width:'100%', fontSize:12, borderCollapse:'collapse', marginBottom:16}}>
+            <tbody>
+              {[
+                ['Nombre del Lote', loteRecibo.nombreLote],
+                ['Tipo de Movimiento', loteRecibo.tipo.toUpperCase()],
+                ['Cantidad de Animales', String(loteRecibo.cantidadAnimales) + ' cabezas'],
+                ['Peso Total del Lote', loteRecibo.pesoTotalLote + ' kg'],
+                ['Promedio de Peso por Animal', loteRecibo.promedioPesoAnimal.toFixed(1) + ' kg'],
+                ['$ Costo por Kilo', loteRecibo.costoKilo > 0 ? fmt(loteRecibo.costoKilo) : '—'],
+                ['Valor Total del Lote', loteRecibo.valorTotalLote > 0 ? fmt(loteRecibo.valorTotalLote) : '—'],
+                ['Precio Estimado por Animal', loteRecibo.costoKilo > 0 ? fmt(loteRecibo.promedioPesoAnimal * loteRecibo.costoKilo) : '—'],
+                ['Proveedor / Origen', loteRecibo.proveedor || '—'],
+                ['Destino / Comprador', loteRecibo.destino || '—'],
+                ['Observaciones', loteRecibo.notas || '—'],
+                ['Registrado por', user?.nombre || 'Admin'],
+              ].map(([k,v]) => (
+                <tr key={k} style={{borderBottom:'1px solid #eee'}}>
+                  <td style={{padding:'5px 8px', color:'#666', width:200, fontWeight:600}}>{k}</td>
+                  <td style={{padding:'5px 8px', fontWeight:700}}>{v}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {loteRecibo.valorTotalLote > 0 && (
+            <div style={{background:'#f0fdf4', border:'2px solid #16a34a', borderRadius:8, padding:'10px 14px', marginBottom:14, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <span style={{fontSize:13, color:'#166534', fontWeight:700}}>VALOR TOTAL DEL LOTE</span>
+              <span style={{fontSize:22, fontWeight:900, color:'#16a34a'}}>{fmt(loteRecibo.valorTotalLote)}</span>
+            </div>
+          )}
+
+          <div style={{borderTop:'2px solid #000', paddingTop:10, fontSize:9, color:'#aaa', textAlign:'center'}}>
+            CIVAC PRO v3.0 · GanaderIA Colombia · {new Date().getFullYear()} · Impreso: {new Date().toLocaleString('es-CO')}
+          </div>
+        </div>
+      )}
 
       {/* Ficha detalle dialog */}
       <Dialog open={!!fichaAnimal} onOpenChange={v => { if(!v) setFichaAnimal(null); }}>

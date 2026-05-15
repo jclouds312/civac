@@ -26,7 +26,7 @@ const MODULES: Record<string, {
   '/potreros':      { from:'#84ef34', to:'#65a30d', glow:'132,239,52',  emoji:'🌿', label:'Potreros',            shortLabel:'Potreros' },
   '/alimentacion':  { from:'#ffd166', to:'#f59e0b', glow:'255,209,102', emoji:'🌾', label:'Alimentación',        shortLabel:'Alimento' },
   '/pesaje':        { from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  emoji:'⚖️', label:'Básculas BT',         shortLabel:'BT' },
-  '/pesaje-manual': { from:'#c084fc', to:'#7c3aed', glow:'192,132,252', emoji:'📐', label:'Pesaje Manual',        shortLabel:'Manual' },
+  '/pesaje-manual': { from:'#c084fc', to:'#7c3aed', glow:'192,132,252', emoji:'⚡', label:'Pesaje Automatizado',  shortLabel:'Auto' },
   '/insumos':       { from:'#fbbf24', to:'#d97706', glow:'251,191,36',  emoji:'💊', label:'Insumos y Medicinas', shortLabel:'Insumos' },
   '/semen':         { from:'#818cf8', to:'#4f46e5', glow:'129,140,248', emoji:'🧪', label:'Semen y Embriones',   shortLabel:'Semen' },
   '/costos':        { from:'#34d399', to:'#059669', glow:'52,211,153',  emoji:'💰', label:'Costos y P&G',        shortLabel:'Costos' },

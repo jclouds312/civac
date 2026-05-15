@@ -1,0 +1,169 @@
+Integrate a new widget section inside the existing module:
+
+Inventory Animals → Pesaje Automatizado
+
+IMPORTANT:
+The application already exists.
+The module structure already exists.
+Do NOT recreate the entire app.
+Only develop and integrate the new weighing functions and UI components inside the current module.
+
+Environment:
+- Next.js 15
+- TypeScript
+- TailwindCSS
+- Prisma
+- PostgreSQL
+- Replit
+- shadcn/ui
+
+====================================================
+
+OBJECTIVE
+
+Improve the existing “Pesaje Automatizado” module to simplify livestock weighing.
+
+Add advanced frontend widgets and functions for:
+
+- Automatic weight reception
+- Manual weighing
+- Auto animal age calculation
+- Photo evidence
+- Quick animal creation during weighing
+- Lot calculations
+
+====================================================
+
+ADD INSIDE CURRENT WEIGHING FORM
+
+1. Birth Date field
+
+When user selects birth date:
+Automatically calculate:
+- Age in months
+- Age in years
+
+Show label:
+“Calculated Age”
+
+Realtime update.
+
+====================================================
+
+2. Register Number section
+
+Field:
+“Has Register Number?”
+
+Options:
+- Yes
+- No
+
+If YES:
+Show:
+- Register Number input
+
+====================================================
+
+3. Automatic Weight Widget
+
+Create realtime widget card with:
+
+- Weight KG
+- Stable indicator
+- Connection status
+- Device ID
+- Last reading time
+
+Buttons:
+- Connect Scale
+- Read Weight
+- Save Weight
+
+Simulate realtime livestock scale data.
+
+Prepare architecture for:
+- Bluetooth
+- Serial Port
+- TCP/IP
+- WebSocket
+
+====================================================
+
+4. Photo Evidence Widget
+
+Allow:
+- Camera capture
+- Upload images
+- Capture weight indicator photo
+
+Image types:
+- Weight indicator
+- Animal side photo
+- Full animal photo
+
+Requirements:
+- Mobile support
+- Preview images
+- Multiple uploads
+- Save in database
+
+====================================================
+
+5. Quick Create Animal
+
+Inside weighing flow allow:
+- Create new animal without leaving weighing screen
+- Save directly into inventory
+
+====================================================
+
+6. Lot Calculation Widget
+
+Fields:
+- Quantity animals
+- Total lot weight
+- Price per KG
+
+Auto calculate:
+- Average animal weight
+- Total lot value
+
+Formulas:
+averageWeight = totalWeight / quantity
+totalValue = totalWeight * pricePerKg
+
+Realtime calculations.
+
+====================================================
+
+7. Receipt Generation
+
+After saving:
+Generate printable receipt with:
+- Animal
+- Weight
+- Photos
+- Date
+- QR
+- Operator
+
+Buttons:
+- Print
+- PDF
+- Share WhatsApp
+
+====================================================
+
+UI REQUIREMENTS
+
+Use:
+- Modern dashboard cards
+- Responsive layout
+- Tablet optimized UI
+- Framer Motion animations
+- shadcn/ui
+- TailwindCSS
+
+Do NOT modify existing architecture.
+Only extend current module cleanly and professionally.

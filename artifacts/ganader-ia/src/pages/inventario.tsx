@@ -370,6 +370,59 @@ export default function Inventario() {
   const [focusedAnimalId, setFocusedAnimalId] = useState<string|null>(null);
   const [widgetStep, setWidgetStep] = useState<number>(0);
 
+  // ── Pesaje Rápido state ────────────────────────────────────────────────────
+  type RqRow = { peso: string; valorKilo: string; saved: boolean; btLoading: boolean };
+  const [rqRows, setRqRows] = useState<Record<string, RqRow>>({});
+  const [rqFocusId, setRqFocusId] = useState<string | null>(null);
+  const [rqLoteFilter, setRqLoteFilter] = useState("Todos");
+  const [rqSearch, setRqSearch] = useState("");
+  const [rqSessionLog, setRqSessionLog] = useState<{animalId:string;nombre:string;peso:number;anterior:number;hora:string;valor:number}[]>([]);
+
+  const getRqRow = (a: typeof animals[0]): RqRow =>
+    rqRows[a.id] ?? { peso: String(a.peso), valorKilo: String(a.valorKilo || 11000), saved: false, btLoading: false };
+
+  const updateRqRow = (id: string, patch: Partial<RqRow>) =>
+    setRqRows(prev => ({ ...prev, [id]: { ...getRqRow(animals.find(a => a.id === id)!), ...prev[id], ...patch } }));
+
+  const saveRqRow = (a: typeof animals[0]) => {
+    const row = getRqRow(a);
+    const pesoN = Number(row.peso);
+    if (!pesoN) return;
+    const now = new Date();
+    const hora = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const newPesaje = {
+      id: Date.now(), animalId: a.id, animalNombre: a.nombre,
+      peso: pesoN, pesoAnterior: a.peso,
+      fecha: now.toLocaleDateString('es-CO'), hora,
+      metodo: 'manual', dispositivo: '',
+      operador: user?.nombre || 'Admin',
+      observacion: `Pesaje rápido — ${a.raza}`,
+      lote: a.lote, categoria: a.categoria,
+    };
+    setPesajes(prev => [newPesaje, ...prev]);
+    setAnimals(prev => prev.map(x => x.id === a.id
+      ? { ...x, peso: pesoN, valorKilo: Number(row.valorKilo) || x.valorKilo }
+      : x));
+    setRqRows(prev => ({ ...prev, [a.id]: { ...getRqRow(a), ...prev[a.id], saved: true, btLoading: false } }));
+    setRqSessionLog(prev => [{ animalId: a.id, nombre: a.nombre, peso: pesoN, anterior: a.peso,
+      hora, valor: pesoN * (Number(row.valorKilo) || 0) }, ...prev]);
+  };
+
+  const rqBtSim = (a: typeof animals[0]) => {
+    updateRqRow(a.id, { btLoading: true });
+    const base = PESOS_RAZA[a.raza]?.[a.categoria] || a.peso;
+    const sim = +(base * (0.94 + Math.random() * 0.12)).toFixed(1);
+    setTimeout(() => updateRqRow(a.id, { peso: String(sim), btLoading: false, saved: false }), 1400);
+  };
+
+  const rqSaveAndNext = (a: typeof animals[0]) => {
+    saveRqRow(a);
+    const list = animals.filter(x =>
+      (rqLoteFilter === 'Todos' || x.lote === rqLoteFilter) && !rqRows[x.id]?.saved && x.id !== a.id
+    );
+    setRqFocusId(list[0]?.id ?? null);
+  };
+
   const CC_CONFIG: Record<string, {emoji:string;label:string;color:string;glow:string}> = {
     "1.0": {emoji:"💀",label:"Muy delgada",color:"#f87171",glow:"248,113,113"},
     "1.5": {emoji:"😰",label:"Delgada",color:"#fb923c",glow:"251,146,60"},
@@ -857,7 +910,8 @@ export default function Inventario() {
               { val:'tabla',           icon:<TableProperties size={13}/>, label:'Tabla',           c:'#00f5d4' },
               { val:'fichas',          icon:<Grid3x3 size={13}/>,         label:'Fichas',          c:'#a78bfa' },
               { val:'etiquetas',       icon:<Tag size={13}/>,             label:'Etiquetas',       c:'#39ff7e' },
-              { val:'pesaje',          icon:<Scale size={13}/>,           label:'Pesaje BT ⚡',    c:'#ff9500' },
+              { val:'pesaje',          icon:<Scale size={13}/>,           label:'Básculas BT ⚡',  c:'#ff9500' },
+              { val:'pesaje-rapido',   icon:<Zap size={13}/>,             label:'Pesaje Rápido',   c:'#00c8ff' },
               { val:'pesaje-avanzado', icon:<ClipboardList size={13}/>,   label:'Pesaje Manual +', c:'#c084fc' },
               { val:'estadisticas',    icon:<BarChart3 size={13}/>,       label:'Estadísticas',    c:'#f472b6' },
             ].map(t => (
@@ -1495,6 +1549,518 @@ export default function Inventario() {
               </div>
             </div>
           )}
+        </TabsContent>
+
+
+        {/* ─── PESAJE RÁPIDO ─── */}
+        <TabsContent value="pesaje-rapido">
+          {(() => {
+            const rqList = animals.filter(a => {
+              const m = a.nombre.toLowerCase().includes(rqSearch.toLowerCase()) || a.id.toLowerCase().includes(rqSearch.toLowerCase());
+              return m && (rqLoteFilter === 'Todos' || a.lote === rqLoteFilter);
+            });
+            const rqFocused = rqFocusId ? animals.find(a => a.id === rqFocusId) ?? null : null;
+            const rqFRow = rqFocused ? getRqRow(rqFocused) : null;
+            const rqFCat = rqFocused ? (CAT_CONFIG[rqFocused.categoria] || CAT_CONFIG["Vaca adulta"]) : null;
+            const rqFPeso = rqFRow ? Number(rqFRow.peso) || rqFocused!.peso : 0;
+            const rqFDiff = rqFocused ? rqFPeso - rqFocused.peso : 0;
+            const rqFValor = rqFRow ? rqFPeso * (Number(rqFRow.valorKilo) || 0) : 0;
+            const rqFEsp = rqFocused ? (PESOS_RAZA[rqFocused.raza]?.[rqFocused.categoria] || rqFocused.peso) : 0;
+            const rqFPct = rqFEsp ? Math.min(100, Math.round((rqFPeso / rqFEsp) * 100)) : 0;
+            const rqPending = rqList.filter(a => !rqRows[a.id]?.saved).length;
+            const rqDone = rqList.filter(a => rqRows[a.id]?.saved).length;
+
+            const rqPrintReceipt = (a: typeof animals[0]) => {
+              const row = getRqRow(a);
+              const pesoN = Number(row.peso) || a.peso;
+              const diff = pesoN - a.peso;
+              const valorT = pesoN * (Number(row.valorKilo) || 0);
+              const now = new Date();
+              const w = window.open('', '_blank', 'width=500,height=620');
+              if (!w) return;
+              w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Recibo — ${a.nombre}</title>
+                <style>body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#fff;color:#111}
+                h2{margin:0 0 2px;font-size:18px}
+                .sub{font-size:10px;color:#888;margin-bottom:14px}
+                .big{font-size:44px;font-weight:900;text-align:center;letter-spacing:3px;padding:14px 0;
+                  color:#111;border:3px solid #111;border-radius:12px;margin:12px 0;background:#f9f9f9}
+                .diff{font-size:18px;color:${diff>=0?'#22c55e':'#ef4444'};font-weight:700}
+                table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+                td{padding:6px 8px;border-bottom:1px solid #eee}td:first-child{color:#666;font-weight:600;width:150px}
+                .footer{margin-top:16px;font-size:9px;color:#bbb;text-align:center;border-top:1px solid #ddd;padding-top:8px}
+                @media print{button{display:none}}</style></head><body>
+                <div style="text-align:center;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px">
+                  <div style="font-size:22px;margin-bottom:3px">🐄 CIVAC PRO</div>
+                  <h2>PESAJE RÁPIDO</h2>
+                  <div class="sub">${now.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'})} · ${now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}</div>
+                </div>
+                <div class="big">${pesoN.toFixed(1)} <span style="font-size:18px;color:#666">kg</span>
+                  <span class="diff"> ${diff>=0?'+':''}${diff.toFixed(1)} kg</span>
+                </div>
+                <table><tbody>
+                  <tr><td>Animal</td><td><strong>${a.nombre}</strong></td></tr>
+                  <tr><td>Arete / ID</td><td>#${a.id}</td></tr>
+                  <tr><td>Raza</td><td>${a.raza}</td></tr>
+                  <tr><td>Categoría</td><td>${a.categoria}</td></tr>
+                  <tr><td>Lote</td><td>${a.lote}</td></tr>
+                  <tr><td>Peso anterior</td><td>${a.peso} kg</td></tr>
+                  <tr><td>Peso registrado</td><td><strong>${pesoN.toFixed(1)} kg</strong></td></tr>
+                  <tr><td>Estándar raza</td><td>${rqFEsp} kg (${rqFPct}%)</td></tr>
+                  ${valorT>0?`<tr><td>Valor estimado</td><td><strong>${fmt(valorT)}</strong></td></tr>`:''}
+                  <tr><td>Operador</td><td>${user?.nombre||'Admin'}</td></tr>
+                </tbody></table>
+                <div class="footer">CIVAC PRO v3.0 · GanaderIA Colombia · Pesaje Rápido</div>
+                <script>window.onload=function(){window.print();setTimeout(function(){window.close()},800)}<\/script>
+              </body></html>`);
+              w.document.close();
+            };
+
+            return (
+              <div className="space-y-4">
+
+                {/* ── HEADER BAR ── */}
+                <div className="rounded-2xl p-4 relative overflow-hidden"
+                  style={{background:'linear-gradient(135deg,#001828,#002038,#001828)',border:'1px solid rgba(0,200,255,0.35)',boxShadow:'0 0 30px rgba(0,200,255,0.07)'}}>
+                  <div className="absolute -right-6 -top-6 w-32 h-32 rounded-full opacity-10 pointer-events-none"
+                    style={{background:'radial-gradient(circle,#00c8ff,transparent)'}}/>
+                  <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                        style={{background:'rgba(0,200,255,0.12)',border:'1px solid rgba(0,200,255,0.4)',boxShadow:'0 0 20px rgba(0,200,255,0.2)'}}>
+                        ⚡
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <h2 className="font-black text-white text-lg" style={{fontFamily:'Sora,sans-serif'}}>Pesaje Rápido</h2>
+                          <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                            style={{background:'rgba(0,200,255,0.12)',color:'#00c8ff',border:'1px solid rgba(0,200,255,0.35)'}}>
+                            Un clic por animal
+                          </span>
+                        </div>
+                        <p className="text-xs" style={{color:'rgba(0,200,255,0.55)'}}>
+                          Báscula digital · Guardar y siguiente · Recibo inmediato · Sesión completa
+                        </p>
+                        <div className="flex gap-3 mt-1.5 flex-wrap">
+                          {[
+                            {val:String(rqList.length), label:'en vista', c:'0,200,255'},
+                            {val:String(rqPending),     label:'pendientes', c:'251,191,36'},
+                            {val:String(rqDone),        label:'pesados', c:'57,255,126'},
+                          ].map(b=>(
+                            <span key={b.label} className="text-[10px] flex items-center gap-1" style={{color:`rgba(${b.c},0.8)`}}>
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:`rgb(${b.c})`}}/>
+                              <strong>{b.val}</strong> {b.label}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Filters */}
+                    <div className="flex gap-2 flex-wrap flex-shrink-0">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2" size={12} style={{color:'rgba(0,200,255,0.5)'}}/>
+                        <Input placeholder="Buscar animal…" value={rqSearch}
+                          onChange={e=>setRqSearch(e.target.value)}
+                          className="pl-7 h-8 text-xs w-36"
+                          style={{background:'rgba(0,0,0,0.35)',border:'1px solid rgba(0,200,255,0.2)',color:'white'}}/>
+                      </div>
+                      <Select value={rqLoteFilter} onValueChange={setRqLoteFilter}>
+                        <SelectTrigger className="h-8 w-28 text-xs" style={{background:'rgba(0,0,0,0.35)',border:'1px solid rgba(0,200,255,0.2)',color:'rgba(0,200,255,0.8)'}}>
+                          <SelectValue/>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['Todos','Lote A','Lote B','Lote C','Lote D','Lote E','Lote F'].map(v=>(
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" className="h-8 gap-1.5 text-xs"
+                        onClick={() => setRqRows({})}
+                        style={{background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.2)',color:'#f87171'}}>
+                        <RotateCcw size={11}/> Reiniciar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── MAIN LAYOUT: widget left + queue right ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+                  {/* ── LEFT: Digital Scale Widget (lg: 3 cols) ── */}
+                  <div className="lg:col-span-3">
+                    {rqFocused && rqFRow && rqFCat ? (
+                      <div className="rounded-2xl overflow-hidden sticky top-4"
+                        style={{background:'linear-gradient(135deg,#000e1a,#001830)',border:'1px solid rgba(0,200,255,0.4)',boxShadow:'0 0 40px rgba(0,200,255,0.1)'}}>
+                        {/* Top accent */}
+                        <div className="h-1" style={{background:'linear-gradient(90deg,#00c8ff,#0ea5e9,#38bdf8,transparent)'}}/>
+
+                        <div className="p-5">
+                          {/* Animal header */}
+                          <div className="flex items-center gap-3 mb-5">
+                            <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                              style={{background:rqFCat.bg,border:`1px solid ${rqFCat.border}`,boxShadow:`0 0 16px rgba(${rqFCat.glow},0.25)`}}>
+                              {rqFCat.emoji}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-black text-white text-base">{rqFocused.nombre}</div>
+                              <div className="flex items-center gap-2 text-[10px] mt-0.5 flex-wrap" style={{color:'rgba(255,255,255,0.35)'}}>
+                                <span className="font-mono" style={{color:rqFCat.color}}>#{rqFocused.id}</span>
+                                <span>·</span><span>{rqFocused.raza}</span>
+                                <span>·</span><span>{rqFocused.categoria}</span>
+                                <span>·</span><span style={{color:LOTE_COLOR[rqFocused.lote]||'#aaa'}}>{rqFocused.lote}</span>
+                              </div>
+                            </div>
+                            {rqFRow.saved && (
+                              <span className="text-[9px] px-2 py-0.5 rounded-full font-bold flex-shrink-0"
+                                style={{background:'rgba(57,255,126,0.12)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.3)'}}>
+                                ✓ Guardado
+                              </span>
+                            )}
+                            <button onClick={()=>setRqFocusId(null)}
+                              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 hover:bg-white/10 transition-colors text-xs"
+                              style={{color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.08)'}}>✕</button>
+                          </div>
+
+                          {/* ── BIG DIGITAL DISPLAY ── */}
+                          <div className="rounded-2xl p-5 mb-4 relative" style={{background:'rgba(0,0,0,0.55)',border:'1px solid rgba(0,200,255,0.18)'}}>
+                            <div className="text-[9px] font-bold uppercase tracking-widest mb-3 text-center" style={{color:'rgba(0,200,255,0.45)'}}>
+                              ⚡ PESO ACTUAL
+                            </div>
+                            <div className="flex items-center justify-center gap-3 mb-3">
+                              {/* Big − buttons */}
+                              <div className="flex flex-col gap-2">
+                                <button onClick={()=>updateRqRow(rqFocused.id,{peso:String((rqFPeso-10).toFixed(1)),saved:false})}
+                                  className="w-14 h-12 rounded-xl font-black text-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                                  style={{background:'rgba(248,113,113,0.12)',border:'1px solid rgba(248,113,113,0.3)',color:'#f87171'}}>−10</button>
+                                <button onClick={()=>updateRqRow(rqFocused.id,{peso:String(Math.max(0,rqFPeso-1).toFixed(1)),saved:false})}
+                                  className="w-14 h-12 rounded-xl font-black text-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                                  style={{background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.18)',color:'#fca5a5'}}>−1</button>
+                                <button onClick={()=>updateRqRow(rqFocused.id,{peso:String(Math.max(0,rqFPeso-0.5).toFixed(1)),saved:false})}
+                                  className="w-14 h-10 rounded-xl font-black text-sm transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                                  style={{background:'rgba(248,113,113,0.06)',border:'1px solid rgba(248,113,113,0.12)',color:'rgba(252,165,165,0.6)'}}>−½</button>
+                              </div>
+
+                              {/* Center digital number */}
+                              <div className="flex-1 text-center">
+                                <input
+                                  type="number" step="0.5" min="0"
+                                  value={rqFRow.peso}
+                                  onChange={e=>updateRqRow(rqFocused.id,{peso:e.target.value,saved:false})}
+                                  className="w-full text-center font-black border-0 outline-none bg-transparent"
+                                  style={{
+                                    fontFamily:'JetBrains Mono,monospace',
+                                    fontSize:'clamp(40px,9vw,72px)',
+                                    color:'#00c8ff',
+                                    textShadow:'0 0 32px rgba(0,200,255,0.7),0 0 60px rgba(0,200,255,0.3)',
+                                    letterSpacing:'3px',
+                                    lineHeight:1.05,
+                                  }}
+                                />
+                                <div className="text-sm font-bold mt-1" style={{color:'rgba(0,200,255,0.35)'}}>kilogramos</div>
+                                {/* diff & reference */}
+                                <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                                  <span className="text-xs px-2.5 py-0.5 rounded-full" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.3)'}}>
+                                    Ant: {rqFocused.peso} kg
+                                  </span>
+                                  {rqFDiff !== 0 && (
+                                    <span className="text-sm px-3 py-0.5 rounded-full font-black flex items-center gap-1"
+                                      style={{background:rqFDiff>0?'rgba(57,255,126,0.15)':'rgba(248,113,113,0.12)',color:rqFDiff>0?'#39ff7e':'#f87171',border:`1px solid ${rqFDiff>0?'rgba(57,255,126,0.3)':'rgba(248,113,113,0.3)'}`}}>
+                                      {rqFDiff>0?<TrendingUp size={12}/>:<TrendingDown size={12}/>}
+                                      {rqFDiff>0?'+':''}{rqFDiff.toFixed(1)} kg
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Big + buttons */}
+                              <div className="flex flex-col gap-2">
+                                <button onClick={()=>updateRqRow(rqFocused.id,{peso:String((rqFPeso+10).toFixed(1)),saved:false})}
+                                  className="w-14 h-12 rounded-xl font-black text-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                                  style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}}>+10</button>
+                                <button onClick={()=>updateRqRow(rqFocused.id,{peso:String((rqFPeso+1).toFixed(1)),saved:false})}
+                                  className="w-14 h-12 rounded-xl font-black text-xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                                  style={{background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.18)',color:'#86efac'}}>+1</button>
+                                <button onClick={()=>updateRqRow(rqFocused.id,{peso:String((rqFPeso+0.5).toFixed(1)),saved:false})}
+                                  className="w-14 h-10 rounded-xl font-black text-sm transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+                                  style={{background:'rgba(57,255,126,0.06)',border:'1px solid rgba(57,255,126,0.12)',color:'rgba(134,239,172,0.6)'}}>+½</button>
+                              </div>
+                            </div>
+
+                            {/* Progress bar vs raza */}
+                            {rqFEsp > 0 && (
+                              <div>
+                                <div className="flex justify-between text-[9px] mb-1" style={{color:'rgba(255,255,255,0.3)'}}>
+                                  <span>vs. estándar {rqFocused.raza}</span>
+                                  <span style={{color:'#00c8ff'}}>{rqFPct}%</span>
+                                </div>
+                                <div className="h-2 rounded-full" style={{background:'rgba(255,255,255,0.06)'}}>
+                                  <div className="h-2 rounded-full transition-all duration-300"
+                                    style={{width:`${rqFPct}%`,background:'linear-gradient(90deg,#00c8ff,#38bdf8)',boxShadow:'0 0 8px rgba(0,200,255,0.5)'}}/>
+                                </div>
+                                <div className="text-[9px] text-center mt-1" style={{color:'rgba(0,200,255,0.35)'}}>
+                                  Estándar {rqFocused.raza}: {rqFEsp} kg
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* BT + Auto-raza row */}
+                          <div className="flex gap-2 mb-4 flex-wrap">
+                            <button onClick={()=>rqBtSim(rqFocused)} disabled={rqFRow.btLoading}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.99] disabled:opacity-60"
+                              style={{background:'rgba(0,200,255,0.1)',border:'1px solid rgba(0,200,255,0.35)',color:'#00c8ff'}}>
+                              <Bluetooth size={14} className={rqFRow.btLoading?'animate-pulse':''}/>{rqFRow.btLoading?'Leyendo báscula…':'Leer Báscula BT'}
+                            </button>
+                            <button onClick={()=>updateRqRow(rqFocused.id,{peso:String(rqFEsp),saved:false})}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
+                              style={{background:'rgba(255,149,0,0.1)',border:'1px solid rgba(255,149,0,0.3)',color:'#ff9500'}}>
+                              <Zap size={14}/> Prom. raza ({rqFEsp} kg)
+                            </button>
+                          </div>
+
+                          {/* Valor/kg row */}
+                          <div className="flex items-center gap-3 mb-4 p-3 rounded-xl" style={{background:'rgba(57,255,126,0.04)',border:'1px solid rgba(57,255,126,0.12)'}}>
+                            <div className="text-xs text-white/40">$/kg</div>
+                            <Input type="number" step="500" value={rqFRow.valorKilo}
+                              onChange={e=>updateRqRow(rqFocused.id,{valorKilo:e.target.value})}
+                              className="w-28 h-8 text-xs text-center font-mono"
+                              style={{background:'rgba(0,0,0,0.35)',border:'1px solid rgba(57,255,126,0.2)',color:'#39ff7e'}}/>
+                            {rqFValor > 0 && (
+                              <div className="flex-1 text-right">
+                                <div className="text-[9px] text-white/30">Valor estimado</div>
+                                <div className="font-black text-base" style={{color:'#39ff7e',fontFamily:'Sora,sans-serif'}}>{fmt(rqFValor)}</div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* ACTION BUTTONS */}
+                          <div className="grid grid-cols-2 gap-2 mb-2">
+                            <button onClick={()=>rqPrintReceipt(rqFocused)}
+                              className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.99]"
+                              style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
+                              <Printer size={14}/> Imprimir recibo
+                            </button>
+                            <button onClick={()=>saveRqRow(rqFocused)} disabled={rqFRow.saved}
+                              className="flex items-center justify-center gap-1.5 py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-[0.99] disabled:opacity-50"
+                              style={rqFRow.saved
+                                ? {background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.25)',color:'#39ff7e'}
+                                : {background:'rgba(57,255,126,0.15)',border:'1px solid rgba(57,255,126,0.4)',color:'#39ff7e'}}>
+                              {rqFRow.saved ? <><CheckCircle2 size={14}/> Guardado</> : <><Save size={14}/> Guardar</>}
+                            </button>
+                          </div>
+                          {!rqFRow.saved && (
+                            <button onClick={()=>rqSaveAndNext(rqFocused)}
+                              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-black text-sm transition-all hover:scale-[1.01] active:scale-[0.99]"
+                              style={{background:'linear-gradient(135deg,rgba(0,200,255,0.2),rgba(0,160,210,0.15))',border:'1px solid rgba(0,200,255,0.45)',color:'#00c8ff',boxShadow:'0 0 18px rgba(0,200,255,0.12)'}}>
+                              <Save size={14}/> Guardar + Siguiente animal
+                              {rqPending > 1 && <span className="text-[10px] opacity-60">({rqPending-1} restantes)</span>}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      /* ── Empty state: select an animal ── */
+                      <div className="rounded-2xl p-8 text-center relative overflow-hidden"
+                        style={{background:'linear-gradient(135deg,#000e1a,#001830)',border:'1px solid rgba(0,200,255,0.2)'}}>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.025]">
+                          <Zap className="w-64 h-64" style={{color:'#00c8ff'}}/>
+                        </div>
+                        <div className="relative">
+                          <div className="w-20 h-20 rounded-3xl mx-auto mb-4 flex items-center justify-center text-4xl"
+                            style={{background:'rgba(0,200,255,0.1)',border:'1px solid rgba(0,200,255,0.3)',boxShadow:'0 0 40px rgba(0,200,255,0.15)'}}>⚡</div>
+                          <div className="font-black text-white text-xl mb-2" style={{fontFamily:'Sora,sans-serif'}}>Báscula Digital Lista</div>
+                          <p className="text-sm mb-5" style={{color:'rgba(0,200,255,0.5)'}}>
+                            Selecciona un animal de la lista para activar la báscula<br/>
+                            Ajuste fino ±½ · ±1 · ±10 kg · BT · Imprimir al instante
+                          </p>
+                          {/* Quick start grid */}
+                          <div className="flex gap-2 justify-center flex-wrap">
+                            {rqList.slice(0, 8).map(a => {
+                              const qc = CAT_CONFIG[a.categoria] || CAT_CONFIG["Vaca adulta"];
+                              return (
+                                <button key={a.id} onClick={() => setRqFocusId(a.id)}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all hover:scale-105"
+                                  style={{background:`rgba(${qc.glow},0.1)`,border:`1px solid rgba(${qc.glow},0.25)`,color:qc.color}}>
+                                  {qc.emoji} {a.nombre}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── RIGHT: Animal queue (lg: 2 cols) ── */}
+                  <div className="lg:col-span-2">
+                    <div className="rounded-2xl overflow-hidden" style={{border:'1px solid rgba(0,200,255,0.12)'}}>
+                      {/* Queue header */}
+                      <div className="px-4 py-3 flex items-center gap-2"
+                        style={{background:'rgba(0,200,255,0.05)',borderBottom:'1px solid rgba(0,200,255,0.1)'}}>
+                        <Zap size={13} style={{color:'#00c8ff'}}/>
+                        <span className="font-bold text-sm text-white">Cola de pesaje</span>
+                        <div className="ml-auto flex gap-2">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full"
+                            style={{background:'rgba(251,191,36,0.12)',color:'#fbbf24',border:'1px solid rgba(251,191,36,0.25)'}}>
+                            {rqPending} pendientes
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full"
+                            style={{background:'rgba(57,255,126,0.12)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.25)'}}>
+                            {rqDone} ✓
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="h-1" style={{background:'rgba(255,255,255,0.04)'}}>
+                        <div className="h-1 transition-all duration-500"
+                          style={{width:`${rqList.length>0?(rqDone/rqList.length)*100:0}%`,background:'linear-gradient(90deg,#39ff7e,#00f5d4)'}}/>
+                      </div>
+
+                      {/* Animal list */}
+                      <div className="overflow-y-auto" style={{maxHeight: rqFocused ? 560 : 400}}>
+                        {rqList.length === 0 ? (
+                          <div className="p-6 text-center text-white/30 text-xs">No hay animales en esta vista</div>
+                        ) : rqList.map((a, idx) => {
+                          const cc = CAT_CONFIG[a.categoria] || CAT_CONFIG["Vaca adulta"];
+                          const row = getRqRow(a);
+                          const isFocused = rqFocusId === a.id;
+                          const isDone = row.saved;
+                          const lc = LOTE_COLOR[a.lote] || '#888';
+                          return (
+                            <button key={a.id}
+                              onClick={() => setRqFocusId(a.id)}
+                              className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all hover:bg-white/[0.025] border-b"
+                              style={{
+                                borderColor:'rgba(255,255,255,0.04)',
+                                background: isFocused ? 'rgba(0,200,255,0.07)' : isDone ? 'rgba(57,255,126,0.03)' : 'transparent',
+                                borderLeft: isFocused ? '3px solid #00c8ff' : isDone ? '3px solid rgba(57,255,126,0.4)' : '3px solid transparent',
+                              }}>
+                              {/* Number */}
+                              <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black flex-shrink-0"
+                                style={{background:isDone?'rgba(57,255,126,0.15)':isFocused?'rgba(0,200,255,0.2)':'rgba(255,255,255,0.06)',
+                                  color:isDone?'#39ff7e':isFocused?'#00c8ff':'rgba(255,255,255,0.3)'}}>
+                                {isDone ? '✓' : idx + 1}
+                              </div>
+                              {/* Emoji */}
+                              <span className="text-base flex-shrink-0">{cc.emoji}</span>
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className="font-bold text-xs truncate" style={{color:isFocused?'#00c8ff':isDone?'rgba(57,255,126,0.7)':'rgba(255,255,255,0.8)'}}>
+                                  {a.nombre}
+                                </div>
+                                <div className="text-[9px] flex items-center gap-1.5" style={{color:'rgba(255,255,255,0.3)'}}>
+                                  <span className="font-mono" style={{color:cc.color}}>#{a.id}</span>
+                                  <span>·</span><span>{a.raza}</span>
+                                  <span>·</span><span style={{color:lc}}>{a.lote}</span>
+                                </div>
+                              </div>
+                              {/* Weight info */}
+                              <div className="text-right flex-shrink-0">
+                                {isDone ? (
+                                  <div>
+                                    <div className="font-black text-xs" style={{color:'#39ff7e'}}>{Number(row.peso).toFixed(1)} kg</div>
+                                    <div className="text-[9px]" style={{color:'rgba(57,255,126,0.45)'}}>guardado</div>
+                                  </div>
+                                ) : isFocused ? (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-full"
+                                    style={{background:'rgba(0,200,255,0.12)',color:'#00c8ff',border:'1px solid rgba(0,200,255,0.3)'}}>
+                                    ⚡ activo
+                                  </span>
+                                ) : (
+                                  <div>
+                                    <div className="font-mono text-xs text-white/40">{a.peso} kg</div>
+                                    <div className="text-[9px] text-white/20">toque para pesar</div>
+                                  </div>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Session totals footer */}
+                      {rqDone > 0 && (
+                        <div className="px-4 py-3 grid grid-cols-2 gap-2" style={{background:'rgba(57,255,126,0.04)',borderTop:'1px solid rgba(57,255,126,0.1)'}}>
+                          {[
+                            {label:'Pesados', val:String(rqDone), c:'#39ff7e'},
+                            {label:'Valor sesión', val:rqSessionLog.reduce((s,r)=>s+r.valor,0)>0?fmt(rqSessionLog.reduce((s,r)=>s+r.valor,0)):'—', c:'#00c8ff'},
+                          ].map(s=>(
+                            <div key={s.label} className="text-center">
+                              <div className="font-black text-sm" style={{color:s.c,fontFamily:'Sora,sans-serif'}}>{s.val}</div>
+                              <div className="text-[9px] text-white/30">{s.label}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── SESSION LOG ── */}
+                {rqSessionLog.length > 0 && (
+                  <div className="rounded-2xl overflow-hidden" style={{border:'1px solid rgba(0,200,255,0.12)'}}>
+                    <div className="px-4 py-3 flex items-center gap-2"
+                      style={{background:'rgba(0,200,255,0.05)',borderBottom:'1px solid rgba(0,200,255,0.1)'}}>
+                      <CheckCircle2 size={13} style={{color:'#39ff7e'}}/>
+                      <span className="font-bold text-sm text-white">Registro de sesión — {rqSessionLog.length} pesajes guardados</span>
+                      <button onClick={()=>window.print()} className="ml-auto flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all hover:opacity-80"
+                        style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.25)',color:'#a78bfa'}}>
+                        <Printer size={11}/> Imprimir sesión
+                      </button>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr style={{background:'rgba(0,200,255,0.03)',borderBottom:'1px solid rgba(0,200,255,0.08)'}}>
+                            {['Animal','Peso nuevo','Anterior','Cambio','Valor','Hora'].map(h=>(
+                              <th key={h} className="text-left px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider"
+                                style={{color:'rgba(0,200,255,0.5)'}}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rqSessionLog.map((r, i) => {
+                            const d = r.peso - r.anterior;
+                            return (
+                              <tr key={i} className="border-b hover:bg-white/[0.012] transition-colors"
+                                style={{borderColor:'rgba(255,255,255,0.04)'}}>
+                                <td className="px-4 py-2.5 font-bold text-white">{r.nombre}</td>
+                                <td className="px-4 py-2.5 font-black" style={{color:'#00c8ff',fontFamily:'Sora,sans-serif'}}>{r.peso.toFixed(1)} kg</td>
+                                <td className="px-4 py-2.5 text-white/40">{r.anterior} kg</td>
+                                <td className="px-4 py-2.5">
+                                  <span className="font-bold" style={{color:d>=0?'#39ff7e':'#f87171'}}>
+                                    {d>=0?'+':''}{d.toFixed(1)} kg
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2.5 font-semibold" style={{color:'#39ff7e'}}>{r.valor>0?fmt(r.valor):'—'}</td>
+                                <td className="px-4 py-2.5 text-white/30">{r.hora}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr style={{background:'rgba(0,200,255,0.04)',borderTop:'1px solid rgba(0,200,255,0.1)'}}>
+                            <td className="px-4 py-2.5 font-black text-white/60 text-[10px]">TOTALES</td>
+                            <td className="px-4 py-2.5 font-black" style={{color:'#00c8ff'}}>
+                              {(rqSessionLog.reduce((s,r)=>s+r.peso,0)/rqSessionLog.length).toFixed(1)} kg prom.
+                            </td>
+                            <td/>
+                            <td className="px-4 py-2.5 font-black" style={{color:'#39ff7e'}}>
+                              {(()=>{const t=rqSessionLog.reduce((s,r)=>s+(r.peso-r.anterior),0);return(t>=0?'+':'')+t.toFixed(1)+' kg total'})()}
+                            </td>
+                            <td className="px-4 py-2.5 font-black" style={{color:'#39ff7e'}}>
+                              {fmt(rqSessionLog.reduce((s,r)=>s+r.valor,0))}
+                            </td>
+                            <td className="px-4 py-2.5 text-[9px] text-white/25">{rqSessionLog.length} animales</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </TabsContent>
 
 

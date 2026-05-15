@@ -367,6 +367,8 @@ export default function Inventario() {
   const [advRefOpen, setAdvRefOpen] = useState(false);
   const [advBatchSaving, setAdvBatchSaving] = useState(false);
   const [advSessionLog, setAdvSessionLog] = useState<{id:number;nombre:string;peso:number;anterior:number;cc:string;hora:string}[]>([]);
+  const [focusedAnimalId, setFocusedAnimalId] = useState<string|null>(null);
+  const [widgetStep, setWidgetStep] = useState<number>(0);
 
   const CC_CONFIG: Record<string, {emoji:string;label:string;color:string;glow:string}> = {
     "1.0": {emoji:"💀",label:"Muy delgada",color:"#f87171",glow:"248,113,113"},

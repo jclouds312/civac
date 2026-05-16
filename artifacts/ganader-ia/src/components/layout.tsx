@@ -575,7 +575,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: 'rgba(0,245,212,0.08)' }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px] text-white/20">
-              <Wifi size={9} /><span>CIVAC v3.0 · Offline PWA · Navy Edition</span>
+              <Wifi size={9} /><span>CIVAC v1.0 · Offline PWA · Colombia</span>
             </div>
           )}
           {installPrompt && !collapsed && (

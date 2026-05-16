@@ -1,9 +1,13 @@
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line
+  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
 } from "recharts";
 import { useAppState } from "../lib/data";
-import { Bell, TrendingUp, AlertCircle, AlertTriangle, ChevronRight, Scale, Navigation, Bluetooth, Signal } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import {
+  Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
+  ChevronRight, Activity, Zap, Target, BarChart2,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 
@@ -28,496 +32,645 @@ const dataFinanzas = [
 ];
 
 const PIE_COLORS = ['#00f5d4','#00c8ff','#39ff7e','#a855f7'];
+const TIP = { backgroundColor:'#030f0b', border:'1px solid rgba(0,245,212,0.2)', color:'#e2e8f0', borderRadius:'12px', fontSize:'12px' };
 
-
-const modulos = [
-  { emoji:'🐄', title:'Inventario', desc:'Registro y seguimiento de animales', badge:'13', href:'/inventario', neon:'#00f5d4' },
-  { emoji:'📋', title:'Ficha Individual', desc:'Historia clínica por bovino', badge:null, href:'/ficha', neon:'#00c8ff' },
-  { emoji:'🔁', title:'Reproducción', desc:'Celos, IA, gestación y nacimientos', badge:'1', href:'/reproduccion', neon:'#ff6fd8' },
-  { emoji:'🥛', title:'Producción', desc:'Ordeños, litros/vaca, calidad', badge:'84L', href:'/produccion', neon:'#00c8ff' },
-  { emoji:'🧬', title:'Genética', desc:'DEP, índices y mejoramiento', badge:null, href:'/genetica', neon:'#a855f7' },
-  { emoji:'🌿', title:'Potreros', desc:'Rotación, aforo y ocupación', badge:'6', href:'/potreros', neon:'#84ef34' },
-  { emoji:'🌾', title:'Alimentación', desc:'Raciones, minerales y suplementos', badge:null, href:'/alimentacion', neon:'#ffd166' },
-  { emoji:'💊', title:'Insumos / Kardex', desc:'Medicamentos, vacunas y stock', badge:'⚠4', href:'/insumos', neon:'#ff4d6d', badgeRed:true },
-  { emoji:'🧊', title:'Semen y Embriones', desc:'Inventario criogénico y TE', badge:null, href:'/semen', neon:'#818cf8' },
-  { emoji:'💰', title:'Costos y Finanzas', desc:'Ingresos, egresos y P&G', badge:null, href:'/costos', neon:'#34d399' },
-  { emoji:'👷', title:'Personal / Nómina', desc:'Empleados, salarios y roles', badge:'6', href:'/personal', neon:'#94a3b8' },
-  { emoji:'🤖', title:'Predicciones IA', desc:'Alertas inteligentes y recomendaciones', badge:null, href:'/prediccion', neon:'#e879f9', badgePro:true },
-  { emoji:'🌱', title:'Huella Carbono', desc:'Emisiones CH₄, CO₂ y bonos', badge:null, href:'/co2', neon:'#4ade80' },
-  { emoji:'🗺️', title:'Multi-Finca', desc:'Gestión centralizada multi-finca', badge:null, href:'/multifinca', neon:'#22d3ee' },
-  { emoji:'⚖️', title:'Pesaje BT', desc:'Báscula Bluetooth, GMD, historial', badge:'PRO', href:'/pesaje', neon:'#ff9a3c', badgePro:true },
-  { emoji:'📡', title:'GPS Ganado', desc:'Rastreo GPS y geocercas', badge:'PRO', href:'/gps', neon:'#00c8ff', badgePro:true },
-  { emoji:'👥', title:'Usuarios', desc:'Accesos y permisos por rol', badge:null, href:'/usuarios', neon:'#c084fc' },
+const MODULOS = [
+  { emoji:'🐄', title:'Inventario',       desc:'Registro RFID · 13 bovinos',        href:'/inventario',    from:'#39ff7e', to:'#00c850', glow:'57,255,126',  badge:'13' },
+  { emoji:'🥛', title:'Producción',       desc:'84 L/día · 5 vacas ordeño',         href:'/produccion',    from:'#00c8ff', to:'#0ea5e9', glow:'0,200,255',   badge:'84L' },
+  { emoji:'🔁', title:'Reproducción',     desc:'Celos · IA · Gestación',            href:'/reproduccion',  from:'#ff6fd8', to:'#c026d3', glow:'255,111,216', badge:'1↑' },
+  { emoji:'🧬', title:'Genética',         desc:'DEP · Ranking · Pedigrí',           href:'/genetica',      from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:null },
+  { emoji:'🌿', title:'Potreros',         desc:'6 lotes · Rotación activa',         href:'/potreros',      from:'#84ef34', to:'#65a30d', glow:'132,239,52',  badge:'6' },
+  { emoji:'🌾', title:'Alimentación',     desc:'Raciones · Minerales · TMR',        href:'/alimentacion',  from:'#ffd166', to:'#f59e0b', glow:'255,209,102', badge:null },
+  { emoji:'💊', title:'Insumos / Kardex', desc:'⚠ 4 ítems bajo stock mínimo',       href:'/insumos',       from:'#ff4d6d', to:'#c9184a', glow:'255,77,109',  badge:'⚠4', red:true },
+  { emoji:'💰', title:'Costos y P&G',     desc:'$40.2M · Margen 35%',               href:'/costos',        from:'#34d399', to:'#059669', glow:'52,211,153',  badge:null },
+  { emoji:'🧊', title:'Semen y Embriones',desc:'Inventario criogénico · TE',        href:'/semen',         from:'#818cf8', to:'#4f46e5', glow:'129,140,248', badge:null },
+  { emoji:'👷', title:'Personal',         desc:'6 empleados · Nómina activa',       href:'/personal',      from:'#94a3b8', to:'#64748b', glow:'148,163,184', badge:'6' },
+  { emoji:'🤖', title:'Predicciones IA',  desc:'Alertas inteligentes · GPT',        href:'/prediccion',    from:'#e879f9', to:'#9333ea', glow:'232,121,249', badge:'PRO' },
+  { emoji:'🌱', title:'Huella Carbono',   desc:'IPCC 2019 · Bonos CO₂',            href:'/co2',           from:'#4ade80', to:'#16a34a', glow:'74,222,128',  badge:null },
+  { emoji:'⚖️', title:'Pesaje BT',        desc:'Báscula Bluetooth · GMD',           href:'/pesaje',        from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  badge:'PRO' },
+  { emoji:'📡', title:'GPS Ganado',       desc:'Rastreo en tiempo real',            href:'/gps',           from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',   badge:'PRO' },
+  { emoji:'🗺️', title:'Multi-Finca',      desc:'3 fincas · Gestión centralizada',  href:'/multifinca',    from:'#22d3ee', to:'#0891b2', glow:'34,211,238',  badge:null },
+  { emoji:'📋', title:'Ficha Individual', desc:'Historia clínica por animal',      href:'/ficha',         from:'#00f5d4', to:'#00a8cc', glow:'0,245,212',   badge:null },
+  { emoji:'👥', title:'Usuarios',         desc:'Accesos · Permisos por rol',        href:'/usuarios',      from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:null },
+  { emoji:'📐', title:'Pesaje Manual',    desc:'CC · GMD · Recibo PDF',            href:'/pesaje-manual', from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:'CC' },
 ];
 
-const tooltipStyle = { backgroundColor:'#030f0b', border:'1px solid rgba(0,245,212,0.2)', color:'#e2e8f0', borderRadius:'10px', fontSize:'12px' };
+function StatTicker() {
+  const items = [
+    '🐄 13 Animales activos','🥛 84 L/día producción','💰 $40.2M utilidad mes',
+    '⚠ 4 alertas insumos','🌿 6 potreros gestionados','📡 GPS activo · 13 collares',
+    '🤖 IA predictiva ON','🧬 DEP Score: 94.2','🌱 -18% huella CO₂',
+  ];
+  const doubled = [...items, ...items];
+  return (
+    <div className="overflow-hidden flex-1 min-w-0" style={{maskImage:'linear-gradient(90deg,transparent,black 8%,black 92%,transparent)'}}>
+      <div className="flex gap-6 whitespace-nowrap ticker-scroll">
+        {doubled.map((t, i) => (
+          <span key={i} className="text-[11px] sm:text-xs font-medium flex-shrink-0" style={{color:'rgba(0,245,212,0.6)'}}>
+            {t}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const { animals, potreros, personal, alertas, pesajes, gpsUbicaciones } = useAppState();
+  const { animals, potreros, personal, alertas, pesajes } = useAppState();
+  const { user } = useAuth();
   const [chartTab, setChartTab] = useState<'produccion'|'peso'|'finanzas'>('produccion');
-  const now = new Date();
+  const now  = new Date();
   const hour = now.getHours();
-  const greeting = hour < 12 ? '¡Buenos días!' : hour < 18 ? '¡Buenas tardes!' : '¡Buenas noches!';
+  const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
 
-  const total = animals.length || 13;
-  const vacasN = animals.filter(a => a.categoria === 'Vaca').length || 7;
-  const novillasN = animals.filter(a => a.categoria === 'Novilla').length || 3;
-  const ternerosN = animals.filter(a => (a.categoria||'').toLowerCase().includes('ternero') || (a.categoria||'').toLowerCase().includes('ternera')).length || 2;
-  const torosN = animals.filter(a => a.categoria === 'Toro').length || 1;
+  const total    = animals.length || 13;
+  const vacasN   = animals.filter(a => a.categoria === 'Vaca').length || 7;
+  const novillasN= animals.filter(a => a.categoria === 'Novilla').length || 3;
+  const ternerosN= animals.filter(a => (a.categoria||'').toLowerCase().includes('ternero') || (a.categoria||'').toLowerCase().includes('ternera')).length || 2;
+  const torosN   = animals.filter(a => a.categoria === 'Toro').length || 1;
 
   const pieData = [
-    { name: 'Vacas',    value: vacasN,    pct: `${Math.round(vacasN/total*100)}%` },
-    { name: 'Novillas', value: novillasN, pct: `${Math.round(novillasN/total*100)}%` },
-    { name: 'Terneros', value: ternerosN, pct: `${Math.round(ternerosN/total*100)}%` },
-    { name: 'Toros',    value: torosN,    pct: `${Math.round(torosN/total*100)}%` },
+    { name:'Vacas',    value:vacasN,    pct:`${Math.round(vacasN/total*100)}%` },
+    { name:'Novillas', value:novillasN, pct:`${Math.round(novillasN/total*100)}%` },
+    { name:'Terneros', value:ternerosN, pct:`${Math.round(ternerosN/total*100)}%` },
+    { name:'Toros',    value:torosN,    pct:`${Math.round(torosN/total*100)}%` },
   ];
 
   const kpiCards = [
-    { label:'Animales',   emoji:'🐄', val: total,                                    sub:'Hato activo CIVAC',       grad:'linear-gradient(135deg,#003d2e,#004d3a)', neon:'#00f5d4', glow:'rgba(0,245,212,0.15)' },
-    { label:'Producción', emoji:'🥛', val:'84 L',                                    sub:'Litros hoy · 5 vacas',    grad:'linear-gradient(135deg,#002040,#003060)', neon:'#00c8ff', glow:'rgba(0,200,255,0.15)' },
-    { label:'Alertas',    emoji:'🔔', val: alertas.length,                            sub:'Requieren atención',      grad:'linear-gradient(135deg,#3d0015,#4d0020)', neon:'#ff4d6d', glow:'rgba(255,77,109,0.15)' },
-    { label:'Potreros',   emoji:'🌿', val: potreros.length,                          sub:'Áreas de pastoreo',       grad:'linear-gradient(135deg,#1a3d00,#224d00)', neon:'#84ef34', glow:'rgba(132,239,52,0.15)' },
-    { label:'Personal',   emoji:'👷', val: personal.length,                          sub:'Empleados activos',       grad:'linear-gradient(135deg,#1a2030,#1a2840)', neon:'#94a3b8', glow:'rgba(148,163,184,0.15)' },
-    { label:'Utilidad',   emoji:'💰', val:'$40.2M',                                  sub:'Mes actual · COP',        grad:'linear-gradient(135deg,#002030,#003020)', neon:'#34d399', glow:'rgba(52,211,153,0.15)' },
+    {
+      label:'Total hato', emoji:'🐄', val:total, sub:'animales registrados', trend:'+2', up:true,
+      grad:'linear-gradient(145deg,#002a1e,#003d2e,#004a38)', neon:'#00f5d4', glow:'0,245,212',
+      icon:<Activity size={14}/>, href:'/inventario',
+    },
+    {
+      label:'Producción hoy', emoji:'🥛', val:'84 L', sub:'5 vacas · 16.8 L/c', trend:'+6%', up:true,
+      grad:'linear-gradient(145deg,#001830,#002040,#002850)', neon:'#00c8ff', glow:'0,200,255',
+      icon:<TrendingUp size={14}/>, href:'/produccion',
+    },
+    {
+      label:'Alertas', emoji:'🔔', val:alertas.length, sub:'requieren acción', trend:'3 críticas', up:false,
+      grad:'linear-gradient(145deg,#2a0010,#3d0015,#4d0020)', neon:'#ff4d6d', glow:'255,77,109',
+      icon:<AlertCircle size={14}/>, href:'/alertas',
+    },
+    {
+      label:'Potreros', emoji:'🌿', val:potreros.length, sub:'áreas activas', trend:'1 libre', up:true,
+      grad:'linear-gradient(145deg,#122800,#1a3d00,#1e4a00)', neon:'#84ef34', glow:'132,239,52',
+      icon:<Target size={14}/>, href:'/potreros',
+    },
+    {
+      label:'Personal', emoji:'👷', val:personal.length, sub:'empleados activos', trend:'todos OK', up:true,
+      grad:'linear-gradient(145deg,#12182a,#182030,#1a2840)', neon:'#94a3b8', glow:'148,163,184',
+      icon:<BarChart2 size={14}/>, href:'/personal',
+    },
+    {
+      label:'Utilidad neta', emoji:'💰', val:'$40.2M', sub:'mes actual · COP', trend:'+12%', up:true,
+      grad:'linear-gradient(145deg,#001820,#002028,#002830)', neon:'#34d399', glow:'52,211,153',
+      icon:<Zap size={14}/>, href:'/costos',
+    },
   ];
 
   return (
-    <div className="space-y-5 pb-8 civac-animate">
+    <div className="space-y-4 sm:space-y-5 pb-8 civac-animate">
 
-      {/* Hero Banner */}
-      <div className="relative rounded-2xl overflow-hidden" style={{background:'linear-gradient(135deg,#003d2e 0%,#004d3a 40%,#003050 100%)',border:'1px solid rgba(0,245,212,0.2)',boxShadow:'0 0 40px rgba(0,245,212,0.08)'}}>
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full opacity-20" style={{background:'radial-gradient(circle,#00f5d4,transparent)'}}/>
-          <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full opacity-15" style={{background:'radial-gradient(circle,#00c8ff,transparent)'}}/>
-          <div className="absolute inset-0" style={{backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 30px,rgba(0,245,212,0.03) 30px,rgba(0,245,212,0.03) 31px),repeating-linear-gradient(90deg,transparent,transparent 30px,rgba(0,245,212,0.03) 30px,rgba(0,245,212,0.03) 31px)'}}/>
-        </div>
-        <div className="relative p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-1.5">
-              <h1 className="text-2xl font-black text-white" style={{fontFamily:"'Sora',sans-serif"}}>{greeting} 👋</h1>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{background:'rgba(57,255,126,0.15)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.3)'}}>● CIVAC Live</span>
-            </div>
-            <p className="text-white/60 text-sm">
-              {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} — {now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
-            </p>
-            <p className="text-white/40 text-xs mt-0.5">Dashboard PRO · Control Inteligente de Valor Agropecuario</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {[
-              {v:`🐄 ${animals.length}`, l:'Animales'},
-              {v:'🥛 5', l:'Producción'},
-              {v:`🌿 ${potreros.length}`, l:'Potreros'},
-              {v:`👷 ${personal.length}`, l:'Staff'},
-            ].map(t=>(
-              <div key={t.l} className="px-3 py-1.5 rounded-xl text-xs font-semibold" style={{background:'rgba(255,255,255,0.08)',color:'white',border:'1px solid rgba(255,255,255,0.12)'}}>
-                {t.v} <span className="text-white/50">{t.l}</span>
+      {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
+      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden"
+        style={{
+          background:'linear-gradient(135deg,#002e20 0%,#003d2e 35%,#003358 70%,#002050 100%)',
+          border:'1px solid rgba(0,245,212,0.22)',
+          boxShadow:'0 0 50px rgba(0,245,212,0.08), 0 8px 40px rgba(0,0,0,0.4)',
+        }}>
+        {/* Decorative blobs */}
+        <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full pointer-events-none"
+          style={{background:'radial-gradient(circle,rgba(0,245,212,0.18),transparent 70%)'}}/>
+        <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full pointer-events-none"
+          style={{background:'radial-gradient(circle,rgba(0,200,255,0.12),transparent 70%)'}}/>
+        <div className="absolute top-0 right-1/3 w-48 h-48 rounded-full pointer-events-none"
+          style={{background:'radial-gradient(circle,rgba(57,255,126,0.06),transparent 70%)'}}/>
+        {/* Grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(0,245,212,0.025) 28px,rgba(0,245,212,0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(0,245,212,0.025) 28px,rgba(0,245,212,0.025) 29px)',
+        }}/>
+        {/* Top accent line */}
+        <div className="h-0.5 w-full" style={{background:'linear-gradient(90deg,transparent,#00f5d4,#00c8ff,transparent)'}}/>
+
+        <div className="relative p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <div className="flex items-center gap-2 sm:gap-3 mb-1.5 flex-wrap">
+                <h1 className="text-xl sm:text-3xl font-black text-white" style={{fontFamily:"'Sora',sans-serif"}}>
+                  {greeting}, {user?.nombre?.split(' ')[0] || 'Admin'} 👋
+                </h1>
+                <span className="text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1.5"
+                  style={{background:'rgba(57,255,126,0.18)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.35)'}}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#39ff7e] animate-pulse inline-block"/>
+                  CIVAC Live
+                </span>
               </div>
-            ))}
-            <button className="relative p-2 rounded-xl" style={{background:'rgba(255,77,109,0.15)',border:'1px solid rgba(255,77,109,0.3)'}}>
-              <Bell size={15} className="text-rose-400"/>
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] flex items-center justify-center font-bold" style={{background:'#ff4d6d'}}>3</span>
-            </button>
+              <p className="text-white/55 text-xs sm:text-sm">
+                {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+                &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
+              </p>
+              <p className="text-white/30 text-[10px] sm:text-xs mt-0.5">Control Inteligente de Valor Agropecuario · CIVAC v1.0 PRO</p>
+            </div>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {[
+                {v:`${animals.length}`, l:'Animales', e:'🐄', c:'0,245,212'},
+                {v:'5',                  l:'Ordeños',  e:'🥛', c:'0,200,255'},
+                {v:`${potreros.length}`, l:'Potreros', e:'🌿', c:'132,239,52'},
+                {v:`${personal.length}`, l:'Staff',    e:'👷', c:'148,163,184'},
+              ].map(t=>(
+                <div key={t.l} className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-semibold"
+                  style={{background:`rgba(${t.c},0.1)`,color:`rgba(${t.c},0.9)`,border:`1px solid rgba(${t.c},0.2)`}}>
+                  {t.e} <strong>{t.v}</strong> <span className="opacity-60">{t.l}</span>
+                </div>
+              ))}
+              <Link href="/alertas">
+                <button className="relative p-2 sm:p-2.5 rounded-xl transition-all hover:scale-110"
+                  style={{background:'rgba(255,77,109,0.15)',border:'1px solid rgba(255,77,109,0.3)'}}>
+                  <Bell size={15} className="text-rose-400"/>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] flex items-center justify-center font-black animate-pulse"
+                    style={{background:'#ff4d6d',boxShadow:'0 0 8px rgba(255,77,109,0.8)'}}>
+                    {alertas.length}
+                  </span>
+                </button>
+              </Link>
+            </div>
+          </div>
+          {/* Ticker */}
+          <div className="flex items-center gap-3 overflow-hidden"
+            style={{background:'rgba(0,0,0,0.25)',borderRadius:12,padding:'7px 14px',border:'1px solid rgba(0,245,212,0.1)'}}>
+            <span className="text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md flex-shrink-0"
+              style={{background:'rgba(0,245,212,0.15)',color:'#00f5d4',border:'1px solid rgba(0,245,212,0.3)'}}>
+              LIVE
+            </span>
+            <StatTicker/>
           </div>
         </div>
       </div>
 
-      {/* 6 KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {kpiCards.map(k=>(
-          <div key={k.label} className="card-lift rounded-2xl p-4 text-white relative overflow-hidden"
-            style={{background:k.grad,border:`1px solid ${k.neon}25`,boxShadow:`0 0 20px ${k.glow}`}}>
-            <div className="absolute top-0 right-0 w-16 h-16 rounded-full opacity-20" style={{background:`radial-gradient(circle,${k.neon},transparent)`,transform:'translate(30%,-30%)'}}/>
-            <div className="text-[9px] font-bold uppercase tracking-wider mb-1" style={{color:`${k.neon}cc`}}>{k.emoji} {k.label}</div>
-            <div className="text-2xl font-black leading-none mb-1" style={{color:k.neon,textShadow:`0 0 12px ${k.glow}`}}>{k.val}</div>
-            <div className="text-[10px] text-white/45">{k.sub}</div>
-          </div>
+      {/* ── 6 KPI CARDS ─────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+        {kpiCards.map((k, i) => (
+          <Link key={k.label} href={k.href}>
+            <div className="kpi-card cursor-pointer group" style={{
+              background:k.grad,
+              border:`1px solid rgba(${k.glow},0.22)`,
+              boxShadow:`0 0 0 rgba(${k.glow},0), inset 0 1px 0 rgba(255,255,255,0.06)`,
+              borderRadius:20,
+              padding:'14px 12px',
+              animationDelay:`${i*60}ms`,
+            }}
+            onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 28px rgba(${k.glow},0.28), 0 8px 30px rgba(0,0,0,0.4)`;}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 0 rgba(${k.glow},0)`;}}
+            >
+              {/* Glow blob */}
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-20 pointer-events-none"
+                style={{background:`radial-gradient(circle,rgba(${k.glow},1),transparent)`,transform:'translate(40%,-40%)'}}/>
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider" style={{color:`rgba(${k.glow},0.75)`}}>
+                  {k.emoji} {k.label}
+                </div>
+                <div style={{color:`rgba(${k.glow},0.5)`}}>{k.icon}</div>
+              </div>
+              {/* Big value */}
+              <div className="text-2xl sm:text-3xl font-black leading-none mb-1.5 number-pop"
+                style={{color:`rgba(${k.glow},1)`,textShadow:`0 0 18px rgba(${k.glow},0.6)`,fontFamily:"'Sora',sans-serif"}}>
+                {k.val}
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-white/40 mb-2 leading-tight">{k.sub}</div>
+              {/* Trend */}
+              <div className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold"
+                style={{color:k.up?'#39ff7e':'#ff4d6d'}}>
+                {k.up ? <TrendingUp size={10}/> : <TrendingDown size={10}/>}
+                {k.trend}
+              </div>
+            </div>
+          </Link>
         ))}
       </div>
 
-      {/* Analytics row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* ── ANALYTICS ROW ──────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+
         {/* Pesos */}
-        <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(255,154,60,0.2)'}}>
+        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+          style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(255,154,60,0.2)',borderRadius:20}}>
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{background:'linear-gradient(135deg,#ff9a3c,#ea580c)'}}>⚖️</div>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+              style={{background:'linear-gradient(135deg,#ff9a3c,#ea580c)',boxShadow:'0 0 18px rgba(255,154,60,0.5)'}}>
+              ⚖️
+            </div>
             <div>
-              <div className="font-bold text-sm text-white">Análisis de Pesos</div>
-              <div className="text-xs text-white/40">Promedio · metas por categoría</div>
+              <div className="font-black text-sm sm:text-base text-white">Análisis de Pesos</div>
+              <div className="text-[10px] sm:text-xs text-white/40">Promedio hato · metas raza</div>
             </div>
           </div>
-          <div className="rounded-xl p-3 mb-3" style={{background:'rgba(255,154,60,0.1)',border:'1px solid rgba(255,154,60,0.2)'}}>
-            <div className="text-[10px] font-bold uppercase tracking-wider" style={{color:'#ff9a3c'}}>Peso promedio hato</div>
-            <div className="text-3xl font-black" style={{color:'#ff9a3c',textShadow:'0 0 12px rgba(255,154,60,0.5)'}}>417 kg</div>
-            <div className="text-[10px] text-white/50">Biomasa total: <strong className="text-white/80">5.4 ton</strong></div>
+          <div className="rounded-2xl p-3 sm:p-4 mb-3" style={{background:'rgba(255,154,60,0.1)',border:'1px solid rgba(255,154,60,0.2)'}}>
+            <div className="text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1" style={{color:'#ff9a3c'}}>Peso promedio hato</div>
+            <div className="text-3xl sm:text-4xl font-black leading-none" style={{color:'#ff9a3c',textShadow:'0 0 20px rgba(255,154,60,0.6)',fontFamily:"'Sora',sans-serif"}}>
+              417 <span className="text-lg sm:text-xl opacity-60">kg</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-[10px] sm:text-xs">
+              <TrendingUp size={11} style={{color:'#39ff7e'}}/>
+              <span style={{color:'#39ff7e'}}>+7 kg vs mes anterior</span>
+              <span className="text-white/30">· Biomasa: 5.4 ton</span>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {[
-              {emoji:'🐄',label:'Vacas',kg:508,diff:'+28',n:7,c:'#00f5d4',ok:true},
-              {emoji:'🐮',label:'Novillas',kg:298,diff:'-22',n:3,c:'#ff4d6d',ok:false},
-              {emoji:'🐣',label:'Terneros',kg:80,diff:'-70',n:2,c:'#ff4d6d',ok:false},
-              {emoji:'🐂',label:'Toros',kg:810,diff:'+160',n:1,c:'#39ff7e',ok:true},
+              {emoji:'🐄',label:'Vacas',    kg:508,diff:'+28',n:7,  c:'#00f5d4', g:'0,245,212'},
+              {emoji:'🐮',label:'Novillas', kg:298,diff:'-22',n:3,  c:'#a855f7', g:'168,85,247'},
+              {emoji:'🐣',label:'Terneros', kg: 80,diff:'-70',n:2,  c:'#fbbf24', g:'251,191,36'},
+              {emoji:'🦬',label:'Toros',    kg:810,diff:'+160',n:1, c:'#39ff7e', g:'57,255,126'},
             ].map(c=>(
-              <div key={c.label} className="rounded-xl p-2.5" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                <div className="text-base mb-1">{c.emoji}</div>
-                <div className="text-[10px] text-white/50">{c.label} ({c.n})</div>
-                <div className="text-base font-black text-white">{c.kg} kg</div>
-                <div className="text-[10px] font-semibold" style={{color:c.c}}>{c.diff} kg</div>
+              <div key={c.label} className="rounded-xl sm:rounded-2xl p-2.5 sm:p-3 transition-all hover:scale-[1.03]"
+                style={{background:`rgba(${c.g},0.07)`,border:`1px solid rgba(${c.g},0.18)`}}>
+                <div className="text-base sm:text-xl mb-1">{c.emoji}</div>
+                <div className="text-[10px] sm:text-xs text-white/50 leading-tight">{c.label} ({c.n})</div>
+                <div className="text-base sm:text-lg font-black text-white leading-tight">{c.kg} <span className="text-[10px] opacity-50">kg</span></div>
+                <div className="text-[10px] sm:text-xs font-bold" style={{color:c.c}}>{c.diff} kg</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Producción */}
-        <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(0,200,255,0.2)'}}>
+        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+          style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(0,200,255,0.2)',borderRadius:20}}>
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{background:'linear-gradient(135deg,#00c8ff,#0ea5e9)'}}>🥛</div>
-            <div>
-              <div className="font-bold text-sm text-white">Producción Lechera</div>
-              <div className="text-xs text-white/40">Vacas en ordeño activo</div>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+              style={{background:'linear-gradient(135deg,#00c8ff,#0ea5e9)',boxShadow:'0 0 18px rgba(0,200,255,0.5)'}}>
+              🥛
             </div>
+            <div className="flex-1">
+              <div className="font-black text-sm sm:text-base text-white">Producción Lechera</div>
+              <div className="text-[10px] sm:text-xs text-white/40">Ordeños activos</div>
+            </div>
+            <Link href="/produccion">
+              <span className="text-[10px] font-bold flex items-center gap-0.5" style={{color:'#00c8ff'}}>
+                Ver <ChevronRight size={11}/>
+              </span>
+            </Link>
           </div>
-          <div className="flex gap-3 mb-3">
-            {[{v:'84',l:'L/día',c:'#00c8ff'},{v:'16.8',l:'L/vaca',c:'#39ff7e'},{v:'5',l:'Ordeño',c:'#a855f7'}].map(s=>(
-              <div key={s.l} className="flex-1 text-center rounded-xl py-2" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                <div className="text-xl font-black" style={{color:s.c}}>{s.v}</div>
-                <div className="text-[9px] text-white/40 uppercase">{s.l}</div>
+          <div className="flex gap-2 mb-4">
+            {[
+              {v:'84',  l:'L/día',  c:'#00c8ff', g:'0,200,255'},
+              {v:'16.8',l:'L/vaca', c:'#39ff7e', g:'57,255,126'},
+              {v:'5',   l:'Vacas',  c:'#a855f7', g:'168,85,247'},
+            ].map(s=>(
+              <div key={s.l} className="flex-1 text-center rounded-xl sm:rounded-2xl py-2.5 sm:py-3"
+                style={{background:`rgba(${s.g},0.08)`,border:`1px solid rgba(${s.g},0.2)`}}>
+                <div className="text-xl sm:text-2xl font-black" style={{color:s.c,fontFamily:"'Sora',sans-serif"}}>{s.v}</div>
+                <div className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wide mt-0.5">{s.l}</div>
               </div>
             ))}
           </div>
-          <div className="mb-3">
-            <div className="flex justify-between text-xs mb-1.5"><span className="text-white/40">Meta diaria</span><span className="font-bold text-white">93% · 84/90 L</span></div>
-            <div className="h-2 rounded-full overflow-hidden" style={{background:'rgba(0,200,255,0.1)'}}>
-              <div className="h-full rounded-full" style={{width:'93%',background:'linear-gradient(90deg,#00c8ff,#00f5d4)',boxShadow:'0 0 8px rgba(0,245,212,0.5)'}}/>
+          <div className="mb-4">
+            <div className="flex justify-between text-[10px] sm:text-xs mb-1.5">
+              <span className="text-white/40">Meta diaria 90 L</span>
+              <span className="font-black text-white">93% ✓</span>
+            </div>
+            <div className="h-2.5 sm:h-3 rounded-full overflow-hidden" style={{background:'rgba(0,200,255,0.1)'}}>
+              <div className="h-full rounded-full transition-all duration-1000"
+                style={{width:'93%',background:'linear-gradient(90deg,#00c8ff,#00f5d4)',boxShadow:'0 0 10px rgba(0,245,212,0.6)'}}/>
             </div>
           </div>
-          <div className="text-[10px] font-bold text-white/30 uppercase mb-2">🏆 Top productoras</div>
-          {[['Rosaura','18.4 L','#fbbf24'],['Estrella','17.8 L','#94a3b8'],['Cielo','16.9 L','#a78bfa']].map(([n,l,c],i)=>(
-            <div key={n} className="flex justify-between text-xs py-1 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
-              <span className="text-white/50">{i+1}° {n}</span>
-              <span className="font-bold" style={{color:c}}>{l}</span>
+          <div className="text-[10px] sm:text-xs font-black text-white/30 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <span style={{color:'#fbbf24'}}>🏆</span> Top productoras
+          </div>
+          {[
+            ['Rosaura','18.4 L','#fbbf24','1°'],
+            ['Estrella','17.8 L','#94a3b8','2°'],
+            ['Cielo',  '16.9 L','#a78bfa','3°'],
+          ].map(([n,l,c,pos])=>(
+            <div key={n} className="flex items-center gap-2 text-xs py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
+              <span className="text-[10px] font-black w-5" style={{color:c}}>{pos}</span>
+              <span className="text-white/60 flex-1">{n}</span>
+              <span className="font-black" style={{color:c}}>{l}</span>
             </div>
           ))}
         </div>
 
         {/* Potreros */}
-        <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(132,239,52,0.2)'}}>
+        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+          style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(132,239,52,0.2)',borderRadius:20}}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{background:'linear-gradient(135deg,#84ef34,#65a30d)'}}>🌿</div>
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0"
+                style={{background:'linear-gradient(135deg,#84ef34,#65a30d)',boxShadow:'0 0 18px rgba(132,239,52,0.5)'}}>
+                🌿
+              </div>
               <div>
-                <div className="font-bold text-sm text-white">Manejo de Potreros</div>
-                <div className="text-xs text-white/40">Rotación y estado</div>
+                <div className="font-black text-sm sm:text-base text-white">Manejo de Potreros</div>
+                <div className="text-[10px] sm:text-xs text-white/40">Rotación · estado</div>
               </div>
             </div>
-            <Link href="/potreros"><span className="text-xs font-semibold" style={{color:'#84ef34'}}>Ver →</span></Link>
+            <Link href="/potreros">
+              <span className="text-[10px] font-bold flex items-center gap-0.5" style={{color:'#84ef34'}}>
+                Ver <ChevronRight size={11}/>
+              </span>
+            </Link>
           </div>
           <div className="flex gap-2 mb-3">
-            {[{v:'6',l:'Total',c:'white'},{v:'1',l:'Libre',c:'#39ff7e'},{v:'27',l:'Has',c:'#00c8ff'}].map(s=>(
-              <div key={s.l} className="flex-1 text-center rounded-xl py-2" style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                <div className="text-xl font-black" style={{color:s.c}}>{s.v}</div>
-                <div className="text-[9px] text-white/40 uppercase">{s.l}</div>
+            {[
+              {v:'6',  l:'Total', c:'white',   g:'255,255,255'},
+              {v:'1',  l:'Libre', c:'#39ff7e', g:'57,255,126'},
+              {v:'27', l:'Has',   c:'#00c8ff', g:'0,200,255'},
+            ].map(s=>(
+              <div key={s.l} className="flex-1 text-center rounded-xl sm:rounded-2xl py-2.5 sm:py-3"
+                style={{background:`rgba(${s.g},0.06)`,border:`1px solid rgba(${s.g},0.12)`}}>
+                <div className="text-xl sm:text-2xl font-black" style={{color:s.c,fontFamily:"'Sora',sans-serif"}}>{s.v}</div>
+                <div className="text-[9px] sm:text-[10px] text-white/40 uppercase tracking-wide mt-0.5">{s.l}</div>
               </div>
             ))}
           </div>
-          <div className="text-xs rounded-xl px-3 py-2 mb-3" style={{background:'rgba(255,154,60,0.1)',border:'1px solid rgba(255,154,60,0.2)',color:'#ff9a3c'}}>
-            ⚡ ¡Rotar pronto! <span className="text-white/50">Potrero 4</span>
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs rounded-xl px-3 py-2.5 mb-3"
+            style={{background:'rgba(255,154,60,0.1)',border:'1px solid rgba(255,154,60,0.25)',color:'#ff9a3c'}}>
+            <AlertTriangle size={13} className="flex-shrink-0"/>
+            <span><strong>¡Rotar pronto!</strong> Potrero 4 — días vencidos</span>
           </div>
           {[
-            {n:'Potrero 6',ha:'3.5 ha',s:'Ocupado',c:'#ff9a3c'},
-            {n:'Potrero 5',ha:'6 ha',s:'Listo',c:'#39ff7e'},
-            {n:'Potrero 4',ha:'4.2 ha',s:'Rotar ya',c:'#ff4d6d'},
-            {n:'Potrero 3',ha:'5.1 ha',s:'Ocupado',c:'#ff9a3c'},
+            {n:'Potrero 6',ha:'3.5 ha',s:'Ocupado',  c:'#ff9a3c', g:'255,154,60'},
+            {n:'Potrero 5',ha:'6 ha',  s:'Listo',    c:'#39ff7e', g:'57,255,126'},
+            {n:'Potrero 4',ha:'4.2 ha',s:'Rotar ya', c:'#ff4d6d', g:'255,77,109'},
+            {n:'Potrero 3',ha:'5.1 ha',s:'Ocupado',  c:'#ff9a3c', g:'255,154,60'},
           ].map(p=>(
             <div key={p.n} className="flex items-center gap-2 py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{background:p.c,boxShadow:`0 0 6px ${p.c}80`}}/>
-              <span className="text-xs font-medium text-white/80 flex-1">{p.n}</span>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{background:p.c,boxShadow:`0 0 6px rgba(${p.g},0.8)`}}/>
+              <span className="text-xs sm:text-sm font-medium text-white/80 flex-1">{p.n}</span>
               <span className="text-[10px] text-white/35">{p.ha}</span>
-              <span className="text-[10px] font-bold" style={{color:p.c}}>{p.s}</span>
+              <span className="text-[10px] sm:text-xs font-black" style={{color:p.c}}>{p.s}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chart section */}
-      <div className="rounded-2xl p-5" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(0,245,212,0.12)'}}>
+      {/* ── CHART SECTION ──────────────────────────────────────────────── */}
+      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5"
+        style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(0,245,212,0.12)',borderRadius:20}}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{background:'linear-gradient(135deg,#00f5d4,#00c896)'}}>
-              <TrendingUp size={17} className="text-black"/>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{background:'linear-gradient(135deg,#00f5d4,#00c896)',boxShadow:'0 0 18px rgba(0,245,212,0.5)'}}>
+              <TrendingUp size={18} className="text-black"/>
             </div>
             <div>
-              <div className="font-bold text-white" style={{fontFamily:"'Sora',sans-serif"}}>Evolución Histórica CIVAC</div>
-              <div className="text-xs text-white/40">Últimos 7 meses · Oct 2024 — Abr 2025</div>
+              <div className="font-black text-sm sm:text-base text-white" style={{fontFamily:"'Sora',sans-serif"}}>
+                Evolución Histórica CIVAC
+              </div>
+              <div className="text-[10px] sm:text-xs text-white/40">Últimos 7 meses · Oct 2024 — Abr 2025</div>
             </div>
           </div>
-          <div className="flex gap-1">
-            {[{id:'produccion',label:'Producción 🥛'},{id:'peso',label:'Peso ⚖️'},{id:'finanzas',label:'Finanzas 💰'}].map(t=>(
+          <div className="flex gap-1.5 flex-wrap">
+            {[
+              {id:'produccion',label:'Producción 🥛', from:'#00f5d4', to:'#00c896'},
+              {id:'peso',      label:'Peso ⚖️',       from:'#ff9a3c', to:'#ea580c'},
+              {id:'finanzas',  label:'Finanzas 💰',   from:'#34d399', to:'#059669'},
+            ].map(t=>(
               <button key={t.id} onClick={()=>setChartTab(t.id as any)}
-                className="text-[11px] px-3 py-1.5 rounded-lg font-semibold transition-all"
+                className="text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-1.5 rounded-xl font-bold transition-all hover:scale-105"
                 style={chartTab===t.id
-                  ?{background:'linear-gradient(135deg,#00f5d4,#00c896)',color:'black',boxShadow:'0 0 12px rgba(0,245,212,0.4)'}
-                  :{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.5)'}}>
+                  ?{background:`linear-gradient(135deg,${t.from},${t.to})`,color:'black',boxShadow:`0 0 14px ${t.from}55`}
+                  :{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.5)',border:'1px solid rgba(255,255,255,0.07)'}}>
                 {t.label}
               </button>
             ))}
           </div>
         </div>
-        <div className="h-52">
+        <div className="h-48 sm:h-56">
           <ResponsiveContainer width="100%" height="100%">
             {chartTab==='finanzas' ? (
-              <BarChart data={dataFinanzas} margin={{top:5,right:20,left:0,bottom:0}}>
+              <BarChart data={dataFinanzas} margin={{top:5,right:15,left:0,bottom:0}}>
                 <defs>
-                  <linearGradient id="barIn" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#39ff7e"/><stop offset="1" stopColor="#00c850" stopOpacity={0.6}/></linearGradient>
-                  <linearGradient id="barEg" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#ff4d6d"/><stop offset="1" stopColor="#c9184a" stopOpacity={0.6}/></linearGradient>
+                  <linearGradient id="bIn" x1="0" y1="0" x2="0" y2="1">
+                    <stop stopColor="#39ff7e"/><stop offset="1" stopColor="#00c850" stopOpacity={0.6}/>
+                  </linearGradient>
+                  <linearGradient id="bEg" x1="0" y1="0" x2="0" y2="1">
+                    <stop stopColor="#ff4d6d"/><stop offset="1" stopColor="#c9184a" stopOpacity={0.6}/>
+                  </linearGradient>
                 </defs>
                 <XAxis dataKey="name" stroke="transparent" tick={{fill:'rgba(255,255,255,0.4)',fontSize:11}}/>
-                <YAxis stroke="transparent" tick={{fill:'rgba(255,255,255,0.4)',fontSize:11}} width={40}/>
+                <YAxis stroke="transparent" tick={{fill:'rgba(255,255,255,0.4)',fontSize:11}} width={38}/>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
-                <RTooltip contentStyle={tooltipStyle} formatter={(v:any,n:any)=>[`$${v}M COP`,n==='ingresos'?'Ingresos':'Egresos']}/>
-                <Bar dataKey="ingresos" fill="url(#barIn)" radius={[6,6,0,0]}/>
-                <Bar dataKey="egresos" fill="url(#barEg)" radius={[6,6,0,0]}/>
+                <RTooltip contentStyle={TIP} formatter={(v:any,n:any)=>[`$${v}M`,n==='ingresos'?'Ingresos':'Egresos']}/>
+                <Bar dataKey="ingresos" fill="url(#bIn)" radius={[8,8,0,0]}/>
+                <Bar dataKey="egresos"  fill="url(#bEg)" radius={[8,8,0,0]}/>
               </BarChart>
             ) : (
-              <AreaChart data={chartTab==='produccion'?dataProduccion:dataPeso} margin={{top:5,right:20,left:0,bottom:0}}>
+              <AreaChart data={chartTab==='produccion'?dataProduccion:dataPeso} margin={{top:5,right:15,left:0,bottom:0}}>
                 <defs>
-                  <linearGradient id="areaMain" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={chartTab==='produccion'?'#00f5d4':'#ff9a3c'} stopOpacity={0.35}/>
+                  <linearGradient id="aM" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor={chartTab==='produccion'?'#00f5d4':'#ff9a3c'} stopOpacity={0.4}/>
                     <stop offset="95%" stopColor={chartTab==='produccion'?'#00f5d4':'#ff9a3c'} stopOpacity={0}/>
                   </linearGradient>
-                  <linearGradient id="areaMeta" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.2}/>
+                  <linearGradient id="aMeta" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#a855f7" stopOpacity={0.2}/>
                     <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" stroke="transparent" tick={{fill:'rgba(255,255,255,0.4)',fontSize:11}}/>
-                <YAxis stroke="transparent" tick={{fill:'rgba(255,255,255,0.4)',fontSize:11}} width={50}/>
+                <YAxis stroke="transparent" tick={{fill:'rgba(255,255,255,0.4)',fontSize:11}} width={46}/>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
-                <RTooltip contentStyle={tooltipStyle}/>
-                {chartTab==='produccion' && <Area type="monotone" dataKey="meta" stroke="#a855f7" strokeWidth={1.5} strokeDasharray="4 3" fill="url(#areaMeta)" dot={false}/>}
-                <Area type="monotone" dataKey={chartTab==='produccion'?'litros':'kg'} stroke={chartTab==='produccion'?'#00f5d4':'#ff9a3c'} strokeWidth={2.5} fillOpacity={1} fill="url(#areaMain)"
+                <RTooltip contentStyle={TIP}/>
+                {chartTab==='produccion' && (
+                  <Area type="monotone" dataKey="meta" stroke="#a855f7" strokeWidth={1.5}
+                    strokeDasharray="4 3" fill="url(#aMeta)" dot={false}/>
+                )}
+                <Area type="monotone" dataKey={chartTab==='produccion'?'litros':'kg'}
+                  stroke={chartTab==='produccion'?'#00f5d4':'#ff9a3c'} strokeWidth={2.5}
+                  fillOpacity={1} fill="url(#aM)"
                   dot={{fill:chartTab==='produccion'?'#00f5d4':'#ff9a3c',r:3,strokeWidth:0}}
-                  activeDot={{r:5,fill:chartTab==='produccion'?'#00f5d4':'#ff9a3c',strokeWidth:0,style:{filter:`drop-shadow(0 0 6px ${chartTab==='produccion'?'#00f5d4':'#ff9a3c'})`}}}/>
+                  activeDot={{r:6,fill:chartTab==='produccion'?'#00f5d4':'#ff9a3c',strokeWidth:0,
+                    style:{filter:`drop-shadow(0 0 8px ${chartTab==='produccion'?'#00f5d4':'#ff9a3c'})`}}}/>
               </AreaChart>
             )}
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Pie + Alertas + KPIs repro + Finanzas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* ── SECONDARY ROW ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {/* Pie */}
-          <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(0,245,212,0.12)'}}>
-            <div className="font-bold text-sm text-white mb-1">🐄 Composición del hato</div>
-            <div className="text-[10px] text-white/35 mb-2">{animals.length} animales · CIVAC</div>
-            <div className="h-32">
+          <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+            style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(0,245,212,0.12)',borderRadius:20}}>
+            <div className="font-black text-sm sm:text-base text-white mb-0.5">🐄 Composición del hato</div>
+            <div className="text-[10px] sm:text-xs text-white/35 mb-3">{animals.length} animales · CIVAC</div>
+            <div className="h-32 sm:h-36">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={52} innerRadius={20} strokeWidth={0} paddingAngle={2}>
-                    {pieData.map((_,i)=><Cell key={i} fill={PIE_COLORS[i]} style={{filter:`drop-shadow(0 0 5px ${PIE_COLORS[i]}80)`}}/>)}
+                  <Pie data={pieData} dataKey="value" cx="50%" cy="50%"
+                    outerRadius={54} innerRadius={22} strokeWidth={0} paddingAngle={3}>
+                    {pieData.map((_,i)=>(
+                      <Cell key={i} fill={PIE_COLORS[i]}
+                        style={{filter:`drop-shadow(0 0 6px ${PIE_COLORS[i]}90)`}}/>
+                    ))}
                   </Pie>
-                  <RTooltip contentStyle={tooltipStyle}/>
+                  <RTooltip contentStyle={TIP}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            {pieData.map((d,i)=>(
-              <div key={d.name} className="flex items-center gap-2 text-xs py-0.5">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:PIE_COLORS[i],boxShadow:`0 0 5px ${PIE_COLORS[i]}80`}}/>
-                <span className="text-white/50 flex-1">{d.name}</span>
-                <span className="font-bold text-white">{d.value} <span className="text-white/30">({d.pct})</span></span>
-              </div>
-            ))}
-          </div>
-          {/* Alertas */}
-          <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(255,77,109,0.15)'}}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="font-bold text-sm text-white">Alertas activas</div>
-              <Link href="/alertas"><span className="text-xs font-semibold" style={{color:'#ff4d6d'}}>Ver todas →</span></Link>
+            <div className="space-y-1">
+              {pieData.map((d,i)=>(
+                <div key={d.name} className="flex items-center gap-2 text-xs py-0.5">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{background:PIE_COLORS[i],boxShadow:`0 0 6px ${PIE_COLORS[i]}90`}}/>
+                  <span className="text-white/50 flex-1 text-[11px]">{d.name}</span>
+                  <span className="font-black text-white text-[11px]">
+                    {d.value} <span className="text-white/30 font-normal">({d.pct})</span>
+                  </span>
+                </div>
+              ))}
             </div>
-            <div className="space-y-2.5">
+          </div>
+
+          {/* Alertas */}
+          <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+            style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(255,77,109,0.18)',borderRadius:20}}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-black text-sm sm:text-base text-white flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{background:'#ff4d6d',boxShadow:'0 0 8px rgba(255,77,109,0.9)'}}/>
+                Alertas activas
+              </div>
+              <Link href="/alertas">
+                <span className="text-[10px] sm:text-xs font-bold flex items-center gap-0.5" style={{color:'#ff4d6d'}}>
+                  Ver todas <ChevronRight size={11}/>
+                </span>
+              </Link>
+            </div>
+            <div className="space-y-2">
               {alertas.slice(0,4).map(a=>(
-                <div key={a.id} className="flex items-start gap-2.5 p-2.5 rounded-xl" style={{background:a.type==='danger'?'rgba(255,77,109,0.08)':'rgba(255,154,60,0.08)',border:`1px solid ${a.type==='danger'?'rgba(255,77,109,0.2)':'rgba(255,154,60,0.2)'}`}}>
+                <div key={a.id} className="flex items-start gap-2.5 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl"
+                  style={{
+                    background:a.type==='danger'?'rgba(255,77,109,0.08)':'rgba(255,154,60,0.08)',
+                    border:`1px solid ${a.type==='danger'?'rgba(255,77,109,0.22)':'rgba(255,154,60,0.22)'}`,
+                  }}>
                   {a.type==='danger'
                     ?<AlertCircle size={13} className="mt-0.5 flex-shrink-0" style={{color:'#ff4d6d'}}/>
                     :<AlertTriangle size={13} className="mt-0.5 flex-shrink-0" style={{color:'#ff9a3c'}}/>}
-                  <div>
-                    <div className="text-xs font-bold" style={{color:a.type==='danger'?'#ff4d6d':'#ff9a3c'}}>{a.title}</div>
-                    <div className="text-[10px] text-white/40">{a.desc}</div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] sm:text-xs font-black leading-tight" style={{color:a.type==='danger'?'#ff4d6d':'#ff9a3c'}}>
+                      {a.title}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-white/40 truncate">{a.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* KPIs Reproductivos */}
-          <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(255,111,216,0.15)'}}>
-            <div className="font-bold text-sm text-white mb-3">🔁 KPIs Reproductivos</div>
+
+        {/* KPIs Reproductivos + Finanzas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {/* Reproductivos */}
+          <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+            style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(255,111,216,0.18)',borderRadius:20}}>
+            <div className="font-black text-sm sm:text-base text-white mb-3">🔁 KPIs Reproductivos</div>
             {[
-              {label:'Tasa de concepción',val:'62%',meta:'meta 70%',ok:false},
-              {label:'Vacas gestantes',val:'8%',meta:'meta 50%',ok:false},
-              {label:'Destetes exitosos',val:'94%',meta:'meta 90%',ok:true},
-              {label:'Natalidad anual',val:'78%',meta:'meta 85%',ok:false},
+              {label:'Tasa concepción', val:'62%', meta:'70%', pct:88,  ok:false, c:'#ff6fd8'},
+              {label:'Vacas gestantes', val:'8%',  meta:'50%', pct:16,  ok:false, c:'#a855f7'},
+              {label:'Días abiertos',   val:'112d',meta:'<90d',pct:80,  ok:false, c:'#fbbf24'},
+              {label:'IEP promedio',    val:'415d',meta:'365d',pct:88,  ok:false, c:'#ff9a3c'},
             ].map(k=>(
-              <div key={k.label} className="flex items-center justify-between py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
-                <span className="text-xs text-white/50">{k.label}</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-white">{k.val}</span>
-                  <span className="text-[9px] text-white/30">{k.meta}</span>
-                  <span className="text-[10px] font-bold" style={{color:k.ok?'#39ff7e':'#ff4d6d'}}>{k.ok?'✓':'✗'}</span>
+              <div key={k.label} className="mb-2.5">
+                <div className="flex justify-between text-[10px] sm:text-xs mb-1">
+                  <span className="text-white/50">{k.label}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black" style={{color:k.c}}>{k.val}</span>
+                    <span className="text-white/25">meta {k.meta}</span>
+                  </div>
+                </div>
+                <div className="h-1.5 sm:h-2 rounded-full" style={{background:'rgba(255,255,255,0.06)'}}>
+                  <div className="h-full rounded-full" style={{width:`${k.pct}%`,background:`linear-gradient(90deg,${k.c},${k.c}88)`}}/>
                 </div>
               </div>
             ))}
           </div>
-          {/* Resumen Financiero */}
-          <div className="rounded-2xl p-5 card-lift" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(52,211,153,0.15)'}}>
-            <div className="font-bold text-sm text-white mb-1">💰 Resumen Financiero</div>
-            <div className="text-[10px] text-white/35 mb-2.5">Mes actual · COP</div>
-            {[
-              {label:'Ingresos totales',val:'$85.750.000',c:'#39ff7e'},
-              {label:'└ Venta de leche',val:'$70.050.000',c:'#39ff7e88',indent:true},
-              {label:'└ Venta animales',val:'$12.500.000',c:'#39ff7e88',indent:true},
-              {label:'Egresos totales',val:'($45.500.000)',c:'#ff4d6d'},
-              {label:'Utilidad neta',val:'$40.250.000',c:'#00f5d4',bold:true},
-            ].map(r=>(
-              <div key={r.label} className={`flex justify-between text-xs py-0.5 ${r.indent?'pl-3':''}`}>
-                <span className="text-white/45">{r.label}</span>
-                <span className={`font-medium ${r.bold?'font-black':''}`} style={{color:r.c}}>{r.val}</span>
-              </div>
-            ))}
-            <div className="mt-2 pt-2 border-t text-xs text-white/35" style={{borderColor:'rgba(255,255,255,0.06)'}}>
-              Margen: <strong style={{color:'#00f5d4'}}>47%</strong> · Costo/L: <strong style={{color:'#ff9a3c'}}>$820</strong>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* PRO Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Pesaje BT */}
-        <div className="rounded-2xl p-5 card-lift relative overflow-hidden" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(255,154,60,0.2)'}}>
-          <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-15 pointer-events-none" style={{background:'radial-gradient(circle,#ff9a3c,transparent)',transform:'translate(40%,-40%)'}}/>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:'linear-gradient(135deg,#ff9a3c,#ea580c)',boxShadow:'0 0 16px rgba(255,154,60,0.4)'}}>
-                <Scale className="w-5 h-5 text-white"/>
-              </div>
-              <div>
-                <div className="font-bold text-sm text-white flex items-center gap-1.5">
-                  Pesaje Bluetooth
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md" style={{background:'rgba(255,154,60,0.2)',color:'#ff9a3c',border:'1px solid rgba(255,154,60,0.3)'}}>PRO</span>
-                </div>
-                <div className="text-xs text-white/40 flex items-center gap-1">
-                  <Bluetooth className="w-3 h-3" style={{color:'#00c8ff'}}/> {pesajes.filter(p=>p.metodo==='bluetooth').length} registros BT
-                </div>
-              </div>
+          {/* Finanzas */}
+          <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 card-lift"
+            style={{background:'rgba(3,15,10,0.85)',border:'1px solid rgba(52,211,153,0.18)',borderRadius:20}}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="font-black text-sm sm:text-base text-white">💰 Finanzas</div>
+              <Link href="/costos">
+                <span className="text-[10px] font-bold flex items-center gap-0.5" style={{color:'#34d399'}}>
+                  P&G <ChevronRight size={11}/>
+                </span>
+              </Link>
             </div>
-            <Link href="/pesaje"><span className="text-xs font-semibold flex items-center gap-1" style={{color:'#ff9a3c'}}>Módulo <ChevronRight size={12}/></span></Link>
-          </div>
-          <div className="grid grid-cols-3 gap-2.5 mb-4">
             {[
-              {v:pesajes.length,l:'Total pesajes',c:'#ff9a3c'},
-              {v:pesajes.filter(p=>p.metodo==='bluetooth').length,l:'Bluetooth',c:'#00c8ff'},
-              {v:'+0',l:'GMD prom',c:'#39ff7e'},
-            ].map(s=>(
-              <div key={s.l} className="rounded-xl p-3 text-center" style={{background:`rgba(${s.c==='#ff9a3c'?'255,154,60':s.c==='#00c8ff'?'0,200,255':'57,255,126'},0.08)`,border:`1px solid ${s.c}25`}}>
-                <div className="text-xl font-black" style={{color:s.c}}>{s.v}</div>
-                <div className="text-[9px] text-white/40 uppercase">{s.l}</div>
-              </div>
-            ))}
-          </div>
-          <div className="text-[10px] font-bold text-white/30 uppercase mb-2">Últimos pesajes</div>
-          <div className="space-y-1.5">
-            {pesajes.slice(0,4).map(p=>(
-              <div key={p.id} className="flex items-center gap-2 py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:p.metodo==='bluetooth'?'#00c8ff':'#94a3b8',boxShadow:`0 0 5px ${p.metodo==='bluetooth'?'#00c8ff':'#94a3b8'}80`}}/>
-                <span className="text-xs font-medium text-white/80 flex-1">{p.animalNombre}</span>
-                <span className="text-[10px] text-white/35">{p.fecha}</span>
-                <span className="text-xs font-black" style={{color:'#ff9a3c'}}>{p.peso} kg</span>
-                {p.peso>(p.pesoAnterior||p.peso) && <span className="text-[10px] font-semibold" style={{color:'#39ff7e'}}>+{p.peso-(p.pesoAnterior||0)}</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* GPS Live */}
-        <div className="rounded-2xl p-5 card-lift relative overflow-hidden" style={{background:'rgba(3,15,10,0.8)',border:'1px solid rgba(0,200,255,0.2)'}}>
-          <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-15 pointer-events-none" style={{background:'radial-gradient(circle,#00c8ff,transparent)',transform:'translate(40%,-40%)'}}/>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:'linear-gradient(135deg,#00c8ff,#1d4ed8)',boxShadow:'0 0 16px rgba(0,200,255,0.4)'}}>
-                <Navigation className="w-5 h-5 text-white"/>
-              </div>
-              <div>
-                <div className="font-bold text-sm text-white flex items-center gap-1.5">
-                  GPS Ganado Live
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md" style={{background:'rgba(0,200,255,0.15)',color:'#00c8ff',border:'1px solid rgba(0,200,255,0.3)'}}>PRO</span>
+              {label:'Ingresos brutos',  val:'$86M', up:true,  pct:100, c:'#34d399', g:'52,211,153'},
+              {label:'Egresos totales',  val:'$46M', up:false, pct:53,  c:'#ff4d6d', g:'255,77,109'},
+              {label:'Utilidad neta',    val:'$40M', up:true,  pct:47,  c:'#00f5d4', g:'0,245,212'},
+              {label:'Costo/litro leche',val:'$547', up:false, pct:65,  c:'#fbbf24', g:'251,191,36'},
+            ].map(f=>(
+              <div key={f.label} className="mb-2.5">
+                <div className="flex justify-between text-[10px] sm:text-xs mb-1">
+                  <span className="text-white/50">{f.label}</span>
+                  <span className="font-black flex items-center gap-1" style={{color:f.c}}>
+                    {f.up?<TrendingUp size={9}/>:<TrendingDown size={9}/>} {f.val}
+                  </span>
                 </div>
-                <div className="text-xs text-white/40 flex items-center gap-1">
-                  <Signal className="w-3 h-3" style={{color:'#39ff7e'}}/> {gpsUbicaciones.filter(g=>g.activo).length} collares activos
+                <div className="h-1.5 sm:h-2 rounded-full" style={{background:'rgba(255,255,255,0.06)'}}>
+                  <div className="h-full rounded-full" style={{width:`${f.pct}%`,background:`linear-gradient(90deg,rgba(${f.g},0.9),rgba(${f.g},0.5))`}}/>
                 </div>
-              </div>
-            </div>
-            <Link href="/gps"><span className="text-xs font-semibold flex items-center gap-1" style={{color:'#00c8ff'}}>Mapa GPS <ChevronRight size={12}/></span></Link>
-          </div>
-          <div className="grid grid-cols-3 gap-2.5 mb-4">
-            {[
-              {v:gpsUbicaciones.length,l:'Collares',c:'#00c8ff'},
-              {v:gpsUbicaciones.filter(g=>g.activo).length,l:'Online',c:'#39ff7e'},
-              {v:gpsUbicaciones.filter(g=>g.bateria&&g.bateria<30).length,l:'Batería baja',c:'#ff4d6d'},
-            ].map(s=>(
-              <div key={s.l} className="rounded-xl p-3 text-center" style={{background:`rgba(${s.c==='#00c8ff'?'0,200,255':s.c==='#39ff7e'?'57,255,126':'255,77,109'},0.08)`,border:`1px solid ${s.c}25`}}>
-                <div className="text-xl font-black" style={{color:s.c}}>{s.v}</div>
-                <div className="text-[9px] text-white/40 uppercase">{s.l}</div>
-              </div>
-            ))}
-          </div>
-          <div className="text-[10px] font-bold text-white/30 uppercase mb-2">Estado de collares</div>
-          <div className="space-y-1.5">
-            {gpsUbicaciones.slice(0,5).map(g=>(
-              <div key={g.id} className="flex items-center gap-2 py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.05)'}}>
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:g.activo?'#39ff7e':'#ff4d6d',boxShadow:`0 0 5px ${g.activo?'#39ff7e':'#ff4d6d'}80`}}/>
-                <span className="text-xs font-medium text-white/80 flex-1">{g.nombre}</span>
-                <span className="text-[10px] text-white/35 truncate max-w-[80px]">{g.potreroNom}</span>
-                <span className="text-[10px] font-bold" style={{color:g.bateria&&g.bateria<30?'#ff4d6d':'#39ff7e'}}>{g.bateria||85}%</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Módulos grid */}
+      {/* ── MÓDULOS GRID ──────────────────────────────────────────────── */}
       <div>
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="w-1 h-6 rounded-full" style={{background:'linear-gradient(180deg,#00f5d4,#00c896)',boxShadow:'0 0 8px rgba(0,245,212,0.6)'}}/>
-          <h2 className="font-black text-lg text-white" style={{fontFamily:"'Sora',sans-serif"}}>Módulos CIVAC</h2>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{background:'rgba(0,245,212,0.1)',color:'#00f5d4',border:'1px solid rgba(0,245,212,0.2)'}}>17 módulos</span>
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
+          <div className="h-px flex-1" style={{background:'linear-gradient(90deg,rgba(0,245,212,0.3),transparent)'}}/>
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em]" style={{color:'rgba(0,245,212,0.45)'}}>
+            Todos los módulos CIVAC
+          </span>
+          <div className="h-px flex-1" style={{background:'linear-gradient(90deg,transparent,rgba(0,245,212,0.3)'}}/>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-          {modulos.map(m=>(
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5">
+          {MODULOS.map((m, i) => (
             <Link key={m.href} href={m.href}>
-              <div className="card-lift rounded-2xl p-3.5 cursor-pointer group"
-                style={{background:'rgba(3,15,10,0.7)',border:`1px solid ${m.neon}18`,transition:'all 0.2s ease'}}
-                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=`${m.neon}50`;(e.currentTarget as HTMLElement).style.boxShadow=`0 4px 20px ${m.neon}20`;}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor=`${m.neon}18`;(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
-                <div className="text-2xl mb-2 transition-transform group-hover:scale-110">{m.emoji}</div>
-                <div className="font-semibold text-xs text-white leading-tight mb-0.5">{m.title}</div>
-                <div className="text-[9px] text-white/35 leading-tight">{m.desc}</div>
+              <div className="relative rounded-2xl p-3 sm:p-3.5 cursor-pointer group transition-all duration-200 hover:scale-[1.04] hover:-translate-y-0.5"
+                style={{
+                  background:`linear-gradient(145deg,rgba(${m.glow},0.09),rgba(${m.glow},0.04),rgba(0,0,0,0.4))`,
+                  border:`1px solid rgba(${m.glow},0.2)`,
+                  borderRadius:18,
+                  animationDelay:`${i*30}ms`,
+                }}
+                onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 24px rgba(${m.glow},0.22)`;(e.currentTarget as HTMLDivElement).style.borderColor=`rgba(${m.glow},0.45)`;}}
+                onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow='none';(e.currentTarget as HTMLDivElement).style.borderColor=`rgba(${m.glow},0.2)`;}}
+              >
+                {/* Top gradient accent */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl"
+                  style={{background:`linear-gradient(90deg,${m.from},${m.to})`}}/>
+                {/* Badge */}
                 {m.badge && (
-                  <div className="mt-2">
-                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
-                      style={{background:m.badgePro?`${m.neon}20`:m.badgeRed?'rgba(255,77,109,0.2)':'rgba(255,255,255,0.1)',
-                               color:m.badgePro?m.neon:m.badgeRed?'#ff4d6d':'rgba(255,255,255,0.7)',
-                               border:`1px solid ${m.badgePro?`${m.neon}35`:m.badgeRed?'rgba(255,77,109,0.3)':'rgba(255,255,255,0.15)'}`}}>
-                      {m.badge}
-                    </span>
+                  <div className="absolute top-2 right-2 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full font-black"
+                    style={{
+                      background:(m as any).red?'rgba(255,77,109,0.2)':`rgba(${m.glow},0.15)`,
+                      color:(m as any).red?'#ff4d6d':m.from,
+                      border:`1px solid ${(m as any).red?'rgba(255,77,109,0.3)':`rgba(${m.glow},0.3)`}`,
+                    }}>
+                    {m.badge}
                   </div>
                 )}
+                {/* Icon */}
+                <div className="text-2xl sm:text-3xl mb-2 transition-transform group-hover:scale-110 duration-200">
+                  {m.emoji}
+                </div>
+                <div className="font-black text-[11px] sm:text-xs text-white leading-tight mb-0.5">{m.title}</div>
+                <div className="text-[9px] sm:text-[10px] leading-tight" style={{color:`rgba(${m.glow},0.55)`}}>
+                  {m.desc.length > 28 ? m.desc.slice(0,28)+'…' : m.desc}
+                </div>
               </div>
             </Link>
           ))}
         </div>
       </div>
+
     </div>
   );
 }

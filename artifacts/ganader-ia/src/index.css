@@ -396,6 +396,8 @@ html { font-size: 15px; }
 .civac-animate     { animation: civac-glow-in 0.45s cubic-bezier(0.22,1,0.36,1); }
 .civac-pulse       { animation: civac-pulse 2.5s ease-in-out infinite; }
 .civac-float       { animation: float 4s ease-in-out infinite; }
+.kpi-card          { position: relative; overflow: hidden; transition: all 0.2s cubic-bezier(0.22,1,0.36,1); }
+.kpi-card:hover    { transform: translateY(-2px) scale(1.02); }
 .civac-neon-border { animation: neon-border 2.5s ease-in-out infinite; }
 .civac-forest-border { animation: forest-border 3s ease-in-out infinite; }
 

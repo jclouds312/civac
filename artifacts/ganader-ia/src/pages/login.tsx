@@ -279,12 +279,12 @@ export default function Login() {
 
           {/* Brand name */}
           <div className="flex items-center justify-center gap-3 mb-2">
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{fontFamily:"'Sora',sans-serif"}}>
-              <span className="text-white">CI</span>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{fontFamily:"'Sora',sans-serif", letterSpacing:'-0.03em'}}>
+              <span className="text-white">Ganad</span>
               <span style={{
                 color:"#00f5d4",
-                textShadow:"0 0 24px rgba(0,245,212,0.9),0 0 50px rgba(0,245,212,0.45)",
-              }}>VAC</span>
+                textShadow:"0 0 28px rgba(0,245,212,0.95),0 0 60px rgba(0,245,212,0.5),0 0 100px rgba(0,200,255,0.3)",
+              }}>erIA</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
               <span className="text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg leading-none"
@@ -299,7 +299,7 @@ export default function Login() {
           </div>
 
           <p className="text-sm sm:text-base font-semibold mb-1" style={{color:"rgba(0,245,212,0.65)"}}>
-            Control Inteligente de Valor Agropecuario · Colombia
+            Ganadería Inteligente · Colombia · CIVAC
           </p>
 
           {/* Feature pills */}

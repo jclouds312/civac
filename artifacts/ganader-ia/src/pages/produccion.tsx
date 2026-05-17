@@ -55,12 +55,15 @@ export default function Produccion() {
     <div className="space-y-4 sm:space-y-5 pb-8 civac-animate">
 
       {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
-      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden"
+      <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-5 relative overflow-hidden module-banner"
         style={{
           background:'linear-gradient(135deg,#001830 0%,#002040 40%,#002850 70%,#001a30 100%)',
           border:'1px solid rgba(0,200,255,0.3)',
           boxShadow:'0 0 40px rgba(0,200,255,0.1),inset 0 1px 0 rgba(0,200,255,0.12)',
         }}>
+        {/* Unsplash dairy farm image */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background:"url('https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=900&q=25&auto=format&fit=crop') center/cover no-repeat", opacity: 0.06 }} />
         <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full pointer-events-none"
           style={{background:'radial-gradient(circle,rgba(0,200,255,0.2),transparent 65%)'}}/>
         <div className="absolute -left-8 -bottom-12 w-48 h-48 rounded-full pointer-events-none"

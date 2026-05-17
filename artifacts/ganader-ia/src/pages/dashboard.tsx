@@ -149,12 +149,15 @@ export default function Dashboard() {
     <div className="space-y-4 sm:space-y-5 pb-8 civac-animate">
 
       {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
-      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden"
+      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden module-banner"
         style={{
           background:'linear-gradient(135deg,#002e20 0%,#003d2e 35%,#003358 70%,#002050 100%)',
           border:'1px solid rgba(0,245,212,0.22)',
           boxShadow:'0 0 50px rgba(0,245,212,0.08), 0 8px 40px rgba(0,0,0,0.4)',
         }}>
+        {/* Unsplash aerial farm image */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1000&q=20&auto=format&fit=crop') center/cover no-repeat", opacity: 0.05 }} />
         {/* Decorative blobs */}
         <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full pointer-events-none"
           style={{background:'radial-gradient(circle,rgba(0,245,212,0.18),transparent 70%)'}}/>

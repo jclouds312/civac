@@ -7,7 +7,7 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "any",
-  "background_color": "#020d09",
+  "background_color": "#0e1e38",
   "theme_color": "#00f5d4",
   "categories": ["business", "productivity", "agriculture", "utilities"],
   "lang": "es-CO",

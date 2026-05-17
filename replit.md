@@ -1,6 +1,13 @@
-# GanaderIA — Ganadería Inteligente
+# GanaderIA — Ganadería Inteligente (v4.0)
 
 Sistema de gestión ganadera inteligente con 16+ módulos completos, multicuentas con login, dark/light mode, PWA instalable y persistencia localStorage.
+
+### v4.0 Visual Overhaul
+- **Light mode**: warm cream-gray background (`hsl(38 22% 84%)`), vivid farm-themed gradient cards (pasture greens, earth tones, sunflower yellows)
+- **Dark mode**: deep navy background (`hsl(220 45% 16%)`), marine palette with glowing teal accents (NOT pure black)
+- **New cow logo**: modern Holstein with cream body, brown spots, golden horns, teal IA chip — used in both sidebar and login page
+- **Color palettes**: saved as CSS variables in `index.css` — `--farm-*` for light, `--marine-*` for dark
+- **Version**: all references updated to v4.0
 
 ## Run & Operate
 

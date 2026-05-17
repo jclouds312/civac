@@ -54,207 +54,159 @@ const ROLE_LABELS: Record<string, string> = {
   admin:'Admin', vet:'Veterinario', field:'Campo', viewer:'Visor'
 };
 
-/* ─── Logo profesional ganadero PRO ───────────────────────────────────────── */
+/* ─── Logo vaca moderna GanaderIA ─────────────────────────────────────────── */
 function CivacLogo({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        {/* Fondos */}
-        <linearGradient id="lBg" x1="0" y1="0" x2="0.6" y2="1">
-          <stop stopColor="#071a2f"/>
-          <stop offset="0.5" stopColor="#0a2140"/>
-          <stop offset="1" stopColor="#060f1e"/>
+        <linearGradient id="lgBg1" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#0e3a20"/><stop offset="1" stopColor="#082818"/>
         </linearGradient>
-        <radialGradient id="lBgRadial" cx="40%" cy="30%" r="60%">
-          <stop stopColor="#0d2d1a" stopOpacity="0.7"/>
-          <stop offset="1" stopColor="#071a2f" stopOpacity="0"/>
+        <radialGradient id="lgBgR" cx="35%" cy="28%" r="55%">
+          <stop stopColor="#1a6640" stopOpacity="0.5"/>
+          <stop offset="1" stopColor="#082818" stopOpacity="0"/>
         </radialGradient>
-        {/* Cabeza */}
-        <linearGradient id="lHead" x1="0" y1="0" x2="0.3" y2="1">
-          <stop stopColor="#3aaf68"/>
-          <stop offset="0.45" stopColor="#228b4a"/>
-          <stop offset="1" stopColor="#0f5028"/>
+        <linearGradient id="lgBody" x1="0.1" y1="0" x2="0.9" y2="1">
+          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#d8d0b8"/>
         </linearGradient>
-        <linearGradient id="lForehead" x1="0.1" y1="0" x2="0.9" y2="1">
-          <stop stopColor="#44c47a"/>
-          <stop offset="1" stopColor="#1d7a42"/>
+        <linearGradient id="lgHead" x1="0" y1="0" x2="0.5" y2="1">
+          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#ccc4a8"/>
         </linearGradient>
-        {/* Hocico */}
-        <linearGradient id="lMuzzle" x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="#2a8a50"/>
-          <stop offset="1" stopColor="#184f2d"/>
+        <linearGradient id="lgMuzzle" x1="0" y1="0" x2="0" y2="1">
+          <stop stopColor="#e8c8b0"/><stop offset="1" stopColor="#d0a888"/>
         </linearGradient>
-        <linearGradient id="lMuzzleDark" x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="#163c24"/>
-          <stop offset="1" stopColor="#0c2416"/>
+        <linearGradient id="lgHorn" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#f5d878"/><stop offset="1" stopColor="#c8a030"/>
         </linearGradient>
-        {/* Cuernos */}
-        <linearGradient id="lHorn" x1="0" y1="1" x2="1" y2="0">
-          <stop stopColor="#fde68a"/>
-          <stop offset="0.5" stopColor="#f59e0b"/>
-          <stop offset="1" stopColor="#b45309"/>
+        <linearGradient id="lgSpot1" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#3a2818"/><stop offset="1" stopColor="#281808"/>
         </linearGradient>
-        {/* Ojos */}
-        <radialGradient id="lEyeRim" cx="50%" cy="50%" r="50%">
-          <stop stopColor="#0c2016"/>
-          <stop offset="1" stopColor="#051008"/>
+        <linearGradient id="lgEar" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#ddd4b8"/><stop offset="1" stopColor="#b8a880"/>
+        </linearGradient>
+        <linearGradient id="lgChip" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#00f5d4"/><stop offset="1" stopColor="#00a8e8"/>
+        </linearGradient>
+        <linearGradient id="lgCirc" x1="0" y1="0" x2="1" y2="0">
+          <stop stopColor="#00f5d4"/><stop offset="0.5" stopColor="#00c8ff"/><stop offset="1" stopColor="#00f5d4"/>
+        </linearGradient>
+        <linearGradient id="lgBorder" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#00f5d4" stopOpacity="0.8"/>
+          <stop offset="0.5" stopColor="#2aaa60" stopOpacity="0.5"/>
+          <stop offset="1" stopColor="#00c8ff" stopOpacity="0.7"/>
+        </linearGradient>
+        <radialGradient id="lgEye" cx="38%" cy="32%" r="65%">
+          <stop stopColor="#4a3020"/><stop offset="0.5" stopColor="#281808"/><stop offset="1" stopColor="#180c04"/>
         </radialGradient>
-        <radialGradient id="lIris" cx="40%" cy="38%" r="60%">
-          <stop stopColor="#2d8a52"/>
-          <stop offset="0.6" stopColor="#1a5c34"/>
-          <stop offset="1" stopColor="#0e3a20"/>
-        </radialGradient>
-        {/* Orejas */}
-        <linearGradient id="lEarOut" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#2a8a50"/>
-          <stop offset="1" stopColor="#155e30"/>
-        </linearGradient>
-        {/* Circuito / IA */}
-        <linearGradient id="lCircuit" x1="0" y1="0" x2="1" y2="0">
-          <stop stopColor="#00f5d4"/>
-          <stop offset="0.5" stopColor="#00c8ff"/>
-          <stop offset="1" stopColor="#00f5d4"/>
-        </linearGradient>
-        <linearGradient id="lChip" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#00f5d4"/>
-          <stop offset="1" stopColor="#0ea5e9"/>
-        </linearGradient>
-        {/* RFID tag */}
-        <radialGradient id="lRfid" cx="40%" cy="35%" r="65%">
-          <stop stopColor="#00f5d4"/>
-          <stop offset="1" stopColor="#00998a"/>
-        </radialGradient>
-        {/* Borde */}
-        <linearGradient id="lBorder" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#00f5d4" stopOpacity="0.7"/>
-          <stop offset="0.4" stopColor="#2d7a4f" stopOpacity="0.4"/>
-          <stop offset="1" stopColor="#00c8ff" stopOpacity="0.55"/>
-        </linearGradient>
-        {/* Brillo superior */}
-        <linearGradient id="lShine" x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="white" stopOpacity="0.14"/>
-          <stop offset="1" stopColor="white" stopOpacity="0"/>
-        </linearGradient>
-        {/* Sombra interna cuernos */}
-        <linearGradient id="lHornShad" x1="0" y1="0" x2="1" y2="0">
-          <stop stopColor="#fde68a" stopOpacity="0.45"/>
-          <stop offset="1" stopColor="transparent"/>
-        </linearGradient>
-        {/* Filtros */}
-        <filter id="fGlow" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="2.8" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="fSoft" x="-15%" y="-15%" width="130%" height="130%">
-          <feGaussianBlur stdDeviation="1.4" result="b"/>
+        <filter id="lgGlow" x="-25%" y="-25%" width="150%" height="150%">
+          <feGaussianBlur stdDeviation="2.5" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
-        <filter id="fDeep" x="-8%" y="-8%" width="116%" height="116%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity="0.55"/>
+        <filter id="lgShadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000" floodOpacity="0.35"/>
         </filter>
-        <filter id="fInner" x="-5%" y="-5%" width="110%" height="110%">
-          <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="#000" floodOpacity="0.4"/>
+        <filter id="lgInner" x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.25"/>
         </filter>
+        <linearGradient id="lgShine" x1="0" y1="0" x2="0.3" y2="1">
+          <stop stopColor="white" stopOpacity="0.18"/><stop offset="1" stopColor="white" stopOpacity="0"/>
+        </linearGradient>
+        <radialGradient id="lgRfid" cx="40%" cy="35%" r="60%">
+          <stop stopColor="#00f5d4"/><stop offset="1" stopColor="#008870"/>
+        </radialGradient>
       </defs>
 
-      {/* ── FONDO ── */}
-      <rect width="120" height="120" rx="27" fill="url(#lBg)"/>
-      <rect width="120" height="120" rx="27" fill="url(#lBgRadial)"/>
+      {/* ── FONDO redondeado ── */}
+      <rect width="120" height="120" rx="26" fill="url(#lgBg1)"/>
+      <rect width="120" height="120" rx="26" fill="url(#lgBgR)"/>
 
-      {/* ── CUERNOS ── */}
-      {/* Cuerno izquierdo */}
-      <path d="M36 50 Q20 30 24 15 Q28 5 38 13 Q31 22 37 40" fill="url(#lHorn)" filter="url(#fSoft)"/>
-      <path d="M36 50 Q22 34 26 22 Q28 15 33 18" stroke="url(#lHornShad)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-      {/* Cuerno derecho */}
-      <path d="M84 50 Q100 30 96 15 Q92 5 82 13 Q89 22 83 40" fill="url(#lHorn)" filter="url(#fSoft)"/>
-      <path d="M84 50 Q98 34 94 22 Q92 15 87 18" stroke="url(#lHornShad)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+      {/* ── CUERNOS curvos elegantes ── */}
+      <path d="M38 46 C30 38 22 26 26 14 C29 5 38 8 40 18 C38 26 38 36 40 44"
+        fill="url(#lgHorn)" filter="url(#lgShadow)"/>
+      <path d="M82 46 C90 38 98 26 94 14 C91 5 82 8 80 18 C82 26 82 36 80 44"
+        fill="url(#lgHorn)" filter="url(#lgShadow)"/>
+      {/* Brillo cuernos */}
+      <path d="M36 38 C31 30 28 20 31 13" stroke="rgba(255,240,160,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+      <path d="M84 38 C89 30 92 20 89 13" stroke="rgba(255,240,160,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
 
       {/* ── OREJAS ── */}
-      {/* Oreja izquierda */}
-      <ellipse cx="28" cy="55" rx="11.5" ry="8" fill="url(#lEarOut)" transform="rotate(-18 28 55)" filter="url(#fDeep)"/>
-      <ellipse cx="28" cy="55" rx="6.5" ry="4.5" fill="#0e3820" transform="rotate(-18 28 55)"/>
-      {/* Oreja derecha */}
-      <ellipse cx="92" cy="55" rx="11.5" ry="8" fill="url(#lEarOut)" transform="rotate(18 92 55)" filter="url(#fDeep)"/>
-      <ellipse cx="92" cy="55" rx="6.5" ry="4.5" fill="#0e3820" transform="rotate(18 92 55)"/>
-
-      {/* ── CABEZA ── */}
-      <ellipse cx="60" cy="65" rx="33" ry="31" fill="url(#lHead)" filter="url(#fDeep)"/>
-      <ellipse cx="60" cy="50" rx="28" ry="23" fill="url(#lForehead)"/>
-
-      {/* Mancha Holstein izquierda */}
-      <ellipse cx="47" cy="47" rx="9.5" ry="7" fill="rgba(0,0,0,0.22)" opacity="0.7"/>
-      {/* Mancha Holstein derecha pequeña */}
-      <ellipse cx="73" cy="45" rx="6" ry="5" fill="rgba(0,0,0,0.18)" opacity="0.6"/>
-      {/* Mancha entre ojos */}
-      <ellipse cx="60" cy="72" rx="11" ry="7" fill="rgba(0,0,0,0.15)" opacity="0.5"/>
-
-      {/* ── CIRCUITO IA — frente ── */}
-      {/* Línea horizontal principal */}
-      <path d="M43 40 L49 40 L52 36.5 L68 36.5 L71 40 L77 40"
-        stroke="url(#lCircuit)" strokeWidth="0.9" fill="none" opacity="0.8" filter="url(#fGlow)"/>
-      {/* Ramas verticales */}
-      <path d="M52 36.5 L52 32 L57 32" stroke="url(#lCircuit)" strokeWidth="0.75" fill="none" opacity="0.65"/>
-      <path d="M68 36.5 L68 32 L63 32" stroke="url(#lCircuit)" strokeWidth="0.75" fill="none" opacity="0.65"/>
-      {/* Nodos de circuito */}
-      <circle cx="49" cy="40" r="1.6" fill="#00f5d4" opacity="0.9" filter="url(#fGlow)"/>
-      <circle cx="71" cy="40" r="1.6" fill="#00f5d4" opacity="0.9" filter="url(#fGlow)"/>
-      <circle cx="57" cy="32" r="1.3" fill="#00c8ff" opacity="0.8"/>
-      <circle cx="63" cy="32" r="1.3" fill="#00c8ff" opacity="0.8"/>
-      {/* Micro chip central */}
-      <rect x="56.5" y="27.5" width="7" height="7" rx="1.8" fill="url(#lChip)" opacity="0.9" filter="url(#fGlow)"/>
-      <rect x="58.5" y="29.5" width="3" height="3" rx="0.8" fill="#071a2f" opacity="0.9"/>
-      {/* Líneas chip hacia arriba */}
-      <path d="M58.5 27.5 L58.5 25" stroke="#00f5d4" strokeWidth="0.6" opacity="0.5"/>
-      <path d="M61.5 27.5 L61.5 25" stroke="#00f5d4" strokeWidth="0.6" opacity="0.5"/>
-      {/* Línea horizontal secundaria sobre ojos */}
-      <path d="M43 40 L43 44" stroke="url(#lCircuit)" strokeWidth="0.7" fill="none" opacity="0.4"/>
-      <path d="M77 40 L77 44" stroke="url(#lCircuit)" strokeWidth="0.7" fill="none" opacity="0.4"/>
-
-      {/* ── OJOS ── */}
-      {/* Ojo izquierdo */}
-      <ellipse cx="43" cy="58" rx="8.5" ry="7.5" fill="url(#lEyeRim)" filter="url(#fInner)"/>
-      <ellipse cx="43" cy="58" rx="6.2" ry="5.8" fill="url(#lIris)"/>
-      <circle cx="43" cy="58" r="3.2" fill="#040e07"/>
-      <circle cx="44.8" cy="56.2" r="1.5" fill="white" opacity="0.92"/>
-      <circle cx="41.8" cy="59.2" r="0.75" fill="white" opacity="0.4"/>
-      {/* Ceja izquierda */}
-      <path d="M36.5 52.5 Q43 50 49.5 52.5" stroke="#0a2514" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
-
-      {/* Ojo derecho */}
-      <ellipse cx="77" cy="58" rx="8.5" ry="7.5" fill="url(#lEyeRim)" filter="url(#fInner)"/>
-      <ellipse cx="77" cy="58" rx="6.2" ry="5.8" fill="url(#lIris)"/>
-      <circle cx="77" cy="58" r="3.2" fill="#040e07"/>
-      <circle cx="78.8" cy="56.2" r="1.5" fill="white" opacity="0.92"/>
-      <circle cx="75.8" cy="59.2" r="0.75" fill="white" opacity="0.4"/>
-      {/* Ceja derecha */}
-      <path d="M70.5 52.5 Q77 50 83.5 52.5" stroke="#0a2514" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.5"/>
-
-      {/* ── HOCICO ── */}
-      <ellipse cx="60" cy="83" rx="20" ry="15" fill="url(#lMuzzle)" filter="url(#fDeep)"/>
-      <ellipse cx="60" cy="85" rx="16.5" ry="11.5" fill="url(#lMuzzleDark)"/>
-      {/* Fosas nasales */}
-      <ellipse cx="52.5" cy="86.5" rx="4.8" ry="3.5" fill="#081409" opacity="0.95"/>
-      <ellipse cx="67.5" cy="86.5" rx="4.8" ry="3.5" fill="#081409" opacity="0.95"/>
-      {/* Reflejos fosas */}
-      <ellipse cx="53.5" cy="85.5" rx="1.6" ry="1.0" fill="rgba(255,255,255,0.14)"/>
-      <ellipse cx="68.5" cy="85.5" rx="1.6" ry="1.0" fill="rgba(255,255,255,0.14)"/>
-      {/* Línea boca */}
-      <path d="M60 90 Q56.5 94 52.5 92" stroke="#081409" strokeWidth="1.3" strokeLinecap="round" fill="none" opacity="0.65"/>
-      <path d="M60 90 Q63.5 94 67.5 92" stroke="#081409" strokeWidth="1.3" strokeLinecap="round" fill="none" opacity="0.65"/>
+      <ellipse cx="27" cy="54" rx="13" ry="9" fill="url(#lgEar)" transform="rotate(-22 27 54)" filter="url(#lgShadow)"/>
+      <ellipse cx="27" cy="54" rx="7.5" ry="5" fill="#e8c0a0" transform="rotate(-22 27 54)"/>
+      <ellipse cx="93" cy="54" rx="13" ry="9" fill="url(#lgEar)" transform="rotate(22 93 54)" filter="url(#lgShadow)"/>
+      <ellipse cx="93" cy="54" rx="7.5" ry="5" fill="#e8c0a0" transform="rotate(22 93 54)"/>
 
       {/* ── ARETE RFID ── */}
-      <circle cx="21" cy="56" r="5.5" fill="url(#lRfid)" filter="url(#fGlow)"/>
-      <circle cx="21" cy="56" r="3" fill="#071a2f"/>
-      <circle cx="21" cy="56" r="1.2" fill="#00f5d4" opacity="0.95"/>
+      <circle cx="18" cy="55" r="6" fill="url(#lgRfid)" filter="url(#lgGlow)"/>
+      <circle cx="18" cy="55" r="3.2" fill="#0a2818"/>
+      <circle cx="18" cy="55" r="1.3" fill="#00f5d4" opacity="0.95"/>
 
-      {/* ── FRANJA TEAL frente (marca IA) ── */}
-      <path d="M42 50 Q60 43 78 50" stroke="url(#lCircuit)" strokeWidth="2.2" strokeLinecap="round" fill="none" opacity="0.45" filter="url(#fGlow)"/>
+      {/* ── CABEZA / CUERPO ── */}
+      <ellipse cx="60" cy="72" rx="34" ry="32" fill="url(#lgBody)" filter="url(#lgShadow)"/>
+      <ellipse cx="60" cy="56" rx="29" ry="25" fill="url(#lgHead)" filter="url(#lgInner)"/>
+
+      {/* ── MANCHAS HOLSTEIN estilizadas ── */}
+      <path d="M42 44 C38 40 35 46 38 52 C41 56 48 54 50 48 C52 42 46 40 42 44Z"
+        fill="url(#lgSpot1)" opacity="0.75"/>
+      <path d="M70 48 C67 44 63 46 64 52 C65 57 71 57 73 52 C75 48 73 44 70 48Z"
+        fill="url(#lgSpot1)" opacity="0.65"/>
+      <path d="M55 72 C52 68 50 74 53 78 C56 80 62 79 63 74 C64 70 58 68 55 72Z"
+        fill="url(#lgSpot1)" opacity="0.45"/>
+
+      {/* ── CIRCUITO IA en la frente ── */}
+      <path d="M43 38 L48 38 L51 34 L69 34 L72 38 L77 38"
+        stroke="url(#lgCirc)" strokeWidth="1.1" fill="none" opacity="0.85" filter="url(#lgGlow)"/>
+      <path d="M51 34 L51 29 L56 29" stroke="url(#lgCirc)" strokeWidth="0.85" fill="none" opacity="0.7"/>
+      <path d="M69 34 L69 29 L64 29" stroke="url(#lgCirc)" strokeWidth="0.85" fill="none" opacity="0.7"/>
+      {/* Chip central */}
+      <rect x="56" y="24" width="8" height="8" rx="2.2" fill="url(#lgChip)" opacity="0.95" filter="url(#lgGlow)"/>
+      <rect x="58" y="26" width="4" height="4" rx="1" fill="#071a2f" opacity="0.95"/>
+      {/* Pines chip */}
+      <line x1="58.5" y1="24" x2="58.5" y2="22" stroke="#00f5d4" strokeWidth="0.7" opacity="0.55"/>
+      <line x1="61.5" y1="24" x2="61.5" y2="22" stroke="#00f5d4" strokeWidth="0.7" opacity="0.55"/>
+      {/* Nodos */}
+      <circle cx="48" cy="38" r="1.8" fill="#00f5d4" opacity="0.9" filter="url(#lgGlow)"/>
+      <circle cx="72" cy="38" r="1.8" fill="#00f5d4" opacity="0.9" filter="url(#lgGlow)"/>
+      <circle cx="56" cy="29" r="1.4" fill="#00c8ff" opacity="0.85"/>
+      <circle cx="64" cy="29" r="1.4" fill="#00c8ff" opacity="0.85"/>
+
+      {/* ── OJOS grandes y expresivos ── */}
+      {/* Ojo izq */}
+      <ellipse cx="44" cy="58" rx="9" ry="8.5" fill="#1a1008" filter="url(#lgInner)"/>
+      <ellipse cx="44" cy="58" rx="7" ry="6.5" fill="url(#lgEye)"/>
+      <circle cx="44" cy="58" r="3.8" fill="#0e0804"/>
+      <circle cx="46" cy="55.5" r="2" fill="white" opacity="0.95"/>
+      <circle cx="42.5" cy="60" r="0.9" fill="white" opacity="0.4"/>
+      {/* Pestaña izq */}
+      <path d="M37 53 Q44 50.5 51 53" stroke="#2a1808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
+
+      {/* Ojo der */}
+      <ellipse cx="76" cy="58" rx="9" ry="8.5" fill="#1a1008" filter="url(#lgInner)"/>
+      <ellipse cx="76" cy="58" rx="7" ry="6.5" fill="url(#lgEye)"/>
+      <circle cx="76" cy="58" r="3.8" fill="#0e0804"/>
+      <circle cx="78" cy="55.5" r="2" fill="white" opacity="0.95"/>
+      <circle cx="74.5" cy="60" r="0.9" fill="white" opacity="0.4"/>
+      {/* Pestaña der */}
+      <path d="M69 53 Q76 50.5 83 53" stroke="#2a1808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
+
+      {/* ── HOCICO redondeado ── */}
+      <ellipse cx="60" cy="84" rx="19" ry="14" fill="url(#lgMuzzle)" filter="url(#lgShadow)"/>
+      <ellipse cx="60" cy="86" rx="15" ry="10" fill="#c89870" opacity="0.6"/>
+      {/* Narinas */}
+      <ellipse cx="53" cy="87" rx="4.2" ry="3.2" fill="#1a0e08" opacity="0.9"/>
+      <ellipse cx="67" cy="87" rx="4.2" ry="3.2" fill="#1a0e08" opacity="0.9"/>
+      <ellipse cx="54" cy="86" rx="1.4" ry="0.9" fill="rgba(255,255,255,0.15)"/>
+      <ellipse cx="68" cy="86" rx="1.4" ry="0.9" fill="rgba(255,255,255,0.15)"/>
+      {/* Sonrisa */}
+      <path d="M60 91 Q57 95.5 53 93.5" stroke="#180e06" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
+      <path d="M60 91 Q63 95.5 67 93.5" stroke="#180e06" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
 
       {/* ── BRILLO SUPERIOR ── */}
-      <ellipse cx="60" cy="26" rx="36" ry="17" fill="url(#lShine)"/>
+      <ellipse cx="58" cy="28" rx="34" ry="18" fill="url(#lgShine)"/>
 
       {/* ── BORDE GLOW ── */}
-      <rect width="120" height="120" rx="27" fill="none" stroke="url(#lBorder)" strokeWidth="1.5"/>
+      <rect width="120" height="120" rx="26" fill="none" stroke="url(#lgBorder)" strokeWidth="1.8"/>
+      {/* Mini borde interior */}
+      <rect x="2" y="2" width="116" height="116" rx="24" fill="none" stroke="rgba(0,245,212,0.12)" strokeWidth="0.8"/>
     </svg>
   );
 }
@@ -575,7 +527,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: 'rgba(0,245,212,0.08)' }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px] text-white/20">
-              <Wifi size={9} /><span>CIVAC v1.0 · Offline PWA · Colombia</span>
+              <Wifi size={9} /><span>CIVAC v4.0 · Offline PWA · Colombia</span>
             </div>
           )}
           {installPrompt && !collapsed && (

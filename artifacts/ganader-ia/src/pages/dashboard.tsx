@@ -186,7 +186,7 @@ export default function Dashboard() {
                 {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                 &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
               </p>
-              <p className="text-white/30 text-[10px] sm:text-xs mt-0.5">Control Inteligente de Valor Agropecuario · CIVAC v1.0 PRO</p>
+              <p className="text-white/30 text-[10px] sm:text-xs mt-0.5">Control Inteligente de Valor Agropecuario · CIVAC v4.0 PRO</p>
             </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[
@@ -661,36 +661,55 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5">
           {MODULOS.map((m, i) => (
             <Link key={m.href} href={m.href}>
-              <div className="relative rounded-2xl p-3 sm:p-3.5 cursor-pointer group transition-all duration-200 hover:scale-[1.04] hover:-translate-y-0.5"
+              <div className="module-card relative rounded-2xl p-3 sm:p-3.5 cursor-pointer group transition-all duration-200 hover:scale-[1.04] hover:-translate-y-0.5"
                 style={{
-                  background:`linear-gradient(145deg,rgba(${m.glow},0.09),rgba(${m.glow},0.04),rgba(0,0,0,0.4))`,
-                  border:`1px solid rgba(${m.glow},0.2)`,
+                  background: isDark
+                    ? `linear-gradient(145deg,rgba(${m.glow},0.12),rgba(${m.glow},0.05),rgba(0,0,0,0.45))`
+                    : `linear-gradient(145deg,${m.lFrom},${m.lTo})`,
+                  border: isDark
+                    ? `1px solid rgba(${m.glow},0.22)`
+                    : `2px solid rgba(${m.glow},0.55)`,
                   borderRadius:18,
                   animationDelay:`${i*30}ms`,
+                  boxShadow: isDark ? 'none' : `0 4px 14px rgba(${m.glow},0.20), 0 1px 4px rgba(0,0,0,0.07)`,
                 }}
-                onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 24px rgba(${m.glow},0.22)`;(e.currentTarget as HTMLDivElement).style.borderColor=`rgba(${m.glow},0.45)`;}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow='none';(e.currentTarget as HTMLDivElement).style.borderColor=`rgba(${m.glow},0.2)`;}}
+                onMouseEnter={e=>{
+                  (e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 24px rgba(${m.glow},0.35), 0 6px 20px rgba(0,0,0,0.15)`;
+                  (e.currentTarget as HTMLDivElement).style.borderColor=`rgba(${m.glow},0.65)`;
+                }}
+                onMouseLeave={e=>{
+                  (e.currentTarget as HTMLDivElement).style.boxShadow=isDark?'none':`0 4px 14px rgba(${m.glow},0.20)`;
+                  (e.currentTarget as HTMLDivElement).style.borderColor=isDark?`rgba(${m.glow},0.22)`:`rgba(${m.glow},0.55)`;
+                }}
               >
                 {/* Top gradient accent */}
-                <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl"
+                <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl"
                   style={{background:`linear-gradient(90deg,${m.from},${m.to})`}}/>
                 {/* Badge */}
                 {m.badge && (
                   <div className="absolute top-2 right-2 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded-full font-black"
                     style={{
-                      background:(m as any).red?'rgba(255,77,109,0.2)':`rgba(${m.glow},0.15)`,
-                      color:(m as any).red?'#ff4d6d':m.from,
-                      border:`1px solid ${(m as any).red?'rgba(255,77,109,0.3)':`rgba(${m.glow},0.3)`}`,
+                      background: isDark
+                        ? ((m as any).red?'rgba(255,77,109,0.22)':`rgba(${m.glow},0.18)`)
+                        : ((m as any).red?'#ff4d6d':`${m.from}`),
+                      color: isDark
+                        ? ((m as any).red?'#ff4d6d':m.from)
+                        : 'white',
+                      border:'none',
                     }}>
                     {m.badge}
                   </div>
                 )}
                 {/* Icon */}
-                <div className="text-2xl sm:text-3xl mb-2 transition-transform group-hover:scale-110 duration-200">
+                <div className="text-2xl sm:text-3xl mb-2 mt-1 transition-transform group-hover:scale-110 duration-200">
                   {m.emoji}
                 </div>
-                <div className="font-black text-[11px] sm:text-xs text-white leading-tight mb-0.5">{m.title}</div>
-                <div className="text-[9px] sm:text-[10px] leading-tight" style={{color:`rgba(${m.glow},0.55)`}}>
+                <div className="module-title font-black text-[11px] sm:text-xs leading-tight mb-0.5"
+                  style={{color: isDark ? 'rgba(255,255,255,0.92)' : m.lText}}>
+                  {m.title}
+                </div>
+                <div className="module-desc text-[9px] sm:text-[10px] leading-tight"
+                  style={{color: isDark ? `rgba(${m.glow},0.60)` : `${m.lText}cc`}}>
                   {m.desc.length > 28 ? m.desc.slice(0,28)+'…' : m.desc}
                 </div>
               </div>

@@ -362,25 +362,26 @@ export function Layout({ children }: LayoutProps) {
         className={`fixed inset-y-0 left-0 ${sideW} z-50 flex flex-col border-r transition-all duration-250
           lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
         style={{
-          background: 'linear-gradient(180deg,#040f1a 0%,#06151f 50%,#040f1a 100%)',
-          borderColor: `rgba(255,214,10,0.10)`,
-          boxShadow: mobileOpen ? `6px 0 40px rgba(0,0,0,0.6)` : 'none',
+          background: 'linear-gradient(180deg,#0d2247 0%,#122a58 40%,#0f2550 70%,#0d2247 100%)',
+          borderColor: `rgba(60,140,255,0.18)`,
+          boxShadow: mobileOpen ? `6px 0 40px rgba(0,0,0,0.7), 2px 0 0 rgba(60,140,255,0.1)` : `2px 0 0 rgba(60,140,255,0.06)`,
         }}
       >
         {/* Piña glow texture */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              radial-gradient(circle at 15% 10%, rgba(255,214,10,0.05) 0%, transparent 45%),
-              radial-gradient(circle at 85% 90%, rgba(0,200,150,0.04) 0%, transparent 45%),
-              repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(255,214,10,0.008) 44px,rgba(255,214,10,0.008) 45px)
+              radial-gradient(circle at 20% 15%, rgba(60,140,255,0.10) 0%, transparent 50%),
+              radial-gradient(circle at 80% 85%, rgba(30,80,200,0.08) 0%, transparent 45%),
+              radial-gradient(circle at 50% 50%, rgba(20,60,160,0.04) 0%, transparent 70%),
+              repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(60,140,255,0.025) 44px,rgba(60,140,255,0.025) 45px)
             `
           }} />
         </div>
 
         {/* ── Logo header ── */}
         <div className="h-[68px] flex items-center justify-between px-3 border-b flex-shrink-0 relative"
-          style={{ borderColor: `rgba(255,214,10,0.10)` }}>
+          style={{ borderColor: `rgba(60,140,255,0.15)` }}>
           {!collapsed ? (
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative flex-shrink-0">
@@ -427,11 +428,11 @@ export function Layout({ children }: LayoutProps) {
 
         {/* ── User badge ── */}
         {user && !collapsed && (
-          <div className="px-2.5 py-2 border-b flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+          <div className="px-2.5 py-2 border-b flex-shrink-0" style={{ borderColor: 'rgba(60,140,255,0.10)' }}>
             <div className="flex items-center gap-2 px-2.5 py-2.5"
               style={{
-                background: 'rgba(10,20,35,0.7)',
-                border: `1px solid rgba(255,214,10,0.10)`,
+                background: 'rgba(5,15,40,0.8)',
+                border: `1px solid rgba(60,140,255,0.16)`,
                 borderRadius: 13,
               }}>
               <div className={`w-8 h-8 rounded-full ${ROLE_COLORS[user.role]} flex items-center justify-center font-black text-[12px] flex-shrink-0`}

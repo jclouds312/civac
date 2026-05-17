@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Map, Beef, Milk, TrendingUp, Leaf, Users, DollarSign, Plus, Eye, ArrowUpRight, ArrowDownRight, Signal } from "lucide-react";
+import { Map, Beef, Milk, TrendingUp, Leaf, Users, DollarSign, Plus, Eye, ArrowUpRight, ArrowDownRight, Signal, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 
 const fincas = [
   {
@@ -89,9 +90,15 @@ export default function Multifinca() {
             <h1 className="text-2xl font-bold text-white mb-1" style={{fontFamily:'Sora,sans-serif'}}>Multi-Finca</h1>
             <p className="text-sm" style={{color:'rgba(0,200,255,0.75)'}}>Gestión unificada · Cundinamarca · Boyacá · Antioquia</p>
           </div>
-          <Button className="h-9 gap-2 text-sm" style={{background:'rgba(0,200,255,0.15)', border:'1px solid rgba(0,200,255,0.4)', color:'#fff'}}>
-            <Plus size={16} /> Agregar Finca
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => printModule('Multi-Finca', 'Gestión unificada de fincas')}
+              className="h-9 gap-2 text-sm" style={{background:'rgba(0,200,255,0.08)', border:'1px solid rgba(0,200,255,0.25)', color:'#00c8ff'}}>
+              <Printer size={16} /> PDF
+            </Button>
+            <Button className="h-9 gap-2 text-sm" style={{background:'rgba(0,200,255,0.15)', border:'1px solid rgba(0,200,255,0.4)', color:'#fff'}}>
+              <Plus size={16} /> Agregar Finca
+            </Button>
+          </div>
         </div>
       </div>
 

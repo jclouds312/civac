@@ -1,4 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LabelList } from "recharts";
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 
 const benchmark = [
   { label: 'Su finca (SoftGan)', val: '0.82 kg/L', numVal: 0.82, color: 'text-green-400', barColor: '#22c55e', bold: true },
@@ -31,6 +34,10 @@ export default function Co2() {
             <p className="text-sm" style={{color:'rgba(57,255,126,0.75)'}}>Emisiones GEI · Captura praderas · Benchmarking regional</p>
           </div>
         </div>
+        <Button variant="outline" onClick={() => printModule('Huella de Carbono', 'Emisiones GEI · IPCC 2019')}
+          className="h-9 gap-1.5 text-sm" style={{background:'rgba(57,255,126,0.08)', border:'1px solid rgba(57,255,126,0.3)', color:'#39ff7e'}}>
+          <Printer size={14} /> PDF
+        </Button>
       </div>
 
       {/* KPI cards */}

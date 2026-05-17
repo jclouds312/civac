@@ -958,3 +958,54 @@ button:not([disabled]):hover {
 html {
   scroll-behavior: smooth;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT / PDF STYLES — limpia la UI para impresión
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media print {
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+
+  aside, header, nav, footer,
+  .print-hide, [data-print-hide],
+  .fixed, button:not(.print-show) { display: none !important; }
+
+  main { padding-left: 0 !important; }
+
+  body {
+    background: white !important;
+    color: #111 !important;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+  }
+
+  .print-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #00b89c;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .print-header h1 { font-size: 20px; font-weight: 800; color: #003d2e; margin: 0; }
+  .print-header p  { font-size: 10px; color: #666; margin: 0; }
+  .print-header .print-logo { font-size: 28px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { background: #003d2e !important; color: white !important; padding: 6px 8px; text-align: left; }
+  td { border-bottom: 1px solid #e5e7eb; padding: 5px 8px; }
+  tr:nth-child(even) td { background: #f9fafb; }
+
+  .rounded-2xl, .rounded-3xl, .rounded-xl { border-radius: 8px !important; }
+
+  @page {
+    margin: 15mm 12mm;
+    size: A4 portrait;
+  }
+
+  .page-break { page-break-before: always; }
+}
+
+/* Print header — oculto en pantalla, visible en print */
+.print-header { display: none; }
+

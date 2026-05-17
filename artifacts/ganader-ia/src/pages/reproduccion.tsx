@@ -2,7 +2,8 @@ import { useAppState } from "../lib/data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Download, Pencil, AlertTriangle, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { Plus, Download, Pencil, AlertTriangle, TrendingUp, TrendingDown, Activity, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
@@ -89,6 +90,11 @@ export default function Reproduccion() {
             <Button size="sm" className="h-9 gap-1.5 text-xs sm:text-sm"
               style={{background:'rgba(255,111,216,0.08)',border:'1px solid rgba(255,111,216,0.28)',color:'#ff6fd8'}}>
               <Download size={13}/> CSV
+            </Button>
+            <Button size="sm" onClick={() => printModule('Reproducción y Ciclos', 'Control reproductivo del hato')}
+              className="h-9 gap-1.5 text-xs sm:text-sm"
+              style={{background:'rgba(255,111,216,0.08)',border:'1px solid rgba(255,111,216,0.25)',color:'#ff6fd8'}}>
+              <Printer size={13}/> PDF
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

@@ -2,7 +2,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Download, Pencil, Trash2, Snowflake } from "lucide-react";
+import { Plus, Download, Pencil, Trash2, Snowflake, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { useAppState } from "../lib/data";
@@ -56,6 +57,10 @@ export default function Semen() {
           <Button variant="outline" onClick={handleExportCSV}
             className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,200,255,0.08)', border:'1px solid rgba(0,200,255,0.3)', color:'#00c8ff'}}>
             <Download size={14} /> CSV
+          </Button>
+          <Button variant="outline" onClick={() => printModule('Semen y Embriones', 'Inventario criogénico')}
+            className="h-9 gap-1.5 text-sm" style={{background:'rgba(0,200,255,0.06)', border:'1px solid rgba(0,200,255,0.22)', color:'#00c8ff'}}>
+            <Printer size={14} /> PDF
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

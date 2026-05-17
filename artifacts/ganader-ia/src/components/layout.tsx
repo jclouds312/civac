@@ -5,6 +5,7 @@ import {
   Database, ChevronLeft,
   Wifi, Crown,
 } from "lucide-react";
+import { AiAssistant } from "./ai-assistant";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -829,6 +830,7 @@ export function Layout({ children }: LayoutProps) {
           </button>
         </nav>
       </main>
+      <AiAssistant />
     </div>
   );
 }

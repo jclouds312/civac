@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Download, Plus, Wheat } from "lucide-react";
+import { Download, Plus, Wheat, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { Button } from "@/components/ui/button";
 
 const raciones = [
@@ -36,6 +37,10 @@ export default function Alimentacion() {
         <div className="relative flex gap-2">
           <Button variant="outline" className="h-9 gap-1.5 text-sm" style={{background:'rgba(57,255,126,0.08)', border:'1px solid rgba(57,255,126,0.3)', color:'#39ff7e'}}>
             <Download size={14} /> CSV
+          </Button>
+          <Button variant="outline" onClick={() => printModule('Alimentación y Raciones', 'Formulación nutricional por lote')}
+            className="h-9 gap-1.5 text-sm" style={{background:'rgba(57,255,126,0.06)', border:'1px solid rgba(57,255,126,0.25)', color:'#39ff7e'}}>
+            <Printer size={14} /> PDF
           </Button>
           <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(57,255,126,0.15)', border:'1px solid rgba(57,255,126,0.4)', color:'#fff'}}>
             <Plus size={14} /> Ración

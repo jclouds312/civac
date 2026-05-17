@@ -1,6 +1,8 @@
 import { useAppState } from "../lib/data";
-import { Bell, AlertCircle, AlertTriangle, CheckCircle, Check, X, Zap, Clock, Shield } from "lucide-react";
+import { Bell, AlertCircle, AlertTriangle, CheckCircle, Check, X, Zap, Clock, Shield, Printer } from "lucide-react";
 import { useState } from "react";
+import { printModule } from "@/lib/print";
+import { Button } from "@/components/ui/button";
 
 const SEED_ALERTAS = [
   {
@@ -103,6 +105,11 @@ export default function Alertas() {
                 <CheckCircle size={12}/> {resueltas} Resueltas
               </span>
             )}
+            <Button size="sm" onClick={() => printModule('Alertas y Notificaciones', 'Centro de alertas activas')}
+              className="h-8 gap-1.5 text-xs"
+              style={{background:'rgba(255,77,109,0.08)',border:'1px solid rgba(255,77,109,0.25)',color:'#ff4d6d'}}>
+              <Printer size={12}/> PDF
+            </Button>
           </div>
         </div>
       </div>

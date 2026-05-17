@@ -1,5 +1,6 @@
 import { useAppState } from "../lib/data";
-import { Download, Plus, Pencil, Trash2, AlertTriangle, Package, TrendingDown } from "lucide-react";
+import { Download, Plus, Pencil, Trash2, AlertTriangle, Package, TrendingDown, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -91,6 +92,11 @@ export default function Insumos() {
             <Button size="sm" className="h-9 gap-1.5 text-xs sm:text-sm"
               style={{background:'rgba(255,154,60,0.08)',border:'1px solid rgba(255,154,60,0.3)',color:'#ff9a3c'}}>
               <Download size={13}/> CSV
+            </Button>
+            <Button size="sm" onClick={() => printModule('Insumos y Kardex', 'Inventario de medicamentos y suministros')}
+              className="h-9 gap-1.5 text-xs sm:text-sm"
+              style={{background:'rgba(255,154,60,0.08)',border:'1px solid rgba(255,154,60,0.25)',color:'#ff9a3c'}}>
+              <Printer size={13}/> PDF
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

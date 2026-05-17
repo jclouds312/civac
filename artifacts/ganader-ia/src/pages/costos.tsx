@@ -1,4 +1,5 @@
-import { Download, Plus, TrendingUp, TrendingDown, DollarSign, BarChart2 } from "lucide-react";
+import { Download, Plus, TrendingUp, TrendingDown, DollarSign, BarChart2, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip, ResponsiveContainer } from "recharts";
 
@@ -77,6 +78,11 @@ export default function Costos() {
           <Button size="sm" className="h-9 gap-1.5 text-xs sm:text-sm"
             style={{background:'rgba(52,211,153,0.1)',border:'1px solid rgba(52,211,153,0.3)',color:'#34d399'}}>
             <Download size={13}/> Exportar P&G
+          </Button>
+          <Button size="sm" onClick={() => printModule('Costos y P&G', 'Análisis financiero mensual')}
+            className="h-9 gap-1.5 text-xs sm:text-sm"
+            style={{background:'rgba(52,211,153,0.08)',border:'1px solid rgba(52,211,153,0.25)',color:'#34d399'}}>
+            <Printer size={13}/> PDF
           </Button>
         </div>
       </div>

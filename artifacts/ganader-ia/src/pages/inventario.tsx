@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { printModule } from "@/lib/print";
 import { useAppState } from "../lib/data";
 import { useAuth } from "../lib/auth";
 import {
@@ -766,6 +767,11 @@ export default function Inventario() {
             <Button variant="outline" className="h-9 gap-1.5 text-sm"
               style={{background:'rgba(0,245,212,0.06)', border:'1px solid rgba(0,245,212,0.25)', color:'#00f5d4'}}>
               <Download size={13}/> Exportar CSV
+            </Button>
+            <Button variant="outline" onClick={() => printModule('Inventario Animal', 'Registro RFID y fichas del hato')}
+              className="h-9 gap-1.5 text-sm"
+              style={{background:'rgba(0,245,212,0.04)', border:'1px solid rgba(0,245,212,0.18)', color:'#00f5d4'}}>
+              <Printer size={13}/> PDF
             </Button>
             <Button className="h-9 gap-1.5 text-sm"
               onClick={() => { setActiveTab("etiquetas"); }}

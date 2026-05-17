@@ -1,5 +1,6 @@
 import { useAppState } from "../lib/data";
-import { Download, Plus, Pencil, Trash2, Users, DollarSign, Clock, Shield } from "lucide-react";
+import { Download, Plus, Pencil, Trash2, Users, DollarSign, Clock, Shield, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,6 +80,11 @@ export default function Personal() {
             <Button size="sm" className="h-9 gap-1.5 text-xs sm:text-sm"
               style={{background:'rgba(168,85,247,0.1)',border:'1px solid rgba(168,85,247,0.3)',color:'#a855f7'}}>
               <Download size={13}/> CSV
+            </Button>
+            <Button size="sm" onClick={() => printModule('Personal y Nómina', 'Planilla de empleados y salarios')}
+              className="h-9 gap-1.5 text-xs sm:text-sm"
+              style={{background:'rgba(168,85,247,0.08)',border:'1px solid rgba(168,85,247,0.25)',color:'#a855f7'}}>
+              <Printer size={13}/> PDF
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

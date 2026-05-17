@@ -7,10 +7,12 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import {
   Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
-  ChevronRight, Activity, Zap, Target, BarChart2,
+  ChevronRight, Activity, Zap, Target, BarChart2, Printer,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import { printModule } from "@/lib/print";
+import { Button } from "@/components/ui/button";
 
 const dataProduccion = [
   { name:'Oct', litros:52000, meta:50000 },
@@ -203,6 +205,11 @@ export default function Dashboard() {
                   {t.e} <strong>{t.v}</strong> <span className="opacity-60">{t.l}</span>
                 </div>
               ))}
+              <Button size="sm" onClick={() => printModule('Dashboard CIVAC', 'Resumen general del sistema')}
+                className="h-8 gap-1 text-[11px] px-2.5"
+                style={{background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.25)',color:'#39ff7e'}}>
+                <Printer size={12}/> PDF
+              </Button>
               <Link href="/alertas">
                 <button className="relative p-2 sm:p-2.5 rounded-xl transition-all hover:scale-110"
                   style={{background:'rgba(255,77,109,0.15)',border:'1px solid rgba(255,77,109,0.3)'}}>

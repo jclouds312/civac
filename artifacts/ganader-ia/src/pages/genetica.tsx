@@ -1,3 +1,7 @@
+import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
+
 const ranking = [
   { rank:1, nombre:'Rosaura', arete:'A-0042', raza:'Holstein', cat:'Vaca adulta', dep:820, score:92, color:'#22c55e' },
   { rank:2, nombre:'Estrella', arete:'A-0604', raza:'Holstein', cat:'Vaca adulta', dep:780, score:88, color:'#22c55e' },
@@ -27,6 +31,10 @@ export default function Genetica() {
             <p className="text-sm" style={{color:'rgba(191,0,255,0.75)'}}>Evaluación y progreso genético del hato · DEP · Índices</p>
           </div>
         </div>
+        <Button variant="outline" onClick={() => printModule('Genética y Pedigrí', 'Evaluación genética y ranking DEP')}
+          className="h-9 gap-1.5 text-sm" style={{background:'rgba(191,0,255,0.08)', border:'1px solid rgba(191,0,255,0.3)', color:'#bf00ff'}}>
+          <Printer size={14} /> PDF
+        </Button>
       </div>
 
       {/* KPI cards */}

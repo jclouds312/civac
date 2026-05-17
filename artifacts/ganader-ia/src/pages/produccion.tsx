@@ -2,7 +2,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, LabelList, LineChart, Line, ReferenceLine,
 } from "recharts";
-import { Download, Plus, TrendingUp, TrendingDown, Droplets, Award, Target } from "lucide-react";
+import { Download, Plus, TrendingUp, TrendingDown, Droplets, Award, Target, Printer } from "lucide-react";
+import { printModule } from "@/lib/print";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -94,6 +95,11 @@ export default function Produccion() {
             <Button size="sm" className="h-9 gap-1.5 text-xs sm:text-sm font-semibold"
               style={{background:'rgba(0,200,255,0.08)',border:'1px solid rgba(0,200,255,0.3)',color:'#00c8ff'}}>
               <Download size={13}/> CSV
+            </Button>
+            <Button size="sm" onClick={() => printModule('Producción Lechera', 'Reporte de ordeños y ranking')}
+              className="h-9 gap-1.5 text-xs sm:text-sm font-semibold"
+              style={{background:'rgba(0,200,255,0.08)',border:'1px solid rgba(0,200,255,0.25)',color:'#00c8ff'}}>
+              <Printer size={13}/> PDF
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

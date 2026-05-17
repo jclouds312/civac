@@ -401,29 +401,72 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {/* Logo */}
-        <div className="h-[62px] flex items-center justify-between px-3 border-b flex-shrink-0 relative"
-          style={{ borderColor: 'rgba(0,245,212,0.10)' }}>
+        <div className="h-[66px] flex items-center justify-between px-3 border-b flex-shrink-0 relative"
+          style={{ borderColor: 'rgba(0,245,212,0.12)' }}>
           {!collapsed ? (
             <div className="flex items-center gap-2.5 min-w-0">
-              <CivacLogo size={38} />
+              {/* Real cow photo logo with teal glow ring */}
+              <div className="relative flex-shrink-0">
+                <div className="w-11 h-11 rounded-2xl overflow-hidden"
+                  style={{ border: '2px solid rgba(0,245,212,0.7)', boxShadow: '0 0 18px rgba(0,245,212,0.45), 0 0 6px rgba(0,245,212,0.25)' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=88&h=88&fit=crop&auto=format&q=80"
+                    alt="GanaderIA"
+                    className="w-full h-full object-cover"
+                    onError={e => {
+                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.parentElement!.style.background = 'linear-gradient(135deg,#0a3d22,#0d5c30)';
+                      e.currentTarget.parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;">🐄</div>';
+                    }}
+                  />
+                </div>
+                {/* IA chip badge */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center font-black"
+                  style={{ background: 'linear-gradient(135deg,#00f5d4,#00a896)', fontSize: 7, color: '#000', border: '1.5px solid #071325', boxShadow: '0 0 8px rgba(0,245,212,0.8)' }}>
+                  IA
+                </div>
+              </div>
               <div className="min-w-0">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-black text-[17px] tracking-tight leading-none" style={{ fontFamily: "'Sora',sans-serif" }}>
-                    <span className="text-white">CI</span>
-                    <span style={{ color: '#00f5d4', textShadow: '0 0 12px rgba(0,245,212,0.8)' }}>VAC</span>
+                  <span className="font-black text-[19px] tracking-tight leading-none" style={{ fontFamily: "'Sora',sans-serif", letterSpacing: '-0.02em' }}>
+                    <span className="text-white">Ganad</span>
+                    <span style={{ color: '#00f5d4', textShadow: '0 0 16px rgba(0,245,212,0.9)' }}>erIA</span>
                   </span>
-                  <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md"
-                    style={{ background: 'linear-gradient(135deg,#fbbf24,#ea580c)', color: 'white', letterSpacing: '0.05em' }}>
-                    PRO
+                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md"
+                    style={{ background: 'linear-gradient(135deg,#00f5d4,#00a896)', color: '#000', letterSpacing: '0.03em' }}>
+                    v4
                   </span>
                 </div>
-                <span className="text-[9px] leading-none" style={{ color: 'rgba(0,245,212,0.45)' }}>
-                  Ganadería Inteligente · Colombia
-                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded"
+                    style={{ background: 'linear-gradient(135deg,#fbbf24,#ea580c)', color: 'white', letterSpacing: '0.08em' }}>
+                    PRO
+                  </span>
+                  <span className="text-[8px] leading-none" style={{ color: 'rgba(0,245,212,0.45)' }}>
+                    Ganadería · Colombia
+                  </span>
+                </div>
               </div>
             </div>
           ) : (
-            <div className="mx-auto"><CivacLogo size={34} /></div>
+            <div className="mx-auto relative">
+              <div className="w-9 h-9 rounded-xl overflow-hidden"
+                style={{ border: '2px solid rgba(0,245,212,0.6)', boxShadow: '0 0 14px rgba(0,245,212,0.35)' }}>
+                <img
+                  src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=72&h=72&fit=crop&auto=format&q=80"
+                  alt="GanaderIA"
+                  className="w-full h-full object-cover"
+                  onError={e => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;background:linear-gradient(135deg,#0a3d22,#0d5c30)">🐄</div>';
+                  }}
+                />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center font-black"
+                style={{ background: 'linear-gradient(135deg,#00f5d4,#00a896)', fontSize: 6, color: '#000', border: '1.5px solid #071325' }}>
+                IA
+              </div>
+            </div>
           )}
           <div className="flex items-center gap-0.5">
             <button

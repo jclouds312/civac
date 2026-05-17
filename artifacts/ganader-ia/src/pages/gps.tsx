@@ -204,33 +204,94 @@ export default function Gps() {
   return (
     <div className="space-y-5 pb-8">
       {/* Banner */}
-      <div className="bg-gradient-to-r from-[#0a3d62] via-[#1464a0] to-[#1a78c0] rounded-xl p-5 shadow-lg relative overflow-hidden">
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-10">
-          <Navigation className="w-32 h-32 text-white" />
+      <div className="rounded-2xl p-5 shadow-lg relative overflow-hidden module-banner"
+        style={{
+          background: 'linear-gradient(135deg,#020d1a 0%,#0a2745 50%,#071e38 100%)',
+          border: '1px solid rgba(20,100,180,0.45)',
+          boxShadow: '0 0 40px rgba(20,100,180,0.12)',
+        }}>
+        {/* Unsplash satellite/farm background */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=25&auto=format&fit=crop') center/cover no-repeat", opacity: 0.055 }} />
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-[0.06] pointer-events-none">
+          <Navigation className="w-36 h-36 text-white" />
+        </div>
+        {/* Geofence pulse rings decoration */}
+        <div className="absolute right-16 top-4 opacity-10 pointer-events-none">
+          <div className="w-16 h-16 rounded-full border-2 border-blue-400 animate-ping" style={{ animationDuration: '2.5s' }} />
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-              <MapPin className="text-white" size={24} />
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(20,100,180,0.2)', border: '1px solid rgba(20,100,180,0.5)', boxShadow: '0 0 20px rgba(20,100,180,0.3)' }}>
+              <MapPin className="text-blue-300" size={28} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">Seguimiento GPS Ganadero</h1>
-              <p className="text-white/70 text-sm">Rastreo en tiempo real · Collar GPS-BT · Geovallado automático</p>
+              <h1 className="text-xl font-black text-white" style={{ fontFamily: 'Sora,sans-serif' }}>
+                GPS Ganadero
+              </h1>
+              <p className="text-sm mt-0.5" style={{ color: 'rgba(100,180,255,0.8)' }}>
+                Rastreo en tiempo real · Geovallado automático · Collar GPS-LTE · BT
+              </p>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                  style={{ background: 'rgba(20,150,80,0.2)', border: '1px solid rgba(20,150,80,0.4)', color: '#4ade80' }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  {activeCount} Online
+                </span>
+                {lowBatteryCount > 0 && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                    style={{ background: 'rgba(250,100,0,0.2)', border: '1px solid rgba(250,100,0,0.4)', color: '#fb923c' }}>
+                    ⚠ {lowBatteryCount} batería baja
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-white/60 text-xs">
-              Actualizado: {lastUpdate.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', second:'2-digit' })}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <span className="text-white/40 text-xs hidden sm:block">
+              {lastUpdate.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
-            <Button
-              onClick={refresh}
-              className="bg-white/20 hover:bg-white/30 text-white border border-white/30 h-9 gap-1.5 text-sm"
-            >
+            <Button onClick={refresh}
+              className="h-9 gap-1.5 text-sm font-bold"
+              style={{ background: 'rgba(20,100,180,0.2)', border: '1px solid rgba(20,100,180,0.45)', color: '#60a5fa' }}>
               <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Actualizar
             </Button>
           </div>
         </div>
       </div>
+
+      {/* Geofencing alerts panel */}
+      {gpsUbicaciones.some(g => !g.activo) && (
+        <div className="rounded-xl p-4 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg,#1a0800,#2e1000)', border: '1px solid rgba(250,100,0,0.4)' }}>
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(250,100,0,0.2)', border: '1px solid rgba(250,100,0,0.4)' }}>
+              <AlertTriangle size={16} className="text-orange-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm text-orange-300 mb-1 flex items-center gap-2">
+                Alertas de Geovallado
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  {gpsUbicaciones.filter(g => !g.activo).length} alertas
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {gpsUbicaciones.filter(g => !g.activo).map(g => (
+                  <div key={g.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(250,100,0,0.25)' }}>
+                    <span>🐄</span>
+                    <span className="font-semibold text-white/80">{g.nombre}</span>
+                    <span className="text-orange-400">— Sin señal</span>
+                    <span className="text-white/30">Batería: {g.bateria}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -252,10 +313,11 @@ export default function Gps() {
       </div>
 
       <Tabs defaultValue="mapa" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="mapa"     className="gap-1.5"><Map size={14} />Mapa de Finca</TabsTrigger>
-          <TabsTrigger value="lista"    className="gap-1.5"><List size={14} />Lista Dispositivos</TabsTrigger>
-          <TabsTrigger value="vincular" className="gap-1.5"><Link2 size={14} />Vincular GPS</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 mb-4">
+          <TabsTrigger value="mapa"        className="gap-1.5 text-xs"><Map size={13} />Mapa</TabsTrigger>
+          <TabsTrigger value="geovallado"  className="gap-1.5 text-xs"><AlertTriangle size={13} />Geovallado</TabsTrigger>
+          <TabsTrigger value="lista"       className="gap-1.5 text-xs"><List size={13} />Dispositivos</TabsTrigger>
+          <TabsTrigger value="vincular"    className="gap-1.5 text-xs"><Link2 size={13} />Vincular</TabsTrigger>
         </TabsList>
 
         {/* Map Tab */}
@@ -462,6 +524,133 @@ export default function Gps() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Geofencing Tab */}
+        <TabsContent value="geovallado">
+          <div className="space-y-4">
+            <div className="rounded-xl overflow-hidden border border-border">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between"
+                style={{ background: 'linear-gradient(135deg,rgba(20,100,180,0.12),rgba(10,50,100,0.08))' }}>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle size={15} className="text-blue-400" />
+                  <span className="font-bold text-sm">Zonas de Geovallado — Finca El Rancho Verde</span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                  {Object.keys(POTREROS_BOUNDS).length} zonas activas
+                </span>
+              </div>
+              <div className="divide-y divide-border">
+                {Object.entries(POTREROS_BOUNDS).map(([pid, bounds]) => {
+                  const id = Number(pid);
+                  const color = POTREROS_COLORS[id];
+                  const animalesEnZona = gpsUbicaciones.filter(g => g.potreroId === id);
+                  const hasOffline = animalesEnZona.some(g => !g.activo);
+                  return (
+                    <div key={pid} className="px-4 py-3 flex items-center gap-4 hover:bg-muted/10 transition-colors">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm"
+                        style={{ background: `${color}18`, border: `1.5px solid ${color}50`, color }}>
+                        P{pid}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-sm flex items-center gap-2">
+                          {bounds.label.split('\n')[0]}
+                          {hasOffline && (
+                            <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">
+                              ⚠ Sin señal
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{bounds.label.split('\n')[1] || ''}</div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {animalesEnZona.map(g => (
+                          <div key={g.id} className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+                            style={{
+                              background: g.activo ? 'rgba(57,255,126,0.08)' : 'rgba(239,68,68,0.08)',
+                              border: `1px solid ${g.activo ? 'rgba(57,255,126,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                              color: g.activo ? '#39ff7e' : '#f87171',
+                            }}>
+                            🐄 {g.nombre}
+                          </div>
+                        ))}
+                        {animalesEnZona.length === 0 && (
+                          <span className="text-xs text-muted-foreground italic">Sin animales</span>
+                        )}
+                      </div>
+                      <div className="w-24 text-right flex-shrink-0">
+                        <div className="text-xs font-bold" style={{ color }}>
+                          {animalesEnZona.filter(g => g.activo).length}/{animalesEnZona.length} online
+                        </div>
+                        <div className="h-1.5 rounded-full mt-1 overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                          <div className="h-full rounded-full transition-all"
+                            style={{
+                              width: animalesEnZona.length ? `${(animalesEnZona.filter(g => g.activo).length / animalesEnZona.length) * 100}%` : '0%',
+                              background: `linear-gradient(90deg,${color},${color}88)`,
+                            }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Geofencing alerts history */}
+            <div className="rounded-xl border border-border overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+                <Signal size={14} className="text-amber-400" />
+                <span className="font-bold text-sm">Historial de Alertas GPS</span>
+              </div>
+              <div className="divide-y divide-border">
+                {[
+                  { animal: 'Titan', tipo: 'Salió de zona', potrero: 'P3 → fuera', tiempo: 'Hace 2h', sev: 'alta', icon: '⛔' },
+                  { animal: 'Rosaura', tipo: 'Batería crítica', potrero: 'P1', tiempo: 'Hace 4h', sev: 'media', icon: '🔋' },
+                  { animal: 'Bravo', tipo: 'Sin señal 30 min', potrero: 'P4', tiempo: 'Hace 6h', sev: 'alta', icon: '📡' },
+                  { animal: 'Estrella', tipo: 'Entrada a zona', potrero: 'P1', tiempo: 'Hace 8h', sev: 'info', icon: '✅' },
+                  { animal: 'Luna', tipo: 'Posición recuperada', potrero: 'P3', tiempo: 'Ayer', sev: 'info', icon: '📍' },
+                ].map((a, i) => (
+                  <div key={i} className="px-4 py-2.5 flex items-center gap-3 hover:bg-muted/10 transition-colors">
+                    <span className="text-lg">{a.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold">{a.animal} — {a.tipo}</div>
+                      <div className="text-xs text-muted-foreground">{a.potrero} · {a.tiempo}</div>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      a.sev === 'alta' ? 'bg-red-500/15 text-red-400 border-red-500/25' :
+                      a.sev === 'media' ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' :
+                      'bg-blue-500/15 text-blue-400 border-blue-500/25'
+                    }`}>
+                      {a.sev === 'alta' ? 'Alta' : a.sev === 'media' ? 'Media' : 'Info'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Zone settings */}
+            <div className="rounded-xl border border-border p-4"
+              style={{ background: 'rgba(20,100,180,0.04)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Settings size={14} className="text-blue-400" />
+                <span className="font-bold text-sm">Configuración de Geovallado</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                {[
+                  { label: 'Alerta al salir de zona', val: 'Activada', on: true },
+                  { label: 'Notificación batería baja', val: '20%', on: true },
+                  { label: 'Sin señal → alerta', val: '30 min', on: true },
+                  { label: 'Reporte diario GPS', val: '6:00 AM', on: false },
+                ].map((s, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-lg"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <span className="text-muted-foreground">{s.label}</span>
+                    <span className={`font-bold text-xs ${s.on ? 'text-green-400' : 'text-muted-foreground'}`}>{s.val}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

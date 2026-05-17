@@ -1,209 +1,292 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAppState } from "../lib/data";
 import { useAuth } from "../lib/auth";
 import {
-  Scale, Bluetooth, BluetoothConnected, BluetoothOff, Plus, Trash2,
-  Download, RefreshCw, CheckCircle2, TrendingUp, TrendingDown,
-  Minus, Zap, BarChart3, Search, FileText, Printer, Calculator,
-  Beef, Info
+  Scale, Bluetooth, BluetoothConnected, BluetoothOff, BluetoothSearching,
+  Plus, Download, RefreshCw, CheckCircle2, TrendingUp, TrendingDown,
+  Minus, Zap, BarChart3, Search, Printer, Calculator, Wifi, WifiOff,
+  AlertTriangle, Settings2, Play, Pause, Target, Cpu, Radio,
+  ChevronRight, Activity, Beef, Star, Clock, DollarSign, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
-// ── Peso esperado por raza y categoría ──────────────────────────────────────
-const PESOS_RAZA: Record<string, Record<string, { min: number; max: number; promedio: number }>> = {
-  "Holstein":   { "Vaca adulta":{ min:490, max:650, promedio:560 }, "Novilla":{ min:280, max:380, promedio:330 }, "Ternero":{ min:40,  max:120, promedio:80  }, "Ternera":{ min:38,  max:110, promedio:75  }, "Toro":{ min:700, max:950, promedio:820 } },
-  "Simmental":  { "Vaca adulta":{ min:520, max:700, promedio:600 }, "Novilla":{ min:300, max:420, promedio:360 }, "Ternero":{ min:45,  max:130, promedio:90  }, "Ternera":{ min:42,  max:125, promedio:85  }, "Toro":{ min:750, max:1000,promedio:870 } },
-  "Brahman":    { "Vaca adulta":{ min:400, max:580, promedio:490 }, "Novilla":{ min:250, max:360, promedio:300 }, "Ternero":{ min:35,  max:100, promedio:65  }, "Ternera":{ min:32,  max:95,  promedio:60  }, "Toro":{ min:650, max:900, promedio:780 } },
-  "Gyr X":      { "Vaca adulta":{ min:380, max:550, promedio:470 }, "Novilla":{ min:240, max:350, promedio:290 }, "Ternero":{ min:32,  max:95,  promedio:62  }, "Ternera":{ min:30,  max:90,  promedio:58  }, "Toro":{ min:600, max:850, promedio:730 } },
-  "Gyr":        { "Vaca adulta":{ min:380, max:540, promedio:460 }, "Novilla":{ min:240, max:345, promedio:285 }, "Ternero":{ min:32,  max:92,  promedio:60  }, "Ternera":{ min:30,  max:88,  promedio:56  }, "Toro":{ min:590, max:840, promedio:720 } },
-  "Jersey":     { "Vaca adulta":{ min:330, max:470, promedio:400 }, "Novilla":{ min:200, max:290, promedio:245 }, "Ternero":{ min:25,  max:80,  promedio:52  }, "Ternera":{ min:24,  max:76,  promedio:49  }, "Toro":{ min:500, max:700, promedio:600 } },
-};
-
-// Peso por defecto si la raza no está mapeada
-const PESO_DEFAULT: Record<string, { min: number; max: number; promedio: number }> = {
-  "Vaca adulta":{ min:420, max:600, promedio:510 },
-  "Novilla":    { min:250, max:370, promedio:310 },
-  "Ternero":    { min:35,  max:110, promedio:70  },
-  "Ternera":    { min:33,  max:105, promedio:67  },
-  "Toro":       { min:600, max:900, promedio:750 },
-};
-
-function getPesoEsperado(raza: string, categoria: string) {
-  return PESOS_RAZA[raza]?.[categoria] ?? PESO_DEFAULT[categoria] ?? { min:100, max:800, promedio:400 };
-}
-
-type BtStatus = 'idle' | 'scanning' | 'connected' | 'error';
-
-const DISPOSITIVOS_BT = [
-  { id: 'tru-test-xr', nombre: 'Tru-Test XR3000', tipo: 'Báscula electrónica', bateria: 87 },
-  { id: 'tru-test-s3', nombre: 'Tru-Test S3', tipo: 'Indicador portátil', bateria: 64 },
-  { id: 'gallagher-w210', nombre: 'Gallagher W210', tipo: 'Báscula WiFi', bateria: 92 },
-  { id: 'ahi-caroplus', nombre: 'AHI Caroplus 2', tipo: 'Báscula RFID', bateria: 41 },
+/* ── Controladores de báscula reales ─────────────────────────────────────── */
+const CONTROLLERS = [
+  {
+    id: "tru-test-xr3", nombre: "Tru-Test XR3000", marca: "Tru-Test",
+    tipo: "Indicador electrónico Bluetooth", bateria: 87, protocol: "uart",
+    color: "#00f5d4", glow: "0,245,212",
+    services: ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],
+    nameFilter: ["TruTest", "Tru-Test", "XR3"],
+    desc: "Báscula de precisión ±0.1 kg · BLE 5.0 · IP67",
+    icon: "⚖️",
+  },
+  {
+    id: "gallagher-w210", nombre: "Gallagher W210", marca: "Gallagher",
+    tipo: "Báscula WiFi/BT", bateria: 92, protocol: "weight_scale",
+    color: "#fbbf24", glow: "251,191,36",
+    services: ["weight_scale", "0000181d-0000-1000-8000-00805f9b34fb"],
+    nameFilter: ["Gallagher", "W210", "W450"],
+    desc: "NLIS · 300 kg · ±50 g · Bluetooth 4.2",
+    icon: "🏋️",
+  },
+  {
+    id: "ahi-caroplus", nombre: "AHI Caroplus 2", marca: "AHI",
+    tipo: "Báscula RFID Bluetooth", bateria: 64, protocol: "uart",
+    color: "#a78bfa", glow: "167,139,250",
+    services: ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],
+    nameFilter: ["AHI", "Caroplus"],
+    desc: "RFID ISO 11784 · BLE · CSV export",
+    icon: "📡",
+  },
+  {
+    id: "tru-test-s3", nombre: "Tru-Test S3", marca: "Tru-Test",
+    tipo: "Indicador portátil BLE", bateria: 71, protocol: "uart",
+    color: "#34d399", glow: "52,211,153",
+    services: ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],
+    nameFilter: ["TruTest", "S3000", "S3 "],
+    desc: "Portátil · 5000 registros · BLE 5.0",
+    icon: "📱",
+  },
+  {
+    id: "simcro-biotrack", nombre: "Simcro BioTrack", marca: "Simcro",
+    tipo: "Panel RFID + Báscula", bateria: 55, protocol: "uart",
+    color: "#f87171", glow: "248,113,113",
+    services: ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],
+    nameFilter: ["Simcro", "BioTrack"],
+    desc: "ISO 11785 · EID lectura dual · Colombia",
+    icon: "🔖",
+  },
+  {
+    id: "manual-entry", nombre: "Ingreso Manual", marca: "Manual",
+    tipo: "Sin dispositivo Bluetooth", bateria: 100, protocol: "manual",
+    color: "#94a3b8", glow: "148,163,184",
+    services: [],
+    nameFilter: [],
+    desc: "Registro manual con teclado",
+    icon: "✏️",
+  },
 ];
 
+const PESOS_RAZA: Record<string, Record<string, { min: number; max: number; prom: number }>> = {
+  Holstein:  { "Vaca adulta":{min:490,max:650,prom:560}, Novilla:{min:280,max:380,prom:330}, Ternero:{min:40,max:120,prom:80}, Ternera:{min:38,max:110,prom:75}, Toro:{min:700,max:950,prom:820} },
+  Brahman:   { "Vaca adulta":{min:400,max:580,prom:490}, Novilla:{min:250,max:360,prom:300}, Ternero:{min:35,max:100,prom:65}, Ternera:{min:32,max:95, prom:60}, Toro:{min:650,max:900,prom:780} },
+  Simmental: { "Vaca adulta":{min:520,max:700,prom:600}, Novilla:{min:300,max:420,prom:360}, Ternero:{min:45,max:130,prom:90}, Ternera:{min:42,max:125,prom:85}, Toro:{min:750,max:1000,prom:870} },
+  Jersey:    { "Vaca adulta":{min:330,max:470,prom:400}, Novilla:{min:200,max:290,prom:245}, Ternero:{min:25,max:80, prom:52}, Ternera:{min:24,max:76, prom:49}, Toro:{min:500,max:700,prom:600} },
+  "Gyr X":   { "Vaca adulta":{min:380,max:550,prom:470}, Novilla:{min:240,max:350,prom:290}, Ternero:{min:32,max:95, prom:62}, Ternera:{min:30,max:90, prom:58}, Toro:{min:600,max:850,prom:730} },
+};
+
+function getPesoRef(raza: string, cat: string) {
+  return PESOS_RAZA[raza]?.[cat] ?? { min: 100, max: 800, prom: 400 };
+}
+
+type BtStatus = "idle" | "scanning" | "connected" | "simulating" | "error";
+
+interface PesajeRec {
+  id: number; animalId: string; animalNombre: string;
+  raza?: string; categoria: string; peso: number; pesoAnterior: number;
+  fecha: string; hora: string; metodo: string; dispositivo: string;
+  operador: string; observacion: string; lote: string;
+  valorKilo?: number; valorTotal?: number; condicionCorporal?: string;
+}
+
 function fmt(n: number) {
-  return new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(n);
+  return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
 }
+function fmtDate() { return new Date().toLocaleDateString("es-CO"); }
 
-function fmtDate() {
-  return new Date().toLocaleDateString('es-CO');
-}
-
-// ── Recibo / Factura de Pesaje ───────────────────────────────────────────────
-interface PesajeConValor {
-  id: number;
-  animalId: string;
-  animalNombre: string;
-  raza?: string;
-  categoria: string;
-  peso: number;
-  pesoAnterior: number;
-  fecha: string;
-  hora: string;
-  metodo: string;
-  dispositivo: string;
-  operador: string;
-  observacion: string;
-  lote: string;
-  valorKilo?: number;
-  valorTotal?: number;
-  condicionCorporal?: string;
-  finca?: string;
-}
-
-function ReciboPesaje({ p, onClose, finca }: { p: PesajeConValor; onClose: () => void; finca?: string }) {
-  const diff = p.peso - p.pesoAnterior;
-  const diffPct = p.pesoAnterior > 0 ? ((diff / p.pesoAnterior) * 100).toFixed(1) : "0";
-  const vk = p.valorKilo || 0;
-  const vt = p.peso * vk;
-  const pesoEsp = getPesoEsperado(p.raza || "", p.categoria || "");
+/* ── Pantalla de peso en vivo ─────────────────────────────────────────────── */
+function LiveScale({
+  weight, stability, stable, status, onCapture, autoCapture,
+}: {
+  weight: number | null; stability: number; stable: boolean;
+  status: BtStatus; onCapture: () => void; autoCapture: boolean;
+}) {
+  const connected = status === "connected" || status === "simulating";
 
   return (
+    <div className="relative rounded-2xl overflow-hidden flex flex-col items-center justify-center py-8 px-6"
+      style={{
+        background: stable
+          ? "linear-gradient(145deg,rgba(57,255,126,0.08),rgba(0,200,100,0.04))"
+          : "linear-gradient(145deg,rgba(255,149,0,0.06),rgba(255,100,0,0.03))",
+        border: stable
+          ? "1px solid rgba(57,255,126,0.35)"
+          : connected ? "1px solid rgba(255,149,0,0.3)" : "1px solid rgba(255,255,255,0.08)",
+        boxShadow: stable ? "0 0 32px rgba(57,255,126,0.15)" : "none",
+        minHeight: 200,
+      }}>
+
+      {/* Status pill */}
+      <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+        style={{
+          background: status === "connected" ? "rgba(57,255,126,0.15)" : status === "simulating" ? "rgba(0,200,255,0.15)" : "rgba(255,255,255,0.06)",
+          border: `1px solid ${status === "connected" ? "rgba(57,255,126,0.4)" : status === "simulating" ? "rgba(0,200,255,0.35)" : "rgba(255,255,255,0.1)"}`,
+          color: status === "connected" ? "#39ff7e" : status === "simulating" ? "#00c8ff" : "#666",
+        }}>
+        {status === "connected" && <><BluetoothConnected size={10} /> Báscula real</>}
+        {status === "simulating" && <><Activity size={10} className="animate-pulse" /> Simulación</>}
+        {status === "scanning" && <><BluetoothSearching size={10} className="animate-pulse" /> Buscando...</>}
+        {(status === "idle" || status === "error") && <><BluetoothOff size={10} /> Sin conexión</>}
+      </div>
+
+      {/* Big weight number */}
+      {connected && weight !== null ? (
+        <>
+          <div className="font-black text-center leading-none mb-3 transition-all"
+            style={{
+              fontSize: "clamp(52px,10vw,80px)",
+              fontFamily: "'Sora',monospace",
+              color: stable ? "#39ff7e" : "#ff9500",
+              textShadow: stable ? "0 0 30px rgba(57,255,126,0.6)" : "0 0 20px rgba(255,149,0,0.5)",
+              letterSpacing: "-0.02em",
+            }}>
+            {weight.toFixed(1)}
+            <span className="text-2xl ml-2 font-bold" style={{ color: "rgba(255,255,255,0.4)", textShadow: "none" }}>kg</span>
+          </div>
+
+          {/* Stability bar */}
+          <div className="w-full max-w-[260px] mb-4">
+            <div className="flex justify-between text-[10px] mb-1" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <span>Estabilidad</span>
+              <span className={stable ? "text-green-400 font-bold" : ""}>{stability}%</span>
+            </div>
+            <div className="h-2 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div className="h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${stability}%`,
+                  background: stability >= 90
+                    ? "linear-gradient(90deg,#39ff7e,#00f5d4)"
+                    : stability >= 50
+                    ? "linear-gradient(90deg,#fbbf24,#f59e0b)"
+                    : "linear-gradient(90deg,#f87171,#ef4444)",
+                  boxShadow: stability >= 90 ? "0 0 8px rgba(57,255,126,0.5)" : "none",
+                }} />
+            </div>
+          </div>
+
+          {stable ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-green-400 mb-1">
+                <CheckCircle2 size={14} /> Peso estable — Listo para capturar
+              </div>
+              <Button
+                onClick={onCapture}
+                className="gap-2 font-bold text-sm h-10 px-6"
+                style={{ background: "linear-gradient(135deg,#39ff7e,#00c864)", color: "#052010", boxShadow: "0 0 20px rgba(57,255,126,0.4)" }}>
+                <Target size={16} /> Capturar peso
+              </Button>
+              {autoCapture && <p className="text-[10px] text-green-400/60">Auto-captura activa</p>}
+            </div>
+          ) : (
+            <p className="text-xs animate-pulse" style={{ color: "rgba(255,149,0,0.7)" }}>
+              Pesando... mantener animal quieto
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="text-center">
+          <Scale size={48} className="mx-auto mb-3 opacity-10" />
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
+            {status === "scanning" ? "Buscando báscula Bluetooth..." : "Conectar báscula para ver peso en vivo"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Recibo de pesaje imprimible ─────────────────────────────────────────── */
+function ReciboPesaje({ p, onClose }: { p: PesajeRec; onClose: () => void }) {
+  const diff = p.peso - p.pesoAnterior;
+  const ref = getPesoRef(p.raza || "", p.categoria);
+  const vt = (p.peso) * (p.valorKilo || 0);
+  return (
     <div className="space-y-4">
-      <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,149,0,0.3)'}}>
-        {/* Encabezado */}
-        <div className="p-4 text-center" style={{background:'linear-gradient(135deg,#1a0d00,#2e1500)'}}>
-          <div className="font-black text-2xl mb-0.5" style={{fontFamily:'Sora,sans-serif',color:'#ff9500'}}>CIVAC PRO</div>
+      <div className="rounded-xl overflow-hidden border" style={{ borderColor: "rgba(255,149,0,0.3)" }}>
+        <div className="p-4 text-center" style={{ background: "linear-gradient(135deg,#1a0d00,#2e1500)" }}>
+          <div className="font-black text-2xl mb-0.5" style={{ fontFamily: "Sora,sans-serif", color: "#ff9500" }}>
+            GanaderIA PRO
+          </div>
           <div className="text-xs text-white/40">Ganadería Inteligente · Colombia</div>
           <div className="mt-2 font-bold text-white text-sm uppercase tracking-wider">Recibo de Pesaje</div>
-          <div className="text-[10px] text-white/30 mt-0.5">Folio #{p.id} · {finca || 'Finca CIVAC'}</div>
+          <div className="text-[10px] text-white/30 mt-0.5">Folio #{p.id} · {new Date().toLocaleDateString("es-CO")}</div>
         </div>
-
-        <div className="p-4 space-y-4" style={{background:'#020d09'}}>
-          {/* Info animal */}
-          <div className="rounded-lg p-3 space-y-2 text-sm" style={{background:'rgba(255,149,0,0.06)',border:'1px solid rgba(255,149,0,0.2)'}}>
+        <div className="p-4 space-y-4" style={{ background: "#050d0a" }}>
+          <div className="rounded-lg p-3 space-y-2 text-sm" style={{ background: "rgba(255,149,0,0.06)", border: "1px solid rgba(255,149,0,0.2)" }}>
             <div className="font-bold text-white text-base flex items-center gap-2">
               <span>🐄</span> {p.animalNombre}
               <span className="text-xs font-mono text-orange-400">#{p.animalId}</span>
             </div>
             <div className="grid grid-cols-2 gap-1 text-xs">
               {[
-                ["Raza", p.raza || "—"],
-                ["Categoría", p.categoria || "—"],
-                ["Lote", p.lote],
-                ["Fecha", p.fecha],
-                ["Hora", p.hora],
-                ["Operador", p.operador],
-                ["Método", p.metodo === "bluetooth" ? "Báscula BT" : "Manual"],
-                ["Dispositivo", p.dispositivo || "—"],
-              ].map(([k,v]) => (
+                ["Raza", p.raza || "—"], ["Categoría", p.categoria],
+                ["Lote", p.lote], ["Método", p.metodo === "bluetooth" ? "Báscula BT" : p.metodo === "simulated" ? "Simulado" : "Manual"],
+                ["Dispositivo", p.dispositivo || "—"], ["Operador", p.operador],
+              ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-1">
                   <span className="text-white/40">{k}:</span>
-                  <span className="text-white/80 font-medium truncate max-w-[100px]">{v}</span>
+                  <span className="text-white/80 font-medium truncate">{v}</span>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Datos de pesaje */}
-          <div className="rounded-lg overflow-hidden border border-white/10">
-            <div className="px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-white/40 border-b border-white/5">
-              Datos del Pesaje
-            </div>
-            <table className="w-full text-sm">
-              <tbody>
-                {[
-                  ["Peso actual", <span className="font-black text-lg text-orange-300">{p.peso.toFixed(1)} kg</span>],
-                  ["Peso anterior", <span>{p.pesoAnterior.toFixed(1)} kg</span>],
-                  ["Diferencia", <span className={`font-bold ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-white/50'}`}>{diff > 0 ? "+" : ""}{diff.toFixed(1)} kg ({diffPct}%)</span>],
-                  ...(p.condicionCorporal ? [["Condición corporal", <span>{p.condicionCorporal}</span>]] : []),
-                  ...(p.observacion ? [["Observación", <span className="text-white/60 text-xs">{p.observacion}</span>]] : []),
-                ].map(([k,v], i) => (
-                  <tr key={i} className="border-t border-white/5">
-                    <td className="px-3 py-2 text-white/50">{k as string}</td>
-                    <td className="px-3 py-2 text-right">{v as React.ReactNode}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Referencia por raza */}
+          <table className="w-full text-sm rounded-lg overflow-hidden">
+            <tbody>
+              {[
+                ["Peso capturado", <span className="font-black text-lg text-orange-300">{p.peso.toFixed(1)} kg</span>],
+                ["Peso anterior", <span>{p.pesoAnterior.toFixed(1)} kg</span>],
+                ["Diferencia", <span className={`font-bold ${diff > 0 ? "text-green-400" : diff < 0 ? "text-red-400" : "text-white/50"}`}>{diff > 0 ? "+" : ""}{diff.toFixed(1)} kg</span>],
+                ...(p.condicionCorporal ? [["Cond. corporal", <span>{p.condicionCorporal}</span>]] : []),
+              ].map(([k, v], i) => (
+                <tr key={i} className="border-t border-white/5">
+                  <td className="py-2 text-white/50 text-xs">{k as string}</td>
+                  <td className="py-2 text-right">{v as React.ReactNode}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
           {p.raza && p.categoria && (
-            <div className="rounded-lg p-3" style={{background:'rgba(0,200,255,0.06)',border:'1px solid rgba(0,200,255,0.2)'}}>
-              <div className="text-[10px] uppercase tracking-wider text-white/40 mb-1 font-bold">Referencia Raza {p.raza} — {p.categoria}</div>
+            <div className="rounded-lg p-3" style={{ background: "rgba(0,200,255,0.06)", border: "1px solid rgba(0,200,255,0.2)" }}>
+              <div className="text-[10px] uppercase tracking-wider text-white/40 mb-1 font-bold">Referencia raza {p.raza}</div>
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                <div>
-                  <div className="text-white/30 text-[9px]">Mínimo</div>
-                  <div className="font-bold text-blue-400">{pesoEsp.min} kg</div>
-                </div>
-                <div>
-                  <div className="text-white/30 text-[9px]">Promedio</div>
-                  <div className="font-bold text-cyan-300">{pesoEsp.promedio} kg</div>
-                </div>
-                <div>
-                  <div className="text-white/30 text-[9px]">Máximo</div>
-                  <div className="font-bold text-blue-400">{pesoEsp.max} kg</div>
-                </div>
+                {[["Mínimo", ref.min, "#60a5fa"], ["Promedio", ref.prom, "#00c8ff"], ["Máximo", ref.max, "#60a5fa"]].map(([l, v, c]) => (
+                  <div key={String(l)}>
+                    <div className="text-white/30 text-[9px]">{l}</div>
+                    <div className="font-bold" style={{ color: String(c) }}>{v} kg</div>
+                  </div>
+                ))}
               </div>
-              <div className="mt-2 text-[10px] text-center">
-                {p.peso >= pesoEsp.min && p.peso <= pesoEsp.max
-                  ? <span className="text-green-400 font-semibold">✓ Peso dentro del rango esperado para la raza</span>
-                  : p.peso < pesoEsp.min
-                    ? <span className="text-amber-400">⚠ Peso por debajo del rango mínimo de raza</span>
-                    : <span className="text-blue-400">↑ Peso por encima del rango — excelente condición</span>
-                }
+              <div className="mt-1.5 text-[10px] text-center">
+                {p.peso >= ref.min && p.peso <= ref.max
+                  ? <span className="text-green-400">✓ Dentro del rango esperado</span>
+                  : p.peso < ref.min
+                  ? <span className="text-amber-400">⚠ Por debajo del mínimo de raza</span>
+                  : <span className="text-blue-400">↑ Excelente condición corporal</span>}
               </div>
             </div>
           )}
-
-          {/* Valor económico */}
-          {vk > 0 && (
-            <div className="rounded-xl p-4 space-y-2" style={{background:'rgba(57,255,126,0.07)',border:'1px solid rgba(57,255,126,0.25)'}}>
-              <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold">Valor Económico del Animal</div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <div className="text-white/40">Costo por kilo</div>
-                  <div className="font-bold text-white">{fmt(vk)}</div>
-                </div>
-                <div>
-                  <div className="text-white/40">Peso actual</div>
-                  <div className="font-bold text-white">{p.peso.toFixed(1)} kg</div>
-                </div>
+          {(p.valorKilo || 0) > 0 && (
+            <div className="rounded-xl p-3" style={{ background: "rgba(57,255,126,0.07)", border: "1px solid rgba(57,255,126,0.25)" }}>
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-white text-sm">Valor estimado</span>
+                <span className="font-black text-xl" style={{ color: "#39ff7e" }}>{fmt(vt)}</span>
               </div>
-              <div className="border-t border-white/10 pt-2 flex justify-between items-center">
-                <span className="font-bold text-white text-sm">VALOR TOTAL ANIMAL</span>
-                <span className="font-black text-2xl" style={{color:'#39ff7e',fontFamily:'Sora,sans-serif'}}>{fmt(vt)}</span>
-              </div>
-              <div className="text-[10px] text-white/30 text-right">{fmt(vk)}/kg × {p.peso.toFixed(1)} kg</div>
+              <div className="text-[10px] text-white/30 text-right mt-0.5">{fmt(p.valorKilo || 0)}/kg × {p.peso.toFixed(1)} kg</div>
             </div>
           )}
-
-          <div className="text-center text-[9px] text-white/20 pt-1 border-t border-white/5">
-            Documento generado por CIVAC PRO — Sistema de Gestión Ganadera Colombia
-          </div>
         </div>
       </div>
-
       <div className="flex gap-2">
         <Button className="flex-1 gap-2" onClick={() => window.print()}
-          style={{background:'rgba(255,149,0,0.12)',border:'1px solid rgba(255,149,0,0.3)',color:'#ff9500'}}>
+          style={{ background: "rgba(255,149,0,0.12)", border: "1px solid rgba(255,149,0,0.3)", color: "#ff9500" }}>
           <Printer size={14} /> Imprimir
         </Button>
         <Button className="flex-1" variant="outline" onClick={onClose}>Cerrar</Button>
@@ -212,144 +295,243 @@ function ReciboPesaje({ p, onClose, finca }: { p: PesajeConValor; onClose: () =>
   );
 }
 
-// ── Componente principal ─────────────────────────────────────────────────────
+/* ── Componente principal ─────────────────────────────────────────────────── */
 export default function Pesaje() {
   const { animals, pesajes, setPesajes } = useAppState();
   const { user } = useAuth();
 
-  const [btStatus, setBtStatus] = useState<BtStatus>('idle');
-  const [selectedDevice, setSelectedDevice] = useState(DISPOSITIVOS_BT[0]);
+  const [btStatus, setBtStatus] = useState<BtStatus>("idle");
+  const [selectedCtrl, setSelectedCtrl] = useState(CONTROLLERS[0]);
   const [liveWeight, setLiveWeight] = useState<number | null>(null);
+  const [stability, setStability] = useState(0);
   const [stable, setStable] = useState(false);
+  const [autoCapture, setAutoCapture] = useState(false);
   const [selectedAnimal, setSelectedAnimal] = useState(animals[0]);
-  const [manualOpen, setManualOpen] = useState(false);
   const [searchAnim, setSearchAnim] = useState("");
-  const [filterLote, setFilterLote] = useState("Todos");
-  const [reciboP, setReciboP] = useState<PesajeConValor | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Manual form state
-  const [manualAnimalId, setManualAnimalId] = useState(animals[0]?.id || "");
+  const [manualOpen, setManualOpen] = useState(false);
+  const [reciboP, setReciboP] = useState<PesajeRec | null>(null);
   const [manualPeso, setManualPeso] = useState("");
   const [manualValorKilo, setManualValorKilo] = useState("11000");
   const [manualCondicion, setManualCondicion] = useState("3.0");
+  const [manualAnimalId, setManualAnimalId] = useState(animals[0]?.id || "");
+  const [btError, setBtError] = useState("");
+
+  const simRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const weightSamplesRef = useRef<number[]>([]);
+  const btDeviceRef = useRef<any>(null);
 
   const manualAnimal = animals.find(a => a.id === manualAnimalId) || animals[0];
 
-  // Auto-calculate suggested weight from breed when animal changes
-  useEffect(() => {
-    if (manualAnimal && !manualPeso) {
-      const esp = getPesoEsperado(manualAnimal.raza, manualAnimal.categoria);
-      setManualPeso(String(esp.promedio));
+  const updateStabilityFromSamples = useCallback((w: number) => {
+    const samples = weightSamplesRef.current;
+    samples.push(w);
+    if (samples.length > 8) samples.shift();
+
+    if (samples.length < 4) {
+      setStability(Math.min(40, samples.length * 10));
+      setStable(false);
+      return;
     }
-  }, [manualAnimalId]);
+    const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
+    const maxDev = Math.max(...samples.map(s => Math.abs(s - avg)));
+    const pct = Math.max(0, Math.min(100, Math.round(100 - maxDev * 20)));
+    setStability(pct);
+    const isStable = pct >= 90 && samples.length >= 6;
+    setStable(isStable);
+    if (isStable && autoCapture) {
+      setTimeout(() => capturePeso(w), 400);
+    }
+  }, [autoCapture]);
 
-  const manualValorTotal = Number(manualPeso) > 0 && Number(manualValorKilo) > 0
-    ? Number(manualPeso) * Number(manualValorKilo)
-    : 0;
+  /* ── Simulación de peso ── */
+  const startSimulation = useCallback((animal?: typeof animals[0]) => {
+    if (simRef.current) clearInterval(simRef.current);
+    weightSamplesRef.current = [];
+    const base = animal
+      ? getPesoRef(animal.raza, animal.categoria).prom
+      : getPesoRef(selectedAnimal?.raza || "", selectedAnimal?.categoria || "").prom;
+    let ticks = 0;
+    simRef.current = setInterval(() => {
+      ticks++;
+      const noise = ticks < 6 ? (Math.random() - 0.5) * 10 : (Math.random() - 0.5) * 1.2;
+      const w = +(base + noise).toFixed(1);
+      setLiveWeight(w);
+      updateStabilityFromSamples(w);
+    }, 550);
+  }, [selectedAnimal, updateStabilityFromSamples]);
 
-  const pesoEsperadoManual = manualAnimal
-    ? getPesoEsperado(manualAnimal.raza, manualAnimal.categoria)
-    : { min:0, max:0, promedio:0 };
-
-  const filteredAnimals = animals.filter(a => {
-    const ms = a.nombre.toLowerCase().includes(searchAnim.toLowerCase()) || a.id.toLowerCase().includes(searchAnim.toLowerCase());
-    const ml = filterLote === "Todos" || a.lote === filterLote;
-    return ms && ml;
-  });
-
+  /* ── Conectar Bluetooth real ── */
   const connectBluetooth = async () => {
-    setBtStatus('scanning');
-    setLiveWeight(null);
-    setStable(false);
-    await new Promise(r => setTimeout(r, 1800));
-    setBtStatus('connected');
-    startLiveReading();
+    if (selectedCtrl.protocol === "manual") {
+      setBtError("Este modo no usa Bluetooth. Use Pesaje Manual.");
+      return;
+    }
+    setBtStatus("scanning");
+    setBtError("");
+    weightSamplesRef.current = [];
+
+    if ("bluetooth" in navigator) {
+      try {
+        const nameFilters = selectedCtrl.nameFilter.map(prefix => ({ namePrefix: prefix }));
+        const device = await (navigator as any).bluetooth.requestDevice({
+          filters: [
+            ...nameFilters,
+            { services: ["weight_scale"] },
+          ],
+          optionalServices: [
+            "weight_scale",
+            "0000181d-0000-1000-8000-00805f9b34fb",
+            "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+            "battery_service",
+          ],
+        });
+
+        btDeviceRef.current = device;
+        const server = await device.gatt!.connect();
+        let handlerAttached = false;
+
+        /* Try standard Weight Scale Service (0x181D) */
+        try {
+          const svc = await server.getPrimaryService("weight_scale");
+          const char = await svc.getCharacteristic("weight_measurement");
+          await char.startNotifications();
+          char.addEventListener("characteristicvaluechanged", (e: Event) => {
+            const val = (e.target as any).value as DataView;
+            const flags = val.getUint8(0);
+            const unit = flags & 0x01;
+            const raw = val.getUint16(1, true);
+            const w = unit === 0 ? raw * 0.005 : raw * 0.01 * 0.453592;
+            const rounded = Math.round(w * 10) / 10;
+            setLiveWeight(rounded);
+            updateStabilityFromSamples(rounded);
+          });
+          handlerAttached = true;
+        } catch { /* try UART */ }
+
+        /* Try Nordic UART Service (Tru-Test, Gallagher serial-over-BLE) */
+        if (!handlerAttached) {
+          try {
+            const svc = await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+            const char = await svc.getCharacteristic("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+            await char.startNotifications();
+            char.addEventListener("characteristicvaluechanged", (e: Event) => {
+              const val = (e.target as any).value as DataView;
+              const text = new TextDecoder().decode(val);
+              /* Parse: "352.5\r\n", "W00352.5\r\n", "STW,  352.5,kg\r\n", "+  352.5 S\r\n" */
+              const match = text.match(/(?:W0*|STW,\s*|[+\-]\s*)?(\d{2,4}\.?\d{0,2})/);
+              if (match) {
+                const w = parseFloat(match[1]);
+                if (w > 0 && w < 3000) {
+                  setLiveWeight(Math.round(w * 10) / 10);
+                  updateStabilityFromSamples(w);
+                }
+              }
+            });
+            handlerAttached = true;
+          } catch { /* neither service found */ }
+        }
+
+        if (handlerAttached) {
+          setBtStatus("connected");
+          device.addEventListener("gattserverdisconnected", () => {
+            setBtStatus("idle");
+            setLiveWeight(null);
+            setStable(false);
+            setStability(0);
+            weightSamplesRef.current = [];
+          });
+          return;
+        }
+        /* Connected but no recognized service — fallback to simulation */
+        server.disconnect();
+      } catch (err: unknown) {
+        const btErr = err as { name?: string; message?: string };
+        if (btErr?.name !== "NotFoundError" && btErr?.name !== "NotAllowedError") {
+          setBtError(`Error BT: ${btErr?.message || String(err)}`);
+          setBtStatus("error");
+          return;
+        }
+        /* User cancelled picker → fall through to simulation */
+      }
+    }
+
+    /* Simulation fallback (no BT hardware or user cancelled) */
+    setBtStatus("simulating");
+    startSimulation();
   };
 
   const disconnectBluetooth = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    setBtStatus('idle');
+    if (simRef.current) { clearInterval(simRef.current); simRef.current = null; }
+    if (btDeviceRef.current?.gatt?.connected) btDeviceRef.current.gatt.disconnect();
+    btDeviceRef.current = null;
+    setBtStatus("idle");
     setLiveWeight(null);
     setStable(false);
+    setStability(0);
+    weightSamplesRef.current = [];
+    setBtError("");
   };
 
-  const startLiveReading = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    const base = selectedAnimal?.peso || getPesoEsperado(selectedAnimal?.raza || "", selectedAnimal?.categoria || "").promedio;
-    let count = 0;
-    intervalRef.current = setInterval(() => {
-      const w = +(base + (Math.random() - 0.5) * 4).toFixed(1);
-      setLiveWeight(w);
-      count++;
-      if (count >= 5) { setStable(true); if (intervalRef.current) clearInterval(intervalRef.current); }
-    }, 600);
-  };
-
+  /* Restart live reading when animal changes */
   useEffect(() => {
-    if (btStatus === 'connected' && selectedAnimal) {
+    if (btStatus === "simulating") {
       setStable(false);
-      startLiveReading();
+      setStability(0);
+      weightSamplesRef.current = [];
+      startSimulation(selectedAnimal);
     }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAnimal]);
 
-  const capturePeso = () => {
-    if (!liveWeight || !stable || !selectedAnimal) return;
-    const prev = pesajes.filter(p => p.animalId === selectedAnimal.id).sort((a,b) => b.id - a.id)[0];
+  useEffect(() => () => { if (simRef.current) clearInterval(simRef.current); }, []);
+
+  /* ── Capturar peso ── */
+  const capturePeso = useCallback((overrideWeight?: number) => {
+    const w = overrideWeight ?? liveWeight;
+    if (!w || !selectedAnimal) return;
+    const prev = pesajes.filter(p => p.animalId === selectedAnimal.id).sort((a, b) => b.id - a.id)[0];
     const now = new Date();
     const vk = selectedAnimal.valorKilo || 11000;
-    const newP: PesajeConValor = {
+    const newP: PesajeRec = {
       id: Date.now(),
-      animalId: selectedAnimal.id,
-      animalNombre: selectedAnimal.nombre,
-      raza: selectedAnimal.raza,
-      categoria: selectedAnimal.categoria || "",
-      peso: liveWeight,
-      pesoAnterior: prev?.peso ?? selectedAnimal.peso,
-      fecha: now.toLocaleDateString('es-CO'),
-      hora: now.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' }),
-      metodo: 'bluetooth',
-      dispositivo: selectedDevice.nombre,
-      operador: user?.nombre || 'Sistema',
-      observacion: '',
-      lote: selectedAnimal.lote,
-      valorKilo: vk,
-      valorTotal: liveWeight * vk,
+      animalId: selectedAnimal.id, animalNombre: selectedAnimal.nombre,
+      raza: selectedAnimal.raza, categoria: selectedAnimal.categoria || "",
+      peso: w, pesoAnterior: prev?.peso ?? selectedAnimal.peso,
+      fecha: now.toLocaleDateString("es-CO"),
+      hora: now.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
+      metodo: btStatus === "connected" ? "bluetooth" : btStatus === "simulating" ? "simulated" : "manual",
+      dispositivo: btStatus === "connected" || btStatus === "simulating" ? selectedCtrl.nombre : "",
+      operador: user?.nombre || "Sistema",
+      observacion: "", lote: selectedAnimal.lote,
+      valorKilo: vk, valorTotal: w * vk,
     };
     setPesajes([newP, ...pesajes]);
     setStable(false);
-    setLiveWeight(null);
+    setStability(0);
+    weightSamplesRef.current = [];
     setReciboP(newP);
-    startLiveReading();
-  };
+    if (btStatus === "simulating") {
+      setTimeout(() => startSimulation(), 300);
+    }
+  }, [liveWeight, selectedAnimal, pesajes, btStatus, selectedCtrl, user, setPesajes, startSimulation]);
 
+  /* ── Pesaje manual ── */
   const handleManualAdd = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const anim = manualAnimal;
-    const prev = pesajes.filter(p => p.animalId === anim?.id).sort((a,b) => b.id - a.id)[0];
     const peso = Number(manualPeso);
+    if (!peso || !manualAnimal) return;
+    const prev = pesajes.filter(p => p.animalId === manualAnimal.id).sort((a, b) => b.id - a.id)[0];
+    const now = new Date();
     const vk = Number(manualValorKilo) || 11000;
-    const newP: PesajeConValor = {
-      id: Date.now(),
-      animalId: anim?.id || "",
-      animalNombre: anim?.nombre || "",
-      raza: anim?.raza,
-      categoria: anim?.categoria || "",
-      peso,
-      pesoAnterior: prev?.peso ?? (anim?.peso ?? 0),
-      fecha: fd.get('fecha') as string || fmtDate(),
-      hora: fd.get('hora') as string || new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),
-      metodo: 'manual',
-      dispositivo: '',
-      operador: fd.get('operador') as string || user?.nombre || '',
-      observacion: fd.get('observacion') as string || '',
-      lote: anim?.lote || '',
-      valorKilo: vk,
-      valorTotal: peso * vk,
-      condicionCorporal: manualCondicion ? `CC ${manualCondicion}` : undefined,
+    const newP: PesajeRec = {
+      id: Date.now(), animalId: manualAnimal.id, animalNombre: manualAnimal.nombre,
+      raza: manualAnimal.raza, categoria: manualAnimal.categoria || "",
+      peso, pesoAnterior: prev?.peso ?? manualAnimal.peso,
+      fecha: now.toLocaleDateString("es-CO"),
+      hora: now.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }),
+      metodo: "manual", dispositivo: "", operador: user?.nombre || "",
+      observacion: `CC ${manualCondicion}`, lote: manualAnimal.lote,
+      valorKilo: vk, valorTotal: peso * vk,
+      condicionCorporal: `CC ${manualCondicion}`,
     };
     setPesajes([newP, ...pesajes]);
     setManualOpen(false);
@@ -357,518 +539,387 @@ export default function Pesaje() {
     setReciboP(newP);
   };
 
-  const deletePesaje = (id: number) => setPesajes(pesajes.filter(p => p.id !== id));
-
-  // Stats
-  const totalPesajes = pesajes.length;
-  const btPesajes = pesajes.filter(p => p.metodo === 'bluetooth').length;
-  const pesoPromedio = pesajes.length ? (pesajes.reduce((s,p) => s + p.peso, 0) / pesajes.length).toFixed(1) : '0';
+  /* ── Stats ── */
   const hoy = pesajes.filter(p => p.fecha === fmtDate()).length;
+  const btCount = pesajes.filter(p => p.metodo === "bluetooth").length;
+  const pesoAvg = pesajes.length ? +(pesajes.reduce((s, p) => s + p.peso, 0) / pesajes.length).toFixed(1) : 0;
+  const filtered = animals.filter(a =>
+    a.nombre.toLowerCase().includes(searchAnim.toLowerCase()) ||
+    a.id.toLowerCase().includes(searchAnim.toLowerCase())
+  );
 
   const animalHistory = (aid: string) =>
-    pesajes.filter(p => p.animalId === aid).slice(0, 8).reverse().map((p, i) => ({ name:`P${i+1}`, kg:p.peso }));
+    pesajes.filter(p => p.animalId === aid).slice(0, 8).reverse().map((p, i) => ({ name: `#${i + 1}`, kg: p.peso }));
 
-  const diffColor = (cur: number, prev: number) => cur > prev ? 'text-green-400' : cur < prev ? 'text-red-400' : 'text-muted-foreground';
-  const diffIcon = (cur: number, prev: number) => cur > prev ? <TrendingUp size={12}/> : cur < prev ? <TrendingDown size={12}/> : <Minus size={12}/>;
-
-  // Selected animal breed reference
-  const selAnimalEsp = selectedAnimal ? getPesoEsperado(selectedAnimal.raza, selectedAnimal.categoria) : null;
+  const selRef = selectedAnimal ? getPesoRef(selectedAnimal.raza, selectedAnimal.categoria) : null;
+  const lastPesaje = selectedAnimal ? pesajes.filter(p => p.animalId === selectedAnimal.id)[0] : null;
+  const diff = lastPesaje ? lastPesaje.peso - lastPesaje.pesoAnterior : 0;
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="rounded-xl p-5 relative overflow-hidden civac-animate"
-        style={{background:'linear-gradient(135deg,#1a0d00 0%,#2e1500 100%)', border:'1px solid rgba(255,149,0,0.4)', boxShadow:'0 0 40px rgba(255,149,0,0.12)'}}>
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-          <Scale className="w-32 h-32 text-white" />
+      {/* ── Banner ── */}
+      <div className="rounded-2xl p-5 relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg,#1a0d00 0%,#2e1500 50%,#1a0800 100%)",
+          border: "1px solid rgba(255,149,0,0.4)",
+          boxShadow: "0 0 40px rgba(255,149,0,0.10)",
+        }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "url('https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=800&q=30&auto=format&fit=crop') center/cover no-repeat", opacity: 0.04 }} />
+        <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.06] pointer-events-none">
+          <Scale className="w-36 h-36 text-white" />
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{background:'rgba(255,149,0,0.1)', border:'1px solid rgba(255,149,0,0.4)', boxShadow:'0 0 16px rgba(255,149,0,0.2)'}}>
-              <Scale className="text-white" size={24} />
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "rgba(255,149,0,0.12)", border: "1px solid rgba(255,149,0,0.45)", boxShadow: "0 0 20px rgba(255,149,0,0.25)" }}>
+              <Scale size={28} className="text-orange-300" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Pesaje de Animales</h1>
-              <p className="text-sm" style={{color:'rgba(255,180,80,0.8)'}}>Auto-cálculo por raza · Factura imprimible · Bluetooth · Manual</p>
+              <h1 className="text-xl font-black text-white" style={{ fontFamily: "Sora,sans-serif" }}>
+                Pesaje de Animales
+              </h1>
+              <p className="text-sm mt-0.5" style={{ color: "rgba(255,180,80,0.8)" }}>
+                Bluetooth real · Tru-Test · Gallagher · AHI · RFID · Recibo imprimible
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ background: btStatus === "connected" ? "rgba(57,255,126,0.2)" : btStatus === "simulating" ? "rgba(0,200,255,0.2)" : "rgba(255,255,255,0.08)", color: btStatus === "connected" ? "#39ff7e" : btStatus === "simulating" ? "#00c8ff" : "#888" }}>
+                  {btStatus === "connected" ? "● Báscula conectada" : btStatus === "simulating" ? "◎ Modo simulación" : btStatus === "scanning" ? "⟳ Buscando..." : "○ Sin conexión"}
+                </span>
+              </div>
             </div>
           </div>
-          <Dialog open={manualOpen} onOpenChange={v => { if (!v) setManualPeso(""); setManualOpen(v); }}>
-            <DialogTrigger asChild>
-              <Button className="h-9 gap-1.5 text-sm" style={{background:'rgba(255,149,0,0.15)', border:'1px solid rgba(255,149,0,0.4)', color:'#fff'}}>
-                <Plus size={14}/> Pesaje Manual
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[540px] max-h-[92vh] overflow-y-auto">
-              <form onSubmit={handleManualAdd}>
-                <DialogHeader><DialogTitle className="flex items-center gap-2"><Scale size={16} className="text-orange-400"/>Registrar Pesaje Manual</DialogTitle></DialogHeader>
-                <div className="grid gap-4 py-4">
-
-                  {/* Animal */}
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-semibold">Animal</Label>
-                    <Select value={manualAnimalId} onValueChange={id => { setManualAnimalId(id); setManualPeso(""); }}>
-                      <SelectTrigger><SelectValue/></SelectTrigger>
-                      <SelectContent>{animals.map(a => <SelectItem key={a.id} value={a.id}>{a.nombre} — {a.id} ({a.raza} · {a.categoria})</SelectItem>)}</SelectContent>
-                    </Select>
-                    {manualAnimal && (
-                      <div className="flex gap-2 text-xs text-white/50 flex-wrap">
-                        <span>Raza: <strong className="text-white/80">{manualAnimal.raza}</strong></span>
-                        <span>·</span>
-                        <span>Categoría: <strong className="text-white/80">{manualAnimal.categoria}</strong></span>
-                        <span>·</span>
-                        <span>Lote: <strong className="text-white/80">{manualAnimal.lote}</strong></span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Auto-cálculo por raza */}
-                  {manualAnimal && (
-                    <div className="rounded-xl p-3" style={{background:'rgba(0,200,255,0.07)',border:'1px solid rgba(0,200,255,0.2)'}}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calculator size={13} className="text-cyan-400"/>
-                        <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">Auto-cálculo · Raza {manualAnimal.raza}</span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 text-center text-xs mb-2">
-                        <div className="rounded-lg p-2" style={{background:'rgba(0,200,255,0.1)'}}>
-                          <div className="text-white/40 text-[9px]">Mínimo</div>
-                          <div className="font-bold text-blue-300">{pesoEsperadoManual.min} kg</div>
-                        </div>
-                        <div className="rounded-lg p-2" style={{background:'rgba(0,245,212,0.15)',border:'1px solid rgba(0,245,212,0.3)'}}>
-                          <div className="text-white/40 text-[9px]">Promedio raza</div>
-                          <div className="font-black text-cyan-300">{pesoEsperadoManual.promedio} kg</div>
-                        </div>
-                        <div className="rounded-lg p-2" style={{background:'rgba(0,200,255,0.1)'}}>
-                          <div className="text-white/40 text-[9px]">Máximo</div>
-                          <div className="font-bold text-blue-300">{pesoEsperadoManual.max} kg</div>
-                        </div>
-                      </div>
-                      <Button type="button" size="sm"
-                        className="w-full gap-2 text-xs"
-                        style={{background:'rgba(0,200,255,0.15)',border:'1px solid rgba(0,200,255,0.35)',color:'#00c8ff'}}
-                        onClick={() => setManualPeso(String(pesoEsperadoManual.promedio))}>
-                        <Zap size={12}/> Usar peso promedio de raza ({pesoEsperadoManual.promedio} kg)
-                      </Button>
+          <div className="flex items-center gap-2">
+            <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+              <DialogTrigger asChild>
+                <Button className="h-9 gap-1.5 text-sm"
+                  style={{ background: "rgba(255,149,0,0.15)", border: "1px solid rgba(255,149,0,0.4)", color: "#fff" }}>
+                  <Plus size={14} /> Pesaje Manual
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader><DialogTitle className="flex items-center gap-2"><Scale size={16} className="text-orange-400" />Registrar Pesaje Manual</DialogTitle></DialogHeader>
+                <form onSubmit={handleManualAdd}>
+                  <div className="grid gap-4 py-3">
+                    <div className="space-y-1.5">
+                      <Label>Animal</Label>
+                      <Select value={manualAnimalId} onValueChange={setManualAnimalId}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{animals.map(a => <SelectItem key={a.id} value={a.id}>{a.nombre} — {a.id}</SelectItem>)}</SelectContent>
+                      </Select>
                     </div>
-                  )}
-
-                  {/* Peso */}
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-semibold">Peso (kg)</Label>
-                    <Input type="number" step="0.1" min="0" required
-                      value={manualPeso} onChange={e => setManualPeso(e.target.value)}
-                      placeholder="Ingrese o use auto-cálculo de raza"/>
+                    <div className="space-y-1.5">
+                      <Label>Peso (kg)</Label>
+                      <Input type="number" step="0.1" min="0" required value={manualPeso} onChange={e => setManualPeso(e.target.value)} placeholder="Ej: 385.5" />
+                      {manualAnimal && (
+                        <p className="text-xs text-muted-foreground">
+                          Referencia {manualAnimal.raza}: {getPesoRef(manualAnimal.raza, manualAnimal.categoria).prom} kg promedio
+                        </p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Valor/kg (COP)</Label>
+                        <Input type="number" value={manualValorKilo} onChange={e => setManualValorKilo(e.target.value)} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Cond. corporal</Label>
+                        <Select value={manualCondicion} onValueChange={setManualCondicion}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {["1.0","1.5","2.0","2.5","3.0","3.5","4.0","4.5","5.0"].map(v => (
+                              <SelectItem key={v} value={v}>CC {v}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     {manualPeso && Number(manualPeso) > 0 && (
-                      <div className="text-xs">
-                        {Number(manualPeso) < pesoEsperadoManual.min && <span className="text-amber-400">⚠ Por debajo del mínimo esperado para {manualAnimal?.raza}</span>}
-                        {Number(manualPeso) >= pesoEsperadoManual.min && Number(manualPeso) <= pesoEsperadoManual.max && <span className="text-green-400">✓ Dentro del rango esperado para la raza</span>}
-                        {Number(manualPeso) > pesoEsperadoManual.max && <span className="text-blue-400">↑ Por encima del rango — excelente condición corporal</span>}
+                      <div className="rounded-lg p-3 text-center" style={{ background: "rgba(57,255,126,0.07)", border: "1px solid rgba(57,255,126,0.25)" }}>
+                        <div className="text-xs text-muted-foreground">Valor estimado</div>
+                        <div className="font-black text-xl" style={{ color: "#39ff7e" }}>
+                          {fmt(Number(manualPeso) * Number(manualValorKilo))}
+                        </div>
                       </div>
                     )}
                   </div>
-
-                  {/* Valor por kilo + total automático */}
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-semibold">$ Valor por Kilo (COP)</Label>
-                    <Input type="number" step="100"
-                      value={manualValorKilo} onChange={e => setManualValorKilo(e.target.value)}
-                      placeholder="11000"/>
-                    <p className="text-[10px] text-white/30">Referencia mercado: ~$11,000/kg</p>
-                  </div>
-
-                  {/* Valor total automático */}
-                  {manualValorTotal > 0 && (
-                    <div className="rounded-xl p-4 flex justify-between items-center"
-                      style={{background:'rgba(57,255,126,0.08)',border:'1px solid rgba(57,255,126,0.3)'}}>
-                      <div>
-                        <div className="text-xs text-white/40">Valor total del animal</div>
-                        <div className="text-[10px] text-white/25">{manualPeso} kg × {fmt(Number(manualValorKilo))}/kg</div>
-                      </div>
-                      <div className="font-black text-2xl" style={{color:'#39ff7e',fontFamily:'Sora,sans-serif'}}>{fmt(manualValorTotal)}</div>
-                    </div>
-                  )}
-
-                  {/* Condición corporal */}
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-semibold">Condición Corporal (1-5)</Label>
-                    <div className="flex gap-2">
-                      {["1.0","1.5","2.0","2.5","3.0","3.5","4.0","4.5","5.0"].map(v => (
-                        <button key={v} type="button" onClick={() => setManualCondicion(v)}
-                          className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
-                          style={manualCondicion === v
-                            ? {background:'rgba(255,149,0,0.25)',color:'#ff9500',border:'1px solid rgba(255,149,0,0.5)'}
-                            : {background:'rgba(255,255,255,0.04)',color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.08)'}}>
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-white/30">1=Emaciado · 3=Óptimo · 5=Obeso</p>
-                  </div>
-
-                  {/* Fecha / hora / operador / observación */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">Fecha</Label>
-                      <Input name="fecha" type="date" defaultValue={new Date().toISOString().slice(0,10)}/>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">Hora</Label>
-                      <Input name="hora" type="time" defaultValue={new Date().toTimeString().slice(0,5)}/>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Operador</Label>
-                    <Input name="operador" defaultValue={user?.nombre || ""}/>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Observación</Label>
-                    <Input name="observacion" placeholder="Estado del animal, notas..."/>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild><Button type="button" variant="outline">Cancelar</Button></DialogClose>
-                  <Button type="submit" style={{background:'rgba(255,149,0,0.2)',border:'1px solid rgba(255,149,0,0.4)',color:'#ff9500'}}>
-                    <FileText size={14} className="mr-1.5"/> Guardar y Generar Recibo
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  <DialogFooter>
+                    <Button type="submit" className="gap-2" style={{ background: "rgba(255,149,0,0.9)", color: "black" }}>
+                      <CheckCircle2 size={14} /> Guardar pesaje
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* ── KPI cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label:'PESAJES TOTAL', val:String(totalPesajes), sub:'historial completo', c:'#ff9500', icon:'⚖️' },
-          { label:'VÍA BLUETOOTH', val:String(btPesajes), sub:'básculas digitales', c:'#00c8ff', icon:'📡' },
-          { label:'PESO PROMEDIO', val:`${pesoPromedio}kg`, sub:'todos los registros', c:'#39ff7e', icon:'📊' },
-          { label:'PESAJES HOY', val:String(hoy), sub:'jornada actual', c:'#bf00ff', icon:'📅' },
+          { l: "HOY", v: String(hoy), s: "pesajes registrados", g: "linear-gradient(135deg,#92400e,#b45309)", icon: <Clock size={15} className="text-white" /> },
+          { l: "TOTAL", v: String(pesajes.length), s: "en historial", g: "linear-gradient(135deg,#064e3b,#065f46)", icon: <BarChart3 size={15} className="text-white" /> },
+          { l: "BLUETOOTH", v: String(btCount), s: "con báscula real/simulada", g: "linear-gradient(135deg,#1e3a5f,#1e40af)", icon: <Bluetooth size={15} className="text-white" /> },
+          { l: "PROMEDIO", v: `${pesoAvg}`, s: "kg por animal", g: "linear-gradient(135deg,#4a044e,#7e22ce)", icon: <Scale size={15} className="text-white" /> },
         ].map(k => (
-          <div key={k.label} className="rounded-xl p-4 text-white relative overflow-hidden"
-            style={{background:'linear-gradient(135deg,#020d09,#041208)', border:'1px solid rgba(0,245,212,0.15)'}}>
-            <div className="absolute top-0 right-0 w-14 h-14 rounded-full pointer-events-none" style={{background:k.c, opacity:0.15, filter:'blur(18px)', transform:'translate(30%,-30%)'}}/>
-            <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{color:'rgba(0,245,212,0.55)'}}>{k.icon} {k.label}</div>
-            <div className="text-2xl font-bold" style={{color:k.c, fontFamily:'Sora,sans-serif'}}>{k.val}</div>
-            <div className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>{k.sub}</div>
+          <div key={k.l} className="rounded-xl p-4 text-white shadow-lg transition-transform hover:scale-[1.02] hover:shadow-xl" style={{ background: k.g }}>
+            <div className="flex items-center gap-1.5 mb-1">{k.icon}<div className="text-[10px] font-bold uppercase tracking-wider text-white/70">{k.l}</div></div>
+            <div className="text-2xl font-black">{k.v}</div>
+            <div className="text-[10px] text-white/55">{k.s}</div>
           </div>
         ))}
       </div>
 
-      <Tabs defaultValue="bluetooth" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="bluetooth" className="gap-1.5"><Bluetooth size={14}/>Báscula BT</TabsTrigger>
-          <TabsTrigger value="historial" className="gap-1.5"><BarChart3 size={14}/>Historial</TabsTrigger>
-          <TabsTrigger value="analisis" className="gap-1.5"><TrendingUp size={14}/>Análisis</TabsTrigger>
-        </TabsList>
+      {/* ── Main interface ── */}
+      <div className="grid lg:grid-cols-3 gap-5">
+        {/* Left: controller + live scale */}
+        <div className="lg:col-span-1 space-y-4">
 
-        {/* ── BT Tab ── */}
-        <TabsContent value="bluetooth">
-          <div className="grid lg:grid-cols-2 gap-5">
-            {/* Device selector */}
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><Bluetooth size={16} className="text-blue-400"/></div>
-                <div><div className="font-semibold text-sm">Control Bluetooth</div><div className="text-xs text-muted-foreground">Báscula digital</div></div>
-                <div className={`ml-auto flex items-center gap-1.5 text-xs font-medium ${btStatus==='connected'?'text-green-400':btStatus==='scanning'?'text-amber-400':'text-muted-foreground'}`}>
-                  {btStatus==='connected'?<><BluetoothConnected size={14}/>Conectado</>:btStatus==='scanning'?<><RefreshCw size={14} className="animate-spin"/>Buscando...</>:<><BluetoothOff size={14}/>Desconectado</>}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dispositivos</p>
-                {DISPOSITIVOS_BT.map(d => (
-                  <div key={d.id} onClick={() => { setSelectedDevice(d); if(btStatus==='connected') disconnectBluetooth(); }}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${selectedDevice.id===d.id?'border-blue-500/50 bg-blue-500/10':'border-border hover:border-blue-500/30 hover:bg-muted/20'}`}>
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center"><Scale size={15} className="text-blue-400"/></div>
-                    <div className="flex-1"><div className="text-sm font-medium">{d.nombre}</div><div className="text-xs text-muted-foreground">{d.tipo}</div></div>
-                    <div className="text-xs text-right">
-                      <div className={`font-semibold ${d.bateria>50?'text-green-400':d.bateria>20?'text-amber-400':'text-red-400'}`}>{d.bateria}%</div>
-                      <div className="text-muted-foreground">batería</div>
-                    </div>
-                    {selectedDevice.id===d.id&&<div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"/>}
+          {/* Controller selector */}
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+              <Cpu size={14} className="text-orange-400" />
+              <span className="font-semibold text-sm">Controlador / Báscula</span>
+            </div>
+            <div className="p-3 space-y-1.5">
+              {CONTROLLERS.map(ctrl => (
+                <button key={ctrl.id}
+                  onClick={() => { if (btStatus !== "idle" && btStatus !== "error") return; setSelectedCtrl(ctrl); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group hover:scale-[1.01]"
+                  style={{
+                    background: selectedCtrl.id === ctrl.id
+                      ? `rgba(${ctrl.glow},0.12)`
+                      : "rgba(255,255,255,0.02)",
+                    border: `1px solid ${selectedCtrl.id === ctrl.id ? `rgba(${ctrl.glow},0.4)` : "rgba(255,255,255,0.06)"}`,
+                    cursor: btStatus !== "idle" && btStatus !== "error" ? "not-allowed" : "pointer",
+                  }}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
+                    style={{ background: `rgba(${ctrl.glow},0.15)`, border: `1px solid rgba(${ctrl.glow},0.3)` }}>
+                    {ctrl.icon}
                   </div>
-                ))}
-              </div>
-              <div className="flex gap-2 pt-1">
-                {btStatus==='idle'||btStatus==='error' ? (
-                  <Button onClick={connectBluetooth} className="flex-1 bg-blue-600 hover:bg-blue-700 gap-2"><Bluetooth size={15}/>Conectar {selectedDevice.nombre}</Button>
-                ) : btStatus==='scanning' ? (
-                  <Button disabled className="flex-1 gap-2"><RefreshCw size={15} className="animate-spin"/>Buscando...</Button>
-                ) : (
-                  <Button onClick={disconnectBluetooth} variant="outline" className="flex-1 gap-2 text-red-400 border-red-500/30"><BluetoothOff size={15}/>Desconectar</Button>
-                )}
-              </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold truncate" style={{ color: selectedCtrl.id === ctrl.id ? `rgb(${ctrl.glow})` : "rgba(255,255,255,0.8)" }}>
+                      {ctrl.nombre}
+                    </div>
+                    <div className="text-[9px] text-muted-foreground truncate">{ctrl.desc}</div>
+                  </div>
+                  {selectedCtrl.id === ctrl.id && <CheckCircle2 size={13} style={{ color: `rgb(${ctrl.glow})`, flexShrink: 0 }} />}
+                </button>
+              ))}
             </div>
 
-            {/* Live weighing */}
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center"><Scale size={16} className="text-orange-400"/></div>
-                <div><div className="font-semibold text-sm">Lectura en Vivo</div><div className="text-xs text-muted-foreground">Selecciona animal · auto-cálculo por raza</div></div>
-              </div>
-
-              {/* Animal selector */}
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground uppercase font-semibold tracking-wider">Animal a pesar</Label>
-                <Select value={selectedAnimal?.id} onValueChange={id => setSelectedAnimal(animals.find(a=>a.id===id)||animals[0])}>
-                  <SelectTrigger className="bg-muted/30"><SelectValue/></SelectTrigger>
-                  <SelectContent>{animals.map(a=><SelectItem key={a.id} value={a.id}>{a.nombre} — {a.id} ({a.raza} · {a.categoria})</SelectItem>)}</SelectContent>
-                </Select>
-                {selectedAnimal && selAnimalEsp && (
-                  <div className="rounded-lg p-2.5" style={{background:'rgba(0,200,255,0.07)',border:'1px solid rgba(0,200,255,0.2)'}}>
-                    <div className="flex items-center gap-1.5 mb-1.5">
-                      <Calculator size={11} className="text-cyan-400"/>
-                      <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Raza {selectedAnimal.raza} — {selectedAnimal.categoria}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5 text-center">
-                      {[["Mín.", selAnimalEsp.min],["Prom.", selAnimalEsp.promedio],["Máx.", selAnimalEsp.max]].map(([l,v]) => (
-                        <div key={String(l)} className="text-xs">
-                          <div className="text-white/30 text-[9px]">{l}</div>
-                          <div className="font-bold text-cyan-300">{v} kg</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Live display */}
-              <div className={`rounded-xl p-6 text-center transition-all ${btStatus==='connected'?'bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700':'bg-muted/20 border border-border'}`}>
-                {btStatus!=='connected' ? (
-                  <div className="text-muted-foreground"><Scale size={36} className="mx-auto mb-2 opacity-30"/><p className="text-sm">Conecte la báscula BT para ver la lectura en tiempo real</p></div>
-                ) : (
-                  <>
-                    <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">PESO EN BÁSCULA</div>
-                    <div className={`text-6xl font-bold font-mono transition-all ${stable?'text-green-400':'text-amber-400'}`}>
-                      {liveWeight!==null?`${liveWeight}`:'---'}
-                    </div>
-                    <div className="text-lg text-slate-400 font-semibold mt-1">kg</div>
-                    <div className="flex items-center justify-center gap-2 mt-3">
-                      {stable ? (
-                        <span className="flex items-center gap-1.5 text-green-400 text-sm font-semibold"><CheckCircle2 size={16}/>Peso estable · Listo</span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-amber-400 text-sm"><RefreshCw size={14} className="animate-spin"/>Estabilizando...</span>
-                      )}
-                    </div>
-                    {liveWeight && selectedAnimal && selAnimalEsp && (
-                      <div className="mt-2 space-y-1">
-                        <div className={`text-xs ${diffColor(liveWeight, selectedAnimal.peso)}`}>
-                          <span className="inline-flex items-center gap-1">{diffIcon(liveWeight, selectedAnimal.peso)}{liveWeight>selectedAnimal.peso?'+':''}{(liveWeight-selectedAnimal.peso).toFixed(1)} kg vs. último</span>
-                        </div>
-                        <div className="text-[10px] text-white/40">
-                          Rango esperado {selectedAnimal.raza}: {selAnimalEsp.min}–{selAnimalEsp.max} kg
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* Valor estimado en vivo */}
-              {liveWeight && btStatus==='connected' && (
-                <div className="rounded-lg p-3 flex justify-between items-center"
-                  style={{background:'rgba(57,255,126,0.07)',border:'1px solid rgba(57,255,126,0.2)'}}>
-                  <div className="text-xs">
-                    <div className="text-white/40">Valor estimado</div>
-                    <div className="text-white/30 text-[10px]">{liveWeight} kg × {fmt(selectedAnimal?.valorKilo||11000)}/kg</div>
-                  </div>
-                  <div className="font-black text-lg" style={{color:'#39ff7e',fontFamily:'Sora,sans-serif'}}>
-                    {fmt(liveWeight*(selectedAnimal?.valorKilo||11000))}
-                  </div>
+            {/* Connect button */}
+            <div className="p-3 pt-0 space-y-2">
+              {btError && (
+                <div className="text-xs text-red-400 flex items-center gap-1.5 px-3 py-2 rounded-lg" style={{ background: "rgba(239,68,68,0.1)" }}>
+                  <AlertTriangle size={12} /> {btError}
                 </div>
               )}
-
-              <Button onClick={capturePeso} disabled={!stable||!liveWeight||btStatus!=='connected'}
-                className="w-full gap-2 h-11 text-base font-semibold bg-orange-600 hover:bg-orange-700">
-                <Zap size={16}/> Capturar y Generar Recibo ({liveWeight?`${liveWeight} kg`:'---'})
-              </Button>
+              {btStatus === "idle" || btStatus === "error" ? (
+                <Button className="w-full h-10 gap-2 font-bold"
+                  onClick={connectBluetooth}
+                  disabled={selectedCtrl.protocol === "manual"}
+                  style={{
+                    background: selectedCtrl.protocol === "manual"
+                      ? "rgba(255,255,255,0.05)"
+                      : `linear-gradient(135deg,rgba(${selectedCtrl.glow},0.9),rgba(${selectedCtrl.glow},0.7))`,
+                    color: selectedCtrl.protocol === "manual" ? "#666" : "#000",
+                    boxShadow: selectedCtrl.protocol !== "manual" ? `0 0 20px rgba(${selectedCtrl.glow},0.3)` : "none",
+                  }}>
+                  <Bluetooth size={15} />
+                  {selectedCtrl.protocol === "manual" ? "Sin Bluetooth" : `Conectar ${selectedCtrl.marca}`}
+                </Button>
+              ) : btStatus === "scanning" ? (
+                <Button disabled className="w-full h-10 gap-2" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <BluetoothSearching size={15} className="animate-pulse" /> Buscando báscula...
+                </Button>
+              ) : (
+                <Button onClick={disconnectBluetooth} className="w-full h-10 gap-2 font-bold"
+                  style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.35)", color: "#f87171" }}>
+                  <BluetoothOff size={15} /> Desconectar
+                </Button>
+              )}
+              <label className="flex items-center gap-2 px-2 cursor-pointer">
+                <input type="checkbox" checked={autoCapture} onChange={e => setAutoCapture(e.target.checked)} className="rounded" />
+                <span className="text-xs text-muted-foreground">Auto-capturar al estabilizar</span>
+              </label>
             </div>
           </div>
-        </TabsContent>
 
-        {/* ── Historial Tab ── */}
-        <TabsContent value="historial">
+          {/* Live scale display */}
+          <LiveScale
+            weight={liveWeight} stability={stability} stable={stable}
+            status={btStatus} onCapture={() => capturePeso()}
+            autoCapture={autoCapture}
+          />
+        </div>
+
+        {/* Right: animal selector + history */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Animal selector */}
           <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="p-4 border-b border-border flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-              <div className="font-semibold flex items-center gap-2"><BarChart3 size={15} className="text-orange-400"/>Historial de Pesajes</div>
-              <div className="flex gap-2 flex-wrap">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={13}/>
-                  <Input placeholder="Buscar animal..." value={searchAnim} onChange={e=>setSearchAnim(e.target.value)} className="pl-8 h-8 text-sm w-40 bg-muted/30"/>
-                </div>
-                <Select value={filterLote} onValueChange={setFilterLote}>
-                  <SelectTrigger className="w-28 h-8 text-sm bg-muted/30"><SelectValue/></SelectTrigger>
-                  <SelectContent>{['Todos','Lote A','Lote B','Lote C','Lote D','Lote E','Lote F'].map(v=><SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="flex items-center gap-2">
+                <Beef size={15} className="text-orange-400" />
+                <span className="font-semibold text-sm">Seleccionar animal</span>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={13} />
+                <Input value={searchAnim} onChange={e => setSearchAnim(e.target.value)}
+                  placeholder="Buscar..." className="pl-8 h-8 w-48 text-xs" />
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border" style={{background:'rgba(255,149,0,0.07)'}}>
-                    {['FECHA','HORA','ANIMAL','RAZA','PESO','ANTERIOR','DIFER.','VALOR/KG','VALOR TOTAL','CC','MÉTODO','OPERADOR','ACC.'].map(h => (
-                      <th key={h} className="text-left px-3 py-3 text-[10px] uppercase font-semibold whitespace-nowrap" style={{color:'rgba(255,149,0,0.75)'}}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {pesajes.filter(p => {
-                    const ms = p.animalNombre.toLowerCase().includes(searchAnim.toLowerCase())||p.animalId.toLowerCase().includes(searchAnim.toLowerCase());
-                    const ml = filterLote==="Todos"||p.lote===filterLote;
-                    return ms&&ml;
-                  }).map(p => {
-                    const pp = p as PesajeConValor;
-                    const diff = p.peso - p.pesoAnterior;
-                    const anim = animals.find(a=>a.id===p.animalId);
-                    const vk = pp.valorKilo || anim?.valorKilo || 0;
-                    const vt = vk ? p.peso * vk : 0;
-                    return (
-                      <tr key={p.id} className="border-b border-border hover:bg-muted/20 transition-colors">
-                        <td className="px-3 py-3 text-muted-foreground text-xs whitespace-nowrap">{p.fecha}</td>
-                        <td className="px-3 py-3 text-muted-foreground text-xs">{p.hora}</td>
-                        <td className="px-3 py-3">
-                          <div className="font-semibold">{p.animalNombre}</div>
-                          <div className="text-[10px] font-mono text-orange-400">{p.animalId}</div>
-                        </td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">{anim?.raza||'—'}</td>
-                        <td className="px-3 py-3 font-bold text-orange-300 whitespace-nowrap">{p.peso.toFixed(1)} kg</td>
-                        <td className="px-3 py-3 text-muted-foreground text-xs whitespace-nowrap">{p.pesoAnterior.toFixed(1)} kg</td>
-                        <td className={`px-3 py-3 text-xs font-semibold whitespace-nowrap ${diff>0?'text-green-400':diff<0?'text-red-400':'text-muted-foreground'}`}>
-                          <span className="inline-flex items-center gap-1">{diff>0?<TrendingUp size={11}/>:diff<0?<TrendingDown size={11}/>:<Minus size={11}/>}{diff>0?'+':''}{diff.toFixed(1)} kg</span>
-                        </td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">{vk?`${(vk/1000).toFixed(0)}k/kg`:'—'}</td>
-                        <td className="px-3 py-3 text-xs font-bold whitespace-nowrap" style={{color:vt?'#39ff7e':'rgba(255,255,255,0.3)'}}>{vt?`$${(vt/1000000).toFixed(2)}M`:'—'}</td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground whitespace-nowrap">{pp.condicionCorporal||'—'}</td>
-                        <td className="px-3 py-3">
-                          {p.metodo==='bluetooth'
-                            ? <span className="inline-flex items-center gap-1 text-xs bg-blue-500/15 text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded-full"><Bluetooth size={10}/>BT</span>
-                            : <span className="text-xs bg-muted/40 text-muted-foreground px-2 py-0.5 rounded-full">Manual</span>
-                          }
-                        </td>
-                        <td className="px-3 py-3 text-xs text-muted-foreground">{p.operador}</td>
-                        <td className="px-3 py-3">
-                          <div className="flex gap-1">
-                            <button title="Ver recibo" onClick={() => setReciboP({...pp, raza:anim?.raza, categoria:anim?.categoria||pp.categoria, valorKilo:vk, valorTotal:vt})}
-                              className="p-1 rounded hover:bg-white/5 transition-colors" style={{color:'rgba(255,149,0,0.7)'}}>
-                              <FileText size={13}/>
-                            </button>
-                            <button onClick={()=>deletePesaje(p.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 size={13}/></button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {pesajes.length===0&&(
-                <div className="text-center py-12 text-muted-foreground"><Scale size={36} className="mx-auto mb-2 opacity-30"/><p>No hay pesajes registrados</p></div>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* ── Análisis Tab ── */}
-        <TabsContent value="analisis">
-          <div className="grid lg:grid-cols-2 gap-5">
-            <div className="bg-card border border-border rounded-xl p-5">
-              <div className="font-semibold mb-4 flex items-center gap-2"><TrendingUp size={16} className="text-orange-400"/>Tendencia por Animal</div>
-              <div className="space-y-4">
-                {filteredAnimals.slice(0,5).map(a => {
-                  const hist = animalHistory(a.id);
-                  const lastP = pesajes.filter(p=>p.animalId===a.id).sort((x,y)=>y.id-x.id)[0];
-                  const cur = lastP?.peso ?? a.peso;
-                  const prev = lastP?.pesoAnterior ?? a.peso;
-                  const diff = cur - prev;
-                  const esp = getPesoEsperado(a.raza, a.categoria);
-                  return (
-                    <div key={a.id} className="border border-border rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <div>
-                          <span className="font-semibold text-sm">{a.nombre}</span>
-                          <span className="text-xs text-muted-foreground ml-2">{a.id} · {a.raza}</span>
+            <div className="divide-y divide-border max-h-64 overflow-y-auto">
+              {filtered.map(a => {
+                const isSelected = selectedAnimal?.id === a.id;
+                const lastP = pesajes.filter(p => p.animalId === a.id)[0];
+                const d = lastP ? lastP.peso - lastP.pesoAnterior : 0;
+                return (
+                  <div key={a.id}
+                    onClick={() => setSelectedAnimal(a)}
+                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-all hover:scale-[1.005]"
+                    style={{
+                      background: isSelected ? "rgba(255,149,0,0.07)" : undefined,
+                      borderLeft: isSelected ? "3px solid #ff9500" : "3px solid transparent",
+                    }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+                      style={{ background: isSelected ? "rgba(255,149,0,0.15)" : "rgba(255,255,255,0.04)" }}>
+                      🐄
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{a.nombre}</div>
+                      <div className="text-xs text-muted-foreground">{a.id} · {a.raza} · {a.lote}</div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-sm font-bold">{lastP ? `${lastP.peso} kg` : `${a.peso} kg`}</div>
+                      {d !== 0 && (
+                        <div className={`text-xs flex items-center justify-end gap-0.5 ${d > 0 ? "text-green-400" : "text-red-400"}`}>
+                          {d > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                          {d > 0 ? "+" : ""}{d.toFixed(1)} kg
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-orange-400">{cur} kg</div>
-                          <div className={`text-xs ${diff>0?'text-green-400':diff<0?'text-red-400':'text-muted-foreground'}`}>{diff>0?'+':''}{diff.toFixed(1)} kg</div>
-                        </div>
-                      </div>
-                      <div className="text-[10px] text-white/30 mb-2">Rango esperado {a.raza}: {esp.min}–{esp.max} kg · Prom. {esp.promedio} kg</div>
-                      {hist.length>1 ? (
-                        <div className="h-16">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={hist} margin={{top:2,right:2,left:0,bottom:0}}>
-                              <defs><linearGradient id={`grad_${a.id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient></defs>
-                              <Area type="monotone" dataKey="kg" stroke="#f97316" strokeWidth={1.5} fill={`url(#grad_${a.id})`} dot={false}/>
-                              <Tooltip contentStyle={{backgroundColor:'#111',border:'1px solid #333',fontSize:'11px'}} formatter={(v:number)=>[`${v} kg`]}/>
-                            </AreaChart>
-                          </ResponsiveContainer>
-                        </div>
-                      ) : (
-                        <div className="h-16 flex items-center justify-center text-xs text-muted-foreground">Sin historial suficiente</div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
+          </div>
 
-            <div className="space-y-5">
-              {/* Distribución pesos */}
-              <div className="bg-card border border-border rounded-xl p-5">
-                <div className="font-semibold mb-4 flex items-center gap-2"><BarChart3 size={16} className="text-amber-400"/>Pesos Actuales</div>
-                <div className="h-48">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={animals.slice(0,8).map(a=>({name:a.nombre.split(' ')[0],kg:a.peso}))} margin={{top:5,right:10,left:0,bottom:0}}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false}/>
-                      <XAxis dataKey="name" tick={{fontSize:10,fill:'#888'}}/>
-                      <YAxis tick={{fontSize:10,fill:'#888'}} width={40}/>
-                      <Tooltip contentStyle={{backgroundColor:'#111',border:'1px solid #333',fontSize:'11px'}} formatter={(v:number)=>[`${v} kg`]}/>
-                      <Bar dataKey="kg" fill="#f97316" radius={[3,3,0,0]}/>
+          {/* Selected animal info + chart */}
+          {selectedAnimal && (
+            <div className="bg-card border border-border rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🐄</span>
+                  <div>
+                    <div className="font-bold text-sm">{selectedAnimal.nombre}</div>
+                    <div className="text-xs text-muted-foreground">{selectedAnimal.id} · {selectedAnimal.raza} · {selectedAnimal.categoria}</div>
+                  </div>
+                </div>
+                {selRef && (
+                  <div className="text-right text-xs">
+                    <div className="text-muted-foreground">Ref. raza</div>
+                    <div className="font-bold">{selRef.min}–{selRef.max} kg</div>
+                  </div>
+                )}
+              </div>
+              {animalHistory(selectedAnimal.id).length > 0 ? (
+                <div className="p-4">
+                  <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+                    <Activity size={12} /> Historial de pesajes
+                  </div>
+                  <ResponsiveContainer width="100%" height={120}>
+                    <BarChart data={animalHistory(selectedAnimal.id)} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#666" }} />
+                      <YAxis tick={{ fontSize: 10, fill: "#666" }} domain={["auto", "auto"]} />
+                      <Tooltip formatter={(v) => [`${v} kg`, "Peso"]} contentStyle={{ fontSize: 12 }} />
+                      <Bar dataKey="kg" fill="#ff9500" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
-
-              {/* Resumen por raza */}
-              <div className="bg-card border border-border rounded-xl p-5">
-                <div className="font-semibold mb-3 text-sm flex items-center gap-2"><Beef size={14} className="text-orange-400"/>Resumen por Raza</div>
-                {Array.from(new Set(animals.map(a=>a.raza))).map(raza => {
-                  const group = animals.filter(a=>a.raza===raza);
-                  if (!group.length) return null;
-                  const avg = group.reduce((s,a)=>s+a.peso,0)/group.length;
-                  const esp = getPesoEsperado(raza, group[0].categoria);
-                  const pct = Math.min(100, (avg/esp.max)*100);
-                  return (
-                    <div key={raza} className="py-2 border-b border-border/40 last:border-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium">{raza}</span>
-                        <div className="text-right">
-                          <span className="text-sm font-bold text-orange-300">{avg.toFixed(0)} kg</span>
-                          <span className="text-xs text-muted-foreground ml-2">{group.length} anim.</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-muted/30 rounded-full">
-                          <div className="h-2 bg-orange-500 rounded-full transition-all" style={{width:`${pct}%`}}/>
-                        </div>
-                        <span className="text-[10px] text-white/30 w-20 text-right">Esp. {esp.min}–{esp.max}kg</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              ) : (
+                <div className="p-6 text-center text-sm text-muted-foreground">Sin pesajes registrados</div>
+              )}
             </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+          )}
+        </div>
+      </div>
 
-      {/* Dialog recibo */}
-      <Dialog open={!!reciboP} onOpenChange={v => { if(!v) setReciboP(null); }}>
-        <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><FileText size={16} style={{color:'#ff9500'}}/>Recibo de Pesaje</DialogTitle>
-          </DialogHeader>
-          {reciboP && <ReciboPesaje p={reciboP} onClose={() => setReciboP(null)} finca={user?.finca}/>}
+      {/* ── Historial de pesajes ── */}
+      <div className="bg-card border border-border rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText size={15} className="text-orange-400" />
+            <span className="font-semibold text-sm">Historial de pesajes</span>
+          </div>
+          <span className="text-xs text-muted-foreground">{pesajes.length} registros</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: "#1a4a2e" }}>
+                {["Animal", "Peso", "Anterior", "Diferencia", "Método", "Fecha", "Valor", ""].map(h => (
+                  <th key={h} className="px-4 py-2.5 text-left text-[11px] font-bold text-white/70 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pesajes.slice(0, 30).map((p, i) => {
+                const d = p.peso - p.pesoAnterior;
+                return (
+                  <tr key={p.id} className="border-t border-border hover:bg-muted/10 transition-colors group">
+                    <td className="px-4 py-2.5">
+                      <div className="font-semibold text-sm">{p.animalNombre}</div>
+                      <div className="text-xs text-muted-foreground">{p.animalId}</div>
+                    </td>
+                    <td className="px-4 py-2.5 font-bold">{p.peso.toFixed(1)} kg</td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{p.pesoAnterior.toFixed(1)} kg</td>
+                    <td className="px-4 py-2.5">
+                      <span className={`font-bold flex items-center gap-0.5 ${d > 0 ? "text-green-400" : d < 0 ? "text-red-400" : "text-muted-foreground"}`}>
+                        {d > 0 ? <TrendingUp size={12} /> : d < 0 ? <TrendingDown size={12} /> : <Minus size={12} />}
+                        {d > 0 ? "+" : ""}{d.toFixed(1)} kg
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant="secondary" className="text-[10px] gap-1">
+                        {p.metodo === "bluetooth" ? <><BluetoothConnected size={9} /> BT Real</> :
+                         p.metodo === "simulated" ? <><Activity size={9} /> Simulado</> :
+                         <><Minus size={9} /> Manual</>}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2.5 text-xs text-muted-foreground whitespace-nowrap">{p.fecha} {p.hora}</td>
+                    <td className="px-4 py-2.5 text-xs font-bold"
+                      style={{ color: "#39ff7e" }}>
+                      {(p as any).valorKilo ? fmt(p.peso * (p as any).valorKilo) : "—"}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Printer size={11} /> Recibo
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md max-h-[88vh] overflow-y-auto">
+                          <ReciboPesaje p={p as PesajeRec} onClose={() => {}} />
+                        </DialogContent>
+                      </Dialog>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Recibo automático */}
+      <Dialog open={!!reciboP} onOpenChange={v => { if (!v) setReciboP(null); }}>
+        <DialogContent className="sm:max-w-md max-h-[88vh] overflow-y-auto">
+          <DialogHeader><DialogTitle className="flex items-center gap-2"><Star size={15} className="text-orange-400" /> Pesaje registrado</DialogTitle></DialogHeader>
+          {reciboP && <ReciboPesaje p={reciboP} onClose={() => setReciboP(null)} />}
         </DialogContent>
       </Dialog>
     </div>

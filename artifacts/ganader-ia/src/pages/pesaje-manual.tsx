@@ -601,12 +601,15 @@ export default function PesajeManual() {
     <div className="space-y-4">
 
       {/* ── HERO BANNER ─────────────────────────────────────────────────────── */}
-      <div className="rounded-2xl p-5 relative overflow-hidden"
+      <div className="rounded-2xl p-5 relative overflow-hidden module-banner"
         style={{
           background: "linear-gradient(135deg,#0a001f,#180038,#240052,#180038)",
           border: "1px solid rgba(192,132,252,0.4)",
           boxShadow: "0 0 60px rgba(192,132,252,0.14)",
         }}>
+        {/* Unsplash cattle farm image */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=900&q=25&auto=format&fit=crop') center/cover no-repeat", opacity: 0.06 }} />
         <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full pointer-events-none opacity-15"
           style={{ background: "radial-gradient(circle,#c084fc,transparent)" }}/>
         <div className="absolute -left-6 bottom-0 w-32 h-32 rounded-full pointer-events-none opacity-10"

@@ -802,3 +802,159 @@ html { font-size: 15.5px; }
   border-color: rgba(80,130,200,0.18) !important;
   box-shadow: 0 4px 24px rgba(10,20,50,0.40) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HOVER EFFECTS & INTERACTIVE ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Card lift on hover */
+.hover\:scale-\[1\.02\]:hover,
+.hover\:scale-\[1\.01\]:hover,
+.hover\:scale-\[1\.005\]:hover {
+  will-change: transform;
+}
+
+/* KPI card glow pulse on hover */
+.kpi-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-3px) scale(1.015);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 24px rgba(0,245,212,0.12) !important;
+}
+
+/* Table row highlight */
+tbody tr {
+  transition: background 0.15s ease;
+}
+tbody tr:hover {
+  background: rgba(0,245,212,0.04) !important;
+}
+
+/* Button glow on hover */
+button:not([disabled]):hover {
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+/* Sidebar nav item */
+.sidebar-nav-item {
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+.sidebar-nav-item:hover {
+  transform: translateX(2px);
+}
+
+/* Icon scale on hover */
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.10);
+  transition: transform 0.2s ease;
+}
+
+/* Banner image overlay shimmer */
+@keyframes banner-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.banner-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%);
+  background-size: 400px 100%;
+  animation: banner-shimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Badge pop */
+@keyframes badge-pop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.badge-pop {
+  animation: badge-pop 0.25s ease forwards;
+}
+
+/* Dialog fade-in scale */
+@keyframes dialog-in {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+[role="dialog"] > * {
+  animation: dialog-in 0.2s ease forwards;
+}
+
+/* Progress bar animated fill */
+@keyframes fill-bar {
+  from { width: 0%; }
+}
+.animated-bar {
+  animation: fill-bar 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+
+/* Tooltip fade-in */
+[data-radix-popper-content-wrapper] {
+  animation: dialog-in 0.15s ease forwards;
+}
+
+/* Recharts tooltip */
+.recharts-tooltip-wrapper {
+  transition: opacity 0.15s ease !important;
+}
+
+/* GPS geofence pulse ring */
+@keyframes geofence-ring {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.geofence-pulse {
+  animation: geofence-ring 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Bluetooth scanning ring */
+@keyframes bt-scan {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.bt-scan-ring {
+  animation: bt-scan 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Weight number counter animation */
+@keyframes weight-tick {
+  0%   { transform: translateY(-4px); opacity: 0.5; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.weight-tick {
+  animation: weight-tick 0.12s ease forwards;
+}
+
+/* Module banner hover depth effect */
+.module-banner {
+  transition: box-shadow 0.3s ease;
+}
+.module-banner:hover {
+  box-shadow: 0 8px 40px rgba(0,0,0,0.3) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGO COW PHOTO — glow ring animation
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes logo-glow {
+  0%, 100% { box-shadow: 0 0 18px rgba(0,245,212,0.45), 0 0 6px rgba(0,245,212,0.25); }
+  50%       { box-shadow: 0 0 28px rgba(0,245,212,0.70), 0 0 12px rgba(0,245,212,0.40); }
+}
+.logo-cow-ring {
+  animation: logo-glow 3s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SCROLL SNAP — smooth section scrolling
+   ═══════════════════════════════════════════════════════════════════════════ */
+.snap-section {
+  scroll-snap-align: start;
+  scroll-margin-top: 72px;
+}
+html {
+  scroll-behavior: smooth;
+}

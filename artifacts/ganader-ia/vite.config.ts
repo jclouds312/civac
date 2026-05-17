@@ -30,7 +30,7 @@ if (!isBuild) {
 export default defineConfig({
   base: basePath,
   plugins: [
-    react(),
+    react({ include: /\.(jsx|tsx|ts|js)$/ }),
     tailwindcss(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&

@@ -4,6 +4,7 @@ import {
 } from "recharts";
 import { useAppState } from "../lib/data";
 import { useAuth } from "@/lib/auth";
+import { useTheme } from "@/lib/theme";
 import {
   Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
   ChevronRight, Activity, Zap, Target, BarChart2,
@@ -33,26 +34,27 @@ const dataFinanzas = [
 
 const PIE_COLORS = ['#00f5d4','#00c8ff','#39ff7e','#a855f7'];
 const TIP = { backgroundColor:'#030f0b', border:'1px solid rgba(0,245,212,0.2)', color:'#e2e8f0', borderRadius:'12px', fontSize:'12px' };
+const TIP_LIGHT = { backgroundColor:'#f5f0e2', border:'1px solid rgba(80,120,60,0.3)', color:'#2a2010', borderRadius:'12px', fontSize:'12px' };
 
 const MODULOS = [
-  { emoji:'🐄', title:'Inventario',       desc:'Registro RFID · 13 bovinos',        href:'/inventario',    from:'#39ff7e', to:'#00c850', glow:'57,255,126',  badge:'13' },
-  { emoji:'🥛', title:'Producción',       desc:'84 L/día · 5 vacas ordeño',         href:'/produccion',    from:'#00c8ff', to:'#0ea5e9', glow:'0,200,255',   badge:'84L' },
-  { emoji:'🔁', title:'Reproducción',     desc:'Celos · IA · Gestación',            href:'/reproduccion',  from:'#ff6fd8', to:'#c026d3', glow:'255,111,216', badge:'1↑' },
-  { emoji:'🧬', title:'Genética',         desc:'DEP · Ranking · Pedigrí',           href:'/genetica',      from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:null },
-  { emoji:'🌿', title:'Potreros',         desc:'6 lotes · Rotación activa',         href:'/potreros',      from:'#84ef34', to:'#65a30d', glow:'132,239,52',  badge:'6' },
-  { emoji:'🌾', title:'Alimentación',     desc:'Raciones · Minerales · TMR',        href:'/alimentacion',  from:'#ffd166', to:'#f59e0b', glow:'255,209,102', badge:null },
-  { emoji:'💊', title:'Insumos / Kardex', desc:'⚠ 4 ítems bajo stock mínimo',       href:'/insumos',       from:'#ff4d6d', to:'#c9184a', glow:'255,77,109',  badge:'⚠4', red:true },
-  { emoji:'💰', title:'Costos y P&G',     desc:'$40.2M · Margen 35%',               href:'/costos',        from:'#34d399', to:'#059669', glow:'52,211,153',  badge:null },
-  { emoji:'🧊', title:'Semen y Embriones',desc:'Inventario criogénico · TE',        href:'/semen',         from:'#818cf8', to:'#4f46e5', glow:'129,140,248', badge:null },
-  { emoji:'👷', title:'Personal',         desc:'6 empleados · Nómina activa',       href:'/personal',      from:'#94a3b8', to:'#64748b', glow:'148,163,184', badge:'6' },
-  { emoji:'🤖', title:'Predicciones IA',  desc:'Alertas inteligentes · GPT',        href:'/prediccion',    from:'#e879f9', to:'#9333ea', glow:'232,121,249', badge:'PRO' },
-  { emoji:'🌱', title:'Huella Carbono',   desc:'IPCC 2019 · Bonos CO₂',            href:'/co2',           from:'#4ade80', to:'#16a34a', glow:'74,222,128',  badge:null },
-  { emoji:'⚖️', title:'Pesaje BT',        desc:'Báscula Bluetooth · GMD',           href:'/pesaje',        from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  badge:'PRO' },
-  { emoji:'📡', title:'GPS Ganado',       desc:'Rastreo en tiempo real',            href:'/gps',           from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',   badge:'PRO' },
-  { emoji:'🗺️', title:'Multi-Finca',      desc:'3 fincas · Gestión centralizada',  href:'/multifinca',    from:'#22d3ee', to:'#0891b2', glow:'34,211,238',  badge:null },
-  { emoji:'📋', title:'Ficha Individual', desc:'Historia clínica por animal',      href:'/ficha',         from:'#00f5d4', to:'#00a8cc', glow:'0,245,212',   badge:null },
-  { emoji:'👥', title:'Usuarios',         desc:'Accesos · Permisos por rol',        href:'/usuarios',      from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:null },
-  { emoji:'📐', title:'Pesaje Manual',    desc:'CC · GMD · Recibo PDF',            href:'/pesaje-manual', from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:'CC' },
+  { emoji:'🐄', title:'Inventario',       desc:'Registro RFID · 13 bovinos',        href:'/inventario',    from:'#39ff7e', to:'#00c850', glow:'57,255,126',  badge:'13',  lFrom:'#b8f0cc', lTo:'#90e8b0', lText:'#1a5a30' },
+  { emoji:'🥛', title:'Producción',       desc:'84 L/día · 5 vacas ordeño',         href:'/produccion',    from:'#00c8ff', to:'#0ea5e9', glow:'0,200,255',   badge:'84L', lFrom:'#b0dcff', lTo:'#88c8f8', lText:'#0a3a70' },
+  { emoji:'🔁', title:'Reproducción',     desc:'Celos · IA · Gestación',            href:'/reproduccion',  from:'#ff6fd8', to:'#c026d3', glow:'255,111,216', badge:'1↑',  lFrom:'#f8c0f0', lTo:'#f0a0e8', lText:'#6a0a68' },
+  { emoji:'🧬', title:'Genética',         desc:'DEP · Ranking · Pedigrí',           href:'/genetica',      from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:null,  lFrom:'#e0c8fc', lTo:'#d0a8f8', lText:'#4a1a80' },
+  { emoji:'🌿', title:'Potreros',         desc:'6 lotes · Rotación activa',         href:'/potreros',      from:'#84ef34', to:'#65a30d', glow:'132,239,52',  badge:'6',   lFrom:'#d0f090', lTo:'#b4e060', lText:'#285010' },
+  { emoji:'🌾', title:'Alimentación',     desc:'Raciones · Minerales · TMR',        href:'/alimentacion',  from:'#ffd166', to:'#f59e0b', glow:'255,209,102', badge:null,  lFrom:'#fff0a0', lTo:'#ffe070', lText:'#603800' },
+  { emoji:'💊', title:'Insumos / Kardex', desc:'⚠ 4 ítems bajo stock mínimo',       href:'/insumos',       from:'#ff4d6d', to:'#c9184a', glow:'255,77,109',  badge:'⚠4',  lFrom:'#ffc0c8', lTo:'#ff9cac', lText:'#7a0820', red:true },
+  { emoji:'💰', title:'Costos y P&G',     desc:'$40.2M · Margen 35%',               href:'/costos',        from:'#34d399', to:'#059669', glow:'52,211,153',  badge:null,  lFrom:'#b0f4d4', lTo:'#88e8b8', lText:'#0a4830' },
+  { emoji:'🧊', title:'Semen y Embriones',desc:'Inventario criogénico · TE',        href:'/semen',         from:'#818cf8', to:'#4f46e5', glow:'129,140,248', badge:null,  lFrom:'#c8d0fc', lTo:'#a8b8f8', lText:'#1a1870' },
+  { emoji:'👷', title:'Personal',         desc:'6 empleados · Nómina activa',       href:'/personal',      from:'#94a3b8', to:'#64748b', glow:'148,163,184', badge:'6',   lFrom:'#d4dce8', lTo:'#bcccd8', lText:'#2a3848' },
+  { emoji:'🤖', title:'Predicciones IA',  desc:'Alertas inteligentes · GPT',        href:'/prediccion',    from:'#e879f9', to:'#9333ea', glow:'232,121,249', badge:'PRO', lFrom:'#f0c0fc', lTo:'#e098f8', lText:'#580870' },
+  { emoji:'🌱', title:'Huella Carbono',   desc:'IPCC 2019 · Bonos CO₂',            href:'/co2',           from:'#4ade80', to:'#16a34a', glow:'74,222,128',  badge:null,  lFrom:'#c0f4d0', lTo:'#98e8b0', lText:'#0a4820' },
+  { emoji:'⚖️', title:'Pesaje BT',        desc:'Báscula Bluetooth · GMD',           href:'/pesaje',        from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  badge:'PRO', lFrom:'#ffeac0', lTo:'#ffd098', lText:'#602800' },
+  { emoji:'📡', title:'GPS Ganado',       desc:'Rastreo en tiempo real',            href:'/gps',           from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',   badge:'PRO', lFrom:'#c0e4ff', lTo:'#98ccf8', lText:'#0a2868' },
+  { emoji:'🗺️', title:'Multi-Finca',      desc:'3 fincas · Gestión centralizada',  href:'/multifinca',    from:'#22d3ee', to:'#0891b2', glow:'34,211,238',  badge:null,  lFrom:'#b0f0fc', lTo:'#88e0f4', lText:'#083a50' },
+  { emoji:'📋', title:'Ficha Individual', desc:'Historia clínica por animal',       href:'/ficha',         from:'#00f5d4', to:'#00a8cc', glow:'0,245,212',   badge:null,  lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
+  { emoji:'👥', title:'Usuarios',         desc:'Accesos · Permisos por rol',        href:'/usuarios',      from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:null,  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
+  { emoji:'📐', title:'Pesaje Manual',    desc:'CC · GMD · Recibo PDF',            href:'/pesaje-manual', from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:'CC',  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
 ];
 
 function StatTicker() {
@@ -78,6 +80,8 @@ function StatTicker() {
 export default function Dashboard() {
   const { animals, potreros, personal, alertas, pesajes } = useAppState();
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [chartTab, setChartTab] = useState<'produccion'|'peso'|'finanzas'>('produccion');
   const now  = new Date();
   const hour = now.getHours();
@@ -99,32 +103,44 @@ export default function Dashboard() {
   const kpiCards = [
     {
       label:'Total hato', emoji:'🐄', val:total, sub:'animales registrados', trend:'+2', up:true,
-      grad:'linear-gradient(145deg,#002a1e,#003d2e,#004a38)', neon:'#00f5d4', glow:'0,245,212',
+      grad:'linear-gradient(145deg,#002a1e,#003d2e,#004a38)',
+      lGrad:'linear-gradient(145deg,#b8f0cc,#90e8b0)',
+      neon:'#00f5d4', glow:'0,245,212', lText:'#0e4a28',
       icon:<Activity size={14}/>, href:'/inventario',
     },
     {
       label:'Producción hoy', emoji:'🥛', val:'84 L', sub:'5 vacas · 16.8 L/c', trend:'+6%', up:true,
-      grad:'linear-gradient(145deg,#001830,#002040,#002850)', neon:'#00c8ff', glow:'0,200,255',
+      grad:'linear-gradient(145deg,#001830,#002040,#002850)',
+      lGrad:'linear-gradient(145deg,#b0dcff,#88c8f8)',
+      neon:'#00c8ff', glow:'0,200,255', lText:'#083870',
       icon:<TrendingUp size={14}/>, href:'/produccion',
     },
     {
       label:'Alertas', emoji:'🔔', val:alertas.length, sub:'requieren acción', trend:'3 críticas', up:false,
-      grad:'linear-gradient(145deg,#2a0010,#3d0015,#4d0020)', neon:'#ff4d6d', glow:'255,77,109',
+      grad:'linear-gradient(145deg,#2a0010,#3d0015,#4d0020)',
+      lGrad:'linear-gradient(145deg,#ffc0c8,#ff9cac)',
+      neon:'#ff4d6d', glow:'255,77,109', lText:'#7a0820',
       icon:<AlertCircle size={14}/>, href:'/alertas',
     },
     {
       label:'Potreros', emoji:'🌿', val:potreros.length, sub:'áreas activas', trend:'1 libre', up:true,
-      grad:'linear-gradient(145deg,#122800,#1a3d00,#1e4a00)', neon:'#84ef34', glow:'132,239,52',
+      grad:'linear-gradient(145deg,#122800,#1a3d00,#1e4a00)',
+      lGrad:'linear-gradient(145deg,#d0f090,#b4e060)',
+      neon:'#84ef34', glow:'132,239,52', lText:'#284a10',
       icon:<Target size={14}/>, href:'/potreros',
     },
     {
       label:'Personal', emoji:'👷', val:personal.length, sub:'empleados activos', trend:'todos OK', up:true,
-      grad:'linear-gradient(145deg,#12182a,#182030,#1a2840)', neon:'#94a3b8', glow:'148,163,184',
+      grad:'linear-gradient(145deg,#12182a,#182030,#1a2840)',
+      lGrad:'linear-gradient(145deg,#d4dce8,#bcccd8)',
+      neon:'#94a3b8', glow:'148,163,184', lText:'#283848',
       icon:<BarChart2 size={14}/>, href:'/personal',
     },
     {
       label:'Utilidad neta', emoji:'💰', val:'$40.2M', sub:'mes actual · COP', trend:'+12%', up:true,
-      grad:'linear-gradient(145deg,#001820,#002028,#002830)', neon:'#34d399', glow:'52,211,153',
+      grad:'linear-gradient(145deg,#001820,#002028,#002830)',
+      lGrad:'linear-gradient(145deg,#b0f4d4,#88e8b8)',
+      neon:'#34d399', glow:'52,211,153', lText:'#084830',
       icon:<Zap size={14}/>, href:'/costos',
     },
   ];
@@ -213,35 +229,47 @@ export default function Dashboard() {
         {kpiCards.map((k, i) => (
           <Link key={k.label} href={k.href}>
             <div className="kpi-card cursor-pointer group" style={{
-              background:k.grad,
-              border:`1px solid rgba(${k.glow},0.22)`,
-              boxShadow:`0 0 0 rgba(${k.glow},0), inset 0 1px 0 rgba(255,255,255,0.06)`,
+              background: isDark ? k.grad : k.lGrad,
+              border: isDark
+                ? `1px solid rgba(${k.glow},0.22)`
+                : `2px solid rgba(${k.glow},0.45)`,
+              boxShadow: isDark
+                ? `inset 0 1px 0 rgba(255,255,255,0.06)`
+                : `0 4px 16px rgba(${k.glow},0.22), 0 1px 4px rgba(0,0,0,0.08)`,
               borderRadius:20,
               padding:'14px 12px',
               animationDelay:`${i*60}ms`,
             }}
-            onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 28px rgba(${k.glow},0.28), 0 8px 30px rgba(0,0,0,0.4)`;}}
-            onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 0 rgba(${k.glow},0)`;}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 28px rgba(${k.glow},0.35), 0 8px 30px rgba(0,0,0,0.2)`;}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=isDark?`0 0 0 rgba(${k.glow},0)`:`0 4px 16px rgba(${k.glow},0.22), 0 1px 4px rgba(0,0,0,0.08)`;}}
             >
               {/* Glow blob */}
-              <div className="absolute top-0 right-0 w-20 h-20 rounded-full opacity-20 pointer-events-none"
-                style={{background:`radial-gradient(circle,rgba(${k.glow},1),transparent)`,transform:'translate(40%,-40%)'}}/>
+              <div className="absolute top-0 right-0 w-20 h-20 rounded-full pointer-events-none"
+                style={{background:`radial-gradient(circle,rgba(${k.glow},${isDark?'0.22':'0.18'}),transparent)`,transform:'translate(40%,-40%)',opacity:isDark?1:0.7}}/>
               {/* Header row */}
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider" style={{color:`rgba(${k.glow},0.75)`}}>
+                <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider"
+                  style={{color: isDark ? `rgba(${k.glow},0.75)` : k.lText}}>
                   {k.emoji} {k.label}
                 </div>
-                <div style={{color:`rgba(${k.glow},0.5)`}}>{k.icon}</div>
+                <div style={{color: isDark ? `rgba(${k.glow},0.5)` : `${k.lText}88`}}>{k.icon}</div>
               </div>
               {/* Big value */}
               <div className="text-2xl sm:text-3xl font-black leading-none mb-1.5 number-pop"
-                style={{color:`rgba(${k.glow},1)`,textShadow:`0 0 18px rgba(${k.glow},0.6)`,fontFamily:"'Sora',sans-serif"}}>
+                style={{
+                  color: isDark ? `rgba(${k.glow},1)` : k.lText,
+                  textShadow: isDark ? `0 0 18px rgba(${k.glow},0.6)` : 'none',
+                  fontFamily:"'Sora',sans-serif",
+                }}>
                 {k.val}
               </div>
-              <div className="text-[9px] sm:text-[10px] text-white/40 mb-2 leading-tight">{k.sub}</div>
+              <div className="text-[9px] sm:text-[10px] mb-2 leading-tight kpi-sub"
+                style={{color: isDark ? 'rgba(255,255,255,0.40)' : `${k.lText}99`}}>
+                {k.sub}
+              </div>
               {/* Trend */}
               <div className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold"
-                style={{color:k.up?'#39ff7e':'#ff4d6d'}}>
+                style={{color: k.up ? (isDark?'#39ff7e':'#1a6a30') : (isDark?'#ff4d6d':'#8a1020')}}>
                 {k.up ? <TrendingUp size={10}/> : <TrendingDown size={10}/>}
                 {k.trend}
               </div>

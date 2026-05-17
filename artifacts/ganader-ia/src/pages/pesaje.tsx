@@ -7,6 +7,7 @@ import {
   Minus, Zap, BarChart3, Search, Printer, Calculator, Wifi, WifiOff,
   AlertTriangle, Settings2, Play, Pause, Target, Cpu, Radio,
   ChevronRight, Activity, Beef, Star, Clock, DollarSign, FileText,
+  List, UserPlus, X as XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -297,7 +298,7 @@ function ReciboPesaje({ p, onClose }: { p: PesajeRec; onClose: () => void }) {
 
 /* ── Componente principal ─────────────────────────────────────────────────── */
 export default function Pesaje() {
-  const { animals, pesajes, setPesajes } = useAppState();
+  const { animals, pesajes, setPesajes, setAnimals } = useAppState();
   const { user } = useAuth();
 
   const [btStatus, setBtStatus] = useState<BtStatus>("idle");
@@ -315,6 +316,17 @@ export default function Pesaje() {
   const [manualCondicion, setManualCondicion] = useState("3.0");
   const [manualAnimalId, setManualAnimalId] = useState(animals[0]?.id || "");
   const [btError, setBtError] = useState("");
+
+  /* ── Cola de pesaje ── */
+  const [queueMode, setQueueMode] = useState(false);
+  const [animalQueue, setAnimalQueue] = useState<string[]>([]);
+  const [queueIdx, setQueueIdx] = useState(0);
+  const [showNewAnimal, setShowNewAnimal] = useState(false);
+  const [newAId, setNewAId]           = useState("");
+  const [newANombre, setNewANombre]   = useState("");
+  const [newARaza, setNewARaza]       = useState("Holstein");
+  const [newACat, setNewACat]         = useState("Vaca adulta");
+  const [newALote, setNewALote]       = useState("Lote A");
 
   const simRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const weightSamplesRef = useRef<number[]>([]);
@@ -509,6 +521,23 @@ export default function Pesaje() {
     setStability(0);
     weightSamplesRef.current = [];
     setReciboP(newP);
+    /* ── Auto-advance queue ── */
+    if (queueMode && animalQueue.length > 0) {
+      const nextIdx = queueIdx + 1;
+      if (nextIdx < animalQueue.length) {
+        const nextA = animals.find(a => a.id === animalQueue[nextIdx]);
+        if (nextA) {
+          setTimeout(() => {
+            setSelectedAnimal(nextA);
+            setQueueIdx(nextIdx);
+            weightSamplesRef.current = [];
+            if (btStatus === "simulating") startSimulation(nextA);
+          }, 1800);
+        }
+      } else {
+        setTimeout(() => { setQueueMode(false); setQueueIdx(0); setAnimalQueue([]); }, 1200);
+      }
+    }
     if (btStatus === "simulating") {
       setTimeout(() => startSimulation(), 300);
     }
@@ -537,6 +566,37 @@ export default function Pesaje() {
     setManualOpen(false);
     setManualPeso("");
     setReciboP(newP);
+  };
+
+  /* ── Registrar nuevo animal rápido ── */
+  const handleRegNewAnimal = () => {
+    const tid = newAId.trim();
+    const tnombre = newANombre.trim();
+    if (!tid || !tnombre) return;
+    if (animals.find(a => a.id === tid)) return;
+    const newA = {
+      id: tid,
+      nombre: tnombre,
+      raza: newARaza,
+      categoria: newACat,
+      lote: newALote,
+      peso: 0,
+      estado: "Activa",
+      edad: "Sin registro",
+      rfid: `RFID-${Date.now()}`,
+      valorKilo: 11000,
+      sexo: (newACat.includes("Toro") || newACat.includes("Novillo")) ? "M" : "F",
+      parto: 0,
+      produccionDiaria: 0,
+    };
+    setAnimals((prev: any[]) => [...prev, newA]);
+    if (queueMode) {
+      setAnimalQueue(prev => [...prev, tid]);
+    } else {
+      setSelectedAnimal(newA as any);
+    }
+    setShowNewAnimal(false);
+    setNewAId(""); setNewANombre("");
   };
 
   /* ── Stats ── */
@@ -590,7 +650,11 @@ export default function Pesaje() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button className="h-9 gap-1.5 text-sm" onClick={() => { setQueueMode(v => !v); if (queueMode) { setAnimalQueue([]); setQueueIdx(0); } }}
+              style={{ background: queueMode ? "rgba(0,200,255,0.25)" : "rgba(0,200,255,0.10)", border: `1px solid ${queueMode ? "rgba(0,200,255,0.6)" : "rgba(0,200,255,0.3)"}`, color: "#00c8ff" }}>
+              <List size={14} /> {queueMode ? "Cola activa" : "Modo Cola"}
+            </Button>
             <Dialog open={manualOpen} onOpenChange={setManualOpen}>
               <DialogTrigger asChild>
                 <Button className="h-9 gap-1.5 text-sm"
@@ -671,6 +735,161 @@ export default function Pesaje() {
           </div>
         ))}
       </div>
+
+      {/* ── Queue Mode Panel ── */}
+      {queueMode && (
+        <div className="rounded-xl overflow-hidden"
+          style={{ background: "rgba(0,200,255,0.04)", border: "1px solid rgba(0,200,255,0.22)" }}>
+          <div className="px-4 py-3 border-b flex items-center justify-between"
+            style={{ borderColor: "rgba(0,200,255,0.15)", background: "rgba(0,200,255,0.07)" }}>
+            <div className="flex items-center gap-2.5">
+              <List size={14} style={{ color: "#00c8ff" }} />
+              <span className="text-sm font-bold" style={{ color: "#00c8ff" }}>Cola de Pesaje — Modo Lote</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(0,200,255,0.15)", color: "#00c8ff" }}>
+                {queueIdx} / {animalQueue.length} pesados
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" className="h-7 gap-1.5 text-xs" onClick={() => setShowNewAnimal(true)}
+                style={{ background: "rgba(57,255,126,0.12)", border: "1px solid rgba(57,255,126,0.35)", color: "#39ff7e" }}>
+                <UserPlus size={11} /> Nuevo animal
+              </Button>
+              <Button size="sm" className="h-7 gap-1.5 text-xs"
+                onClick={() => { setQueueMode(false); setAnimalQueue([]); setQueueIdx(0); }}
+                style={{ background: "rgba(255,80,80,0.12)", border: "1px solid rgba(255,80,80,0.3)", color: "#ff7070" }}>
+                <XIcon size={11} /> Cancelar
+              </Button>
+            </div>
+          </div>
+
+          {/* Queue items */}
+          <div className="p-3 space-y-2">
+            {animalQueue.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-2">
+                Agrega animales a la cola usando los botones de abajo
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {animalQueue.map((id, i) => {
+                  const a = animals.find(x => x.id === id);
+                  const done = i < queueIdx;
+                  const current = i === queueIdx;
+                  return (
+                    <div key={id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+                      style={{
+                        background: done ? "rgba(57,255,126,0.1)" : current ? "rgba(0,200,255,0.15)" : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${done ? "rgba(57,255,126,0.4)" : current ? "rgba(0,200,255,0.5)" : "rgba(255,255,255,0.08)"}`,
+                        color: done ? "#39ff7e" : current ? "#00c8ff" : "rgba(255,255,255,0.45)",
+                      }}>
+                      {done
+                        ? <CheckCircle2 size={10}/>
+                        : current
+                        ? <Scale size={10}/>
+                        : <span className="w-2 h-2 rounded-full border inline-block" style={{ borderColor: "rgba(255,255,255,0.2)" }}/>
+                      }
+                      <span>{a ? a.nombre : id}</span>
+                      {current && <span className="text-[9px] animate-pulse">●</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add to queue */}
+            {animals.filter(a => !animalQueue.includes(a.id)).length > 0 && (
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-bold mb-1.5">
+                  + Agregar a cola:
+                </p>
+                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+                  {animals.filter(a => !animalQueue.includes(a.id)).map(a => (
+                    <button key={a.id}
+                      onClick={() => {
+                        setAnimalQueue(prev => [...prev, a.id]);
+                        if (animalQueue.length === 0) setSelectedAnimal(a);
+                      }}
+                      className="text-[10px] px-2 py-1 rounded-lg transition-all hover:opacity-80"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.55)" }}>
+                      + {a.nombre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── New Animal Quick Registration Dialog ── */}
+      <Dialog open={showNewAnimal} onOpenChange={setShowNewAnimal}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus size={16} className="text-green-400" /> Registrar Nuevo Animal
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>ID / Arete</Label>
+                <Input value={newAId} onChange={e => setNewAId(e.target.value)} placeholder="Ej: VCA-014" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Nombre</Label>
+                <Input value={newANombre} onChange={e => setNewANombre(e.target.value)} placeholder="Ej: Bonita" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Raza</Label>
+                <Select value={newARaza} onValueChange={setNewARaza}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Holstein","Jersey","Cebú","Simmental","Angus","Brahman","Gyr","Criollo"].map(r => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Categoría</Label>
+                <Select value={newACat} onValueChange={setNewACat}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Vaca adulta","Novilla","Ternera","Toro","Novillo","Ternero"].map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Lote</Label>
+              <Select value={newALote} onValueChange={setNewALote}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["Lote A","Lote B","Lote C","Lote D","Ordeño","Maternidad"].map(l => (
+                    <SelectItem key={l} value={l}>{l}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {newAId && animals.find(a => a.id === newAId) && (
+              <p className="text-xs text-red-400">Ya existe un animal con este ID</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowNewAnimal(false)}>Cancelar</Button>
+            <Button onClick={handleRegNewAnimal}
+              disabled={!newAId.trim() || !newANombre.trim() || !!animals.find(a => a.id === newAId.trim())}
+              style={{ background: "rgba(57,255,126,0.9)", color: "black" }}>
+              <UserPlus size={14} className="mr-1" /> Registrar
+              {queueMode ? " y agregar a cola" : ""}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Main interface ── */}
       <div className="grid lg:grid-cols-3 gap-5">

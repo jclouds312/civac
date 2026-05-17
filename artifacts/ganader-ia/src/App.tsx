@@ -10,6 +10,7 @@ import NotFound from "@/pages/not-found";
 
 import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
+import AdminDashboard from "./pages/admin-dashboard";
 import Alertas from "./pages/alertas";
 import Inventario from "./pages/inventario";
 import Ficha from "./pages/ficha";
@@ -38,6 +39,11 @@ import Datos from "./pages/datos";
 
 const queryClient = new QueryClient();
 
+function HomeRoute() {
+  const { user } = useAuth();
+  return user?.role === "admin" ? <AdminDashboard /> : <Dashboard />;
+}
+
 function AuthGate() {
   const { user } = useAuth();
 
@@ -46,7 +52,7 @@ function AuthGate() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={HomeRoute} />
         <Route path="/alertas" component={Alertas} />
         <Route path="/inventario" component={Inventario} />
         <Route path="/ficha" component={Ficha} />

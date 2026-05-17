@@ -5,129 +5,28 @@ import {
   Check, X, Leaf, ArrowRight, Wifi, Smartphone,
 } from "lucide-react";
 
-/* ── Logo vaca moderna GanaderIA — login page ─────────────────────────────── */
+/* ── Real cow photo logo — login page ─────────────────────────────────────── */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="llBg1" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#0e3a20"/><stop offset="1" stopColor="#082818"/>
-        </linearGradient>
-        <radialGradient id="llBgR" cx="35%" cy="28%" r="55%">
-          <stop stopColor="#1a6640" stopOpacity="0.5"/><stop offset="1" stopColor="#082818" stopOpacity="0"/>
-        </radialGradient>
-        <linearGradient id="llBody" x1="0.1" y1="0" x2="0.9" y2="1">
-          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#d8d0b8"/>
-        </linearGradient>
-        <linearGradient id="llHead" x1="0" y1="0" x2="0.5" y2="1">
-          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#ccc4a8"/>
-        </linearGradient>
-        <linearGradient id="llMuzz" x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="#e8c8b0"/><stop offset="1" stopColor="#d0a888"/>
-        </linearGradient>
-        <linearGradient id="llHorn" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#f5d878"/><stop offset="1" stopColor="#c8a030"/>
-        </linearGradient>
-        <linearGradient id="llSpot" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#3a2818"/><stop offset="1" stopColor="#281808"/>
-        </linearGradient>
-        <linearGradient id="llEar" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#ddd4b8"/><stop offset="1" stopColor="#b8a880"/>
-        </linearGradient>
-        <linearGradient id="llChip" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#00f5d4"/><stop offset="1" stopColor="#00a8e8"/>
-        </linearGradient>
-        <linearGradient id="llCirc" x1="0" y1="0" x2="1" y2="0">
-          <stop stopColor="#00f5d4"/><stop offset="0.5" stopColor="#00c8ff"/><stop offset="1" stopColor="#00f5d4"/>
-        </linearGradient>
-        <linearGradient id="llBord" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#00f5d4" stopOpacity="0.85"/>
-          <stop offset="0.5" stopColor="#2aaa60" stopOpacity="0.5"/>
-          <stop offset="1" stopColor="#00c8ff" stopOpacity="0.75"/>
-        </linearGradient>
-        <radialGradient id="llEye" cx="38%" cy="32%" r="65%">
-          <stop stopColor="#4a3020"/><stop offset="0.5" stopColor="#281808"/><stop offset="1" stopColor="#180c04"/>
-        </radialGradient>
-        <filter id="llGlow" x="-25%" y="-25%" width="150%" height="150%">
-          <feGaussianBlur stdDeviation="2.5" result="b"/>
-          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="llShad" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000" floodOpacity="0.35"/>
-        </filter>
-        <filter id="llInner" x="-5%" y="-5%" width="110%" height="110%">
-          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.25"/>
-        </filter>
-        <linearGradient id="llShine" x1="0" y1="0" x2="0.3" y2="1">
-          <stop stopColor="white" stopOpacity="0.18"/><stop offset="1" stopColor="white" stopOpacity="0"/>
-        </linearGradient>
-        <radialGradient id="llRfid" cx="40%" cy="35%" r="60%">
-          <stop stopColor="#00f5d4"/><stop offset="1" stopColor="#008870"/>
-        </radialGradient>
-      </defs>
-      <rect width="120" height="120" rx="26" fill="url(#llBg1)"/>
-      <rect width="120" height="120" rx="26" fill="url(#llBgR)"/>
-      {/* Cuernos */}
-      <path d="M38 46 C30 38 22 26 26 14 C29 5 38 8 40 18 C38 26 38 36 40 44" fill="url(#llHorn)" filter="url(#llShad)"/>
-      <path d="M82 46 C90 38 98 26 94 14 C91 5 82 8 80 18 C82 26 82 36 80 44" fill="url(#llHorn)" filter="url(#llShad)"/>
-      <path d="M36 38 C31 30 28 20 31 13" stroke="rgba(255,240,160,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-      <path d="M84 38 C89 30 92 20 89 13" stroke="rgba(255,240,160,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-      {/* Orejas */}
-      <ellipse cx="27" cy="54" rx="13" ry="9" fill="url(#llEar)" transform="rotate(-22 27 54)" filter="url(#llShad)"/>
-      <ellipse cx="27" cy="54" rx="7.5" ry="5" fill="#e8c0a0" transform="rotate(-22 27 54)"/>
-      <ellipse cx="93" cy="54" rx="13" ry="9" fill="url(#llEar)" transform="rotate(22 93 54)" filter="url(#llShad)"/>
-      <ellipse cx="93" cy="54" rx="7.5" ry="5" fill="#e8c0a0" transform="rotate(22 93 54)"/>
-      {/* Arete RFID */}
-      <circle cx="18" cy="55" r="6" fill="url(#llRfid)" filter="url(#llGlow)"/>
-      <circle cx="18" cy="55" r="3.2" fill="#0a2818"/>
-      <circle cx="18" cy="55" r="1.3" fill="#00f5d4" opacity="0.95"/>
-      {/* Cuerpo */}
-      <ellipse cx="60" cy="72" rx="34" ry="32" fill="url(#llBody)" filter="url(#llShad)"/>
-      <ellipse cx="60" cy="56" rx="29" ry="25" fill="url(#llHead)" filter="url(#llInner)"/>
-      {/* Manchas Holstein */}
-      <path d="M42 44 C38 40 35 46 38 52 C41 56 48 54 50 48 C52 42 46 40 42 44Z" fill="url(#llSpot)" opacity="0.75"/>
-      <path d="M70 48 C67 44 63 46 64 52 C65 57 71 57 73 52 C75 48 73 44 70 48Z" fill="url(#llSpot)" opacity="0.65"/>
-      <path d="M55 72 C52 68 50 74 53 78 C56 80 62 79 63 74 C64 70 58 68 55 72Z" fill="url(#llSpot)" opacity="0.45"/>
-      {/* Circuito IA */}
-      <path d="M43 38 L48 38 L51 34 L69 34 L72 38 L77 38" stroke="url(#llCirc)" strokeWidth="1.1" fill="none" opacity="0.85" filter="url(#llGlow)"/>
-      <path d="M51 34 L51 29 L56 29" stroke="url(#llCirc)" strokeWidth="0.85" fill="none" opacity="0.7"/>
-      <path d="M69 34 L69 29 L64 29" stroke="url(#llCirc)" strokeWidth="0.85" fill="none" opacity="0.7"/>
-      <rect x="56" y="24" width="8" height="8" rx="2.2" fill="url(#llChip)" opacity="0.95" filter="url(#llGlow)"/>
-      <rect x="58" y="26" width="4" height="4" rx="1" fill="#071a2f" opacity="0.95"/>
-      <line x1="58.5" y1="24" x2="58.5" y2="22" stroke="#00f5d4" strokeWidth="0.7" opacity="0.55"/>
-      <line x1="61.5" y1="24" x2="61.5" y2="22" stroke="#00f5d4" strokeWidth="0.7" opacity="0.55"/>
-      <circle cx="48" cy="38" r="1.8" fill="#00f5d4" opacity="0.9" filter="url(#llGlow)"/>
-      <circle cx="72" cy="38" r="1.8" fill="#00f5d4" opacity="0.9" filter="url(#llGlow)"/>
-      <circle cx="56" cy="29" r="1.4" fill="#00c8ff" opacity="0.85"/>
-      <circle cx="64" cy="29" r="1.4" fill="#00c8ff" opacity="0.85"/>
-      {/* Ojos */}
-      <ellipse cx="44" cy="58" rx="9" ry="8.5" fill="#1a1008" filter="url(#llInner)"/>
-      <ellipse cx="44" cy="58" rx="7" ry="6.5" fill="url(#llEye)"/>
-      <circle cx="44" cy="58" r="3.8" fill="#0e0804"/>
-      <circle cx="46" cy="55.5" r="2" fill="white" opacity="0.95"/>
-      <circle cx="42.5" cy="60" r="0.9" fill="white" opacity="0.4"/>
-      <path d="M37 53 Q44 50.5 51 53" stroke="#2a1808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <ellipse cx="76" cy="58" rx="9" ry="8.5" fill="#1a1008" filter="url(#llInner)"/>
-      <ellipse cx="76" cy="58" rx="7" ry="6.5" fill="url(#llEye)"/>
-      <circle cx="76" cy="58" r="3.8" fill="#0e0804"/>
-      <circle cx="78" cy="55.5" r="2" fill="white" opacity="0.95"/>
-      <circle cx="74.5" cy="60" r="0.9" fill="white" opacity="0.4"/>
-      <path d="M69 53 Q76 50.5 83 53" stroke="#2a1808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
-      {/* Hocico */}
-      <ellipse cx="60" cy="84" rx="19" ry="14" fill="url(#llMuzz)" filter="url(#llShad)"/>
-      <ellipse cx="60" cy="86" rx="15" ry="10" fill="#c89870" opacity="0.6"/>
-      <ellipse cx="53" cy="87" rx="4.2" ry="3.2" fill="#1a0e08" opacity="0.9"/>
-      <ellipse cx="67" cy="87" rx="4.2" ry="3.2" fill="#1a0e08" opacity="0.9"/>
-      <ellipse cx="54" cy="86" rx="1.4" ry="0.9" fill="rgba(255,255,255,0.15)"/>
-      <ellipse cx="68" cy="86" rx="1.4" ry="0.9" fill="rgba(255,255,255,0.15)"/>
-      <path d="M60 91 Q57 95.5 53 93.5" stroke="#180e06" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
-      <path d="M60 91 Q63 95.5 67 93.5" stroke="#180e06" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
-      {/* Brillo */}
-      <ellipse cx="58" cy="28" rx="34" ry="18" fill="url(#llShine)"/>
-      {/* Borde */}
-      <rect width="120" height="120" rx="26" fill="none" stroke="url(#llBord)" strokeWidth="2"/>
-      <rect x="2" y="2" width="116" height="116" rx="24" fill="none" stroke="rgba(0,245,212,0.12)" strokeWidth="0.8"/>
-    </svg>
+    <div className="relative inline-block" style={{ width: size, height: size }}>
+      <div className="w-full h-full rounded-[26%] overflow-hidden"
+        style={{ border: "2.5px solid rgba(0,245,212,0.8)", boxShadow: "0 0 28px rgba(0,245,212,0.55), 0 0 60px rgba(0,200,255,0.25)" }}>
+        <img
+          src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=240&h=240&q=80&auto=format&fit=crop&crop=face"
+          alt="CIVAC"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          onError={e => {
+            e.currentTarget.style.display = "none";
+            (e.currentTarget.parentElement as HTMLElement).style.background = "linear-gradient(135deg,#0a3d22,#082818)";
+            (e.currentTarget.parentElement as HTMLElement).innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🐄</div>';
+          }}
+        />
+      </div>
+      <div className="absolute -bottom-1 -right-1 rounded-full flex items-center justify-center font-black"
+        style={{ width: size * 0.28, height: size * 0.28, background: "linear-gradient(135deg,#00f5d4,#00a896)", fontSize: size * 0.09, color: "#000", border: "2px solid #0e1e38", boxShadow: "0 0 10px rgba(0,245,212,0.8)" }}>
+        IA
+      </div>
+    </div>
   );
 }
 
@@ -280,16 +179,16 @@ export default function Login() {
           {/* Brand name */}
           <div className="flex items-center justify-center gap-3 mb-2">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{fontFamily:"'Sora',sans-serif", letterSpacing:'-0.03em'}}>
-              <span className="text-white">Ganad</span>
+              <span className="text-white">CI</span>
               <span style={{
                 color:"#00f5d4",
                 textShadow:"0 0 28px rgba(0,245,212,0.95),0 0 60px rgba(0,245,212,0.5),0 0 100px rgba(0,200,255,0.3)",
-              }}>erIA</span>
+              }}>VAC</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
               <span className="text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-lg leading-none"
                 style={{background:"linear-gradient(135deg,#00f5d4,#00a896)",color:"black",letterSpacing:"0.05em"}}>
-                v4.0
+                v4.2
               </span>
               <span className="text-[8px] sm:text-[9px] font-black px-2 py-0.5 rounded-md leading-none"
                 style={{background:"linear-gradient(135deg,#fbbf24,#ea580c)",color:"white",letterSpacing:"0.03em"}}>
@@ -299,7 +198,7 @@ export default function Login() {
           </div>
 
           <p className="text-sm sm:text-base font-semibold mb-1" style={{color:"rgba(0,245,212,0.65)"}}>
-            Ganadería Inteligente · Colombia · CIVAC
+            Control Inteligente de Valor Agropecuario · Colombia
           </p>
 
           {/* Feature pills */}

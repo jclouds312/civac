@@ -9,7 +9,7 @@ import {
   Server, Database, Building2, RefreshCw, Eye, EyeOff,
   BarChart3, Bell, MonitorSmartphone, Zap, Star, Settings2,
   ChevronRight, Download, Shield, Globe, AlertTriangle,
-  ToggleLeft, ToggleRight, Lock, Unlock, Key,
+  ToggleLeft, ToggleRight, Lock, Unlock, Key, UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

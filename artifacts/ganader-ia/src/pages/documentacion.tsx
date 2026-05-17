@@ -48,12 +48,17 @@ function SectionBanner({ emoji, title, subtitle, c1, c2, border }: {
 
 function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode; title: string; desc: string; color: string }) {
   return (
-    <div className="rounded-xl p-4 space-y-2" style={{background:`rgba(255,255,255,0.03)`, border:`1px solid ${color}25`}}>
+    <div className="rounded-xl p-4 space-y-2"
+      style={{
+        background: `linear-gradient(135deg, color-mix(in srgb, ${color} 8%, transparent), color-mix(in srgb, ${color} 4%, transparent))`,
+        border: `1px solid ${color}40`,
+        boxShadow: `0 0 18px ${color}08`,
+      }}>
       <div className="flex items-center gap-2 mb-1" style={{color}}>
         {icon}
-        <span className="font-bold text-sm text-white">{title}</span>
+        <span className="font-bold text-sm text-foreground">{title}</span>
       </div>
-      <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
+      <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
     </div>
   );
 }
@@ -61,9 +66,9 @@ function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode; titl
 function Step({ n, text, color }: { n: number; text: string; color: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 text-black"
-        style={{background:color}}>{n}</div>
-      <p className="text-sm text-white/70 pt-0.5">{text}</p>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 text-black flex-shrink-0"
+        style={{background:color, boxShadow: `0 0 10px ${color}80`}}>{n}</div>
+      <p className="text-sm text-foreground/70 pt-0.5">{text}</p>
     </div>
   );
 }
@@ -148,10 +153,15 @@ export default function Documentacion() {
             { emoji:'🔁', title:'Reproducción',            desc:'Celos, inseminaciones, partos esperados, ecografías y manejo reproductivo.', c:'#f472b6' },
             { emoji:'☁',  title:'Backup Google Drive',    desc:'Exporta JSON/CSV a Drive. Respaldo automático. Descarga local también disponible.', c:'#fbbf24' },
           ].map(c => (
-            <div key={c.title} className="rounded-xl p-4" style={{background:'rgba(255,255,255,0.03)',border:`1px solid ${c.c}20`}}>
+            <div key={c.title} className="rounded-xl p-4 transition-all hover:scale-[1.02]"
+              style={{
+                background:`linear-gradient(135deg,color-mix(in srgb,${c.c} 10%,transparent),color-mix(in srgb,${c.c} 5%,transparent))`,
+                border:`1px solid ${c.c}45`,
+                boxShadow:`0 0 20px ${c.c}10`,
+              }}>
               <div className="text-2xl mb-2">{c.emoji}</div>
-              <div className="font-bold text-sm text-white mb-1">{c.title}</div>
-              <p className="text-xs text-white/45 leading-relaxed">{c.desc}</p>
+              <div className="font-bold text-sm text-foreground mb-1" style={{color:c.c}}>{c.title}</div>
+              <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
             </div>
           ))}
         </div>
@@ -168,10 +178,11 @@ export default function Documentacion() {
               {label:'Pesajes',    val:pesajes.length,        c:'#ff9500', emoji:'⚖️'},
               {label:'GPS activos',val:gpsUbicaciones.filter(g=>g.activo).length, c:'#00c8ff', emoji:'📡'},
             ].map(s => (
-              <div key={s.label} className="rounded-lg p-3" style={{background:'rgba(0,0,0,0.3)'}}>
+              <div key={s.label} className="rounded-lg p-3"
+                style={{background:`color-mix(in srgb,${s.c} 8%,transparent)`, border:`1px solid ${s.c}35`}}>
                 <div className="text-xl mb-1">{s.emoji}</div>
                 <div className="font-black text-xl" style={{color:s.c}}>{s.val}</div>
-                <div className="text-[10px] text-white/30">{s.label}</div>
+                <div className="text-[10px] text-muted-foreground">{s.label}</div>
               </div>
             ))}
           </div>
@@ -210,20 +221,24 @@ export default function Documentacion() {
             { emoji:'📚', label:'Documentación',      ruta:'/documentacion', desc:'Guía completa de uso, tutoriales, credenciales demo, exportación de datos.', c:'#38bdf8' },
             { emoji:'👑', label:'Planes · Wompi',     ruta:'/planes',        desc:'Suscripción PRO, Premium y Platino vía Wompi. Pagos seguros en COP.', c:'#fbbf24' },
           ].map(m => (
-            <div key={m.ruta} className="rounded-xl px-4 py-3 flex items-center gap-4"
-              style={{background:'rgba(255,255,255,0.02)',border:`1px solid ${m.c}18`}}>
+            <div key={m.ruta} className="rounded-xl px-4 py-3 flex items-center gap-4 transition-all hover:scale-[1.008]"
+              style={{
+                background:`linear-gradient(135deg,color-mix(in srgb,${m.c} 6%,transparent),color-mix(in srgb,${m.c} 3%,transparent))`,
+                border:`1px solid ${m.c}35`,
+              }}>
               <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
-                style={{background:`${m.c}15`, border:`1px solid ${m.c}30`}}>
+                style={{background:`${m.c}18`, border:`1px solid ${m.c}40`, boxShadow:`0 0 10px ${m.c}15`}}>
                 {m.emoji}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-white">{m.label}</span>
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded" style={{background:'rgba(0,0,0,0.4)',color:m.c}}>{m.ruta}</span>
+                  <span className="font-bold text-sm text-foreground" style={{color:m.c}}>{m.label}</span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-black/20 dark:bg-black/40"
+                    style={{color:m.c}}>{m.ruta}</span>
                 </div>
-                <p className="text-xs text-white/40 truncate">{m.desc}</p>
+                <p className="text-xs text-muted-foreground truncate">{m.desc}</p>
               </div>
-              <ChevronRight size={14} style={{color:`${m.c}50`, flexShrink:0}}/>
+              <ChevronRight size={14} style={{color:`${m.c}60`, flexShrink:0}}/>
             </div>
           ))}
         </div>
@@ -254,7 +269,7 @@ export default function Documentacion() {
           <div className="font-bold text-sm mb-3" style={{color:'#39ff7e'}}>Campos por animal</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {['Arete RFID','Nombre','Raza','Categoría','Estado','Lote','Peso (kg)','F. Nacimiento','Edad auto','Registro N°','Litros/día','N° Partos','$/kg','Valor total'].map(f => (
-              <div key={f} className="flex items-center gap-1.5 text-xs text-white/60">
+              <div key={f} className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <CheckCircle size={10} style={{color:'#39ff7e', flexShrink:0}}/>
                 {f}
               </div>
@@ -407,7 +422,7 @@ export default function Documentacion() {
             { platform:'iPhone / iPad', icon:'🍎', color:'#94a3b8',
               steps:['Abra Safari (no Chrome)','Toque ícono compartir ↑','«Agregar a pantalla de inicio»','Confirme el nombre y listo'] },
             { platform:'Windows', icon:'🪟', color:'#60a5fa',
-              steps:['Abra Chrome o Edge','Menú ⋮ → «Instalar GanaderIA»','Confirmar instalación','Acceso desde escritorio'] },
+              steps:['Abra Chrome o Edge','Menú ⋮ → «Instalar CIVAC»','Confirmar instalación','Acceso desde escritorio'] },
             { platform:'Mac / Linux', icon:'💻', color:'#a78bfa',
               steps:['Chrome o Edge','Ícono instalar (✚) en barra URL','Instalar y confirmar','Acceso desde Launchpad / Apps'] },
           ].map(p => (
@@ -446,7 +461,7 @@ export default function Documentacion() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FeatureCard icon={<WifiOff size={14}/>} color="#f87171" title="¿Cómo funciona offline?"
-            desc="GanaderIA guarda todos los datos en localStorage del navegador. Al abrir la app sin internet, carga los datos locales. Todo funciona: inventario, pesaje, alertas, GPS (si hay collar BT activo)."/>
+            desc="CIVAC guarda todos los datos en localStorage del navegador. Al abrir la app sin internet, carga los datos locales. Todo funciona: inventario, pesaje, alertas, GPS (si hay collar BT activo)."/>
           <FeatureCard icon={<RefreshCw size={14}/>} color="#4ade80" title="Sincronización al reconectar"
             desc="Al volver a tener internet, la app detecta la conexión y sincroniza automáticamente todos los cambios realizados offline hacia el servidor PostgreSQL."/>
           <FeatureCard icon={<Database size={14}/>} color="#00c8ff" title="Base de datos interna"
@@ -574,10 +589,10 @@ export default function Documentacion() {
                 <div className="font-bold text-base text-white">{r.rol}</div>
               </div>
               <div className="p-4 space-y-3">
-                <p className="text-xs text-white/50 leading-relaxed">{r.acceso}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{r.acceso}</p>
                 <div className="grid grid-cols-2 gap-1.5">
                   {r.permisos.map(p => (
-                    <div key={p} className="flex items-center gap-1.5 text-[10px] text-white/55">
+                    <div key={p} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                       <CheckCircle size={9} style={{color:r.color,flexShrink:0}}/>
                       {p}
                     </div>
@@ -1000,7 +1015,7 @@ export default function Documentacion() {
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Sidebar nav */}
         <div className="lg:w-56 flex-shrink-0">
-          <div className="rounded-xl overflow-hidden sticky top-4" style={{background:'rgba(255,255,255,0.02)',border:'1px solid rgba(255,255,255,0.06)'}}>
+          <div className="rounded-xl overflow-hidden sticky top-4 bg-card border border-border">
             {SECTIONS.map(s => {
               const Icon = s.icon;
               const isActive = activeSection === s.id;
@@ -1008,10 +1023,10 @@ export default function Documentacion() {
                 <button key={s.id} onClick={() => setActiveSection(s.id)}
                   className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold transition-all text-left"
                   style={isActive
-                    ? {background:'rgba(56,189,248,0.12)',color:'#38bdf8',borderLeft:'2px solid #38bdf8'}
-                    : {color:'rgba(255,255,255,0.4)',borderLeft:'2px solid transparent'}}>
-                  <Icon size={14} style={{flexShrink:0, opacity: isActive ? 1 : 0.6}}/>
-                  {s.label}
+                    ? {background:'rgba(56,189,248,0.12)',color:'#38bdf8',borderLeft:'3px solid #38bdf8'}
+                    : {borderLeft:'3px solid transparent'}}>
+                  <Icon size={14} style={{flexShrink:0, color: isActive ? '#38bdf8' : undefined, opacity: isActive ? 1 : 0.5}}/>
+                  <span className={isActive ? 'text-[#38bdf8]' : 'text-muted-foreground'}>{s.label}</span>
                 </button>
               );
             })}

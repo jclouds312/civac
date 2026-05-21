@@ -46,6 +46,130 @@ const COM_CONTROLLERS = [
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   TRAMAS DE BÁSCULA — formatos de trama serial configurables
+   Cada trama define cómo parsear el stream de bytes de la báscula
+─────────────────────────────────────────────────────────────────────────────── */
+interface TramaFrame { peso: number; stable: boolean; raw: string }
+interface TramaType {
+  id: string; nombre: string; descripcion: string; ejemplo: string;
+  estabilidad_directa: boolean; icon: string; color: string;
+  parse: (buf: string) => TramaFrame[];
+}
+
+const TRAMA_TYPES: TramaType[] = [
+  {
+    id: "civac_9b",
+    nombre: "CIVAC / Colombia 9B",
+    descripcion: "[Estado 1B][Peso 7B][Unidad 1B] · 'I'=inestable · '!'=estable · 's'=kg",
+    ejemplo: "I      0s  →  I    320s  →  !    450s",
+    estabilidad_directa: true, icon: "🇨🇴", color: "#fbbf24",
+    parse: (buf: string): TramaFrame[] => {
+      const frames: TramaFrame[] = [];
+      for (let i = 0; i <= buf.length - 9; i++) {
+        const ch = buf[i];
+        if (ch === 'I' || ch === '!') {
+          const ws = buf.slice(i + 1, i + 8);
+          const u  = buf[i + 8];
+          if (u === 's' || u === 'S' || u === 'k' || u === 'K' || u === '\r' || u === ' ') {
+            const w = parseFloat(ws.trim());
+            if (!isNaN(w) && w >= 0 && w < 3000) {
+              frames.push({ peso: w, stable: ch === '!', raw: buf.slice(i, i + 9) });
+              i += 8;
+            }
+          }
+        }
+      }
+      return frames;
+    },
+  },
+  {
+    id: "civac_9b_sp",
+    nombre: "CIVAC 9B (espacio=estable)",
+    descripcion: "[Estado 1B][Peso 7B][Unidad 1B] · 'I'=inestable · ' '=estable",
+    ejemplo: "I    300s  →       300s",
+    estabilidad_directa: true, icon: "⚖️", color: "#00f5d4",
+    parse: (buf: string): TramaFrame[] => {
+      const frames: TramaFrame[] = [];
+      for (let i = 0; i <= buf.length - 9; i++) {
+        const ch = buf[i];
+        if (ch === 'I' || ch === ' ' || ch === '!') {
+          const ws = buf.slice(i + 1, i + 8);
+          const u  = buf[i + 8];
+          if (u === 's' || u === 'S' || u === 'k' || u === 'K') {
+            const w = parseFloat(ws.trim());
+            if (!isNaN(w) && w >= 0 && w < 3000) {
+              frames.push({ peso: w, stable: ch === ' ' || ch === '!', raw: buf.slice(i, i + 9) });
+              i += 8;
+            }
+          }
+        }
+      }
+      return frames;
+    },
+  },
+  {
+    id: "toledo_scs",
+    nombre: "Toledo / Mettler SCS",
+    descripcion: "S S [peso] kg = estable · S D [peso] kg = dinámico",
+    ejemplo: "S S     450.000 kg\\r\\n",
+    estabilidad_directa: true, icon: "🏭", color: "#e879f9",
+    parse: (buf: string): TramaFrame[] => {
+      const frames: TramaFrame[] = [];
+      buf.split(/\r?\n/).forEach(line => {
+        const m = line.match(/^S\s+(S|D)\s+([\s\d.]+)\s*(?:kg)?/i);
+        if (m) { const w = parseFloat(m[2].trim()); if (!isNaN(w) && w > 0) frames.push({ peso: w, stable: m[1].toUpperCase() === 'S', raw: line }); }
+      });
+      return frames;
+    },
+  },
+  {
+    id: "ruddweigh",
+    nombre: "Ruddweigh / ± prefijo",
+    descripcion: "[+/-][peso]S por línea · sufijo 'S'=estable",
+    ejemplo: "+    450.0S\\r\\n",
+    estabilidad_directa: true, icon: "🔌", color: "#a3e635",
+    parse: (buf: string): TramaFrame[] => {
+      const frames: TramaFrame[] = [];
+      buf.split(/\r?\n/).forEach(line => {
+        const m = line.match(/[+\-]\s*([0-9]{2,4}\.?\d{0,2})\s*([Ss])?/);
+        if (m) { const w = parseFloat(m[1]); if (!isNaN(w) && w > 0) frames.push({ peso: w, stable: !!m[2], raw: line }); }
+      });
+      return frames;
+    },
+  },
+  {
+    id: "sema_co",
+    nombre: "SEMA Báscula Colombia",
+    descripcion: "Número seguido de Kg/KG en cada línea",
+    ejemplo: "450.5Kg\\r\\n  ó  450KG\\r\\n",
+    estabilidad_directa: false, icon: "🐄", color: "#f59e0b",
+    parse: (buf: string): TramaFrame[] => {
+      const frames: TramaFrame[] = [];
+      buf.split(/\r?\n/).forEach(line => {
+        const m = line.match(/([0-9]{2,4}\.?\d{0,2})\s*(?:Kg|KG|kg)/);
+        if (m) { const w = parseFloat(m[1]); if (w > 10 && w < 3000) frames.push({ peso: w, stable: true, raw: line }); }
+      });
+      return frames;
+    },
+  },
+  {
+    id: "generic_line",
+    nombre: "Genérica por línea",
+    descripcion: "Detecta cualquier número >50 en cada línea (compatible con la mayoría)",
+    ejemplo: "450.5\\r\\n · W0450\\r\\n · STW,450.5",
+    estabilidad_directa: false, icon: "🔧", color: "#94a3b8",
+    parse: (buf: string): TramaFrame[] => {
+      const frames: TramaFrame[] = [];
+      buf.split(/\r?\n/).forEach(line => {
+        const m = line.match(/([0-9]{2,4}\.?\d{0,2})/);
+        if (m) { const w = parseFloat(m[1]); if (w > 50 && w < 3000) frames.push({ peso: w, stable: false, raw: line }); }
+      });
+      return frames;
+    },
+  },
+];
+
+/* ─────────────────────────────────────────────────────────────────────────────
    PESO DE REFERENCIA POR RAZA × CATEGORÍA
 ───────────────────────────────────────────────────────────────────────────── */
 const PESOS_RAZA: Record<string, Record<string, { min:number; max:number; prom:number; gdpMes:number }>> = {
@@ -601,6 +725,17 @@ export default function Pesaje() {
   const weightSamplesRef              = useRef<number[]>([]);
   const simRef                        = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  /* ── Trama serial ── */
+  const selTramaRef                   = useRef<TramaType>(TRAMA_TYPES[0]);
+  const customRegexRef                = useRef("([0-9]{2,4}\\.?\\d{0,2})");
+  const [selTrama, setSelTrama]       = useState<TramaType>(TRAMA_TYPES[0]);
+  const [customRegex, setCustomRegex] = useState("([0-9]{2,4}\\.?\\d{0,2})");
+  const [showTramaConfig, setShowTramaConfig] = useState(false);
+  const [lastRawFrame, setLastRawFrame] = useState("");
+
+  /* ── Modo operación ── */
+  const [modoOperacion, setModoOperacion] = useState<"continuo"|"pausado">("pausado");
+
   /* ── Filters ── */
   const [searchAnim, setSearchAnim]   = useState("");
   const [filterRaza, setFilterRaza]   = useState("Todas");
@@ -774,30 +909,75 @@ export default function Pesaje() {
       await port.open({ baudRate:selCom.baudRate, dataBits:selCom.dataBits, stopBits:selCom.stopBits, parity:selCom.parity, flowControl:"none" });
       serialPortRef.current = port;
       setSerialStatus("connected");
-      const decoder = new TextDecoderStream();
-      port.readable.pipeTo(decoder.writable);
-      const reader = decoder.readable.getReader();
+      const reader = port.readable.getReader();
       serialReaderRef.current = reader;
+      const byteDecoder = new TextDecoder("ascii", { fatal: false });
       let buffer = "";
       const readLoop = async () => {
         try {
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
-            buffer += value;
-            const lines = buffer.split(/\r?\n/);
-            buffer = lines.pop() || "";
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed) continue;
-              for (const pat of selCom.patterns) {
-                const m = trimmed.match(pat);
-                if (m) { const w=parseFloat(m[1]); if (w>50&&w<3000) { setLiveWeight(Math.round(w*10)/10); updateStabilityFromSamples(w); } break; }
+            /* Decode raw bytes — handles both binary frames (CIVAC) and ASCII lines */
+            buffer += byteDecoder.decode(value, { stream: true });
+            /* Bound buffer to avoid memory growth */
+            if (buffer.length > 4096) buffer = buffer.slice(-2048);
+
+            /* Use the currently selected trama parser (always reads from ref for freshness) */
+            const trama = selTramaRef.current;
+            let activeParse = trama.parse;
+            if (trama.id === "custom_regex") {
+              activeParse = (buf: string): TramaFrame[] => {
+                const frames: TramaFrame[] = [];
+                try {
+                  const re = new RegExp(customRegexRef.current, "i");
+                  buf.split(/\r?\n/).forEach(line => {
+                    const m = line.match(re);
+                    if (m?.[1]) { const w = parseFloat(m[1]); if (w > 10 && w < 3000) frames.push({ peso: w, stable: false, raw: line }); }
+                  });
+                } catch {}
+                return frames;
+              };
+            }
+
+            const frames = activeParse(buffer);
+            if (frames.length > 0) {
+              const last = frames[frames.length - 1];
+              setLastRawFrame(last.raw.replace(/[\r\n]/g, "↵").slice(0, 40));
+              const w = Math.round(last.peso * 10) / 10;
+              setLiveWeight(w);
+
+              if (trama.estabilidad_directa) {
+                if (last.stable) {
+                  /* Scale reports stable — override stability immediately */
+                  weightSamplesRef.current = [w, w, w, w, w, w];
+                  setStability(100);
+                  setStable(true);
+                } else {
+                  /* Scale reports moving — reset stability */
+                  weightSamplesRef.current = [];
+                  setStability(20);
+                  setStable(false);
+                }
+              } else {
+                updateStabilityFromSamples(w);
+              }
+
+              /* Trim buffer: for fixed-frame tramas keep only unprocessed tail */
+              const lastPos = buffer.lastIndexOf(last.raw);
+              if (lastPos >= 0) {
+                buffer = buffer.slice(lastPos + last.raw.length);
+              } else if (!trama.id.startsWith("generic") && !trama.id.startsWith("custom")) {
+                buffer = buffer.slice(-200);
+              } else {
+                const nl = buffer.lastIndexOf("\n");
+                if (nl >= 0) buffer = buffer.slice(nl + 1);
               }
             }
           }
-        } catch { } finally { reader.releaseLock(); }
-        setSerialStatus("idle"); setLiveWeight(null); setStable(false); setStability(0); weightSamplesRef.current=[];
+        } catch { } finally { try { reader.releaseLock(); } catch {} }
+        setSerialStatus("idle"); setLiveWeight(null); setStable(false); setStability(0);
+        weightSamplesRef.current=[]; setLastRawFrame("");
       };
       readLoop();
     } catch (err: unknown) {
@@ -809,7 +989,8 @@ export default function Pesaje() {
 
   const disconnectSerial = async () => {
     try { if (serialReaderRef.current) { await serialReaderRef.current.cancel(); serialReaderRef.current=null; } if (serialPortRef.current) { await serialPortRef.current.close(); serialPortRef.current=null; } } catch {}
-    setSerialStatus("idle"); setLiveWeight(null); setStable(false); setStability(0); weightSamplesRef.current=[]; setSerialError("");
+    setSerialStatus("idle"); setLiveWeight(null); setStable(false); setStability(0);
+    weightSamplesRef.current=[]; setSerialError(""); setLastRawFrame("");
   };
 
   useEffect(() => {
@@ -818,6 +999,13 @@ export default function Pesaje() {
   }, [selectedAnimal]);
 
   useEffect(() => () => { if (simRef.current) clearInterval(simRef.current); }, []);
+
+  /* Keep trama/regex refs in sync for readLoop closures */
+  useEffect(() => { selTramaRef.current = selTrama; }, [selTrama]);
+  useEffect(() => { customRegexRef.current = customRegex; }, [customRegex]);
+
+  /* Continuo mode always enables autoCapture */
+  useEffect(() => { if (modoOperacion === "continuo") setAutoCapture(true); }, [modoOperacion]);
 
   /* ── Open capture dialog with IA pre-fill ── */
   const openCaptureDialog = useCallback((overrideWeight?: number) => {
@@ -834,9 +1022,54 @@ export default function Pesaje() {
     setCaptureDialogOpen(true);
   }, [liveWeight, selectedAnimal, pesajes, detValorKilo, detIAAccepted]);
 
+  /* ── Capture instant (modo continuo — sin diálogo, guarda con valores IA) ── */
+  const captureInstant = useCallback((w: number) => {
+    if (!w || !selectedAnimal) return;
+    const prev = pesajes.filter(p=>p.animalId===selectedAnimal.id).sort((a,b)=>b.id-a.id)[0];
+    const now  = new Date();
+    const vk   = Number(detValorKilo) || 11000;
+    const activeStatus = btStatus==="connected"?"bluetooth":btStatus==="simulating"?"simulated":serialStatus==="connected"?"serial":"manual";
+    const activeDevice = btStatus==="connected"||btStatus==="simulating"
+      ? selBt.nombre
+      : serialStatus==="connected" ? `${selCom.nombre} [${selTrama.nombre}]` : "";
+    const iaVal = computeIA(selectedAnimal, pesajes, vk);
+    const newP: PesajeRec = {
+      id: Date.now(), animalId: selectedAnimal.id, animalNombre: selectedAnimal.nombre,
+      raza: selectedAnimal.raza, categoria: selectedAnimal.categoria||"",
+      peso: w, pesoAnterior: prev?.peso ?? selectedAnimal.peso,
+      fecha: now.toLocaleDateString("es-CO"),
+      hora:  now.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}),
+      metodo: activeStatus, dispositivo: activeDevice,
+      operador: user?.nombre||"Sistema",
+      observacion: `Modo continuo · Trama: ${selTrama.id} · CC ${iaVal.bcsNum} · Score ${iaVal.scoreDesarrollo}`,
+      lote: selectedAnimal.lote, valorKilo: vk, valorTotal: w * vk,
+      condicionCorporal: `CC ${iaVal.bcsNum}`,
+      temperatura: iaVal.temperatura,
+      estadoSanitario: iaVal.estadoSalud,
+      iaScore: iaVal.scoreDesarrollo,
+    };
+    setPesajes([newP, ...pesajes] as any);
+    setStable(false); setStability(0); weightSamplesRef.current=[];
+    /* Auto-advance queue */
+    if (queueMode && animalQueue.length > 0) {
+      const nextIdx = queueIdx + 1;
+      if (nextIdx < animalQueue.length) {
+        const nextA = animals.find(a=>a.id===animalQueue[nextIdx]);
+        if (nextA) setTimeout(()=>{ setSelectedAnimal(nextA); setQueueIdx(nextIdx); weightSamplesRef.current=[]; if (btStatus==="simulating") startSimulation(nextA); }, 1500);
+      } else { setTimeout(()=>{ setQueueMode(false); setQueueIdx(0); setAnimalQueue([]); }, 1200); }
+    }
+    if (btStatus==="simulating") setTimeout(()=>startSimulation(selectedAnimal), 300);
+    imprimirRecibo(newP, "GanaderIA PRO", selectedAnimal);
+  }, [selectedAnimal, pesajes, btStatus, serialStatus, selBt, selCom, selTrama, user, setPesajes,
+      startSimulation, detValorKilo, queueMode, animalQueue, queueIdx, animals]);
+
   useEffect(() => {
     if (stable && autoCapture && liveWeight && !captureDialogOpen) {
-      setTimeout(() => openCaptureDialog(liveWeight), 400);
+      if (modoOperacion === "continuo") {
+        setTimeout(() => captureInstant(liveWeight), 600);
+      } else {
+        setTimeout(() => openCaptureDialog(liveWeight), 400);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stable]);
@@ -1196,6 +1429,7 @@ export default function Pesaje() {
                   {/* COM */}
                   {connTab==="com" && (
                     <div className="space-y-3">
+                      {/* Controller selector */}
                       <div>
                         <label className="text-[10px] text-white/30 uppercase tracking-wider block mb-1.5">Controladora COM/Serial</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -1210,6 +1444,63 @@ export default function Pesaje() {
                           ))}
                         </div>
                       </div>
+
+                      {/* ── Trama de datos ── */}
+                      <div className="rounded-xl overflow-hidden" style={{border:"1px solid rgba(251,191,36,0.2)"}}>
+                        <button onClick={()=>setShowTramaConfig(v=>!v)}
+                          className="w-full flex items-center justify-between px-3 py-2.5 text-[10px]"
+                          style={{background:"rgba(251,191,36,0.06)"}}>
+                          <div className="flex items-center gap-2 font-bold" style={{color:"#fbbf24"}}>
+                            <Radio size={11}/>
+                            Trama de datos — <span style={{color:selTrama.color}}>{selTrama.icon} {selTrama.nombre}</span>
+                          </div>
+                          <span style={{color:"rgba(251,191,36,0.5)"}}>{showTramaConfig?"▲":"▼"}</span>
+                        </button>
+                        {showTramaConfig && (
+                          <div className="p-3 space-y-2.5" style={{background:"rgba(0,0,0,0.3)"}}>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {TRAMA_TYPES.map(t=>(
+                                <button key={t.id} onClick={()=>{ setSelTrama(t); selTramaRef.current=t; }}
+                                  className="p-2 rounded-xl text-left transition-all"
+                                  style={{
+                                    background:selTrama.id===t.id?`${t.color}18`:"rgba(255,255,255,0.03)",
+                                    border:`1.5px solid ${selTrama.id===t.id?`${t.color}55`:"rgba(255,255,255,0.07)"}`,
+                                    color:selTrama.id===t.id?t.color:"rgba(255,255,255,0.5)",
+                                  }}>
+                                  <div className="text-xs mb-0.5">{t.icon}</div>
+                                  <div className="font-bold text-[9px] leading-tight">{t.nombre}</div>
+                                  {selTrama.id===t.id&&<div className="text-[8px] mt-0.5" style={{color:`${t.color}90`}}>{t.estabilidad_directa?"⚡ Estabilidad directa":"📊 Análisis estadístico"}</div>}
+                                </button>
+                              ))}
+                            </div>
+                            {/* Trama info panel */}
+                            <div className="rounded-xl p-2.5" style={{background:"rgba(0,0,0,0.4)",border:`1px solid ${selTrama.color}25`}}>
+                              <div className="text-[9px] font-bold mb-1" style={{color:selTrama.color}}>{selTrama.icon} {selTrama.nombre}</div>
+                              <div className="text-[9px] mb-1.5" style={{color:"rgba(255,255,255,0.45)"}}>{selTrama.descripcion}</div>
+                              <div className="font-mono text-[9px] px-2 py-1.5 rounded" style={{background:"rgba(0,0,0,0.5)",color:"#39ff7e",letterSpacing:"0.05em"}}>
+                                {selTrama.ejemplo}
+                              </div>
+                              {selTrama.estabilidad_directa && (
+                                <div className="mt-1.5 flex gap-3 text-[9px]">
+                                  <span className="text-yellow-400">⚡ Estabilidad desde trama: '!' = listo, 'I' = pesando</span>
+                                </div>
+                              )}
+                            </div>
+                            {/* Live decoder */}
+                            {lastRawFrame && (
+                              <div className="rounded-xl p-2.5" style={{background:"rgba(57,255,126,0.05)",border:"1px solid rgba(57,255,126,0.2)"}}>
+                                <div className="text-[9px] text-white/30 mb-1 uppercase tracking-wider">Último frame decodificado</div>
+                                <div className="font-mono text-[10px]" style={{color:"#39ff7e"}}>{lastRawFrame}</div>
+                                <div className="flex gap-3 mt-1 text-[9px]">
+                                  <span style={{color:"rgba(0,245,212,0.7)"}}>Peso: <strong>{liveWeight ?? 0} kg</strong></span>
+                                  <span style={{color:stable?"#39ff7e":"#fbbf24"}}>Estado: <strong>{stable?"✅ ESTABLE":"⏳ PESANDO"}</strong></span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex gap-2">
                         {serialStatus==="idle"||serialStatus==="error"
                           ? <Button onClick={connectSerial} className="flex-1 gap-2 font-bold"
@@ -1260,8 +1551,79 @@ export default function Pesaje() {
                 status={connTab==="bt"?btStatus:connTab==="com"?serialStatus:"idle"}
                 onCapture={()=>openCaptureDialog()}
                 autoCapture={autoCapture}
-                connectionLabel={connTab==="bt"?selBt.nombre:selCom.nombre}
+                connectionLabel={connTab==="bt"?selBt.nombre:`${selCom.nombre} · ${selTrama.icon}${selTrama.nombre}`}
               />
+
+              {/* ── Modo operación ── */}
+              <div className="rounded-2xl overflow-hidden" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(251,191,36,0.15)"}}>
+                <div className="flex items-center gap-3 px-4 py-3 border-b" style={{borderColor:"rgba(255,255,255,0.06)"}}>
+                  <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.3)"}}>
+                    <Zap size={12} style={{color:"#fbbf24"}}/>
+                  </div>
+                  <span className="font-black text-sm text-white">Modo de operación</span>
+                  <span className="text-[9px] ml-auto" style={{color:"rgba(251,191,36,0.5)"}}>{modoOperacion==="continuo"?"🚀 Flujo continuo activo":"⏸ Paso a paso"}</span>
+                </div>
+                <div className="p-3 grid grid-cols-2 gap-2">
+                  {(["pausado","continuo"] as const).map(m=>(
+                    <button key={m} onClick={()=>setModoOperacion(m)}
+                      className="rounded-xl p-3 text-center transition-all"
+                      style={{
+                        background: modoOperacion===m
+                          ? m==="continuo" ? "linear-gradient(135deg,rgba(251,191,36,0.18),rgba(234,88,12,0.12))"
+                                          : "rgba(57,255,126,0.1)"
+                          : "rgba(255,255,255,0.02)",
+                        border: modoOperacion===m
+                          ? m==="continuo" ? "1.5px solid rgba(251,191,36,0.5)" : "1.5px solid rgba(57,255,126,0.4)"
+                          : "1px solid rgba(255,255,255,0.07)",
+                      }}>
+                      <div className="text-xl mb-1">{m==="continuo"?"🚀":"⏸"}</div>
+                      <div className="font-black text-xs" style={{color:modoOperacion===m?(m==="continuo"?"#fbbf24":"#39ff7e"):"rgba(255,255,255,0.4)"}}>
+                        {m==="continuo"?"Continuo":"Pausado"}
+                      </div>
+                      <div className="text-[8px] mt-0.5" style={{color:"rgba(255,255,255,0.3)"}}>
+                        {m==="continuo"?"Pasar animales sin parar · auto-imprime":"Un animal a la vez · confirma cada uno"}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {modoOperacion==="continuo" && (
+                  <div className="px-3 pb-3">
+                    <div className="rounded-xl px-3 py-2 flex items-start gap-2" style={{background:"rgba(251,191,36,0.07)",border:"1px solid rgba(251,191,36,0.2)"}}>
+                      <Zap size={11} className="mt-0.5 flex-shrink-0" style={{color:"#fbbf24"}}/>
+                      <p className="text-[9px]" style={{color:"rgba(251,191,36,0.8)"}}>
+                        <strong>Modo Continuo:</strong> Al detectar peso estable ('!' en trama CIVAC), captura y guarda automáticamente con valores IA, imprime recibo y avanza al siguiente animal en cola. Agrega animales a la cola para pesaje en serie.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {/* Live trama decoder strip — shown when serial connected */}
+                {serialStatus==="connected" && lastRawFrame && (
+                  <div className="px-3 pb-3">
+                    <div className="rounded-xl px-3 py-2" style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(57,255,126,0.15)"}}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] text-white/25 uppercase tracking-wider">Stream en vivo · {selTrama.icon} {selTrama.nombre}</span>
+                        <span className="text-[9px] font-bold" style={{color:stable?"#39ff7e":"#ff9500"}}>{stable?"✅ ESTABLE":"⏳ PESANDO"}</span>
+                      </div>
+                      <div className="font-mono text-[10px] tracking-widest" style={{color:"#fbbf24"}}>
+                        {lastRawFrame.split("").map((ch,i)=>(
+                          <span key={i} style={{
+                            color: (ch==="!" || ch==="I") ? (ch==="!"?"#39ff7e":"#ff9500")
+                              : ch==="s"||ch==="S"||ch==="k"||ch==="K" ? "#00c8ff"
+                              : ch==="↵" ? "#c084fc"
+                              : "rgba(255,255,255,0.6)",
+                            background: i===0?"rgba(255,255,255,0.08)":"transparent",
+                            padding:"0 1px", borderRadius:"2px",
+                          }}>{ch}</span>
+                        ))}
+                      </div>
+                      <div className="flex gap-4 mt-1.5 text-[9px]">
+                        <span style={{color:"rgba(57,255,126,0.6)"}}>B0: estado · B1–7: peso (rjust) · B8: unidad</span>
+                        <span className="ml-auto font-bold" style={{color:"#00f5d4"}}>{liveWeight ?? 0} kg</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

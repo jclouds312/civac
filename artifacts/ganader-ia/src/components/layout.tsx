@@ -212,6 +212,123 @@ function CivacLogo({ size = 36 }: { size?: number }) {
   );
 }
 
+/* ─── Plan-aware PWA install button ─────────────────────────────────────── */
+const PLAN_MOD_COUNTS: Record<string, number> = {
+  basico: 5, pro: 17, premium: 21, platino: 26,
+};
+
+function PwaInstallButton({
+  installPrompt,
+  onInstall,
+  user,
+  compact = false,
+}: {
+  installPrompt: Event | null;
+  onInstall: () => void;
+  user: { nombre: string; plan?: string; role?: string } | null;
+  compact?: boolean;
+}) {
+  const [showPanel, setShowPanel] = useState(false);
+  const plan = (user?.plan ?? 'basico') as string;
+  const planColor = PLAN_COLOR[plan as keyof typeof PLAN_COLOR] ?? '#94a3b8';
+  const planLabel = ({ basico:'Básico', pro:'PRO', premium:'Premium', platino:'Platino' } as Record<string,string>)[plan] ?? plan;
+  const planIcon  = ({ basico:'⚙️',   pro:'🚀',  premium:'💎',     platino:'👑'       } as Record<string,string>)[plan] ?? '⚙️';
+  const modCount  = PLAN_MOD_COUNTS[plan] ?? 5;
+
+  const downloadPlanConfig = () => {
+    const config = {
+      civac_version: "4.2",
+      tipo: "pwa_plan_config",
+      generada: new Date().toISOString(),
+      usuario: user?.nombre ?? "Usuario",
+      plan: { id: plan, label: planLabel, modulos: modCount },
+      instrucciones: [
+        "1. Instala la PWA de GanaderIA desde tu navegador",
+        "2. Al abrir la app, carga este archivo en Configuración → Licencia",
+        `3. Tu plan ${planLabel} activa ${modCount} módulos`,
+        "4. La app funciona offline con tus datos sincronizados",
+      ],
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `civac_pwa_${plan}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (compact) {
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowPanel(v => !v)}
+          className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold transition-all"
+          style={{ color: planColor, background: `${planColor}12`, border: `1px solid ${planColor}30`, borderRadius: 10 }}
+        >
+          <Download size={12} />
+          <span>Instalar {planLabel}</span>
+        </button>
+        {showPanel && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setShowPanel(false)} />
+            <div className="absolute right-0 top-full mt-1.5 w-72 z-50 rounded-2xl overflow-hidden shadow-2xl"
+              style={{ background: 'rgba(4,15,26,0.98)', backdropFilter: 'blur(24px)', border: `1px solid ${planColor}30` }}>
+              <div className="h-0.5" style={{ background: `linear-gradient(90deg,${planColor},transparent)` }} />
+              <div className="p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{planIcon}</span>
+                  <div>
+                    <div className="font-black text-sm text-white">Plan {planLabel}</div>
+                    <div className="text-[10px]" style={{ color: planColor }}>{modCount} módulos activos</div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-white/40 leading-relaxed">
+                  Instala GanaderIA como app nativa en tu dispositivo. Tu plan {planLabel} se activa automáticamente con todos sus módulos.
+                </p>
+                {installPrompt && (
+                  <button onClick={() => { onInstall(); setShowPanel(false); }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all hover:scale-[1.02]"
+                    style={{ background: `linear-gradient(135deg,${planColor},${planColor}99)`, color: '#000' }}>
+                    <Download size={13} /> Instalar PWA — Plan {planLabel}
+                  </button>
+                )}
+                <button onClick={downloadPlanConfig}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold text-xs transition-all hover:opacity-90"
+                  style={{ background: `${planColor}12`, border: `1px solid ${planColor}30`, color: planColor }}>
+                  <Download size={12} /> Descargar config del plan
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {installPrompt && (
+        <button onClick={onInstall}
+          className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-all hover:scale-[1.02]"
+          style={{ color: planColor, background: `${planColor}10`, border: `1px solid ${planColor}25`, borderRadius: 12 }}
+        >
+          <Download size={13} />
+          <span className="flex-1 text-left">Instalar PWA · Plan {planLabel}</span>
+          <span className="text-[9px] opacity-60">{modCount} mód.</span>
+        </button>
+      )}
+      <button onClick={downloadPlanConfig}
+        className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] transition-all hover:opacity-90"
+        style={{ color: `${planColor}80`, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12 }}
+      >
+        <Download size={11} />
+        <span className="flex-1 text-left">Descargar config {planLabel}</span>
+      </button>
+    </div>
+  );
+}
+
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -612,14 +729,12 @@ export function Layout({ children }: LayoutProps) {
               <Wifi size={9} /><span>CIVAC v4.0 · Offline PWA · Colombia</span>
             </div>
           )}
-          {installPrompt && !collapsed && (
-            <button
-              onClick={() => { (installPrompt as any).prompt(); setInstallPrompt(null); }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs transition-all hover:scale-[1.02]"
-              style={{ color: PIÑA, background: `rgba(255,214,10,0.08)`, border: `1px solid rgba(255,214,10,0.18)`, borderRadius: 12 }}
-            >
-              <Download size={13} /><span>Instalar app CIVAC</span>
-            </button>
+          {!collapsed && (
+            <PwaInstallButton
+              installPrompt={installPrompt}
+              onInstall={() => { (installPrompt as any).prompt(); setInstallPrompt(null); }}
+              user={user}
+            />
           )}
           <button
             onClick={logout}
@@ -697,13 +812,12 @@ export function Layout({ children }: LayoutProps) {
 
           <div className="flex items-center gap-1">
             {installPrompt && (
-              <button
-                onClick={() => { (installPrompt as any).prompt(); setInstallPrompt(null); }}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold transition-all"
-                style={{ color: PIÑA, background: `rgba(255,214,10,0.08)`, border: `1px solid rgba(255,214,10,0.22)`, borderRadius: 10 }}
-              >
-                <Download size={12} /> Instalar
-              </button>
+              <PwaInstallButton
+                installPrompt={installPrompt}
+                onInstall={() => { (installPrompt as any).prompt(); setInstallPrompt(null); }}
+                user={user}
+                compact
+              />
             )}
 
             <button

@@ -233,7 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const registerUser = (data: Omit<Account, 'id'>): Account => {
     const id = `user_${Date.now()}`;
-    const newAccount: Account = { id, ...data, activo: true, plan: 'basico' };
+    const newAccount: Account = { id, ...data, activo: true };
     setAccounts([...accounts, newAccount]);
     return newAccount;
   };

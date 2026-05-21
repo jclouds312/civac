@@ -309,6 +309,7 @@ export default function AdminDashboard({
   const [payFilter,    setPayFilter]    = useState<"todos"|"aprobado"|"rechazado"|"pendiente">("todos");
   const [modSearch,    setModSearch]    = useState("");
   const [permTarget,   setPermTarget]   = useState<Account | null>(null);
+  const [modPlanFilter, setModPlanFilter] = useState<PlanId|"todos">("todos");
 
   const tab    = extTab ?? internalTab;
   const setTab = onTabChange ?? setInternalTab;
@@ -362,6 +363,54 @@ export default function AdminDashboard({
     return `${base}&amount-in-cents=${price*100}&reference=CIVAC-${Date.now()}-${linkPlan}`;
   };
   const copyPayLink = () => { navigator.clipboard?.writeText(genPayLink()).catch(()=>{}); setLinkCopied(true); setTimeout(()=>setLinkCopied(false),2000); };
+
+  /* ── Generar y descargar licencia JSON para un usuario ── */
+  const genLicencia = (a: Account) => {
+    const plan = (a.plan ?? "basico") as PlanId;
+    const planIdx = PLAN_ORDER.indexOf(plan);
+    const modulos = ALL_MODULES
+      .filter((_,i) => PLAN_ORDER.indexOf(ALL_MODULES[i].plan as PlanId) <= planIdx)
+      .filter(m => (a.permisos || []).includes(m.id))
+      .map(m => ({ id: m.id, label: m.label, plan: m.plan }));
+    const licencia = {
+      civac_version: "4.2",
+      tipo: "licencia_plan",
+      generada: new Date().toISOString(),
+      licencia_id: `LIC-${Date.now()}`,
+      usuario: {
+        id: a.id,
+        nombre: a.nombre,
+        email: a.email,
+        cargo: a.cargo,
+        finca: a.finca,
+        role: a.role,
+      },
+      plan: {
+        id: plan,
+        label: PLAN_LABEL[plan],
+        precio_mes: PLAN_PRECIOS[plan],
+        expiry: a.planExpiry ?? null,
+        activado: a.planActivadoEn ?? null,
+        wompi_ref: a.wompiRef ?? null,
+      },
+      modulos_autorizados: modulos,
+      permisos: a.permisos ?? [],
+      app_url: window.location.origin,
+      instrucciones: [
+        "1. Abre GanaderIA PWA en tu navegador",
+        "2. Ve a Configuración → Licencia",
+        "3. Carga este archivo para activar tu plan",
+        `4. Tu plan ${PLAN_LABEL[plan]} incluye ${modulos.length} módulos`,
+      ],
+    };
+    const blob = new Blob([JSON.stringify(licencia, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const el = document.createElement("a");
+    el.href = url;
+    el.download = `civac_licencia_${a.id}_${plan}.json`;
+    el.click();
+    URL.revokeObjectURL(url);
+  };
 
   /* ── Tab items ── */
   const TABS = [
@@ -658,7 +707,7 @@ export default function AdminDashboard({
                       <span className="text-[10px] text-white/40">{a.planExpiry ?? "—"}</span>
                     </td>
                     <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-wrap">
                         <button onClick={()=>toggleStatus(a)} title={a.activo!==false?"Desactivar":"Activar"}
                           className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10"
                           style={{color:a.activo!==false?"#39ff7e":"#f87171"}}>
@@ -675,6 +724,13 @@ export default function AdminDashboard({
                         <button onClick={()=>{setPlanTarget(a);setNewPlan(a.plan??"basico");}}
                           className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-purple-400">
                           <Star size={12}/>
+                        </button>
+                        <button
+                          onClick={()=>genLicencia(a)}
+                          title="Descargar licencia JSON del plan asignado"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-amber-500/15 transition-colors"
+                          style={{color:PLAN_COLOR[a.plan??"basico"]}}>
+                          <Download size={12}/>
                         </button>
                         <button onClick={()=>setDeleteTarget(a)} disabled={a.id==="admin"}
                           className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/60 hover:text-red-400 disabled:opacity-20">
@@ -1178,54 +1234,225 @@ export default function AdminDashboard({
       {/* ════════════════════════════════════════════════════════════════════
           TAB: MÓDULOS
       ════════════════════════════════════════════════════════════════════ */}
-      {tab === "modulos" && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1 max-w-sm">
-              <Input placeholder="Buscar módulo…" value={modSearch} onChange={e=>setModSearch(e.target.value)}
-                className="pl-8 text-xs h-8" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)"}}/>
-              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"/>
-            </div>
-          </div>
+      {tab === "modulos" && (() => {
+        const filteredMods = ALL_MODULES.filter(m=>
+          (!modSearch || m.label.toLowerCase().includes(modSearch.toLowerCase())) &&
+          (modPlanFilter === "todos" || m.plan === modPlanFilter)
+        );
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {ALL_MODULES.filter(m=>!modSearch||m.label.toLowerCase().includes(modSearch.toLowerCase())).map(m=>{
-              const planIdx  = PLAN_ORDER.indexOf(m.plan as PlanId);
-              const usersWithMod = accounts.filter(a=>(a.permisos||[]).includes(m.id));
-              return (
-                <div key={m.id} className="rounded-2xl p-4"
-                  style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${PLAN_COLOR[m.plan as PlanId]}20`}}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{m.icon}</span>
-                      <div>
-                        <div className="font-bold text-sm text-white">{m.label}</div>
-                        <PlanBadge plan={m.plan as PlanId}/>
+        const planModCount = PLAN_ORDER.reduce((acc, p) => {
+          acc[p] = ALL_MODULES.filter(m => PLAN_ORDER.indexOf(m.plan as PlanId) <= PLAN_ORDER.indexOf(p)).length;
+          return acc;
+        }, {} as Record<PlanId, number>);
+
+        return (
+          <div className="space-y-4">
+            {/* Header bar */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative flex-1 min-w-40 max-w-xs">
+                <Input placeholder="Buscar módulo…" value={modSearch} onChange={e=>setModSearch(e.target.value)}
+                  className="pl-8 text-xs h-8" style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)"}}/>
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"/>
+              </div>
+              <span className="text-[10px] text-white/30">{ALL_MODULES.length} módulos · {accounts.length} usuarios</span>
+            </div>
+
+            {/* Plan filter tabs */}
+            <div className="flex gap-2 flex-wrap">
+              {(([
+                ["todos","Todos",ALL_MODULES.length,"#94a3b8"],
+                ...PLAN_ORDER.map(p=>[p, PLAN_LABEL[p], planModCount[p], PLAN_COLOR[p]]),
+              ]) as [string,string,number,string][]).map(([id,label,cnt,color])=>(
+                <button key={id} onClick={()=>setModPlanFilter(id as PlanId|"todos")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+                  style={{
+                    background: modPlanFilter===id ? `${color}18` : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${modPlanFilter===id ? color+"50" : "rgba(255,255,255,0.08)"}`,
+                    color: modPlanFilter===id ? color : "rgba(255,255,255,0.4)",
+                    boxShadow: modPlanFilter===id ? `0 0 12px ${color}20` : "none",
+                  }}>
+                  {id==="todos" ? "🧩" : PLAN_ICON[id as PlanId]} {label}
+                  <span className="text-[9px] opacity-60">({cnt})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Download plan config buttons */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(0,245,212,0.04)",border:"1px solid rgba(0,245,212,0.12)"}}>
+              <div className="flex items-center gap-2 mb-3">
+                <Download size={13} style={{color:"#00f5d4"}}/>
+                <span className="text-sm font-bold text-white">Descargar configuración de plan</span>
+                <span className="text-[10px] text-white/30 ml-auto">Genera JSON con módulos autorizados por plan</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {PLAN_ORDER.map(p=>{
+                  const planIdx = PLAN_ORDER.indexOf(p);
+                  const planMods = ALL_MODULES.filter(m => PLAN_ORDER.indexOf(m.plan as PlanId) <= planIdx);
+                  return (
+                    <button key={p}
+                      onClick={()=>{
+                        const config = {
+                          civac_version: "4.2",
+                          tipo: "config_plan",
+                          plan: { id:p, label:PLAN_LABEL[p], precio_mes:PLAN_PRECIOS[p] },
+                          modulos: planMods.map(m=>({ id:m.id, label:m.label, plan:m.plan })),
+                          rutas_autorizadas: planMods.map(m=>`/${m.id}`),
+                          total_modulos: planMods.length,
+                          generada: new Date().toISOString(),
+                        };
+                        const blob = new Blob([JSON.stringify(config,null,2)],{type:"application/json"});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a"); a.href=url; a.download=`civac_plan_${p}_config.json`; a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="flex flex-col items-center gap-1 px-3 py-3 rounded-xl transition-all hover:scale-[1.03]"
+                      style={{background:`${PLAN_COLOR[p]}10`,border:`1px solid ${PLAN_COLOR[p]}35`,color:PLAN_COLOR[p]}}>
+                      <span className="text-xl">{PLAN_ICON[p]}</span>
+                      <span className="text-xs font-black">{PLAN_LABEL[p]}</span>
+                      <span className="text-[9px] opacity-60">{planMods.length} módulos</span>
+                      <span className="text-[8px] opacity-40">{PLAN_PRECIOS[p]>0?fmt(PLAN_PRECIOS[p])+"/mes":"Gratis"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Module cards grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredMods.map(m=>{
+                const planColor  = PLAN_COLOR[m.plan as PlanId];
+                const usersWithMod = accounts.filter(a=>(a.permisos||[]).includes(m.id));
+                const planIdx = PLAN_ORDER.indexOf(m.plan as PlanId);
+                return (
+                  <div key={m.id} className="rounded-2xl overflow-hidden transition-all hover:scale-[1.01]"
+                    style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${planColor}25`}}>
+                    <div className="h-0.5" style={{background:`linear-gradient(90deg,${planColor},transparent)`}}/>
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                            style={{background:`${planColor}12`,border:`1px solid ${planColor}30`}}>
+                            {m.icon}
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm text-white">{m.label}</div>
+                            <PlanBadge plan={m.plan as PlanId}/>
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-xl font-black" style={{color:planColor}}>{usersWithMod.length}</div>
+                          <div className="text-[8px] text-white/30">usuarios</div>
+                        </div>
+                      </div>
+
+                      {/* Plan access indicator */}
+                      <div className="flex gap-0.5 mb-3">
+                        {PLAN_ORDER.map((p,i)=>(
+                          <div key={p} className="flex-1 h-1.5 rounded-full transition-all"
+                            style={{background: i<=planIdx ? planColor : "rgba(255,255,255,0.06)"}}/>
+                        ))}
+                      </div>
+                      <div className="text-[9px] mb-2" style={{color:`${planColor}80`}}>
+                        Incluido desde plan {PLAN_LABEL[m.plan as PlanId]}
+                      </div>
+
+                      {/* Users with access */}
+                      {usersWithMod.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {usersWithMod.slice(0,5).map(u=>(
+                            <span key={u.id} className="flex items-center gap-1 text-[8px] px-1.5 py-0.5 rounded-full"
+                              style={{background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.45)"}}>
+                              {u.avatar} {u.nombre.split(" ")[0]}
+                            </span>
+                          ))}
+                          {usersWithMod.length>5&&<span className="text-[8px] text-white/25">+{usersWithMod.length-5}</span>}
+                        </div>
+                      ) : (
+                        <div className="text-[9px] text-white/20 italic">Sin usuarios asignados aún</div>
+                      )}
+
+                      {/* Assign to users button */}
+                      <div className="mt-3 pt-3 border-t" style={{borderColor:"rgba(255,255,255,0.05)"}}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] text-white/25">Asignar a usuario:</span>
+                          <div className="flex gap-1">
+                            {accounts.filter(a=>!(a.permisos||[]).includes(m.id)).slice(0,3).map(u=>(
+                              <button key={u.id}
+                                onClick={()=>updateUser(u.id,{permisos:[...(u.permisos||[]),m.id]})}
+                                className="text-[8px] px-1.5 py-0.5 rounded-full transition-all hover:opacity-100 opacity-70"
+                                style={{background:`${planColor}15`,border:`1px solid ${planColor}30`,color:planColor}}
+                                title={`Dar acceso a ${u.nombre}`}>
+                                +{u.avatar}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xs font-black text-white">{usersWithMod.length}</div>
-                      <div className="text-[8px] text-white/30">usuarios</div>
-                    </div>
                   </div>
-                  <div className="text-[9px] text-white/30 mb-2">Plan mínimo requerido: {PLAN_LABEL[m.plan as PlanId]}</div>
-                  {usersWithMod.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {usersWithMod.slice(0,4).map(u=>(
-                        <span key={u.id} className="text-[8px] px-1.5 py-0.5 rounded-full text-white/40"
-                          style={{background:"rgba(255,255,255,0.06)"}}>
-                          {u.nombre.split(" ")[0]}
-                        </span>
+                );
+              })}
+            </div>
+
+            {/* Module matrix by plan */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+              <div className="px-4 py-3 flex items-center justify-between"
+                style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Layers size={14} style={{color:"#a78bfa"}}/> Matriz de acceso por plan
+                </h3>
+                <span className="text-[10px] text-white/30">{ALL_MODULES.length} módulos × 4 planes</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                      <th className="px-4 py-2 text-left text-[9px] text-white/40 font-bold w-40">Módulo</th>
+                      {PLAN_ORDER.map(p=>(
+                        <th key={p} className="px-3 py-2 text-center text-[9px] font-black" style={{color:PLAN_COLOR[p]}}>
+                          {PLAN_ICON[p]} {PLAN_LABEL[p]}
+                        </th>
                       ))}
-                      {usersWithMod.length>4&&<span className="text-[8px] text-white/25">+{usersWithMod.length-4}</span>}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ALL_MODULES.map((m,i)=>{
+                      const planIdx = PLAN_ORDER.indexOf(m.plan as PlanId);
+                      return (
+                        <tr key={m.id} style={{background:i%2===0?"rgba(255,255,255,0.01)":"transparent",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-white/70">
+                              <span>{m.icon}</span>{m.label}
+                            </div>
+                          </td>
+                          {PLAN_ORDER.map((p,pi)=>(
+                            <td key={p} className="px-3 py-2 text-center">
+                              {pi>=planIdx
+                                ? <CheckCircle size={12} style={{color:PLAN_COLOR[p],margin:"0 auto"}}/>
+                                : <span className="w-3 h-0.5 rounded-full block mx-auto" style={{background:"rgba(255,255,255,0.08)"}}/>
+                              }
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr style={{borderTop:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)"}}>
+                      <td className="px-4 py-2 text-[9px] text-white/30 font-bold">Total módulos</td>
+                      {PLAN_ORDER.map(p=>(
+                        <td key={p} className="px-3 py-2 text-center">
+                          <span className="text-xs font-black" style={{color:PLAN_COLOR[p]}}>{planModCount[p]}</span>
+                        </td>
+                      ))}
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ════════════════════════════════════════════════════════════════════
           TAB: SISTEMA

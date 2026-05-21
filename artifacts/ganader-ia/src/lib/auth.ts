@@ -28,7 +28,7 @@ export interface Account {
   password: string;
   avatar: string;
   gradient: string;
-  role: 'admin' | 'vet' | 'field' | 'viewer';
+  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin';
   permisos: string[];
   activo?: boolean;
   /* ── Plan Wompi ── */
@@ -126,10 +126,40 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planExpiry: '2026-12-31',
     permisos: ['inventario','produccion','reproduccion','genetica','ficha','potreros','alimentacion','insumos','semen','costos','personal','multifinca','prediccion','alertas','gps'],
   },
+  {
+    id: 'developer',
+    nombre: 'Dev · Arquitecto CIVAC',
+    cargo: 'Desarrollador Principal',
+    finca: 'CIVAC Labs · Colombia',
+    email: 'dev@civac.co',
+    password: 'dev2026',
+    avatar: '🛠️',
+    gradient: 'from-[#0a0f1e] to-[#0d1a2e]',
+    role: 'developer',
+    activo: true,
+    plan: 'platino',
+    planExpiry: '2099-12-31',
+    permisos: ['*'],
+  },
+  {
+    id: 'superadmin',
+    nombre: 'Super Administrador',
+    cargo: 'Super Admin · CIVAC Platform',
+    finca: 'CIVAC HQ · Bogotá',
+    email: 'super@civac.co',
+    password: 'super2026',
+    avatar: '🔱',
+    gradient: 'from-[#1a0500] to-[#2d0e00]',
+    role: 'superadmin',
+    activo: true,
+    plan: 'platino',
+    planExpiry: '2099-12-31',
+    permisos: ['*'],
+  },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '4.2.1';
+const ACCOUNTS_VERSION = '4.3.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {

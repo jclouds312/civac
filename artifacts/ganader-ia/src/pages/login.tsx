@@ -61,10 +61,12 @@ const PLAN_PRECIOS_LABEL: Record<PlanId, string> = {
 
 /* ── Client accounts config ──────────────────────────────────────────────────── */
 const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; from:string; to:string; glow:string; color:string }> = {
-  admin:  { emoji:"👑", label:"Administrador General", sub:"Super Admin · Gestión total · Panel de plataforma", from:"#fbbf24", to:"#ea580c", glow:"251,191,36", color:"#fbbf24" },
-  vet:    { emoji:"🩺", label:"Médico Veterinario",    sub:"Sanidad animal · Reproducción · Genética",          from:"#00c8ff", to:"#0ea5e9", glow:"0,200,255",   color:"#00c8ff" },
-  field:  { emoji:"🌿", label:"Operario de Campo",     sub:"Pesaje · Potreros · Insumos · Producción",          from:"#39ff7e", to:"#16a34a", glow:"57,255,126",  color:"#39ff7e" },
-  viewer: { emoji:"💼", label:"Propietario / Inversor",sub:"Sólo lectura · Dashboard · Costos · IA",            from:"#c084fc", to:"#7c3aed", glow:"192,132,252", color:"#c084fc" },
+  admin:       { emoji:"👑",  label:"Administrador General",  sub:"Super Admin · Gestión total · Panel de plataforma",          from:"#fbbf24", to:"#ea580c", glow:"251,191,36",   color:"#fbbf24" },
+  vet:         { emoji:"🩺",  label:"Médico Veterinario",     sub:"Sanidad animal · Reproducción · Genética",                    from:"#00c8ff", to:"#0ea5e9", glow:"0,200,255",     color:"#00c8ff" },
+  field:       { emoji:"🌿",  label:"Operario de Campo",      sub:"Pesaje · Potreros · Insumos · Producción",                    from:"#39ff7e", to:"#16a34a", glow:"57,255,126",    color:"#39ff7e" },
+  viewer:      { emoji:"💼",  label:"Propietario / Inversor", sub:"Sólo lectura · Dashboard · Costos · IA",                      from:"#c084fc", to:"#7c3aed", glow:"192,132,252",   color:"#c084fc" },
+  developer:   { emoji:"🛠️", label:"Dev · Arquitecto CIVAC", sub:"Panel técnico · Versiones · APIs · Feature Flags · Deploy",   from:"#00ff88", to:"#00d4aa", glow:"0,255,136",     color:"#00ff88" },
+  superadmin:  { emoji:"🔱",  label:"Super Administrador",    sub:"Plataforma completa · Auditoría · Versiones · Config global", from:"#ff6b35", to:"#f7931e", glow:"255,107,53",    color:"#ff6b35" },
 };
 
 /* ── Payment modal ──────────────────────────────────────────────────────────── */

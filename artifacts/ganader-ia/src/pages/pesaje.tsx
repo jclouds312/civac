@@ -410,6 +410,22 @@ export default function Pesaje() {
   const [newAId, setNewAId] = useState(""); const [newANombre, setNewANombre] = useState("");
   const [newARaza, setNewARaza] = useState("Holstein"); const [newACat, setNewACat] = useState("Vaca adulta");
   const [newALote, setNewALote] = useState("Lote A");
+  const [newAFoto, setNewAFoto] = useState<string | null>(null);
+  const [newAFotoName, setNewAFotoName] = useState("");
+  const [newAFechaNac, setNewAFechaNac] = useState("");
+  const [newARegistro, setNewARegistro] = useState("NO");
+  const [newANumReg, setNewANumReg] = useState("");
+  const fotoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert("Foto máx 5 MB"); return; }
+    setNewAFotoName(file.name);
+    const reader = new FileReader();
+    reader.onload = ev => setNewAFoto(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
 
   /* Connection tab */
   const [connTab, setConnTab] = useState<"bt" | "com" | "manual">("bt");
@@ -681,10 +697,16 @@ export default function Pesaje() {
   const handleRegNewAnimal = () => {
     const tid = newAId.trim(); const tnombre = newANombre.trim();
     if (!tid || !tnombre || animals.find(a => a.id === tid)) return;
-    const newA = { id:tid, nombre:tnombre, raza:newARaza, categoria:newACat, lote:newALote, peso:0, estado:"Activa", fechaNacimiento:"", registro:"NO", numeroRegistro:"", valorKilo:11000, litrosDia:0, partos:0 };
+    const newA = {
+      id:tid, nombre:tnombre, raza:newARaza, categoria:newACat, lote:newALote,
+      peso:0, estado:"Activa", fechaNacimiento:newAFechaNac, registro:newARegistro,
+      numeroRegistro:newANumReg, valorKilo:11000, litrosDia:0, partos:0,
+      foto: newAFoto ?? undefined,
+    };
     setAnimals((prev: any[]) => [...prev, newA]);
     if (queueMode) { setAnimalQueue(prev => [...prev, tid]); } else { setSelectedAnimal(newA as any); }
-    setShowNewAnimal(false); setNewAId(""); setNewANombre("");
+    setShowNewAnimal(false);
+    setNewAId(""); setNewANombre(""); setNewAFoto(null); setNewAFotoName(""); setNewAFechaNac(""); setNewARegistro("NO"); setNewANumReg("");
   };
 
   /* ── Stats ── */
@@ -1297,44 +1319,165 @@ export default function Pesaje() {
       </Dialog>
 
       {/* ── NEW ANIMAL DIALOG ── */}
-      <Dialog open={showNewAnimal} onOpenChange={setShowNewAnimal}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader><DialogTitle className="flex items-center gap-2"><UserPlus size={16} className="text-green-400"/> Registrar Nuevo Animal</DialogTitle></DialogHeader>
-          <div className="grid gap-4 py-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label>ID / Arete</Label><Input value={newAId} onChange={e => setNewAId(e.target.value)} placeholder="Ej: VCA-014"/></div>
-              <div className="space-y-1.5"><Label>Nombre</Label><Input value={newANombre} onChange={e => setNewANombre(e.target.value)} placeholder="Ej: Bonita"/></div>
+      <Dialog open={showNewAnimal} onOpenChange={open => { setShowNewAnimal(open); if (!open) { setNewAFoto(null); setNewAFotoName(""); } }}>
+        <DialogContent className="sm:max-w-[520px] max-h-[92vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus size={16} className="text-green-400"/> Registrar Nuevo Animal
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+
+            {/* ── FOTO / IMAGEN ── */}
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">Foto del animal (opcional)</Label>
+              <div className="flex gap-3 items-start">
+                {/* Preview */}
+                <div className="w-24 h-24 rounded-2xl flex-shrink-0 overflow-hidden flex items-center justify-center"
+                  style={{ background:"rgba(57,255,126,0.05)", border:`2px ${newAFoto ? "solid rgba(57,255,126,0.4)" : "dashed rgba(255,255,255,0.1)"}` }}>
+                  {newAFoto ? (
+                    <img src={newAFoto} alt="preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-3xl opacity-20">🐄</span>
+                  )}
+                </div>
+                {/* Upload buttons */}
+                <div className="flex-1 space-y-2">
+                  {/* Hidden file input (gallery) */}
+                  <input
+                    ref={fotoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFotoChange}
+                  />
+                  {/* Hidden camera input */}
+                  <input
+                    id="cameraInput"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleFotoChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fotoInputRef.current?.click()}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
+                    style={{ background:"rgba(57,255,126,0.1)", border:"1px solid rgba(57,255,126,0.3)", color:"#39ff7e" }}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Subir foto desde galería
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => (document.getElementById("cameraInput") as HTMLInputElement)?.click()}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
+                    style={{ background:"rgba(0,200,255,0.08)", border:"1px solid rgba(0,200,255,0.25)", color:"#00c8ff" }}>
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    Tomar foto con cámara
+                  </button>
+                  {newAFoto && (
+                    <button type="button" onClick={() => { setNewAFoto(null); setNewAFotoName(""); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
+                      style={{ background:"rgba(255,80,80,0.08)", border:"1px solid rgba(255,80,80,0.2)", color:"#ff7070" }}>
+                      <XIcon size={12}/> Quitar foto {newAFotoName ? `(${newAFotoName.slice(0,20)})` : ""}
+                    </button>
+                  )}
+                  <p className="text-[9px] text-white/25">JPG · PNG · WebP · máx 5 MB · Se guarda en el perfil del animal</p>
+                </div>
+              </div>
             </div>
+
+            {/* ID + Nombre */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>ID / Arete *</Label>
+                <Input value={newAId} onChange={e => setNewAId(e.target.value)} placeholder="Ej: VCA-014" />
+                {newAId && animals.find(a => a.id === newAId.trim()) && (
+                  <p className="text-[10px] text-red-400">⚠ ID ya registrado</p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Nombre *</Label>
+                <Input value={newANombre} onChange={e => setNewANombre(e.target.value)} placeholder="Ej: Bonita" />
+              </div>
+            </div>
+
+            {/* Raza + Categoría */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Raza</Label>
                 <Select value={newARaza} onValueChange={setNewARaza}>
                   <SelectTrigger><SelectValue/></SelectTrigger>
-                  <SelectContent>{["Holstein","Jersey","Cebú","Simmental","Angus","Brahman","Gyr","Gyr X","Criollo"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  <SelectContent>{["Holstein","Jersey","Cebú","Simmental","Angus","Brahman","Gyr","Gyr X","Criollo","Normando","Blanco Orejinegro"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
                 <Label>Categoría</Label>
                 <Select value={newACat} onValueChange={setNewACat}>
                   <SelectTrigger><SelectValue/></SelectTrigger>
-                  <SelectContent>{["Vaca adulta","Novilla","Ternera","Toro","Novillo","Ternero"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  <SelectContent>{["Vaca adulta","Novilla","Ternera","Toro","Novillo","Ternero","Cría"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Lote</Label>
-              <Select value={newALote} onValueChange={setNewALote}>
-                <SelectTrigger><SelectValue/></SelectTrigger>
-                <SelectContent>{["Lote A","Lote B","Lote C","Lote D","Lote E","Lote F","Ordeño","Maternidad"].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-              </Select>
+
+            {/* Lote + Fecha Nac */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Lote</Label>
+                <Select value={newALote} onValueChange={setNewALote}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>{["Lote A","Lote B","Lote C","Lote D","Lote E","Lote F","Ordeño","Maternidad","Engorde"].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Fecha de nacimiento</Label>
+                <Input type="date" value={newAFechaNac} onChange={e => setNewAFechaNac(e.target.value)} />
+              </div>
             </div>
-            {newAId && animals.find(a => a.id === newAId) && <p className="text-xs text-red-400">Ya existe un animal con este ID</p>}
+
+            {/* Registro */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>¿Tiene registro?</Label>
+                <Select value={newARegistro} onValueChange={setNewARegistro}>
+                  <SelectTrigger><SelectValue/></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SI">Sí — tiene registro</SelectItem>
+                    <SelectItem value="NO">No — sin registro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {newARegistro === "SI" && (
+                <div className="space-y-1.5">
+                  <Label>Número de registro</Label>
+                  <Input value={newANumReg} onChange={e => setNewANumReg(e.target.value)} placeholder="Ej: REG-0099" />
+                </div>
+              )}
+            </div>
+
+            {/* Reference weight */}
+            {newARaza && newACat && (
+              <div className="rounded-xl p-3 flex items-center gap-3"
+                style={{ background:"rgba(255,149,0,0.06)", border:"1px solid rgba(255,149,0,0.2)" }}>
+                <span className="text-lg">⚖️</span>
+                <div className="text-xs">
+                  <span className="text-orange-300 font-semibold">{newARaza} — {newACat}</span>
+                  <span className="text-white/40 ml-2">
+                    Peso esperado: {getPesoRef(newARaza, newACat).min}–{getPesoRef(newARaza, newACat).max} kg · Prom: {getPesoRef(newARaza, newACat).prom} kg
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setShowNewAnimal(false)}>Cancelar</Button>
-            <Button onClick={handleRegNewAnimal} disabled={!newAId.trim() || !newANombre.trim() || !!animals.find(a => a.id === newAId.trim())}
+            <Button onClick={handleRegNewAnimal}
+              disabled={!newAId.trim() || !newANombre.trim() || !!animals.find(a => a.id === newAId.trim())}
               style={{ background:"rgba(57,255,126,0.9)", color:"black" }}>
-              <UserPlus size={14} className="mr-1"/> Registrar{queueMode ? " y agregar a cola" : ""}
+              <UserPlus size={14} className="mr-1"/>
+              {newAFoto ? "📸 " : ""}Registrar{queueMode ? " y agregar a cola" : ""}
             </Button>
           </DialogFooter>
         </DialogContent>

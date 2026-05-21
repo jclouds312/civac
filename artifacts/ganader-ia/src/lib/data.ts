@@ -205,13 +205,68 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type Animal          = typeof initialAnimals[0];
-export type Potrero         = typeof initialPotreros[0];
+export interface Animal {
+  id: string;
+  nombre: string;
+  raza: string;
+  categoria: string;
+  peso: number;
+  lote: string;
+  estado: string;
+  litrosDia: number;
+  partos: number;
+  fechaNacimiento: string;
+  registro: string;
+  numeroRegistro: string;
+  valorKilo: number;
+  foto?: string;
+}
+
+export interface Potrero {
+  id: number;
+  nombre: string;
+  pasto: string;
+  hectareas: number;
+  estado: string;
+  diasOcupado?: number;
+  diasDescanso?: number;
+  diasRestantes?: number;
+  diasRotacion: number;
+  animales: number;
+  capacidadMax?: number;
+  aforo?: number;
+  observaciones?: string;
+}
+
+export interface Pesaje {
+  id: number;
+  animalId: string;
+  animalNombre: string;
+  peso: number;
+  pesoAnterior: number;
+  fecha: string;
+  hora: string;
+  metodo: string;
+  dispositivo: string;
+  operador: string;
+  observacion: string;
+  lote: string;
+  categoria: string;
+  raza?: string;
+  condicionCorporal?: string | number;
+  temperatura?: string | number;
+  estadoSanitario?: string;
+  potreroActual?: string;
+  observacionVet?: string;
+  proximaVacuna?: string;
+  valorKilo?: number;
+  valorTotal?: number;
+}
+
 export type Insumo          = typeof initialInsumos[0];
 export type Personal        = typeof initialPersonal[0];
 export type Reproduccion    = typeof initialReproduccion[0];
 export type Alerta          = typeof initialAlertas[0];
-export type Pesaje          = typeof initialPesajes[0];
 export type GpsUbicacion    = typeof initialGps[0];
 export type SemenRecord     = typeof initialSemen[0];
 export type EmbrionRecord   = typeof initialEmbriones[0];
@@ -253,7 +308,7 @@ const AppStateContext = createContext<AppStateType | null>(null);
 
 export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [animals,       _setAnimals]       = useLocal('animals',       initialAnimals);
-  const [potreros,      _setPotreros]      = useLocal('potreros',      initialPotreros);
+  const [potreros,      _setPotreros]      = useLocal<Potrero[]>('potreros',      initialPotreros);
   const [insumos,       _setInsumos]       = useLocal('insumos',       initialInsumos);
   const [personal,      _setPersonal]      = useLocal('personal',      initialPersonal);
   const [reproduccion,  _setReproduccion]  = useLocal('reproduccion',  initialReproduccion);

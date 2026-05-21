@@ -44,10 +44,40 @@ function HomeRoute() {
   return user?.role === "admin" ? <AdminDashboard /> : <Dashboard />;
 }
 
+function AdminGate() {
+  const { user, logout } = useAuth();
+  return (
+    <div className="min-h-screen" style={{ background:"linear-gradient(145deg,#040d1a,#071325 50%,#040d1a)", fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
+      <div className="sticky top-0 z-40 flex items-center justify-between px-6 py-3 border-b" style={{ background:"rgba(4,13,26,0.95)", borderColor:"rgba(255,149,0,0.15)", backdropFilter:"blur(16px)" }}>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background:"rgba(255,149,0,0.15)", border:"1px solid rgba(255,149,0,0.4)" }}>
+            <span className="text-sm">👑</span>
+          </div>
+          <div>
+            <span className="font-black text-white text-sm">GanaderIA PRO</span>
+            <span className="text-[10px] ml-2 px-2 py-0.5 rounded-full font-bold" style={{ background:"rgba(255,149,0,0.15)", color:"#ff9500", border:"1px solid rgba(255,149,0,0.3)" }}>Panel Administrador</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-white/40">{user?.email}</span>
+          <button onClick={logout} className="text-xs px-3 py-1.5 rounded-xl transition-colors" style={{ background:"rgba(255,80,80,0.1)", color:"#ff7070", border:"1px solid rgba(255,80,80,0.25)" }}>
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+      <div className="p-6">
+        <AdminDashboard />
+      </div>
+    </div>
+  );
+}
+
 function AuthGate() {
   const { user } = useAuth();
 
   if (!user) return <Login />;
+
+  if (user.role === "admin") return <AdminGate />;
 
   return (
     <Layout>

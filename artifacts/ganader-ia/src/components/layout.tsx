@@ -5,7 +5,7 @@ import {
   FileText, Heart, Droplets, Dna, Layers, Wheat, Zap, Scale,
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
-  ChevronRight, Building2, Cpu, BarChart3,
+  ChevronRight, Building2, Cpu, BarChart3, Lock,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { useState, useEffect } from "react";
@@ -57,6 +57,32 @@ const MODULES: Record<string, ModuleDef> = {
   '/planes':        { icon: Crown,           from:'#fbbf24', to:'#ea580c', glow:'251,191,36',   emoji:'🛡️', label:'Licencia CIVAC',       shortLabel:'Licencia'  },
   '/lotes':         { icon: Truck,           from:'#00c8ff', to:'#0891b2', glow:'0,200,255',    emoji:'🐂', label:'Movimiento Lotes',     shortLabel:'Lotes'     },
   '/datos':         { icon: Database,        from:'#818cf8', to:'#4f46e5', glow:'129,140,248',  emoji:'🗄️', label:'Data Warehouse',       shortLabel:'Datos'     },
+};
+
+/* ── Plan-based route access ───────────────────────────────────────────────── */
+const PLAN_ROUTES: Record<string, string[]> = {
+  basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros'],
+  pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros',
+            '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
+            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion'],
+  premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
+            '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
+            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
+            '/pesaje-manual', '/co2', '/lotes', '/datos'],
+  platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
+            '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
+            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
+            '/pesaje-manual', '/co2', '/lotes', '/datos',
+            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes'],
+};
+
+const PLAN_REQUIRED: Record<string, string> = {
+  '/reproduccion': 'PRO', '/genetica': 'PRO', '/pesaje': 'PRO', '/ficha': 'PRO',
+  '/alimentacion': 'PRO', '/gps': 'PRO', '/insumos': 'PRO', '/semen': 'PRO',
+  '/costos': 'PRO', '/personal': 'PRO', '/multifinca': 'PRO', '/prediccion': 'PRO',
+  '/pesaje-manual': 'PREMIUM', '/co2': 'PREMIUM', '/lotes': 'PREMIUM', '/datos': 'PREMIUM',
+  '/usuarios': 'PLATINO', '/configuracion': 'PLATINO', '/documentacion': 'PLATINO',
+  '/manual': 'PLATINO', '/planes': 'PLATINO',
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -220,6 +246,43 @@ export function Layout({ children }: LayoutProps) {
     const active = isActive(href);
     const m = MODULES[href] || MODULES['/'];
     const Icon = m.icon;
+
+    /* Plan-based locking */
+    const userPlan = (user?.plan ?? 'basico') as string;
+    const isLocked = user?.role !== 'admin' && !(PLAN_ROUTES[userPlan] ?? PLAN_ROUTES.basico).includes(href);
+    const reqPlan = PLAN_REQUIRED[href];
+
+    if (isLocked) {
+      return (
+        <Link href="/planes">
+          <div className="flex items-center gap-2.5 px-2 py-1.5 mx-1.5 my-0.5 cursor-pointer group transition-all"
+            style={{ borderRadius: 13, opacity: 0.45 }}>
+            <div className="flex-shrink-0 flex items-center justify-center"
+              style={{ width: 30, height: 30, borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.25)' }}>
+              <Icon size={15} strokeWidth={2.3} />
+            </div>
+            {!collapsed && (
+              <>
+                <span className="flex-1 text-[13px] text-white/25 truncate" style={{ fontFamily: "'Space Grotesk','Sora',sans-serif", fontWeight: 400 }}>
+                  {m.label}
+                </span>
+                <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full flex items-center gap-0.5 flex-shrink-0"
+                  style={{ background: 'rgba(255,149,0,0.10)', color: 'rgba(255,149,0,0.65)', border: '1px solid rgba(255,149,0,0.18)' }}>
+                  <Lock size={6}/>{reqPlan ?? 'PRO'}
+                </span>
+              </>
+            )}
+            {collapsed && (
+              <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(255,149,0,0.9)' }}>
+                <Lock size={6} color="white" />
+              </span>
+            )}
+          </div>
+        </Link>
+      );
+    }
+
     return (
       <Link href={href} onClick={() => setMobileOpen(false)}>
         <div

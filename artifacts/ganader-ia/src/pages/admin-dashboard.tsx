@@ -187,7 +187,13 @@ function AccountForm({
 }
 
 /* ── Main Component ───────────────────────────────────────────────────────── */
-export default function AdminDashboard() {
+export default function AdminDashboard({
+  activeTab: extTab,
+  onTabChange,
+}: {
+  activeTab?: string;
+  onTabChange?: (t: string) => void;
+} = {}) {
   const { accounts, registerUser, updateUser, deleteUser, user: currentUser } = useAuth();
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
@@ -195,7 +201,9 @@ export default function AdminDashboard() {
   const [planTarget, setPlanTarget] = useState<Account | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
   const [newPlan, setNewPlan] = useState<PlanId>("pro");
-  const [tab, setTab] = useState("cuentas");
+  const [internalTab, setInternalTab] = useState("cuentas");
+  const tab = extTab ?? internalTab;
+  const setTab = onTabChange ?? setInternalTab;
 
   const clients = accounts.filter(a => a.id !== "admin");
   const filtered = clients.filter(a =>

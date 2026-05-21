@@ -93,9 +93,9 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     gradient: 'from-[#0d2137] to-[#1565c0]',
     role: 'vet',
     activo: true,
-    plan: 'pro',
+    plan: 'premium',
     planExpiry: '2026-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','prediccion','alertas','documentacion','pesaje','gps'],
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','prediccion','alertas','documentacion','pesaje','gps','co2','lotes','datos','pesaje-manual'],
   },
   {
     id: 'campo',
@@ -109,7 +109,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     role: 'field',
     activo: true,
     plan: 'basico',
-    permisos: ['inventario','produccion','potreros','alimentacion','insumos','alertas','pesaje'],
+    permisos: ['inventario','produccion','potreros','alertas'],
   },
   {
     id: 'visor',
@@ -122,10 +122,14 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     gradient: 'from-[#4a148c] to-[#6a1b9a]',
     role: 'viewer',
     activo: true,
-    plan: 'basico',
-    permisos: ['inventario','produccion','costos','prediccion','co2','alertas','gps'],
+    plan: 'pro',
+    planExpiry: '2026-12-31',
+    permisos: ['inventario','produccion','reproduccion','genetica','ficha','potreros','alimentacion','insumos','semen','costos','personal','multifinca','prediccion','alertas','gps'],
   },
 ];
+
+/* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
+const ACCOUNTS_VERSION = '4.2.1';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {
@@ -140,6 +144,23 @@ function savePayments(payments: WompiPayment[]) {
 
 function loadAccounts(): Account[] {
   try {
+    const version = localStorage.getItem('ganader_accounts_version');
+    if (version !== ACCOUNTS_VERSION) {
+      /* Version changed — reset default accounts but keep user-created ones */
+      const stored = localStorage.getItem('ganader_accounts');
+      const defaultIds = new Set(DEFAULT_ACCOUNTS.map(a => a.id));
+      let extra: Account[] = [];
+      if (stored) {
+        const parsed: Account[] = JSON.parse(stored);
+        extra = parsed.filter(a => !defaultIds.has(a.id));
+      }
+      const merged = [...DEFAULT_ACCOUNTS, ...extra];
+      localStorage.setItem('ganader_accounts', JSON.stringify(merged));
+      localStorage.setItem('ganader_accounts_version', ACCOUNTS_VERSION);
+      /* Clear cached user so they re-login with fresh plan */
+      localStorage.removeItem('ganader_user');
+      return merged;
+    }
     const stored = localStorage.getItem('ganader_accounts');
     if (stored) {
       const parsed: Account[] = JSON.parse(stored);
@@ -149,7 +170,10 @@ function loadAccounts(): Account[] {
   return DEFAULT_ACCOUNTS;
 }
 function saveAccounts(accounts: Account[]) {
-  try { localStorage.setItem('ganader_accounts', JSON.stringify(accounts)); } catch {}
+  try {
+    localStorage.setItem('ganader_accounts', JSON.stringify(accounts));
+    localStorage.setItem('ganader_accounts_version', ACCOUNTS_VERSION);
+  } catch {}
 }
 
 /* ─── Contexto Auth ───────────────────────────────────────────────────────── */

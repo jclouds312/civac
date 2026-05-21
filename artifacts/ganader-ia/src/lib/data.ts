@@ -261,6 +261,7 @@ export interface Pesaje {
   proximaVacuna?: string;
   valorKilo?: number;
   valorTotal?: number;
+  iaScore?: number;
 }
 
 export type Insumo          = typeof initialInsumos[0];

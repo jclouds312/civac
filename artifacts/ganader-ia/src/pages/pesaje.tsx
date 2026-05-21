@@ -9,7 +9,7 @@ import {
   X as XIcon, Usb, Cable, Brain, Sparkles, ChevronDown, ChevronUp,
   Filter, Camera, Image, Hash, Layers, HeartPulse, Weight, Thermometer,
   Info, ChevronRight, BookOpen, Leaf, Shield, RefreshCw, Check, Edit3,
-  ArrowUpRight, ArrowDownRight,
+  ArrowUpRight, ArrowDownRight, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    BLUETOOTH CONTROLLERS
@@ -754,7 +754,7 @@ export default function Pesaje() {
 
   /* ── Tab ── */
   const [connTab, setConnTab]         = useState<"bt"|"com"|"manual">("bt");
-  const [mainTab, setMainTab]         = useState<"bascula"|"manual"|"historial">("bascula");
+  const [mainTab, setMainTab]         = useState<"bascula"|"manual"|"historial"|"estadisticas">("bascula");
 
   /* ── Capture dialog ── */
   const [captureDialogOpen, setCaptureDialogOpen] = useState(false);

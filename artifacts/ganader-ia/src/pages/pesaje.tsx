@@ -1355,9 +1355,10 @@ export default function Pesaje() {
           {/* Main tabs */}
           <div className="flex gap-2">
             {[
-              {id:"bascula" as const, label:"⚖️ Báscula", sub:"BT + COM"},
-              {id:"manual"  as const, label:"✏️ Manual",  sub:"Entrada directa"},
-              {id:"historial" as const, label:"📋 Historial", sub:`${pesajes.length} registros`},
+              {id:"bascula"     as const, label:"⚖️ Báscula",       sub:"BT + COM"},
+              {id:"manual"      as const, label:"✏️ Manual",         sub:"Entrada directa"},
+              {id:"historial"   as const, label:"📋 Historial",      sub:`${pesajes.length} registros`},
+              {id:"estadisticas"as const, label:"📊 Estadísticas",   sub:"GDP · Valor · Gráficas"},
             ].map(t=>(
               <button key={t.id} onClick={()=>setMainTab(t.id)}
                 className="flex-1 py-2.5 rounded-2xl text-center transition-all"
@@ -1806,7 +1807,30 @@ export default function Pesaje() {
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-black text-sm text-white">Historial de pesajes</span>
-                  <span className="text-[10px]" style={{color:"rgba(0,245,212,0.5)"}}>{pesajes.length} registros</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px]" style={{color:"rgba(0,245,212,0.5)"}}>{pesajes.length} registros</span>
+                    <button
+                      onClick={()=>{
+                        const header = "Folio,Animal,ID,Raza,Categoría,Lote,Peso(kg),PesoAnterior(kg),Diferencia(kg),Fecha,Hora,Método,Dispositivo,Operador,CC,Temperatura,EstadoSanitario,ValorKilo,ValorTotal,ScoreIA,Observación";
+                        const rows = pesajes.map(p=>[
+                          p.id, p.animalNombre, p.animalId, p.raza||"", p.categoria, p.lote,
+                          p.peso.toFixed(1), p.pesoAnterior.toFixed(1), (p.peso-p.pesoAnterior).toFixed(1),
+                          p.fecha, p.hora, p.metodo, p.dispositivo, p.operador,
+                          p.condicionCorporal||"", p.temperatura||"", p.estadoSanitario||"",
+                          p.valorKilo||"", p.valorTotal||"", p.iaScore||"",
+                          `"${(p.observacion||"").replace(/"/g,"'")}"`,
+                        ].join(","));
+                        const csv = [header,...rows].join("\n");
+                        const blob = new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a"); a.href=url; a.download=`pesajes_${new Date().toLocaleDateString("es-CO").replace(/\//g,"-")}.csv`; a.click();
+                        URL.revokeObjectURL(url);
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all"
+                      style={{background:"rgba(0,245,212,0.1)",border:"1px solid rgba(0,245,212,0.25)",color:"#00f5d4"}}>
+                      <Download size={11}/>CSV
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-1.5 max-h-[500px] overflow-y-auto" style={{scrollbarWidth:"thin",scrollbarColor:"rgba(0,245,212,0.2) transparent"}}>
                   {pesajes.slice(0,50).map(p=>{
@@ -1852,6 +1876,175 @@ export default function Pesaje() {
               </div>
             </div>
           )}
+
+          {/* ── ESTADÍSTICAS TAB ── */}
+          {mainTab === "estadisticas" && (() => {
+            /* ── Build chart data ── */
+            const allAnim = selectedAnimal ? [selectedAnimal] : animals.slice(0,8);
+            /* Weight evolution — selected animal or all */
+            const evolData = (() => {
+              if (!selectedAnimal) return [];
+              return pesajes
+                .filter(p=>p.animalId===selectedAnimal.id)
+                .sort((a,b)=>a.id-b.id)
+                .slice(-12)
+                .map(p=>({ fecha:p.fecha.slice(0,5), peso:Number(p.peso.toFixed(1)), valorTotal:p.valorTotal||0, ia:p.iaScore||0 }));
+            })();
+            /* GDP by animal */
+            const gdpData = animals.slice(0,10).map(a=>{
+              const hist = pesajes.filter(p=>p.animalId===a.id).sort((a,b)=>a.id-b.id);
+              if (hist.length<2) return { nombre:a.nombre.slice(0,8), gdp:0 };
+              const last=hist[hist.length-1], prev=hist[hist.length-2];
+              const diff=last.peso-prev.peso;
+              const [d1,m1,y1]=(prev.fecha||"").split("/").map(Number);
+              const [d2,m2,y2]=(last.fecha||"").split("/").map(Number);
+              const dias=Math.abs((new Date(y2||2025,(m2||1)-1,d2||1).getTime()-new Date(y1||2025,(m1||1)-1,d1||1).getTime())/86400000)||30;
+              return { nombre:a.nombre.slice(0,8), gdp:Math.round((diff/dias)*30*10)/10 };
+            }).filter(x=>x.gdp!==0);
+            /* Value by lote */
+            const loteVal: Record<string,number> = {};
+            pesajes.slice(0,100).forEach(p=>{ if (p.lote&&p.valorTotal) loteVal[p.lote]=(loteVal[p.lote]||0)+p.valorTotal; });
+            const loteData = Object.entries(loteVal).map(([lote,val])=>({ lote, val:Math.round(val/1000) })).sort((a,b)=>b.val-a.val);
+            /* KPIs */
+            const totalKg   = pesajes.reduce((s,p)=>s+p.peso,0);
+            const promPeso  = pesajes.length>0 ? Math.round(totalKg/pesajes.length*10)/10 : 0;
+            const totalVal  = pesajes.reduce((s,p)=>s+(p.valorTotal||0),0);
+            const metodos   = pesajes.reduce((m,p)=>{m[p.metodo]=(m[p.metodo]||0)+1;return m;},{} as Record<string,number>);
+
+            return (
+              <div className="space-y-4">
+                {/* KPI row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    {label:"Total pesajes",    val:pesajes.length,           sub:"registros",       c:"#00f5d4", icon:"📋"},
+                    {label:"Peso promedio",    val:`${promPeso} kg`,         sub:"por pesaje",      c:"#39ff7e", icon:"⚖️"},
+                    {label:"Total kg pesados", val:`${Math.round(totalKg)} kg`,sub:"acumulado",    c:"#fbbf24", icon:"📦"},
+                    {label:"Valor total",      val:fmt(totalVal),            sub:"COP acumulado",   c:"#a78bfa", icon:"💰"},
+                  ].map(k=>(
+                    <div key={k.label} className="rounded-2xl p-3 text-center"
+                      style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${k.c}20`}}>
+                      <div className="text-xl mb-1">{k.icon}</div>
+                      <div className="font-black text-white text-base">{k.val}</div>
+                      <div className="text-[9px] mt-0.5" style={{color:`${k.c}80`}}>{k.label}</div>
+                      <div className="text-[8px] text-white/20">{k.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Weight evolution chart */}
+                {evolData.length>1 && (
+                  <div className="rounded-2xl p-4" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(0,245,212,0.12)"}}>
+                    <div className="text-xs font-bold text-white mb-3 flex items-center gap-2">
+                      <TrendingUp size={13} style={{color:"#00f5d4"}}/>
+                      Evolución de peso — {selectedAnimal?.nombre}
+                    </div>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <BarChart data={evolData} margin={{top:4,right:4,left:-20,bottom:0}}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
+                        <XAxis dataKey="fecha" tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                        <YAxis tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                        <Tooltip contentStyle={{backgroundColor:"#050d18",border:"1px solid rgba(0,245,212,0.2)",borderRadius:"12px",fontSize:"11px"}}/>
+                        <Bar dataKey="peso" fill="#00f5d4" radius={[4,4,0,0]} name="Peso (kg)"/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {evolData.length<=1 && selectedAnimal && (
+                  <div className="rounded-2xl p-4 text-center" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    <div className="text-white/25 text-sm">Sin historial de pesajes para {selectedAnimal.nombre}</div>
+                    <div className="text-white/15 text-xs mt-1">Registra al menos 2 pesajes para ver la evolución</div>
+                  </div>
+                )}
+
+                {/* GDP ranking */}
+                {gdpData.length>0 && (
+                  <div className="rounded-2xl p-4" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(57,255,126,0.12)"}}>
+                    <div className="text-xs font-bold text-white mb-3 flex items-center gap-2">
+                      <BarChart3 size={13} style={{color:"#39ff7e"}}/>
+                      GDP (kg/mes) — ranking de animales
+                    </div>
+                    <ResponsiveContainer width="100%" height={Math.max(100,gdpData.length*30)}>
+                      <BarChart data={gdpData} layout="vertical" margin={{top:2,right:24,left:8,bottom:2}}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false}/>
+                        <XAxis type="number" tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                        <YAxis type="category" dataKey="nombre" tick={{fontSize:9,fill:"rgba(255,255,255,0.5)"}} width={60}/>
+                        <Tooltip contentStyle={{backgroundColor:"#050d18",border:"1px solid rgba(57,255,126,0.2)",borderRadius:"12px",fontSize:"11px"}}/>
+                        <Bar dataKey="gdp" radius={[0,4,4,0]} name="GDP kg/mes">
+                          {gdpData.map((entry,i)=>(
+                            <Cell key={i} fill={entry.gdp>=0?"#39ff7e":"#f87171"}/>
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Value by lote */}
+                {loteData.length>0 && (
+                  <div className="rounded-2xl p-4" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(251,191,36,0.12)"}}>
+                    <div className="text-xs font-bold text-white mb-3 flex items-center gap-2">
+                      <DollarSign size={13} style={{color:"#fbbf24"}}/>
+                      Valorización por lote (miles COP)
+                    </div>
+                    <ResponsiveContainer width="100%" height={140}>
+                      <BarChart data={loteData} margin={{top:4,right:4,left:-16,bottom:0}}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)"/>
+                        <XAxis dataKey="lote" tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                        <YAxis tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                        <Tooltip contentStyle={{backgroundColor:"#050d18",border:"1px solid rgba(251,191,36,0.2)",borderRadius:"12px",fontSize:"11px"}} formatter={(v:number)=>[`$${v}k COP`,"Valor"]}/>
+                        <Bar dataKey="val" fill="#fbbf24" radius={[4,4,0,0]} name="Valor (k COP)"/>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {/* Methods breakdown */}
+                <div className="rounded-2xl p-4" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                  <div className="text-xs font-bold text-white mb-3">Métodos de captura usados</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {Object.entries(metodos).map(([met,cnt])=>(
+                      <div key={met} className="rounded-xl p-3 text-center"
+                        style={{background:met==="bluetooth"?"rgba(0,200,255,0.08)":met==="serial"?"rgba(251,191,36,0.08)":met==="simulated"?"rgba(139,92,246,0.08)":"rgba(255,255,255,0.04)",border:`1px solid ${met==="bluetooth"?"rgba(0,200,255,0.2)":met==="serial"?"rgba(251,191,36,0.2)":met==="simulated"?"rgba(139,92,246,0.2)":"rgba(255,255,255,0.08)"}`}}>
+                        <div className="text-xl mb-1">{met==="bluetooth"?"🔵":met==="serial"?"🟡":met==="simulated"?"🟣":"⚪"}</div>
+                        <div className="font-black text-white text-lg">{cnt}</div>
+                        <div className="text-[9px] text-white/35 capitalize">{met==="bluetooth"?"Bluetooth":met==="serial"?"COM/Serial":met==="simulated"?"Simulado":"Manual"}</div>
+                      </div>
+                    ))}
+                    {Object.keys(metodos).length===0&&<div className="col-span-4 text-center py-4 text-white/20 text-xs">Sin pesajes aún</div>}
+                  </div>
+                </div>
+
+                {/* Animals without recent weighing */}
+                {(() => {
+                  const atrasados = animals.filter(a=>{
+                    const last=pesajes.filter(p=>p.animalId===a.id).sort((x,y)=>y.id-x.id)[0];
+                    if(!last) return true;
+                    const [d,m,y]=last.fecha.split("/").map(Number);
+                    return (Date.now()-new Date(y,m-1,d).getTime())>30*86400000;
+                  });
+                  if(!atrasados.length) return null;
+                  return (
+                    <div className="rounded-2xl p-4" style={{background:"rgba(248,113,113,0.06)",border:"1px solid rgba(248,113,113,0.2)"}}>
+                      <div className="text-xs font-bold text-red-400 mb-2 flex items-center gap-2">
+                        <AlertTriangle size={13}/> {atrasados.length} animales sin pesaje en +30 días
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {atrasados.slice(0,12).map(a=>(
+                          <button key={a.id} onClick={()=>setSelectedAnimal(a)}
+                            className="px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
+                            style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.25)",color:"#f87171"}}>
+                            {a.nombre} · {a.id}
+                          </button>
+                        ))}
+                        {atrasados.length>12&&<span className="text-[9px] text-white/30">+{atrasados.length-12} más</span>}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })()}
+
         </div>
 
         {/* ═══ COL 3: IA Panel ═══ */}

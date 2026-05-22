@@ -17,6 +17,7 @@ export const animalsTable = pgTable("animals", {
   registro:        text("registro").notNull().default("NO"),
   numeroRegistro:  text("numero_registro").notNull().default(""),
   valorKilo:       real("valor_kilo").notNull().default(0),
+  foto:            text("foto").default(""),
   createdAt:       timestamp("created_at").defaultNow(),
   updatedAt:       timestamp("updated_at").defaultNow(),
 });
@@ -36,6 +37,9 @@ export const potrerosTable = pgTable("potreros", {
   diasRestantes: integer("dias_restantes"),
   diasRotacion:  integer("dias_rotacion"),
   animales:      integer("animales").notNull().default(0),
+  capacidadMax:  integer("capacidad_max"),
+  aforo:         real("aforo"),
+  observaciones: text("observaciones").notNull().default(""),
   createdAt:     timestamp("created_at").defaultNow(),
   updatedAt:     timestamp("updated_at").defaultNow(),
 });
@@ -70,6 +74,7 @@ export const personalTable = pgTable("personal", {
   hExtras:   integer("h_extras").notNull().default(0),
   eps:       text("eps").notNull().default(""),
   arl:       text("arl").notNull().default(""),
+  foto:      text("foto").default(""),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -110,20 +115,30 @@ export type Alerta = typeof alertasTable.$inferSelect;
 
 // ── Pesajes (Weighing) ────────────────────────────────────────────────────────
 export const pesajesTable = pgTable("pesajes", {
-  id:           serial("id").primaryKey(),
-  animalId:     text("animal_id").notNull(),
-  animalNombre: text("animal_nombre").notNull().default(""),
-  peso:         real("peso").notNull().default(0),
-  pesoAnterior: real("peso_anterior").notNull().default(0),
-  fecha:        text("fecha").notNull().default(""),
-  hora:         text("hora").notNull().default(""),
-  metodo:       text("metodo").notNull().default("manual"),
-  dispositivo:  text("dispositivo").notNull().default(""),
-  operador:     text("operador").notNull().default(""),
-  observacion:  text("observacion").notNull().default(""),
-  lote:         text("lote").notNull().default(""),
-  categoria:    text("categoria").notNull().default(""),
-  createdAt:    timestamp("created_at").defaultNow(),
+  id:              serial("id").primaryKey(),
+  animalId:        text("animal_id").notNull(),
+  animalNombre:    text("animal_nombre").notNull().default(""),
+  peso:            real("peso").notNull().default(0),
+  pesoAnterior:    real("peso_anterior").notNull().default(0),
+  fecha:           text("fecha").notNull().default(""),
+  hora:            text("hora").notNull().default(""),
+  metodo:          text("metodo").notNull().default("manual"),
+  dispositivo:     text("dispositivo").notNull().default(""),
+  operador:        text("operador").notNull().default(""),
+  observacion:     text("observacion").notNull().default(""),
+  lote:            text("lote").notNull().default(""),
+  categoria:       text("categoria").notNull().default(""),
+  raza:            text("raza").notNull().default(""),
+  condicionCorporal: text("condicion_corporal").notNull().default(""),
+  temperatura:     text("temperatura").notNull().default(""),
+  estadoSanitario: text("estado_sanitario").notNull().default(""),
+  potreroActual:   text("potrero_actual").notNull().default(""),
+  observacionVet:  text("observacion_vet").notNull().default(""),
+  proximaVacuna:   text("proxima_vacuna").notNull().default(""),
+  valorKilo:       real("valor_kilo").notNull().default(0),
+  valorTotal:      real("valor_total").notNull().default(0),
+  iaScore:         integer("ia_score"),
+  createdAt:       timestamp("created_at").defaultNow(),
 });
 export const insertPesajeSchema = createInsertSchema(pesajesTable).omit({ id: true, createdAt: true });
 export type InsertPesaje = z.infer<typeof insertPesajeSchema>;
@@ -159,7 +174,9 @@ export const usuariosTable = pgTable("usuarios_sistema", {
   password:  text("password").notNull(),
   role:      text("role").notNull().default("viewer"),
   permisos:  text("permisos").notNull().default("[]"),
+  planCode:  text("plan_code").notNull().default("basic"),
   activo:    boolean("activo").notNull().default(true),
+  foto:      text("foto").default(""),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -187,3 +204,81 @@ export const movimientosLoteTable = pgTable("movimientos_lote", {
 export const insertMovimientoLoteSchema = createInsertSchema(movimientosLoteTable).omit({ id: true, createdAt: true });
 export type InsertMovimientoLote = z.infer<typeof insertMovimientoLoteSchema>;
 export type MovimientoLote = typeof movimientosLoteTable.$inferSelect;
+
+// ── Plans Config ─────────────────────────────────────────────────────────────
+export const plansTable = pgTable("plans_config", {
+  id:              serial("id").primaryKey(),
+  code:            text("code").notNull().unique(),
+  name:            text("name").notNull(),
+  nameLong:        text("name_long").notNull().default(""),
+  priceMonthly:    integer("price_monthly").notNull().default(0),
+  maxAnimals:      integer("max_animals").notNull().default(50),
+  maxUsers:        integer("max_users").notNull().default(1),
+  maxGpsCollars:   integer("max_gps_collars").notNull().default(5),
+  features:        text("features").notNull().default("[]"),
+  colorPrimary:    text("color_primary").notNull().default("#00f5d4"),
+  colorSecondary:  text("color_secondary").notNull().default("#00c8ff"),
+  colorAccent:     text("color_accent").notNull().default("#39ff7e"),
+  badgeLabel:      text("badge_label").notNull().default(""),
+  active:          boolean("active").notNull().default(true),
+  createdAt:       timestamp("created_at").defaultNow(),
+});
+export const insertPlanSchema = createInsertSchema(plansTable).omit({ id: true, createdAt: true });
+export type InsertPlan = z.infer<typeof insertPlanSchema>;
+export type Plan = typeof plansTable.$inferSelect;
+
+// ── Images Store (base64 / dataURL) ──────────────────────────────────────────
+export const imagesTable = pgTable("images", {
+  id:           serial("id").primaryKey(),
+  entityType:   text("entity_type").notNull(),  // 'animal' | 'finca' | 'personal' | 'logo' | 'user'
+  entityId:     text("entity_id").notNull(),
+  filename:     text("filename").notNull().default(""),
+  mimetype:     text("mimetype").notNull().default("image/jpeg"),
+  dataUrl:      text("data_url").notNull(),      // base64 encoded full dataURL
+  sizeBytes:    integer("size_bytes").notNull().default(0),
+  width:        integer("width"),
+  height:       integer("height"),
+  createdAt:    timestamp("created_at").defaultNow(),
+});
+export const insertImageSchema = createInsertSchema(imagesTable).omit({ id: true, createdAt: true });
+export type InsertImage = z.infer<typeof insertImageSchema>;
+export type StoredImage = typeof imagesTable.$inferSelect;
+
+// ── Finca Config ─────────────────────────────────────────────────────────────
+export const fincaConfigTable = pgTable("finca_config", {
+  id:               serial("id").primaryKey(),
+  nombre:           text("nombre").notNull().default("Finca El Rancho Verde"),
+  nit:              text("nit").notNull().default(""),
+  municipio:        text("municipio").notNull().default("Bogotá"),
+  departamento:     text("departamento").notNull().default("Cundinamarca"),
+  telefono:         text("telefono").notNull().default(""),
+  email:            text("email").notNull().default(""),
+  direccion:        text("direccion").notNull().default(""),
+  planCode:         text("plan_code").notNull().default("basic"),
+  themeMode:        text("theme_mode").notNull().default("dark"),
+  primaryColor:     text("primary_color").notNull().default("#00f5d4"),
+  logoImageId:      integer("logo_image_id"),
+  hectareasTotales: real("hectareas_totales").notNull().default(27),
+  capacidadTotal:   integer("capacidad_total").notNull().default(100),
+  updatedAt:        timestamp("updated_at").defaultNow(),
+});
+export const insertFincaConfigSchema = createInsertSchema(fincaConfigTable).omit({ id: true, updatedAt: true });
+export type InsertFincaConfig = z.infer<typeof insertFincaConfigSchema>;
+export type FincaConfig = typeof fincaConfigTable.$inferSelect;
+
+// ── User Sessions ─────────────────────────────────────────────────────────────
+export const userSessionsTable = pgTable("user_sessions", {
+  id:        text("id").primaryKey(),         // UUID token
+  userId:    text("user_id").notNull(),
+  userEmail: text("user_email").notNull(),
+  userRole:  text("user_role").notNull(),
+  userName:  text("user_name").notNull().default(""),
+  planCode:  text("plan_code").notNull().default("basic"),
+  ipAddress: text("ip_address").notNull().default(""),
+  userAgent: text("user_agent").notNull().default(""),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+export const insertUserSessionSchema = createInsertSchema(userSessionsTable).omit({ createdAt: true });
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type UserSession = typeof userSessionsTable.$inferSelect;

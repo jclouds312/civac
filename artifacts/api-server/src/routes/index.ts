@@ -11,10 +11,18 @@ import pesajesRouter from "./pesajes";
 import gpsRouter from "./gps";
 import usuariosRouter from "./usuarios";
 import lotesRouter from "./lotes";
+import authRouter from "./auth";
+import imagesRouter from "./images";
+import fincaRouter from "./finca";
+import plansRouter from "./plans";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(authRouter);
+router.use(imagesRouter);
+router.use(fincaRouter);
+router.use(plansRouter);
 router.use(animalsRouter);
 router.use(potrerosRouter);
 router.use(insumosRouter);

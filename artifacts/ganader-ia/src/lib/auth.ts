@@ -254,6 +254,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginAs = (account: Account) => {
     setUser(account);
     try { localStorage.setItem('ganader_user', JSON.stringify(account)); } catch {}
+    // Background: also get a real server session token for API access
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: account.email, password: account.password }),
+    }).then(r => r.ok ? r.json() : null).then(data => {
+      if (data?.token) {
+        try { localStorage.setItem('civac_session_token', data.token); } catch {}
+      }
+    }).catch(() => { /* offline — token stays empty */ });
   };
 
   const logout = () => {

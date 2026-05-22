@@ -1,8 +1,8 @@
-// CIVAC PRO — Service Worker v6
+// CIVAC PRO — Service Worker v7
 // Estrategia: Cache-first assets · Stale-while-revalidate nav · Network-first API
 // Memoria expandida: 50 MB quota + persistent storage · Offline shell completo
 
-const CACHE_VER    = 'v6';
+const CACHE_VER    = 'v7';
 const CACHE_MAIN   = `civac-main-${CACHE_VER}`;
 const CACHE_STATIC = `civac-static-${CACHE_VER}`;
 const CACHE_API    = `civac-api-${CACHE_VER}`;

@@ -12,6 +12,7 @@ import {
   Layers, FlipHorizontal, Save, RotateCcw,
   Camera, Upload, Hash, CalendarDays, UserPlus,
 } from "lucide-react";
+import { ImageUpload, AnimalPhoto } from "@/components/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -556,6 +557,7 @@ export default function Inventario() {
   const [formValorAnimal, setFormValorAnimal] = useState(0);
   const [formCat, setFormCat] = useState("Vaca adulta");
   const [formRaza, setFormRaza] = useState("Holstein");
+  const [formFoto, setFormFoto] = useState<string>("");
   const [btConnecting, setBtConnecting] = useState(false);
 
   // ── Ingreso Rápido state ────────────────────────────────────────────────────
@@ -622,7 +624,7 @@ export default function Inventario() {
   const resetForm = () => {
     setFormRegistro("NO"); setFormFechaNac(""); setFormEdad("");
     setFormPeso(""); setFormValorKilo("0"); setFormValorAnimal(0);
-    setFormCat("Vaca adulta"); setFormRaza("Holstein"); setEditAnimal(null);
+    setFormCat("Vaca adulta"); setFormRaza("Holstein"); setFormFoto(""); setEditAnimal(null);
   };
 
   const openNew = () => { resetForm(); setOpen(true); };
@@ -636,6 +638,7 @@ export default function Inventario() {
     setFormValorAnimal((a.peso || 0) * (a.valorKilo || 0));
     setFormCat(a.categoria);
     setFormRaza(a.raza);
+    setFormFoto((a as any).foto || "");
     setOpen(true);
   };
 
@@ -685,6 +688,7 @@ export default function Inventario() {
       registro: formRegistro,
       numeroRegistro: formRegistro === "SI" ? (fd.get('numeroRegistro') as string || "") : "",
       valorKilo: Number(formValorKilo) || 0,
+      foto: formFoto || undefined,
     };
     if (editAnimal) setAnimals(animals.map(a => a.id === editAnimal.id ? entry : a));
     else setAnimals([entry, ...animals]);
@@ -795,6 +799,25 @@ export default function Inventario() {
                     </DialogTitle>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
+                    {/* Foto del animal */}
+                    <div className="flex items-center gap-4">
+                      <ImageUpload
+                        entityType="animal"
+                        entityId={editAnimal?.id ?? "new"}
+                        currentUrl={formFoto}
+                        onUploaded={url => setFormFoto(url)}
+                        size="lg"
+                        label="Foto del animal"
+                        shape="circle"
+                      />
+                      <div className="flex-1">
+                        <p className="text-xs text-white/50">
+                          Agrega una foto del animal. Se redimensiona automáticamente.
+                        </p>
+                        <p className="text-[10px] text-white/30 mt-0.5">JPG · PNG · WEBP · máx. 5 MB</p>
+                      </div>
+                    </div>
+
                     {!editAnimal && (
                       <div className="space-y-1.5">
                         <Label className="text-sm font-semibold">Número de Arete</Label>
@@ -1032,7 +1055,12 @@ export default function Inventario() {
                         <td className="px-3 py-2.5">
                           <span className="font-mono text-xs font-semibold" style={{color:cc.color}}>#{a.id}</span>
                         </td>
-                        <td className="px-3 py-2.5 font-bold text-white">{a.nombre}</td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <AnimalPhoto foto={(a as any).foto} nombre={a.nombre} size={30} />
+                            <span className="font-bold text-white">{a.nombre}</span>
+                          </div>
+                        </td>
                         <td className="px-3 py-2.5 text-white/60 text-xs">{a.raza}</td>
                         <td className="px-3 py-2.5">
                           <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"

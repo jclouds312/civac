@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { PLAN_ICON, PLAN_COLOR } from "@/lib/auth";
+import { applyPlanTheme } from "@/lib/api";
 
 interface LayoutProps { children: React.ReactNode; }
 
@@ -349,6 +350,15 @@ export function Layout({ children }: LayoutProps) {
     window.addEventListener('beforeinstallprompt', h);
     return () => window.removeEventListener('beforeinstallprompt', h);
   }, []);
+
+  // Apply plan-based CSS theme variables whenever the user or their plan changes
+  useEffect(() => {
+    const planMap: Record<string, string> = {
+      basico: 'basic', pro: 'pro', premium: 'pro', platino: 'platinum', enterprise: 'enterprise',
+    };
+    const planCode = user?.plan ? (planMap[user.plan] ?? user.plan) : 'basic';
+    applyPlanTheme(planCode);
+  }, [user]);
 
   useEffect(() => { setMobileOpen(false); }, [location]);
 

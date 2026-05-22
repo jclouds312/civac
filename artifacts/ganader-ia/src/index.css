@@ -1009,3 +1009,134 @@ html {
 /* Print header — oculto en pantalla, visible en print */
 .print-header { display: none; }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PLAN-BASED THEMING — CSS custom properties per plan tier
+   Applied via JS: document.documentElement.setAttribute('data-plan', code)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Default (no plan set) — same as basic */
+:root {
+  --plan-primary:        #00f5d4;
+  --plan-secondary:      #00c8ff;
+  --plan-accent:         #39ff7e;
+  --plan-glow:           0,245,212;
+  --plan-badge-bg:       rgba(0,245,212,0.12);
+  --plan-badge-border:   rgba(0,245,212,0.30);
+  --plan-badge-text:     #00f5d4;
+  --plan-sidebar-accent: rgba(0,245,212,0.15);
+  --plan-ring-color:     #00f5d4;
+  --plan-logo-glow:      rgba(0,245,212,0.45);
+  --plan-topbar-accent:  rgba(0,245,212,0.08);
+}
+
+/* Plan Básico — teal bioluminiscente */
+:root[data-plan="basic"] {
+  --plan-primary:        #00f5d4;
+  --plan-secondary:      #00c8ff;
+  --plan-accent:         #39ff7e;
+  --plan-glow:           0,245,212;
+  --plan-badge-bg:       rgba(0,245,212,0.12);
+  --plan-badge-border:   rgba(0,245,212,0.30);
+  --plan-badge-text:     #00f5d4;
+  --plan-sidebar-accent: rgba(0,245,212,0.15);
+  --plan-ring-color:     #00f5d4;
+  --plan-logo-glow:      rgba(0,245,212,0.45);
+  --plan-topbar-accent:  rgba(0,245,212,0.08);
+}
+
+/* Plan PRO — azul eléctrico + violeta */
+:root[data-plan="pro"] {
+  --plan-primary:        #00c8ff;
+  --plan-secondary:      #7c3aed;
+  --plan-accent:         #a855f7;
+  --plan-glow:           0,200,255;
+  --plan-badge-bg:       rgba(0,200,255,0.12);
+  --plan-badge-border:   rgba(0,200,255,0.35);
+  --plan-badge-text:     #00c8ff;
+  --plan-sidebar-accent: rgba(0,200,255,0.15);
+  --plan-ring-color:     #00c8ff;
+  --plan-logo-glow:      rgba(0,200,255,0.50);
+  --plan-topbar-accent:  rgba(0,200,255,0.10);
+}
+
+/* Plan Platino — oro premium */
+:root[data-plan="platinum"] {
+  --plan-primary:        #ff9500;
+  --plan-secondary:      #fbbf24;
+  --plan-accent:         #f59e0b;
+  --plan-glow:           255,149,0;
+  --plan-badge-bg:       rgba(255,149,0,0.15);
+  --plan-badge-border:   rgba(255,149,0,0.40);
+  --plan-badge-text:     #ff9500;
+  --plan-sidebar-accent: rgba(255,149,0,0.15);
+  --plan-ring-color:     #ff9500;
+  --plan-logo-glow:      rgba(255,149,0,0.55);
+  --plan-topbar-accent:  rgba(255,149,0,0.12);
+}
+
+/* Plan Enterprise — plata corporativa */
+:root[data-plan="enterprise"] {
+  --plan-primary:        #e2e8f0;
+  --plan-secondary:      #94a3b8;
+  --plan-accent:         #cbd5e1;
+  --plan-glow:           226,232,240;
+  --plan-badge-bg:       rgba(226,232,240,0.12);
+  --plan-badge-border:   rgba(226,232,240,0.28);
+  --plan-badge-text:     #e2e8f0;
+  --plan-sidebar-accent: rgba(226,232,240,0.10);
+  --plan-ring-color:     #e2e8f0;
+  --plan-logo-glow:      rgba(226,232,240,0.40);
+  --plan-topbar-accent:  rgba(226,232,240,0.08);
+}
+
+/* ── Plan accent utilities — use with var(--plan-primary) ── */
+.plan-badge {
+  background:  var(--plan-badge-bg);
+  border:      1px solid var(--plan-badge-border);
+  color:       var(--plan-badge-text);
+  font-size:   10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding:     2px 8px;
+  border-radius: 99px;
+}
+
+.plan-glow-ring {
+  box-shadow: 0 0 0 2px var(--plan-badge-border),
+              0 0 18px rgba(var(--plan-glow), 0.30);
+}
+
+.plan-text { color: var(--plan-primary); }
+.plan-border { border-color: var(--plan-badge-border); }
+.plan-bg { background: var(--plan-badge-bg); }
+
+/* ── Sidebar active item uses plan color ── */
+.sidebar-active-plan {
+  background:  var(--plan-sidebar-accent) !important;
+  border-left: 3px solid var(--plan-primary) !important;
+}
+
+/* ── Topbar plan highlight ── */
+.topbar-plan-accent {
+  background: var(--plan-topbar-accent);
+  border:     1px solid var(--plan-badge-border);
+}
+
+/* ── Logo glow override by plan ── */
+:root[data-plan="pro"] .logo-cow-ring {
+  animation-name: logo-glow-pro;
+}
+@keyframes logo-glow-pro {
+  0%, 100% { box-shadow: 0 0 18px rgba(0,200,255,0.45), 0 0 6px rgba(0,200,255,0.25); }
+  50%       { box-shadow: 0 0 28px rgba(0,200,255,0.70), 0 0 12px rgba(0,200,255,0.40); }
+}
+
+:root[data-plan="platinum"] .logo-cow-ring {
+  animation-name: logo-glow-platinum;
+}
+@keyframes logo-glow-platinum {
+  0%, 100% { box-shadow: 0 0 18px rgba(255,149,0,0.55), 0 0 6px rgba(255,149,0,0.30); }
+  50%       { box-shadow: 0 0 32px rgba(255,149,0,0.80), 0 0 14px rgba(255,149,0,0.50); }
+}
+

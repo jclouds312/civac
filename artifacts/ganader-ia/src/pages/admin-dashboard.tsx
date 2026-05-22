@@ -456,7 +456,7 @@ export default function AdminDashboard({
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
                   style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black" }}>SUPER PANEL</span>
                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                  style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white" }}>v4.2</span>
+                  style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white" }}>v5.0</span>
               </div>
               <p className="text-xs" style={{ color:"rgba(0,245,212,0.6)" }}>
                 Control Inteligente de Valor Agropecuario · Panel de Administración Global

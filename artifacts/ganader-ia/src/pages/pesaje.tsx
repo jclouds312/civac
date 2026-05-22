@@ -312,8 +312,35 @@ function fmtDate() { return new Date().toLocaleDateString("es-CO"); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    IMPRIMIR RECIBO — con granja, fecha, foto, IA
+   Lee config de impresora desde ganader_printer_config y finca desde ganader_finca
 ───────────────────────────────────────────────────────────────────────────── */
-function imprimirRecibo(p: PesajeRec, granja = "GanaderIA PRO", animal?: Animal) {
+function getPrinterConfig() {
+  try { return JSON.parse(localStorage.getItem("ganader_printer_config") || "{}"); } catch { return {}; }
+}
+function getFincaConfig() {
+  try { return JSON.parse(localStorage.getItem("ganader_finca") || "{}"); } catch { return {}; }
+}
+
+function imprimirRecibo(p: PesajeRec, _granja?: string, animal?: Animal, fromAutoCapture = false) {
+  const finca   = getFincaConfig();
+  const pcfg    = getPrinterConfig();
+  const granja  = pcfg.headerLine1 || finca.nombre || _granja || "GanaderIA PRO";
+  const line2   = pcfg.headerLine2 || "Ganadería Inteligente · Colombia";
+  const footer  = pcfg.footerText  || `GanaderIA PRO · ${granja}`;
+  const copies  = Math.max(1, parseInt(pcfg.copies || "1") || 1);
+  const showIA  = pcfg.showIA    !== false;
+  const showFoto= pcfg.showFoto  !== false;
+  const showFirma= pcfg.showFirma !== false;
+  const showValor= pcfg.showValor !== false;
+  const showReg = pcfg.showReg   !== false;
+
+  // Paper size → max-width
+  const paperWidths: Record<string, string> = {
+    thermal58: "220px", thermal80: "300px", a4: "680px", letter: "680px",
+  };
+  const maxW = paperWidths[pcfg.paperSize || "thermal80"] || "300px";
+  const marginT = `${pcfg.marginTop  || 8}px`;
+  const marginS = `${pcfg.marginSide || 10}px`;
   const diff = p.peso - p.pesoAnterior;
   const ref = getPesoRef(p.raza || "", p.categoria);
   const vt = p.peso * (p.valorKilo || 0);
@@ -321,32 +348,38 @@ function imprimirRecibo(p: PesajeRec, granja = "GanaderIA PRO", animal?: Animal)
     : p.peso < ref.min ? "⚠ Por debajo del mínimo de raza" : "↑ Sobre el promedio de raza";
   const foto = animal?.foto;
 
-  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+  /* Respect autoPrint toggle when triggered by auto-capture */
+  if (fromAutoCapture && pcfg.autoPrint === false) return;
+
+  const isNarrow = maxW === "220px" || maxW === "300px";
+  const fontSize = isNarrow ? "10.5px" : "12px";
+
+  const buildReceipt = () => `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <title>Recibo Pesaje — ${p.animalNombre}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Courier New',monospace;font-size:11.5px;background:#fff;color:#111;padding:14px;max-width:340px;margin:0 auto}
+  body{font-family:'Courier New',monospace;font-size:${fontSize};background:#fff;color:#111;padding:${marginT} ${marginS};max-width:${maxW};margin:0 auto}
   .header{text-align:center;border-bottom:2.5px solid #1a4a2e;padding-bottom:10px;margin-bottom:10px}
-  .farm{font-size:17px;font-weight:bold;color:#1a4a2e;letter-spacing:-0.5px}
+  .farm{font-size:${isNarrow?"15px":"18px"};font-weight:bold;color:#1a4a2e;letter-spacing:-0.5px}
   .sub{font-size:9px;color:#777;margin-top:2px}
-  .title{font-size:12px;font-weight:bold;margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+  .title{font-size:${isNarrow?"11px":"13px"};font-weight:bold;margin-top:6px;text-transform:uppercase;letter-spacing:1px}
   .folio{font-size:9px;color:#999;margin-top:1px}
   .section{margin:8px 0;padding:7px;border:1px solid #ddd;border-radius:4px}
   .section-title{font-size:9px;font-weight:bold;text-transform:uppercase;color:#666;margin-bottom:5px;letter-spacing:.5px}
   .animal-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
   .animal-foto{width:52px;height:52px;border-radius:6px;object-fit:cover;border:1.5px solid #1a4a2e}
   .animal-foto-placeholder{width:52px;height:52px;border-radius:6px;background:#f0f7f0;border:1.5px solid #1a4a2e;display:flex;align-items:center;justify-content:center;font-size:22px}
-  .animal-name{font-size:15px;font-weight:bold;color:#1a4a2e}
+  .animal-name{font-size:${isNarrow?"13px":"15px"};font-weight:bold;color:#1a4a2e}
   .animal-id{font-size:10px;color:#888}
   .row{display:flex;justify-content:space-between;padding:2.5px 0;border-bottom:1px dotted #eee}
   .row:last-child{border:none}
   .label{color:#666}
   .value{font-weight:bold}
-  .peso-big{text-align:center;font-size:34px;font-weight:bold;color:#1a4a2e;padding:8px 0}
+  .peso-big{text-align:center;font-size:${isNarrow?"30px":"38px"};font-weight:bold;color:#1a4a2e;padding:8px 0}
   .peso-unit{font-size:13px;color:#666}
   .diff-pos{color:#1b5e20;font-weight:bold}
   .diff-neg{color:#b71c1c;font-weight:bold}
-  .valor-box{text-align:center;font-size:15px;font-weight:bold;color:#1a4a2e;padding:5px;background:#f0f7f0;border-radius:4px}
+  .valor-box{text-align:center;font-size:${isNarrow?"13px":"16px"};font-weight:bold;color:#1a4a2e;padding:5px;background:#f0f7f0;border-radius:4px}
   .ref{font-size:9px;color:#888;text-align:center;margin-top:3px}
   .ia-box{background:#f0f0ff;border:1px solid #c4b5fd;border-radius:4px;padding:6px;margin-top:5px}
   .ia-title{font-size:9px;font-weight:bold;color:#6d28d9;margin-bottom:3px}
@@ -359,7 +392,7 @@ function imprimirRecibo(p: PesajeRec, granja = "GanaderIA PRO", animal?: Animal)
 </style></head><body>
 <div class="header">
   <div class="farm">🐄 ${granja}</div>
-  <div class="sub">Ganadería Inteligente · Colombia · GanaderIA PRO v4.2</div>
+  <div class="sub">${line2}</div>
   <div class="title">Recibo de Pesaje</div>
   <div class="folio">Folio #${p.id} · ${new Date().toLocaleDateString("es-CO",{weekday:"long",year:"numeric",month:"long",day:"numeric"})} · ${p.hora}</div>
 </div>
@@ -367,7 +400,7 @@ function imprimirRecibo(p: PesajeRec, granja = "GanaderIA PRO", animal?: Animal)
 <div class="section">
   <div class="section-title">Identificación del animal</div>
   <div class="animal-header">
-    ${foto ? `<img class="animal-foto" src="${foto}" alt="${p.animalNombre}"/>` : `<div class="animal-foto-placeholder">🐄</div>`}
+    ${showFoto && foto ? `<img class="animal-foto" src="${foto}" alt="${p.animalNombre}"/>` : showFoto ? `<div class="animal-foto-placeholder">🐄</div>` : ""}
     <div>
       <div class="animal-name">${p.animalNombre}</div>
       <div class="animal-id">Arete: ${p.animalId}</div>
@@ -389,13 +422,13 @@ function imprimirRecibo(p: PesajeRec, granja = "GanaderIA PRO", animal?: Animal)
   <div class="ref">${rangoMsg} · Rango raza: ${ref.min}–${ref.max} kg · Prom: ${ref.prom} kg</div>
 </div>
 
-${(p.valorKilo || 0) > 0 ? `<div class="section">
+${showValor && (p.valorKilo || 0) > 0 ? `<div class="section">
   <div class="section-title">Valorización</div>
   <div class="valor-box">${fmt(vt)}</div>
   <div class="ref">${fmt(p.valorKilo || 0)}/kg × ${p.peso.toFixed(1)} kg</div>
 </div>` : ""}
 
-${p.iaScore !== undefined ? `<div class="section">
+${showIA && p.iaScore !== undefined ? `<div class="section">
   <div class="section-title">Análisis IA GanaderIA</div>
   <div class="ia-box">
     <div class="ia-title">🤖 Score de desarrollo: ${p.iaScore}/100</div>
@@ -405,7 +438,7 @@ ${p.iaScore !== undefined ? `<div class="section">
   </div>
 </div>` : ""}
 
-<div class="section">
+${showReg ? `<div class="section">
   <div class="section-title">Registro</div>
   <div class="row"><span class="label">Fecha y hora:</span><span class="value">${p.fecha} ${p.hora}</span></div>
   <div class="row"><span class="label">Operador:</span><span class="value">${p.operador}</span></div>
@@ -414,18 +447,21 @@ ${p.iaScore !== undefined ? `<div class="section">
   ${p.observacion ? `<div class="row" style="flex-direction:column"><span class="label">Observación:</span><span style="margin-top:2px;font-size:9px">${p.observacion}</span></div>` : ""}
   ${p.observacionVet ? `<div class="row" style="flex-direction:column"><span class="label">Obs. veterinaria:</span><span style="margin-top:2px;font-size:9px">${p.observacionVet}</span></div>` : ""}
   <div class="row"><span class="label">Granja:</span><span class="value">${granja}</span></div>
-</div>
+</div>` : ""}
 
-<div class="firma">Firma responsable: ___________________________</div>
-<div class="footer">GanaderIA PRO · ${granja}<br>Sistema de Gestión Ganadera Inteligente · Colombia ${new Date().getFullYear()}<br><strong>Este recibo corresponde únicamente al animal indicado</strong><br>${new Date().toLocaleString("es-CO")}</div>
+${showFirma ? `<div class="firma">Firma responsable: ___________________________</div>` : ""}
+<div class="footer">${footer}<br>Sistema de Gestión Ganadera Inteligente · Colombia ${new Date().getFullYear()}<br><strong>Este recibo corresponde únicamente al animal indicado</strong><br>${new Date().toLocaleString("es-CO")}</div>
 
 <div class="no-print" style="text-align:center;margin-top:14px;display:flex;gap:8px;justify-content:center">
   <button onclick="window.print()" style="background:#1a4a2e;color:white;border:none;padding:9px 20px;border-radius:6px;cursor:pointer;font-size:13px;font-family:sans-serif">🖨️ Imprimir</button>
   <button onclick="window.close()" style="background:#eee;color:#333;border:none;padding:9px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-family:sans-serif">Cerrar</button>
 </div></body></html>`;
 
-  const win = window.open("", "_blank", "width=420,height=720,scrollbars=yes");
-  if (win) { win.document.write(html); win.document.close(); }
+  const winW = isNarrow ? 380 : 760;
+  for (let i = 0; i < copies; i++) {
+    const win = window.open("", "_blank", `width=${winW},height=780,scrollbars=yes`);
+    if (win) { win.document.write(buildReceipt()); win.document.close(); }
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -717,6 +753,13 @@ export default function Pesaje() {
   const serialPortRef                   = useRef<any>(null);
   const serialReaderRef                 = useRef<any>(null);
 
+  /* ── COM custom port params ── */
+  const [showComPortParams, setShowComPortParams] = useState(false);
+  const [comCustomBaud,     setComCustomBaud]     = useState("");
+  const [comCustomDataBits, setComCustomDataBits] = useState("");
+  const [comCustomStopBits, setComCustomStopBits] = useState("");
+  const [comCustomParity,   setComCustomParity]   = useState("");
+
   /* ── Live weight ── */
   const [liveWeight, setLiveWeight]   = useState<number | null>(null);
   const [stability, setStability]     = useState(0);
@@ -906,7 +949,15 @@ export default function Pesaje() {
     setSerialStatus("connecting"); setSerialError(""); weightSamplesRef.current=[];
     try {
       const port = await (navigator as any).serial.requestPort();
-      await port.open({ baudRate:selCom.baudRate, dataBits:selCom.dataBits, stopBits:selCom.stopBits, parity:selCom.parity, flowControl:"none" });
+      /* Use custom params if user overrode them, otherwise fall back to controller defaults */
+      const openOpts = {
+        baudRate:  comCustomBaud     ? parseInt(comCustomBaud)               : selCom.baudRate,
+        dataBits:  comCustomDataBits ? parseInt(comCustomDataBits)           : selCom.dataBits,
+        stopBits:  comCustomStopBits ? parseFloat(comCustomStopBits)         : selCom.stopBits,
+        parity:    (comCustomParity  || selCom.parity) as "none"|"even"|"odd",
+        flowControl: "none" as const,
+      };
+      await port.open(openOpts);
       serialPortRef.current = port;
       setSerialStatus("connected");
       const reader = port.readable.getReader();
@@ -1059,7 +1110,7 @@ export default function Pesaje() {
       } else { setTimeout(()=>{ setQueueMode(false); setQueueIdx(0); setAnimalQueue([]); }, 1200); }
     }
     if (btStatus==="simulating") setTimeout(()=>startSimulation(selectedAnimal), 300);
-    imprimirRecibo(newP, "GanaderIA PRO", selectedAnimal);
+    imprimirRecibo(newP, "GanaderIA PRO", selectedAnimal, true);
   }, [selectedAnimal, pesajes, btStatus, serialStatus, selBt, selCom, selTrama, user, setPesajes,
       startSimulation, detValorKilo, queueMode, animalQueue, queueIdx, animals]);
 
@@ -1497,6 +1548,81 @@ export default function Pesaje() {
                                   <span style={{color:stable?"#39ff7e":"#fbbf24"}}>Estado: <strong>{stable?"✅ ESTABLE":"⏳ PESANDO"}</strong></span>
                                 </div>
                               </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* ── Puerto serie: parámetros avanzados ── */}
+                      <div className="rounded-xl overflow-hidden" style={{border:"1px solid rgba(0,200,255,0.15)"}}>
+                        <button onClick={()=>setShowComPortParams(v=>!v)}
+                          className="w-full flex items-center justify-between px-3 py-2.5 text-[10px]"
+                          style={{background:"rgba(0,200,255,0.05)"}}>
+                          <div className="flex items-center gap-2 font-bold" style={{color:"#00c8ff"}}>
+                            <Settings2 size={11}/>
+                            Parámetros del puerto
+                            <span style={{color:"rgba(0,200,255,0.5)",fontWeight:"normal"}}>
+                              {selCom.baudRate} bps · {selCom.dataBits}/{selCom.parity}/{selCom.stopBits}
+                              {(comCustomBaud||comCustomDataBits||comCustomStopBits||comCustomParity)
+                                ? " ✎ override" : " (predeterminado)"}
+                            </span>
+                          </div>
+                          <span style={{color:"rgba(0,200,255,0.4)"}}>{showComPortParams?"▲":"▼"}</span>
+                        </button>
+                        {showComPortParams && (
+                          <div className="p-3 space-y-2.5" style={{background:"rgba(0,0,0,0.3)"}}>
+                            <p className="text-[9px] text-white/30">Sobrescribe los parámetros de la báscula seleccionada. Deja vacío para usar los predeterminados.</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[9px] text-white/30 block mb-1">Baud rate</label>
+                                <select value={comCustomBaud} onChange={e=>setComCustomBaud(e.target.value)}
+                                  className="w-full px-2 py-1.5 rounded-lg text-xs text-white"
+                                  style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)",outline:"none"}}>
+                                  <option value="" style={{background:"#0e1e38"}}>Auto ({selCom.baudRate})</option>
+                                  {[1200,2400,4800,9600,19200,38400,57600,115200].map(b=>(
+                                    <option key={b} value={String(b)} style={{background:"#0e1e38"}}>{b}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-white/30 block mb-1">Paridad</label>
+                                <select value={comCustomParity} onChange={e=>setComCustomParity(e.target.value)}
+                                  className="w-full px-2 py-1.5 rounded-lg text-xs text-white"
+                                  style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)",outline:"none"}}>
+                                  <option value="" style={{background:"#0e1e38"}}>Auto ({selCom.parity})</option>
+                                  {["none","even","odd"].map(v=>(
+                                    <option key={v} value={v} style={{background:"#0e1e38"}}>{v}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-white/30 block mb-1">Bits de datos</label>
+                                <select value={comCustomDataBits} onChange={e=>setComCustomDataBits(e.target.value)}
+                                  className="w-full px-2 py-1.5 rounded-lg text-xs text-white"
+                                  style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)",outline:"none"}}>
+                                  <option value="" style={{background:"#0e1e38"}}>Auto ({selCom.dataBits})</option>
+                                  {[7,8].map(v=>(
+                                    <option key={v} value={String(v)} style={{background:"#0e1e38"}}>{v} bits</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-white/30 block mb-1">Bits de parada</label>
+                                <select value={comCustomStopBits} onChange={e=>setComCustomStopBits(e.target.value)}
+                                  className="w-full px-2 py-1.5 rounded-lg text-xs text-white"
+                                  style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)",outline:"none"}}>
+                                  <option value="" style={{background:"#0e1e38"}}>Auto ({selCom.stopBits})</option>
+                                  {["1","1.5","2"].map(v=>(
+                                    <option key={v} value={v} style={{background:"#0e1e38"}}>{v}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            {(comCustomBaud||comCustomDataBits||comCustomStopBits||comCustomParity) && (
+                              <button onClick={()=>{setComCustomBaud("");setComCustomDataBits("");setComCustomStopBits("");setComCustomParity("");}}
+                                className="text-[9px]" style={{color:"rgba(248,113,113,0.7)"}}>
+                                ✕ Limpiar sobrescrituras
+                              </button>
                             )}
                           </div>
                         )}

@@ -17,6 +17,7 @@ import {
 import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin-dashboard";
+import DeveloperDashboard from "./pages/developer-dashboard";
 import Alertas from "./pages/alertas";
 import Inventario from "./pages/inventario";
 import Ficha from "./pages/ficha";
@@ -47,7 +48,9 @@ const queryClient = new QueryClient();
 
 function HomeRoute() {
   const { user } = useAuth();
-  return user?.role === "admin" ? <AdminDashboard /> : <Dashboard />;
+  if (user?.role === "admin" || user?.role === "superadmin") return <AdminDashboard />;
+  if (user?.role === "developer") return <DeveloperDashboard />;
+  return <Dashboard />;
 }
 
 const ADMIN_SECTIONS = [
@@ -266,7 +269,40 @@ function AuthGate() {
 
   if (!user) return <Login />;
 
-  if (user.role === "admin") return <AdminGate />;
+  if (user.role === "admin" || user.role === "superadmin") return <AdminGate />;
+  if (user.role === "developer") return (
+    <Layout>
+      <Switch>
+        <Route path="/" component={HomeRoute} />
+        <Route path="/alertas" component={Alertas} />
+        <Route path="/inventario" component={Inventario} />
+        <Route path="/ficha" component={Ficha} />
+        <Route path="/reproduccion" component={Reproduccion} />
+        <Route path="/produccion" component={Produccion} />
+        <Route path="/genetica" component={Genetica} />
+        <Route path="/potreros" component={Potreros} />
+        <Route path="/alimentacion" component={Alimentacion} />
+        <Route path="/insumos" component={Insumos} />
+        <Route path="/semen" component={Semen} />
+        <Route path="/costos" component={Costos} />
+        <Route path="/personal" component={Personal} />
+        <Route path="/prediccion" component={Prediccion} />
+        <Route path="/co2" component={Co2} />
+        <Route path="/multifinca" component={Multifinca} />
+        <Route path="/usuarios" component={Usuarios} />
+        <Route path="/configuracion" component={Configuracion} />
+        <Route path="/documentacion" component={Documentacion} />
+        <Route path="/manual" component={Manual} />
+        <Route path="/pesaje" component={Pesaje} />
+        <Route path="/pesaje-manual" component={PesajeManual} />
+        <Route path="/gps" component={Gps} />
+        <Route path="/planes" component={Planes} />
+        <Route path="/lotes" component={Lotes} />
+        <Route path="/datos" component={Datos} />
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
+  );
 
   return (
     <Layout>

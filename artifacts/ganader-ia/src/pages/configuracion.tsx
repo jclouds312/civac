@@ -5,13 +5,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, MapPin, Bell, Palette, Shield, Database, Save, RotateCcw, Sun, Moon, Monitor, Trash2, Download, Upload, CheckCircle, AlertTriangle, FileJson, RefreshCw } from "lucide-react";
+import { Settings, MapPin, Bell, Palette, Shield, Database, Save, RotateCcw, Sun, Moon, Monitor, Trash2, Download, Upload, CheckCircle, AlertTriangle, FileJson, RefreshCw, Printer, FileText, AlignLeft, Hash, ToggleLeft, ToggleRight, Sliders } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useAppState } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { exportFullBackup, readBackupFile, applyBackupToLocalStorage, getStorageStats, formatBytes, getTotalStorageBytes, getTotalRecords } from "@/lib/export";
 
-const tabs = ["Finca", "Apariencia", "Notificaciones", "Seguridad", "Datos"];
+const tabs = ["Finca", "Apariencia", "Notificaciones", "Impresora", "Seguridad", "Datos"];
+
+const PAPER_SIZES = [
+  { id: "thermal58",  label: "Térmica 58 mm",  width: "220px", desc: "Miniprinter de bolsillo" },
+  { id: "thermal80",  label: "Térmica 80 mm",  width: "300px", desc: "Impresoras POS estándar" },
+  { id: "a4",         label: "A4 (210×297 mm)", width: "100%",  desc: "Impresora de oficina" },
+  { id: "letter",     label: "Carta (216×279 mm)", width: "100%", desc: "Carta US" },
+];
+
+function loadPrinterConfig() {
+  try { return JSON.parse(localStorage.getItem("ganader_printer_config") || "{}"); } catch { return {}; }
+}
 
 export default function Configuracion() {
   const [activeTab, setActiveTab] = useState("Finca");
@@ -36,6 +47,24 @@ export default function Configuracion() {
     emailNotifs: false,
   });
 
+  const _saved = loadPrinterConfig();
+  const [printer, setPrinter] = useState({
+    paperSize:   (_saved.paperSize   || "thermal80") as string,
+    printerName: (_saved.printerName || "") as string,
+    copies:      (_saved.copies      || "1") as string,
+    headerLine1: (_saved.headerLine1 || "") as string,
+    headerLine2: (_saved.headerLine2 || "Ganadería Inteligente · Colombia") as string,
+    footerText:  (_saved.footerText  || "Sistema GanaderIA PRO · Recibo oficial") as string,
+    marginTop:   (_saved.marginTop   || "8") as string,
+    marginSide:  (_saved.marginSide  || "10") as string,
+    autoPrint:   (_saved.autoPrint   !== undefined ? _saved.autoPrint : true) as boolean,
+    showIA:      (_saved.showIA      !== undefined ? _saved.showIA   : true) as boolean,
+    showFoto:    (_saved.showFoto    !== undefined ? _saved.showFoto : true) as boolean,
+    showFirma:   (_saved.showFirma   !== undefined ? _saved.showFirma: true) as boolean,
+    showValor:   (_saved.showValor   !== undefined ? _saved.showValor: true) as boolean,
+    showReg:     (_saved.showReg     !== undefined ? _saved.showReg  : true) as boolean,
+  });
+
   const { theme, setTheme } = useTheme();
   const state = useAppState();
   const { resetAll } = state;
@@ -46,6 +75,7 @@ export default function Configuracion() {
     try {
       localStorage.setItem('ganader_finca', JSON.stringify(finca));
       localStorage.setItem('ganader_notifs', JSON.stringify(notifs));
+      localStorage.setItem('ganader_printer_config', JSON.stringify(printer));
     } catch {}
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -307,6 +337,154 @@ export default function Configuracion() {
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* ── Impresora ── */}
+      {activeTab === "Impresora" && (
+        <div className="space-y-4 max-w-3xl">
+          {/* Paper size selector */}
+          <Card className="border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2"><Printer size={16} className="text-primary" />Tamaño de papel</CardTitle>
+              <CardDescription>Selecciona el tipo de impresora y papel que usas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                {PAPER_SIZES.map(ps => (
+                  <button key={ps.id} onClick={() => setPrinter(p => ({ ...p, paperSize: ps.id }))}
+                    className={`p-4 rounded-xl border-2 text-left transition-all ${printer.paperSize === ps.id ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
+                    <div className="font-bold text-sm text-foreground">{ps.label}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{ps.desc}</div>
+                    <div className="text-[10px] text-primary/60 mt-1 font-mono">{ps.width}</div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* Printer identification */}
+            <Card className="border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2"><Sliders size={16} className="text-primary" />Parámetros del recibo</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Nombre de la impresora / puerto</Label>
+                  <Input value={printer.printerName}
+                    onChange={e => setPrinter(p => ({ ...p, printerName: e.target.value }))}
+                    placeholder="Ej: POS-80, Zebra ZD220, COM3"
+                    className="mt-1 bg-background border-border h-9 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Encabezado línea 1 (nombre finca)</Label>
+                  <Input value={printer.headerLine1 || finca.nombre}
+                    onChange={e => setPrinter(p => ({ ...p, headerLine1: e.target.value }))}
+                    placeholder={finca.nombre || "Nombre de la finca"}
+                    className="mt-1 bg-background border-border h-9 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Encabezado línea 2</Label>
+                  <Input value={printer.headerLine2}
+                    onChange={e => setPrinter(p => ({ ...p, headerLine2: e.target.value }))}
+                    className="mt-1 bg-background border-border h-9 text-sm" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Texto de pie de página</Label>
+                  <Input value={printer.footerText}
+                    onChange={e => setPrinter(p => ({ ...p, footerText: e.target.value }))}
+                    className="mt-1 bg-background border-border h-9 text-sm" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Margen superior (mm)</Label>
+                    <Input type="number" min="0" max="30" value={printer.marginTop}
+                      onChange={e => setPrinter(p => ({ ...p, marginTop: e.target.value }))}
+                      className="mt-1 bg-background border-border h-9 text-sm" />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Margen lateral (mm)</Label>
+                    <Input type="number" min="0" max="30" value={printer.marginSide}
+                      onChange={e => setPrinter(p => ({ ...p, marginSide: e.target.value }))}
+                      className="mt-1 bg-background border-border h-9 text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Copias por pesaje</Label>
+                  <Input type="number" min="1" max="5" value={printer.copies}
+                    onChange={e => setPrinter(p => ({ ...p, copies: e.target.value }))}
+                    className="mt-1 bg-background border-border h-9 text-sm" />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Sections and behavior */}
+            <Card className="border-border">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2"><FileText size={16} className="text-primary" />Secciones del recibo</CardTitle>
+                <CardDescription>Elige qué incluir en cada impresión</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { key: "autoPrint",  label: "Auto-imprimir al pesar",    desc: "Imprime al detectar peso estable en báscula" },
+                  { key: "showFoto",   label: "Foto del animal",           desc: "Incluir imagen del animal en el recibo" },
+                  { key: "showIA",     label: "Análisis IA (Score/BCS)",   desc: "Mostrar score de desarrollo y condición corporal" },
+                  { key: "showValor",  label: "Valorización económica",    desc: "Precio por kg y valor total del animal" },
+                  { key: "showFirma",  label: "Línea de firma",            desc: "Espacio para firma del responsable" },
+                  { key: "showReg",    label: "Datos del registro",        desc: "Operador, fecha, método y dispositivo" },
+                ].map(({ key, label, desc }) => (
+                  <div key={key} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{label}</p>
+                      <p className="text-xs text-muted-foreground">{desc}</p>
+                    </div>
+                    <Switch
+                      checked={printer[key as keyof typeof printer] as boolean}
+                      onCheckedChange={v => setPrinter(p => ({ ...p, [key]: v }))}
+                    />
+                  </div>
+                ))}
+
+                <div className="pt-2">
+                  <Button onClick={handleSave} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                    <Save size={14} />
+                    {saved ? "¡Guardado!" : "Guardar configuración de impresora"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Preview mini-receipt */}
+          <Card className="border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2"><AlignLeft size={16} className="text-primary" />Vista previa del recibo</CardTitle>
+              <CardDescription>Cómo se verá el encabezado y pie de página</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="mx-auto bg-white text-black rounded-xl overflow-hidden shadow-lg"
+                style={{ maxWidth: printer.paperSize === "thermal58" ? 220 : printer.paperSize === "thermal80" ? 300 : 480, fontFamily: "'Courier New', monospace", fontSize: 11 }}>
+                <div className="p-3 border-b-2 border-[#1a4a2e] text-center">
+                  <div className="font-bold text-base text-[#1a4a2e]">🐄 {printer.headerLine1 || finca.nombre || "Nombre de la finca"}</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">{printer.headerLine2}</div>
+                  <div className="font-bold text-xs mt-1 uppercase tracking-wider">Recibo de Pesaje</div>
+                  <div className="text-[9px] text-gray-400">Folio #0001 · {new Date().toLocaleDateString("es-CO")}</div>
+                </div>
+                <div className="px-3 py-2 text-center">
+                  <div className="text-3xl font-black text-[#1a4a2e] py-2">520.0 <span className="text-sm font-bold text-gray-400">kg</span></div>
+                  {printer.showIA && <div className="text-[10px] bg-[#f0f0ff] border border-[#c4b5fd] rounded px-2 py-1 text-[#6d28d9] my-1">🤖 Score: 85/100 · CC 3.5 — Ideal</div>}
+                  {printer.showValor && <div className="font-bold text-[#1a4a2e]">$5.720.000 COP</div>}
+                </div>
+                {printer.showFirma && (
+                  <div className="px-3 pt-1 pb-2 border-t border-gray-200 text-[9px] text-gray-500 text-center">
+                    Firma: ______________________
+                  </div>
+                )}
+                <div className="px-3 pb-3 text-center text-[9px] text-gray-400 border-t border-gray-100">{printer.footerText}</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* ── Seguridad ── */}

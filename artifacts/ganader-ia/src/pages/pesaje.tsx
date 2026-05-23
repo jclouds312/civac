@@ -9,7 +9,7 @@ import {
   X as XIcon, Usb, Cable, Brain, Sparkles, ChevronDown, ChevronUp,
   Filter, Camera, Image, Hash, Layers, HeartPulse, Weight, Thermometer,
   Info, ChevronRight, BookOpen, Leaf, Shield, RefreshCw, Check, Edit3,
-  ArrowUpRight, ArrowDownRight, Download,
+  ArrowUpRight, ArrowDownRight, Download, Upload, Play,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -754,7 +754,39 @@ export default function Pesaje() {
 
   /* ── Tab ── */
   const [connTab, setConnTab]         = useState<"bt"|"com"|"manual">("bt");
-  const [mainTab, setMainTab]         = useState<"bascula"|"manual"|"historial"|"estadisticas">("bascula");
+  const [mainTab, setMainTab]         = useState<"bascula"|"manual"|"historial"|"estadisticas"|"tramas">("bascula");
+
+  /* ── Custom Tramas & Report Templates ── */
+  interface CustomTramaState {
+    id:string; nombre:string; descripcion:string; ejemplo:string;
+    regexStr:string; stabilityMode:"char_excl"|"char_space"|"always"|"suffix_S"|"custom_regex";
+    stableChar:string; color:string; icon:string; createdAt:string;
+  }
+  interface ReportTemplate {
+    id:string; nombre:string; titulo:string; encabezado:string; pie:string;
+    columnas:string[]; formato:"recibo"|"tabla"|"resumen"; orientacion:"portrait"|"landscape";
+  }
+  const loadCustomTramas = ():CustomTramaState[] => {
+    try { return JSON.parse(localStorage.getItem("civac_custom_tramas")||"[]"); } catch { return []; }
+  };
+  const loadTemplates = ():ReportTemplate[] => {
+    try { return JSON.parse(localStorage.getItem("civac_report_templates")||"[]"); } catch { return []; }
+  };
+  const [customTramas, setCustomTramas] = useState<CustomTramaState[]>(loadCustomTramas);
+  const [reportTemplates, setReportTemplates] = useState<ReportTemplate[]>(loadTemplates);
+  const [tramaEditorOpen, setTramaEditorOpen] = useState(false);
+  const [editingTrama, setEditingTrama] = useState<CustomTramaState|null>(null);
+  const [tramaTest, setTramaTest] = useState("");
+  const [tramaTestResult, setTramaTestResult] = useState<string[]>([]);
+  const [tplEditorOpen, setTplEditorOpen] = useState(false);
+  const [editingTpl, setEditingTpl] = useState<ReportTemplate|null>(null);
+
+  const saveCustomTramas = (arr:CustomTramaState[]) => {
+    setCustomTramas(arr); localStorage.setItem("civac_custom_tramas", JSON.stringify(arr));
+  };
+  const saveTemplates = (arr:ReportTemplate[]) => {
+    setReportTemplates(arr); localStorage.setItem("civac_report_templates", JSON.stringify(arr));
+  };
 
   /* ── Capture dialog ── */
   const [captureDialogOpen, setCaptureDialogOpen] = useState(false);
@@ -1006,6 +1038,19 @@ export default function Pesaje() {
 
   /* Continuo mode always enables autoCapture */
   useEffect(() => { if (modoOperacion === "continuo") setAutoCapture(true); }, [modoOperacion]);
+
+  /* ── Tecla # — pausa/continuar captura ── */
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable) return;
+      if (e.key === "#") {
+        setModoOperacion(m => m === "continuo" ? "pausado" : "continuo");
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   /* ── Open capture dialog with IA pre-fill ── */
   const openCaptureDialog = useCallback((overrideWeight?: number) => {
@@ -1359,6 +1404,7 @@ export default function Pesaje() {
               {id:"manual"      as const, label:"✏️ Manual",         sub:"Entrada directa"},
               {id:"historial"   as const, label:"📋 Historial",      sub:`${pesajes.length} registros`},
               {id:"estadisticas"as const, label:"📊 Estadísticas",   sub:"GDP · Valor · Gráficas"},
+              {id:"tramas"      as const, label:"🔧 Tramas",         sub:`${customTramas.length} custom`},
             ].map(t=>(
               <button key={t.id} onClick={()=>setMainTab(t.id)}
                 className="flex-1 py-2.5 rounded-2xl text-center transition-all"
@@ -2085,6 +2131,443 @@ export default function Pesaje() {
           </div>
         </div>
       </div>
+
+      {/* ── TRAMAS TAB ── */}
+      {mainTab === "tramas" && (
+        <div className="space-y-4">
+
+          {/* # Key badge */}
+          <div className="rounded-2xl p-4 flex items-center gap-3 flex-wrap" style={{background:"rgba(251,191,36,0.06)",border:"1px solid rgba(251,191,36,0.2)"}}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.3)"}}>
+              <Hash size={18} style={{color:"#fbbf24"}}/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-sm">Tecla <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold" style={{background:"rgba(251,191,36,0.2)",border:"1px solid rgba(251,191,36,0.4)",color:"#fbbf24"}}>#</kbd> — Pausa / Continuar captura</p>
+              <p className="text-[10px] text-white/35 mt-0.5">Presiona # en cualquier momento para alternar modo de captura (fuera de campos de texto)</p>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className={`px-3 py-1.5 rounded-xl text-xs font-black ${modoOperacion==="continuo"?"border border-yellow-500/30 bg-yellow-500/10 text-yellow-400":"border border-green-500/30 bg-green-500/10 text-green-400"}`}>
+                {modoOperacion==="continuo"?"🚀 Continuo":"⏸ Pausado"}
+              </div>
+              <button onClick={()=>setModoOperacion(m=>m==="continuo"?"pausado":"continuo")}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1"
+                style={{background:"rgba(251,191,36,0.1)",color:"#fbbf24",border:"1px solid rgba(251,191,36,0.3)"}}>
+                <Hash size={11}/>Toggle
+              </button>
+            </div>
+          </div>
+
+          {/* Built-in tramas */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-black text-white/50 uppercase tracking-wider">Tramas integradas ({TRAMA_TYPES.length})</h3>
+              <span className="text-[9px] text-white/20">Solo lectura · Sistema</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {TRAMA_TYPES.map(t=>(
+                <div key={t.id} className="rounded-2xl p-3 transition-all"
+                  style={{background: selTrama.id===t.id?"rgba(57,255,126,0.06)":"rgba(255,255,255,0.02)", border:`1px solid ${selTrama.id===t.id?"rgba(57,255,126,0.3)":t.color+"22"}`}}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-base flex-shrink-0">{t.icon}</span>
+                      <div className="min-w-0">
+                        <p className="font-bold text-xs text-white truncate">{t.nombre}</p>
+                        <p className="text-[9px] text-white/35 truncate">{t.descripcion}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      <button onClick={()=>{setSelTrama(t); setMainTab("bascula");}}
+                        className="px-2 py-1 rounded-lg text-[9px] font-bold"
+                        style={{background:`${t.color}15`,border:`1px solid ${t.color}35`,color:t.color}}>
+                        Usar
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-2 px-2 py-1 rounded-lg font-mono text-[9px]"
+                    style={{background:"rgba(0,0,0,0.3)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                    {t.ejemplo}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom tramas */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-black text-white/50 uppercase tracking-wider">Tramas personalizadas ({customTramas.length})</h3>
+              <div className="flex gap-1.5">
+                {/* Upload document */}
+                <label className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold cursor-pointer transition-all hover:opacity-80"
+                  style={{background:"rgba(0,200,255,0.1)",border:"1px solid rgba(0,200,255,0.25)",color:"#00c8ff"}}>
+                  <Upload size={11}/>Subir doc
+                  <input type="file" accept=".json,.txt" className="hidden" onChange={e=>{
+                    const file = e.target.files?.[0]; if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                      try {
+                        const content = ev.target?.result as string;
+                        let parsed: Partial<CustomTramaState> = {};
+                        if (file.name.endsWith(".json")) {
+                          parsed = JSON.parse(content);
+                        } else {
+                          const lines = content.split("\n").filter(Boolean);
+                          parsed = { nombre: lines[0]||"Trama importada", descripcion: lines[1]||"", ejemplo: lines.slice(2).join(" | "), regexStr:"([0-9]{2,4}\\.?\\d{0,2})" };
+                        }
+                        const newT: CustomTramaState = {
+                          id: `custom_${Date.now()}`,
+                          nombre: parsed.nombre||"Trama importada",
+                          descripcion: parsed.descripcion||"",
+                          ejemplo: parsed.ejemplo||"",
+                          regexStr: parsed.regexStr||"([0-9]{2,4}\\.?\\d{0,2})",
+                          stabilityMode: parsed.stabilityMode||"always",
+                          stableChar: parsed.stableChar||"!",
+                          color: parsed.color||"#00c8ff",
+                          icon: parsed.icon||"📥",
+                          createdAt: new Date().toISOString(),
+                        };
+                        saveCustomTramas([...customTramas, newT]);
+                      } catch {
+                        alert("Error al parsear el archivo. Use formato JSON con campos: nombre, descripcion, ejemplo, regexStr");
+                      }
+                    };
+                    reader.readAsText(file);
+                    e.target.value = "";
+                  }}/>
+                </label>
+                <button
+                  onClick={()=>{setEditingTrama({id:`custom_${Date.now()}`,nombre:"",descripcion:"",ejemplo:"",regexStr:"([0-9]{2,4}\\.?\\d{0,2})",stabilityMode:"always",stableChar:"!",color:"#fbbf24",icon:"⚖️",createdAt:new Date().toISOString()});setTramaEditorOpen(true);}}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold"
+                  style={{background:"linear-gradient(135deg,#fbbf24,#ea580c)",color:"black"}}>
+                  <Plus size={11}/>Nueva trama
+                </button>
+              </div>
+            </div>
+
+            {customTramas.length === 0 ? (
+              <div className="rounded-2xl p-6 text-center" style={{background:"rgba(255,255,255,0.01)",border:"1px dashed rgba(255,255,255,0.1)"}}>
+                <Layers size={28} className="mx-auto mb-2 opacity-15"/>
+                <p className="text-sm text-white/25">Sin tramas personalizadas</p>
+                <p className="text-[10px] text-white/15 mt-1">Crea una nueva o sube un archivo .json/.txt con la definición</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {customTramas.map(t=>(
+                  <div key={t.id} className="rounded-2xl p-3" style={{background:"rgba(255,149,0,0.04)",border:`1px solid ${t.color}22`}}>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base flex-shrink-0">{t.icon}</span>
+                        <div className="min-w-0">
+                          <p className="font-bold text-xs text-white truncate">{t.nombre}</p>
+                          <p className="text-[9px] text-white/35 truncate">{t.descripcion}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button onClick={()=>{setEditingTrama(t);setTramaEditorOpen(true);}}
+                          className="p-1.5 rounded-lg hover:bg-white/5" style={{color:"#00c8ff"}}>
+                          <Edit3 size={11}/>
+                        </button>
+                        <button onClick={()=>{
+                          // Apply as current trama
+                          const customTT: TramaType = {
+                            id: t.id, nombre: t.nombre, descripcion: t.descripcion, ejemplo: t.ejemplo,
+                            estabilidad_directa: t.stabilityMode!=="always", icon: t.icon, color: t.color,
+                            parse: (buf:string) => {
+                              const frames: TramaFrame[] = [];
+                              try { const re = new RegExp(t.regexStr,"g"); let m; while((m=re.exec(buf))!==null){ const w=parseFloat(m[1]); if(!isNaN(w)&&w>0&&w<3000) frames.push({peso:w,stable:true,raw:m[0]}); } } catch {}
+                              return frames;
+                            },
+                          };
+                          setSelTrama(customTT); setMainTab("bascula");
+                        }}
+                          className="px-2 py-1 rounded-lg text-[9px] font-bold"
+                          style={{background:`${t.color}15`,border:`1px solid ${t.color}35`,color:t.color}}>
+                          Usar
+                        </button>
+                        <button onClick={()=>saveCustomTramas(customTramas.filter(x=>x.id!==t.id))}
+                          className="p-1.5 rounded-lg hover:bg-red-500/10" style={{color:"#f87171"}}>
+                          <XIcon size={11}/>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="px-2 py-1 rounded-lg font-mono text-[9px] mb-2" style={{background:"rgba(0,0,0,0.3)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                      Regex: {t.regexStr}
+                    </div>
+                    <div className="text-[9px] text-white/25">{t.createdAt?.slice(0,10)}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Trama Editor Inline */}
+          {tramaEditorOpen && editingTrama && (
+            <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.25)"}}>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-white flex items-center gap-2"><Edit3 size={14} style={{color:"#fbbf24"}}/>{editingTrama.createdAt&&customTramas.find(x=>x.id===editingTrama.id)?"Editar trama":"Nueva trama"}</h3>
+                <button onClick={()=>setTramaEditorOpen(false)} className="p-1 rounded-lg hover:bg-white/5 text-white/30"><XIcon size={14}/></button>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Nombre</label>
+                  <Input value={editingTrama.nombre} onChange={e=>setEditingTrama({...editingTrama,nombre:e.target.value})}
+                    className="text-xs h-8" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(251,191,36,0.2)"}}/>
+                </div>
+                <div>
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Ícono</label>
+                  <Input value={editingTrama.icon} onChange={e=>setEditingTrama({...editingTrama,icon:e.target.value})}
+                    className="text-xs h-8 w-16" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(251,191,36,0.2)"}}/>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Descripción</label>
+                  <Input value={editingTrama.descripcion} onChange={e=>setEditingTrama({...editingTrama,descripcion:e.target.value})}
+                    className="text-xs h-8" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(251,191,36,0.2)"}}/>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Regex extractor de peso (grupo 1 = valor numérico)</label>
+                  <Input value={editingTrama.regexStr} onChange={e=>setEditingTrama({...editingTrama,regexStr:e.target.value})}
+                    className="text-xs h-8 font-mono" placeholder="([0-9]{2,4}\.?\d{0,2})"
+                    style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(251,191,36,0.2)"}}/>
+                </div>
+                <div>
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Modo estabilidad</label>
+                  <select value={editingTrama.stabilityMode} onChange={e=>setEditingTrama({...editingTrama,stabilityMode:e.target.value as CustomTramaState["stabilityMode"]})}
+                    className="w-full px-2 py-1.5 rounded-xl text-xs" style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(251,191,36,0.2)",color:"white",outline:"none"}}>
+                    <option value="always">Siempre estable</option>
+                    <option value="char_excl">Carácter '!' = estable</option>
+                    <option value="char_space">Espacio = estable</option>
+                    <option value="suffix_S">Sufijo 'S' = estable</option>
+                    <option value="custom_regex">Regex personalizado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Color</label>
+                  <div className="flex gap-1">
+                    {["#fbbf24","#00f5d4","#a78bfa","#f87171","#39ff7e","#00c8ff","#fb923c"].map(c=>(
+                      <button key={c} onClick={()=>setEditingTrama({...editingTrama,color:c})}
+                        className="w-6 h-6 rounded-full flex-shrink-0 transition-all"
+                        style={{background:c,boxShadow:editingTrama.color===c?`0 0 8px ${c}`:"none",transform:editingTrama.color===c?"scale(1.25)":"scale(1)"}}/>
+                    ))}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Ejemplo de trama (documentación)</label>
+                  <Input value={editingTrama.ejemplo} onChange={e=>setEditingTrama({...editingTrama,ejemplo:e.target.value})}
+                    className="text-xs h-8 font-mono" placeholder="!    450s  ó  450.5Kg"
+                    style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(251,191,36,0.2)"}}/>
+                </div>
+              </div>
+
+              {/* Test trama */}
+              <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                <label className="text-[9px] text-white/30 uppercase tracking-wider block">Probar trama (entrada de prueba)</label>
+                <div className="flex gap-2">
+                  <Input value={tramaTest} onChange={e=>setTramaTest(e.target.value)}
+                    className="flex-1 text-xs h-7 font-mono" placeholder="Ingresa bytes / texto de prueba…"
+                    style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}/>
+                  <button onClick={()=>{
+                    try {
+                      const re = new RegExp(editingTrama.regexStr,"g");
+                      const results: string[] = [];
+                      let m; while((m=re.exec(tramaTest))!==null){ results.push(`✓ Peso: ${m[1]} kg`); }
+                      setTramaTestResult(results.length?results:["✗ Sin coincidencias"]);
+                    } catch(e) { setTramaTestResult([`✗ Regex inválido: ${e}`]); }
+                  }} className="px-3 py-1 rounded-lg text-[10px] font-bold"
+                  style={{background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.3)",color:"#fbbf24"}}>
+                    <Play size={11}/>
+                  </button>
+                </div>
+                {tramaTestResult.length>0 && (
+                  <div className="space-y-0.5">
+                    {tramaTestResult.map((r,i)=>(
+                      <p key={i} className="font-mono text-[10px]" style={{color:r.startsWith("✓")?"#39ff7e":"#f87171"}}>{r}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={()=>setTramaEditorOpen(false)}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold"
+                  style={{background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}>
+                  Cancelar
+                </button>
+                <button disabled={!editingTrama.nombre||!editingTrama.regexStr}
+                  onClick={()=>{
+                    const exists = customTramas.find(x=>x.id===editingTrama.id);
+                    saveCustomTramas(exists ? customTramas.map(x=>x.id===editingTrama.id?editingTrama:x) : [...customTramas,editingTrama]);
+                    setTramaEditorOpen(false); setEditingTrama(null); setTramaTestResult([]);
+                  }}
+                  className="flex-2 px-5 py-2 rounded-xl text-xs font-black disabled:opacity-40"
+                  style={{background:"linear-gradient(135deg,#fbbf24,#ea580c)",color:"black"}}>
+                  Guardar trama
+                </button>
+                {/* Download trama JSON */}
+                {editingTrama.nombre && (
+                  <button onClick={()=>{
+                    const {parse:_,...exportable} = editingTrama as unknown as {parse:unknown};
+                    const blob=new Blob([JSON.stringify(exportable,null,2)],{type:"application/json"});
+                    const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`trama_${editingTrama.id}.json`; a.click(); URL.revokeObjectURL(url);
+                  }}
+                  className="px-3 py-2 rounded-xl text-xs font-bold"
+                  style={{background:"rgba(0,200,255,0.1)",border:"1px solid rgba(0,200,255,0.25)",color:"#00c8ff"}}>
+                    <Download size={12}/>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Report Templates */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-black text-white/50 uppercase tracking-wider flex items-center gap-1.5">
+                <Printer size={12}/>Templates de reporte ({reportTemplates.length})
+              </h3>
+              <button
+                onClick={()=>{setEditingTpl({id:`tpl_${Date.now()}`,nombre:"",titulo:"Reporte de Pesaje",encabezado:"GanaderIA PRO · Colombia",pie:"Sistema de Gestión Ganadera Inteligente",columnas:["animal","peso","fecha","raza","lote"],formato:"recibo",orientacion:"portrait"});setTplEditorOpen(true);}}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold"
+                style={{background:"rgba(0,245,212,0.1)",border:"1px solid rgba(0,245,212,0.25)",color:"#00f5d4"}}>
+                <Plus size={11}/>Nuevo template
+              </button>
+            </div>
+
+            {/* Default templates */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+              {[
+                {id:"tpl_default_recibo",  nombre:"Recibo estándar",   titulo:"Recibo de Pesaje",       columnas:["animal","peso","fecha","raza","lote","cc","valor"],        formato:"recibo"  as const, orientacion:"portrait"  as const, color:"#00f5d4", encabezado:"GanaderIA PRO", pie:"GanaderIA · Colombia"},
+                {id:"tpl_default_tabla",   nombre:"Tabla comparativa", titulo:"Registro de Pesajes",    columnas:["animal","peso","pesoAnterior","diferencia","fecha","lote"], formato:"tabla"   as const, orientacion:"landscape" as const, color:"#fbbf24", encabezado:"GanaderIA PRO", pie:"GanaderIA · Colombia"},
+                {id:"tpl_default_resumen", nombre:"Resumen IA",        titulo:"Análisis IA de Pesajes", columnas:["animal","peso","bcs","gdp","scoreDesarrollo","fecha"],      formato:"resumen" as const, orientacion:"portrait"  as const, color:"#a78bfa", encabezado:"GanaderIA PRO", pie:"GanaderIA · Colombia"},
+              ].map(tpl=>(
+                <div key={tpl.id} className="rounded-xl p-3" style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${tpl.color}20`}}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText size={14} style={{color:tpl.color}}/>
+                    <div>
+                      <p className="font-bold text-xs text-white">{tpl.nombre}</p>
+                      <p className="text-[9px] text-white/30">{tpl.formato} · {tpl.orientacion}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {tpl.columnas.slice(0,4).map(c=>(
+                      <span key={c} className="text-[8px] px-1 py-0.5 rounded" style={{background:`${tpl.color}10`,border:`1px solid ${tpl.color}20`,color:tpl.color}}>{c}</span>
+                    ))}
+                    {tpl.columnas.length>4&&<span className="text-[8px] text-white/20">+{tpl.columnas.length-4}</span>}
+                  </div>
+                  <button onClick={()=>{
+                    // Print with this template using last N pesajes
+                    const recent = pesajes.slice(-20);
+                    if (!recent.length) { alert("No hay pesajes registrados para imprimir."); return; }
+                    if (tpl.formato==="recibo") {
+                      const last = recent[recent.length-1];
+                      const ani  = animals.find(a=>a.id===last.animalId);
+                      imprimirRecibo({ id:last.id, animalId:last.animalId, animalNombre:last.animalNombre||"", raza:ani?.raza, categoria:last.categoria||"", peso:last.peso, pesoAnterior:last.pesoAnterior||0, fecha:last.fecha||"", hora:last.hora||"", metodo:last.metodo||"", dispositivo:"", operador:last.operador||"", observacion:"", lote:ani?.lote||"" }, tpl.titulo, ani);
+                    } else {
+                      const rows = recent.map(p=>`<tr><td>${p.animalNombre||p.animalId}</td><td>${p.peso?.toFixed(1)} kg</td><td>${p.fecha}</td><td>${p.hora}</td><td>${p.metodo||""}</td></tr>`).join("");
+                      const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${tpl.titulo}</title><style>body{font-family:sans-serif;padding:20px}h1{color:#1a4a2e}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:6px 10px;font-size:12px}th{background:#1a4a2e;color:white}@media print{}</style></head><body><h1>${tpl.titulo}</h1><p style="font-size:11px;color:#888">${tpl.encabezado||""} · ${new Date().toLocaleDateString("es-CO")}</p><table><thead><tr>${tpl.columnas.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table><p style="font-size:9px;color:#aaa;margin-top:16px">${tpl.pie||""}</p><div style="text-align:center;margin-top:12px"><button onclick="window.print()">🖨 Imprimir</button></div></body></html>`;
+                      const win=window.open("","_blank","width=800,height=600"); if(win){win.document.write(html);win.document.close();}
+                    }
+                  }}
+                  className="w-full py-1.5 rounded-lg text-[9px] font-bold transition-all hover:opacity-80"
+                  style={{background:`${tpl.color}12`,border:`1px solid ${tpl.color}25`,color:tpl.color}}>
+                    <Printer size={10} className="inline mr-1"/>Imprimir con template
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Custom templates */}
+            {reportTemplates.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {reportTemplates.map(tpl=>(
+                  <div key={tpl.id} className="rounded-xl p-3" style={{background:"rgba(0,245,212,0.03)",border:"1px solid rgba(0,245,212,0.15)"}}>
+                    <div className="flex items-start justify-between gap-1 mb-2">
+                      <div>
+                        <p className="font-bold text-xs text-white">{tpl.nombre}</p>
+                        <p className="text-[9px] text-white/30">{tpl.formato} · {tpl.orientacion}</p>
+                      </div>
+                      <div className="flex gap-0.5">
+                        <button onClick={()=>{setEditingTpl(tpl);setTplEditorOpen(true);}} className="p-1 rounded-lg text-blue-400 hover:bg-white/5"><Edit3 size={10}/></button>
+                        <button onClick={()=>saveTemplates(reportTemplates.filter(x=>x.id!==tpl.id))} className="p-1 rounded-lg text-red-400 hover:bg-white/5"><XIcon size={10}/></button>
+                      </div>
+                    </div>
+                    <button className="w-full py-1.5 rounded-lg text-[9px] font-bold"
+                      style={{background:"rgba(0,245,212,0.08)",border:"1px solid rgba(0,245,212,0.2)",color:"#00f5d4"}}>
+                      <Printer size={9} className="inline mr-1"/>Imprimir
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Template editor inline */}
+            {tplEditorOpen && editingTpl && (
+              <div className="rounded-2xl p-4 space-y-3 mt-2" style={{background:"rgba(0,245,212,0.04)",border:"1px solid rgba(0,245,212,0.2)"}}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-white flex items-center gap-2"><FileText size={14} style={{color:"#00f5d4"}}/>Template de reporte</h3>
+                  <button onClick={()=>setTplEditorOpen(false)} className="p-1 rounded-lg text-white/30"><XIcon size={14}/></button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Nombre del template</label>
+                    <Input value={editingTpl.nombre} onChange={e=>setEditingTpl({...editingTpl,nombre:e.target.value})}
+                      className="text-xs h-8" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(0,245,212,0.2)"}}/>
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Título del reporte</label>
+                    <Input value={editingTpl.titulo} onChange={e=>setEditingTpl({...editingTpl,titulo:e.target.value})}
+                      className="text-xs h-8" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(0,245,212,0.2)"}}/>
+                  </div>
+                  <div>
+                    <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Formato</label>
+                    <select value={editingTpl.formato} onChange={e=>setEditingTpl({...editingTpl,formato:e.target.value as ReportTemplate["formato"]})}
+                      className="w-full px-2 py-1.5 rounded-xl text-xs" style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(0,245,212,0.2)",color:"white",outline:"none"}}>
+                      <option value="recibo">Recibo individual</option>
+                      <option value="tabla">Tabla de registros</option>
+                      <option value="resumen">Resumen ejecutivo</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Encabezado</label>
+                    <Input value={editingTpl.encabezado} onChange={e=>setEditingTpl({...editingTpl,encabezado:e.target.value})}
+                      className="text-xs h-8" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(0,245,212,0.2)"}}/>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Columnas (selecciona las que incluirás)</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["animal","peso","pesoAnterior","diferencia","fecha","hora","raza","lote","cc","bcs","gdp","valor","metodo","operador","scoreDesarrollo"].map(col=>(
+                        <button key={col} onClick={()=>setEditingTpl({...editingTpl,columnas:editingTpl.columnas.includes(col)?editingTpl.columnas.filter(c=>c!==col):[...editingTpl.columnas,col]})}
+                          className="px-1.5 py-0.5 rounded-lg text-[9px] font-bold transition-all"
+                          style={{background:editingTpl.columnas.includes(col)?"rgba(0,245,212,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${editingTpl.columnas.includes(col)?"rgba(0,245,212,0.35)":"rgba(255,255,255,0.08)"}`,color:editingTpl.columnas.includes(col)?"#00f5d4":"rgba(255,255,255,0.35)"}}>
+                          {col}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">Pie de página</label>
+                    <Input value={editingTpl.pie} onChange={e=>setEditingTpl({...editingTpl,pie:e.target.value})}
+                      className="text-xs h-8" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(0,245,212,0.2)"}}/>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={()=>setTplEditorOpen(false)} className="flex-1 py-2 rounded-xl text-xs font-bold"
+                    style={{background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.4)",border:"1px solid rgba(255,255,255,0.08)"}}>
+                    Cancelar
+                  </button>
+                  <button disabled={!editingTpl.nombre} onClick={()=>{
+                    const exists=reportTemplates.find(x=>x.id===editingTpl.id);
+                    saveTemplates(exists?reportTemplates.map(x=>x.id===editingTpl.id?editingTpl:x):[...reportTemplates,editingTpl]);
+                    setTplEditorOpen(false); setEditingTpl(null);
+                  }} className="flex-2 px-5 py-2 rounded-xl text-xs font-black disabled:opacity-40"
+                  style={{background:"linear-gradient(135deg,#00f5d4,#00a896)",color:"black"}}>
+                    Guardar template
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── CAPTURE DETAIL DIALOG ── */}
       <Dialog open={captureDialogOpen} onOpenChange={setCaptureDialogOpen}>

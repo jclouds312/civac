@@ -17,6 +17,8 @@ import {
 import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin-dashboard";
+import DeveloperDashboard from "./pages/developer-dashboard";
+import SuperAdminDashboard from "./pages/superadmin-dashboard";
 import Alertas from "./pages/alertas";
 import Inventario from "./pages/inventario";
 import Ficha from "./pages/ficha";
@@ -47,7 +49,16 @@ const queryClient = new QueryClient();
 
 function HomeRoute() {
   const { user } = useAuth();
-  return user?.role === "admin" ? <AdminDashboard /> : <Dashboard />;
+  if (user?.role === "admin") return <AdminDashboard />;
+  return <Dashboard />;
+}
+
+function DeveloperGate() {
+  return <DeveloperDashboard />;
+}
+
+function SuperAdminGate() {
+  return <SuperAdminDashboard />;
 }
 
 const ADMIN_SECTIONS = [
@@ -266,7 +277,9 @@ function AuthGate() {
 
   if (!user) return <Login />;
 
-  if (user.role === "admin") return <AdminGate />;
+  if (user.role === "admin")      return <AdminGate />;
+  if (user.role === "developer")  return <DeveloperGate />;
+  if (user.role === "superadmin") return <SuperAdminGate />;
 
   return (
     <Layout>

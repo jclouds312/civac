@@ -6,7 +6,9 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock,
+  CloudOff, RefreshCw, Cloud, WifiOff,
 } from "lucide-react";
+import { useSyncStatus } from "@/lib/sync";
 import { AiAssistant } from "./ai-assistant";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
@@ -331,6 +333,7 @@ function PwaInstallButton({
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { online, syncing, pendingCount, lastSync, triggerSync } = useSyncStatus();
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -798,14 +801,35 @@ export function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {/* Status pills */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-semibold"
-              style={{ color: '#39ff7e', background: 'rgba(57,255,126,0.08)', border: '1px solid rgba(57,255,126,0.2)', borderRadius: 10 }}>
-              <Database size={10} /><span>BD Sync</span>
-            </div>
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-semibold"
-              style={{ color: '#00c8ff', background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.2)', borderRadius: 10 }}>
-              <Wifi size={10} /><span>PWA Offline</span>
+            {/* Dynamic Sync + Online/Offline indicator */}
+            <button
+              onClick={triggerSync}
+              title={`Última sync: ${lastSync ? new Date(lastSync).toLocaleTimeString('es-CO') : 'Nunca'}`}
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-semibold transition-all hover:scale-[1.04]"
+              style={{
+                color: syncing ? '#fbbf24' : pendingCount > 0 ? '#f87171' : '#39ff7e',
+                background: syncing ? 'rgba(251,191,36,0.08)' : pendingCount > 0 ? 'rgba(248,113,113,0.08)' : 'rgba(57,255,126,0.08)',
+                border: `1px solid ${syncing ? 'rgba(251,191,36,0.25)' : pendingCount > 0 ? 'rgba(248,113,113,0.25)' : 'rgba(57,255,126,0.2)'}`,
+                borderRadius: 10,
+              }}>
+              {syncing
+                ? <><RefreshCw size={10} className="animate-spin"/><span>Sincronizando…</span></>
+                : pendingCount > 0
+                  ? <><Database size={10}/><span>{pendingCount} pendientes</span></>
+                  : <><Database size={10}/><span>BD Sync ✓</span></>
+              }
+            </button>
+            <div
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-semibold"
+              style={{
+                color: online ? '#00c8ff' : '#f87171',
+                background: online ? 'rgba(0,200,255,0.08)' : 'rgba(248,113,113,0.08)',
+                border: `1px solid ${online ? 'rgba(0,200,255,0.2)' : 'rgba(248,113,113,0.25)'}`,
+                borderRadius: 10,
+              }}>
+              {online ? <><Wifi size={10}/><span>Online</span></> : <><WifiOff size={10}/><span>Offline</span></>}
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ background: online ? '#00c8ff' : '#f87171', boxShadow: `0 0 6px ${online ? '#00c8ff' : '#f87171'}` }}/>
             </div>
 
             <Link href="/pesaje-manual">

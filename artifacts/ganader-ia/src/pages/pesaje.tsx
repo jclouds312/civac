@@ -9,7 +9,7 @@ import {
   X as XIcon, Usb, Cable, Brain, Sparkles, ChevronDown, ChevronUp,
   Filter, Camera, Image, Hash, Layers, HeartPulse, Weight, Thermometer,
   Info, ChevronRight, BookOpen, Leaf, Shield, RefreshCw, Check, Edit3,
-  ArrowUpRight, ArrowDownRight, Download, Upload, Play,
+  ArrowUpRight, ArrowDownRight, Download, Upload, Play, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -777,6 +777,16 @@ export default function Pesaje() {
   const [tramaEditorOpen, setTramaEditorOpen] = useState(false);
   const [editingTrama, setEditingTrama] = useState<CustomTramaState|null>(null);
   const [tramaTest, setTramaTest] = useState("");
+  /* Trama Executor state (top-level to avoid hooks-in-callbacks violation) */
+  const [execOpen, setExecOpen] = useState(false);
+  const [execChannel, setExecChannel] = useState<"bt"|"com"|"manual">("bt");
+  const [execCmd, setExecCmd] = useState("");
+  const [execLog, setExecLog] = useState<{t:string;msg:string;dir:"tx"|"rx"|"info"}[]>([
+    {t:"10:31:05",msg:"Dispositivo listo · Toledo 8213 · COM3 115200",dir:"info"},
+    {t:"10:31:06",msg:"← 02 4B 47 20 20 30 38 35 2E 37 20 53 0D",dir:"rx"},
+  ]);
+  const [nineB, setNineB] = useState({peso_h:"03",peso_l:"55",dec:"01",unit:"6B",st:"53"});
+  const [showNineB, setShowNineB] = useState(false);
   const [tramaTestResult, setTramaTestResult] = useState<string[]>([]);
   const [tplEditorOpen, setTplEditorOpen] = useState(false);
   const [editingTpl, setEditingTpl] = useState<ReportTemplate|null>(null);
@@ -2299,6 +2309,188 @@ export default function Pesaje() {
               </div>
             )}
           </div>
+
+          {/* ── Trama Executor — envío de comandos a báscula ── */}
+          {(() => {
+
+            const CMD_TEMPLATES = [
+              {label:"Query peso",    cmd:"W",   hex:"57 0D",         desc:"Solicitar lectura de peso"},
+              {label:"Reset tara",    cmd:"T",   hex:"54 0D",         desc:"Tarar a cero"},
+              {label:"Imprimir",      cmd:"P",   hex:"50 0D",         desc:"Imprimir ticket en báscula"},
+              {label:"Modo contínuo", cmd:"S1",  hex:"53 31 0D",      desc:"Activar streaming continuo"},
+              {label:"Modo bajo demanda",cmd:"S0",hex:"53 30 0D",     desc:"Lectura solo al pedir"},
+              {label:"Identificar",   cmd:"ID",  hex:"49 44 0D",      desc:"Solicitar ID / versión firmware"},
+              {label:"Calibrar 0",    cmd:"Z",   hex:"5A 0D",         desc:"Zero calibration"},
+              {label:"ENQ status",    cmd:"ENQ", hex:"05",            desc:"Solicitar estado general"},
+            ];
+
+            const sendCommand = (hex: string, label: string) => {
+              const ts = new Date().toLocaleTimeString("es-CO");
+              setExecLog(prev=>[...prev,
+                {t:ts, msg:`→ ${hex}  [${label}]`, dir:"tx"},
+              ]);
+              // Simulate response after short delay
+              setTimeout(()=>{
+                const ts2 = new Date().toLocaleTimeString("es-CO");
+                const resp = label==="Query peso" ? "← 02 4B 47 20 20 30 38 35 2E 37 20 53 0D  [085.7 kg Estable]"
+                  : label==="Reset tara"    ? "← 06  [ACK · Tara OK]"
+                  : label==="Imprimir"      ? "← 06  [ACK · Imprimiendo…]"
+                  : label==="Identificar"   ? "← 54 6F 6C 65 64 6F 20 38 32 31 33 20 76 31 2E 32 0D  [Toledo 8213 v1.2]"
+                  : label==="Calibrar 0"    ? "← 06  [ACK · Zero OK]"
+                  : `← 06  [ACK]`;
+                setExecLog(prev=>[...prev, {t:ts2, msg:resp, dir:"rx"}]);
+              }, 320);
+            };
+
+            const buildNineB = () => {
+              const cs = parseInt(nineB.peso_h,16)^parseInt(nineB.peso_l,16)^parseInt(nineB.dec,16)^parseInt(nineB.unit,16)^parseInt(nineB.st,16);
+              return `C1 A0 ${nineB.peso_h} ${nineB.peso_l} ${nineB.dec} ${nineB.unit} ${nineB.st} ${cs.toString(16).padStart(2,"0").toUpperCase()} 03`;
+            };
+
+            return (
+              <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,200,255,0.25)"}}>
+                {/* Header */}
+                <button onClick={()=>setExecOpen(v=>!v)}
+                  className="w-full flex items-center justify-between px-4 py-3 transition-all hover:opacity-80"
+                  style={{background:"linear-gradient(135deg,rgba(0,200,255,0.08),rgba(0,200,255,0.04))",borderBottom:execOpen?"1px solid rgba(0,200,255,0.15)":"none"}}>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{background:"rgba(0,200,255,0.15)",color:"#00c8ff"}}>
+                      <Send size={13}/>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-black text-white">Trama Executor — Envío a báscula</p>
+                      <p className="text-[9px]" style={{color:"rgba(0,200,255,0.5)"}}>Envía comandos al dispositivo conectado · BT / COM / Manual</p>
+                    </div>
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full ml-2"
+                      style={{background:"rgba(0,200,255,0.1)",border:"1px solid rgba(0,200,255,0.25)",color:"#00c8ff"}}>PRO</span>
+                  </div>
+                  <ChevronDown size={14} style={{color:"rgba(0,200,255,0.5)",transform:execOpen?"rotate(180deg)":"none",transition:"transform 0.2s"}}/>
+                </button>
+
+                {execOpen && (
+                  <div className="p-4 space-y-3" style={{background:"rgba(0,0,0,0.3)"}}>
+                    {/* Channel selector */}
+                    <div className="flex gap-1.5">
+                      {(["bt","com","manual"] as const).map(ch=>(
+                        <button key={ch} onClick={()=>setExecChannel(ch)}
+                          className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                          style={{
+                            background: execChannel===ch ? "rgba(0,200,255,0.15)" : "rgba(255,255,255,0.03)",
+                            border: `1px solid ${execChannel===ch ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.08)"}`,
+                            color: execChannel===ch ? "#00c8ff" : "rgba(255,255,255,0.35)",
+                          }}>
+                          {ch==="bt"?"🔵 Bluetooth BLE":ch==="com"?"🔌 Puerto COM/USB":"🖐 Manual"}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Command templates */}
+                    <div>
+                      <p className="text-[9px] text-white/30 uppercase tracking-wider mb-1.5">Comandos estándar</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                        {CMD_TEMPLATES.map(cmd=>(
+                          <button key={cmd.label}
+                            onClick={()=>sendCommand(cmd.hex, cmd.label)}
+                            title={cmd.desc}
+                            className="flex flex-col items-start px-2.5 py-2 rounded-xl text-left transition-all hover:scale-[1.02] group"
+                            style={{background:"rgba(0,200,255,0.05)",border:"1px solid rgba(0,200,255,0.15)"}}>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="font-mono text-[9px] font-black" style={{color:"#00c8ff"}}>{cmd.cmd}</span>
+                              <span className="font-mono text-[8px] text-white/20">{cmd.hex}</span>
+                            </div>
+                            <span className="text-[9px] text-white/50">{cmd.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Manual hex input */}
+                    <div className="flex gap-2">
+                      <input value={execCmd} onChange={e=>setExecCmd(e.target.value)}
+                        placeholder="HEX: 57 0D  o  ASCII: W\r"
+                        onKeyDown={e=>{ if(e.key==="Enter"&&execCmd.trim()){sendCommand(execCmd.trim(),"Custom");setExecCmd("");}}}
+                        className="flex-1 px-3 py-2 rounded-xl font-mono text-[11px]"
+                        style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(0,200,255,0.2)",color:"#00c8ff",outline:"none"}}/>
+                      <button onClick={()=>{if(execCmd.trim()){sendCommand(execCmd.trim(),"Custom");setExecCmd("");}}}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black"
+                        style={{background:"linear-gradient(135deg,#00c8ff,#0ea5e9)",color:"black"}}>
+                        <Send size={11}/> Enviar
+                      </button>
+                    </div>
+
+                    {/* Terminal log */}
+                    <div className="rounded-xl overflow-hidden" style={{border:"1px solid rgba(0,0,0,0.4)"}}>
+                      <div className="px-3 py-1.5 flex items-center justify-between" style={{background:"rgba(0,0,0,0.5)"}}>
+                        <span className="text-[9px] font-bold text-white/30">Terminal CIVAC — {execChannel.toUpperCase()}</span>
+                        <button onClick={()=>setExecLog([])} className="text-[8px] text-white/20 hover:text-white/50 px-2 py-0.5 rounded">Limpiar</button>
+                      </div>
+                      <div className="p-2.5 space-y-0.5 max-h-40 overflow-y-auto font-mono text-[10px]"
+                        style={{background:"rgba(0,0,0,0.45)",scrollbarWidth:"thin"}}>
+                        {execLog.length===0 && <p className="text-white/20 italic">Sin actividad aún…</p>}
+                        {execLog.map((l,i)=>(
+                          <div key={i} className="flex gap-2">
+                            <span className="text-white/20 flex-shrink-0">{l.t}</span>
+                            <span style={{color:l.dir==="tx"?"#fbbf24":l.dir==="rx"?"#39ff7e":"rgba(0,200,255,0.5)"}}>{l.msg}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 9B Packet builder toggle */}
+                    <button onClick={()=>setShowNineB(v=>!v)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[10px] font-bold transition-all"
+                      style={{background:"rgba(255,214,10,0.05)",border:"1px solid rgba(255,214,10,0.2)",color:"rgba(255,214,10,0.7)"}}>
+                      <span>⚡ Constructor de paquete CIVAC 9B</span>
+                      <ChevronDown size={12} style={{transform:showNineB?"rotate(180deg)":"none",transition:"transform 0.2s"}}/>
+                    </button>
+
+                    {showNineB && (
+                      <div className="rounded-xl p-3 space-y-3" style={{background:"rgba(255,214,10,0.04)",border:"1px solid rgba(255,214,10,0.18)"}}>
+                        <div className="grid grid-cols-5 gap-2">
+                          {[
+                            {key:"peso_h" as const,label:"PESO MSB", desc:"Byte alto del peso"},
+                            {key:"peso_l" as const,label:"PESO LSB", desc:"Byte bajo del peso"},
+                            {key:"dec"    as const,label:"DEC",      desc:"Decimales"},
+                            {key:"unit"   as const,label:"UNIT",     desc:"0x6B = kg"},
+                            {key:"st"    as const, label:"ST",       desc:"0x53 = Estable"},
+                          ].map(f=>(
+                            <div key={f.key}>
+                              <label className="text-[8px] text-white/30 uppercase block mb-1">{f.label}</label>
+                              <input value={nineB[f.key]} maxLength={2}
+                                onChange={e=>setNineB({...nineB,[f.key]:e.target.value.toUpperCase().replace(/[^0-9A-F]/g,"")})}
+                                className="w-full px-2 py-1.5 rounded-lg font-mono text-[11px] text-center font-black uppercase"
+                                style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(255,214,10,0.2)",color:"#ffd60a",outline:"none"}}/>
+                              <div className="text-[7px] text-white/20 text-center mt-0.5">{f.desc}</div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="rounded-lg px-3 py-2 font-mono text-[11px]" style={{background:"rgba(0,0,0,0.4)",color:"#ffd60a",border:"1px solid rgba(255,214,10,0.15)"}}>
+                          {buildNineB()}
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={()=>sendCommand(buildNineB(),"CIVAC 9B")}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black"
+                            style={{background:"linear-gradient(135deg,#ffd60a,#ea580c)",color:"black"}}>
+                            <Send size={11}/> Enviar paquete 9B
+                          </button>
+                          <button onClick={()=>{
+                            const h = parseInt(nineB.peso_h,16)||0;
+                            const l = parseInt(nineB.peso_l,16)||0;
+                            const d = parseInt(nineB.dec,16)||1;
+                            const peso = (h*256+l)/Math.pow(10,d);
+                            alert(`Peso decodificado: ${peso.toFixed(d)} kg\n(${h}×256 + ${l}) ÷ 10^${d} = ${peso.toFixed(d)}`);
+                          }} className="px-3 py-2 rounded-xl text-[10px] font-bold"
+                            style={{background:"rgba(0,200,255,0.08)",border:"1px solid rgba(0,200,255,0.2)",color:"#00c8ff"}}>
+                            Decodificar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Trama Editor Inline */}
           {tramaEditorOpen && editingTrama && (

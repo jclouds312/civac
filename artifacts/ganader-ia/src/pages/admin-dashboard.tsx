@@ -414,14 +414,16 @@ export default function AdminDashboard({
 
   /* ── Tab items ── */
   const TABS = [
-    { id:"resumen",  icon:"📊", label:"Resumen"   },
-    { id:"cuentas",  icon:"👥", label:"Cuentas"   },
-    { id:"planes",   icon:"⭐", label:"Planes"    },
-    { id:"pagos",    icon:"💳", label:"Pagos"     },
-    { id:"sesiones", icon:"📡", label:"Sesiones"  },
-    { id:"apis",     icon:"🔌", label:"APIs"      },
-    { id:"modulos",  icon:"🧩", label:"Módulos"   },
-    { id:"sistema",  icon:"⚙️", label:"Sistema"   },
+    { id:"resumen",      icon:"📊", label:"Resumen"      },
+    { id:"cuentas",      icon:"👥", label:"Cuentas"      },
+    { id:"planes",       icon:"⭐", label:"Planes"       },
+    { id:"pagos",        icon:"💳", label:"Pagos"        },
+    { id:"facturacion",  icon:"🧾", label:"Facturación"  },
+    { id:"sesiones",     icon:"📡", label:"Sesiones"     },
+    { id:"apis",         icon:"🔌", label:"APIs"         },
+    { id:"modulos",      icon:"🧩", label:"Módulos"      },
+    { id:"versiones",    icon:"🚀", label:"Versiones"    },
+    { id:"sistema",      icon:"⚙️", label:"Sistema"      },
   ];
 
   return (
@@ -1566,6 +1568,300 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: FACTURACIÓN
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "facturacion" && (() => {
+        const invoices = [
+          {id:"INV-2026-042",cliente:"Finca El Porvenir",  plan:"platino", monto:580000, estado:"pagado",  fecha:"2026-05-20", metodo:"Wompi · Tarjeta"},
+          {id:"INV-2026-041",cliente:"Ganadería Ramírez",  plan:"premium", monto:280000, estado:"pagado",  fecha:"2026-05-18", metodo:"Nequi"},
+          {id:"INV-2026-040",cliente:"Agro La Esperanza",  plan:"pro",     monto:120000, estado:"pagado",  fecha:"2026-05-15", metodo:"PSE"},
+          {id:"INV-2026-039",cliente:"Hacienda Los Pinos", plan:"platino", monto:580000, estado:"pendiente",fecha:"2026-05-12",metodo:"Bancolombia"},
+          {id:"INV-2026-038",cliente:"Agropecuaria Valle", plan:"pro",     monto:120000, estado:"vencido", fecha:"2026-05-01", metodo:"Wompi"},
+          {id:"INV-2026-037",cliente:"Finca Santa Bárbara",plan:"premium", monto:280000, estado:"pagado",  fecha:"2026-04-28", metodo:"Nequi"},
+        ];
+        const totalMes = invoices.filter(i=>i.estado==="pagado").reduce((s,i)=>s+i.monto,0);
+        const pendiente = invoices.filter(i=>i.estado==="pendiente").reduce((s,i)=>s+i.monto,0);
+        const vencido   = invoices.filter(i=>i.estado==="vencido").reduce((s,i)=>s+i.monto,0);
+        const estadoColor: Record<string,string> = { pagado:"#39ff7e", pendiente:"#fbbf24", vencido:"#f87171" };
+        return (
+          <div className="space-y-4">
+            {/* KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                {label:"Recaudado (mayo)", val:`$${(totalMes/1000).toFixed(0)}k`,   sub:"COP · IVA incluido",     c:"#39ff7e", icon:<TrendingUp size={16}/>},
+                {label:"Por cobrar",       val:`$${(pendiente/1000).toFixed(0)}k`,  sub:"Facturas pendientes",    c:"#fbbf24", icon:<Clock size={16}/>},
+                {label:"Vencido",          val:`$${(vencido/1000).toFixed(0)}k`,    sub:"Requiere gestión",       c:"#f87171", icon:<AlertTriangle size={16}/>},
+                {label:"Total facturas",   val:invoices.length,                      sub:"Este mes: "+invoices.filter(i=>new Date(i.fecha)>new Date("2026-05-01")).length, c:"#00c8ff", icon:<FileText size={16}/>},
+              ].map(k=>(
+                <div key={k.label} className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${k.c}18`}}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{background:`${k.c}12`,color:k.c}}>{k.icon}</div>
+                  <div className="text-xl font-black" style={{color:k.c}}>{k.val}</div>
+                  <div className="text-xs font-bold text-white/60">{k.label}</div>
+                  <div className="text-[9px] text-white/25">{k.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Wompi Integration Panel */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.2)"}}>
+              <div className="px-4 py-3 flex items-center justify-between"
+                style={{background:"linear-gradient(135deg,rgba(0,245,212,0.08),rgba(0,200,255,0.04))",borderBottom:"1px solid rgba(0,245,212,0.12)"}}>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg" style={{background:"rgba(0,245,212,0.12)"}}>💳</div>
+                  <div>
+                    <h3 className="text-sm font-black text-white">Wompi · Pasarela de pagos</h3>
+                    <p className="text-[9px]" style={{color:"rgba(0,245,212,0.5)"}}>Integración activa · Colombia · COP</p>
+                  </div>
+                </div>
+                <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-1 rounded-full"
+                  style={{background:"rgba(57,255,126,0.12)",border:"1px solid rgba(57,255,126,0.25)",color:"#39ff7e"}}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"/>Activa
+                </span>
+              </div>
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {label:"Tarjeta débito/crédito", icon:"💳", sub:"Visa · Master · Amex",           estado:"✓ Activo",  color:"#00f5d4"},
+                  {label:"Nequi",                   icon:"📱", sub:"Pago inmediato",                 estado:"✓ Activo",  color:"#c084fc"},
+                  {label:"PSE",                     icon:"🏦", sub:"Débito bancario online",         estado:"✓ Activo",  color:"#60a5fa"},
+                  {label:"Bancolombia",             icon:"🟡", sub:"Botón de pago",                  estado:"✓ Activo",  color:"#fbbf24"},
+                  {label:"Daviplata",               icon:"🔴", sub:"Billetera digital",              estado:"⏳ Próximo", color:"#f87171"},
+                  {label:"Efecty / Baloto",         icon:"💵", sub:"Pago en puntos físicos",         estado:"⏳ Próximo", color:"#94a3b8"},
+                ].map(m=>(
+                  <div key={m.label} className="flex items-center gap-2.5 p-2.5 rounded-xl"
+                    style={{background:`${m.color}08`,border:`1px solid ${m.color}20`}}>
+                    <span className="text-xl">{m.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-white">{m.label}</p>
+                      <p className="text-[9px] text-white/30">{m.sub}</p>
+                    </div>
+                    <span className="text-[9px] font-bold flex-shrink-0" style={{color:m.color}}>{m.estado}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="px-4 pb-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  {label:"Tasa de aprobación", val:"94.2%",     c:"#39ff7e"},
+                  {label:"Ticket promedio",    val:"$280k COP",  c:"#00f5d4"},
+                  {label:"Chargebacks",        val:"0 (0.0%)",   c:"#fbbf24"},
+                  {label:"Tiempo respuesta",   val:"1.8s avg",   c:"#a78bfa"},
+                ].map(s=>(
+                  <div key={s.label} className="rounded-xl px-3 py-2 text-center" style={{background:"rgba(0,0,0,0.3)"}}>
+                    <div className="text-base font-black" style={{color:s.c}}>{s.val}</div>
+                    <div className="text-[8px] text-white/30">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Invoice table */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.08)"}}>
+              <div className="px-4 py-3 flex items-center justify-between"
+                style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <FileText size={14} style={{color:"#00f5d4"}}/> Facturas recientes
+                </h3>
+                <button className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold rounded-xl"
+                  style={{background:"rgba(0,245,212,0.08)",border:"1px solid rgba(0,245,212,0.2)",color:"#00f5d4"}}>
+                  <Download size={11}/> Exportar CSV
+                </button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{background:"rgba(26,74,46,0.5)",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+                      {["Factura","Cliente","Plan","Método","Fecha","Monto","Estado",""].map(h=>(
+                        <th key={h} className="px-4 py-2.5 text-left text-[9px] font-black uppercase tracking-wider text-white/40">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoices.map((inv,i)=>(
+                      <tr key={inv.id} className="border-b hover:bg-white/[0.02] transition-colors"
+                        style={{borderColor:"rgba(255,255,255,0.04)"}}>
+                        <td className="px-4 py-2.5 font-mono text-[10px]" style={{color:"#00f5d4"}}>{inv.id}</td>
+                        <td className="px-4 py-2.5 text-white/80 font-semibold">{inv.cliente}</td>
+                        <td className="px-4 py-2.5"><PlanBadge plan={inv.plan as PlanId}/></td>
+                        <td className="px-4 py-2.5 text-white/40 text-[10px]">{inv.metodo}</td>
+                        <td className="px-4 py-2.5 text-white/40 text-[10px]">{inv.fecha}</td>
+                        <td className="px-4 py-2.5 font-black text-white">${(inv.monto/1000).toFixed(0)}k</td>
+                        <td className="px-4 py-2.5">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold"
+                            style={{background:`${estadoColor[inv.estado]}18`,color:estadoColor[inv.estado],border:`1px solid ${estadoColor[inv.estado]}30`}}>
+                            {inv.estado}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <button className="text-[8px] px-2 py-1 rounded-lg hover:bg-white/5" style={{color:"#00f5d4",border:"1px solid rgba(0,245,212,0.15)"}}>
+                            PDF
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recurring billing config */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><RefreshCw size={13} style={{color:"#a78bfa"}}/> Cobros recurrentes</h3>
+                <div className="space-y-2">
+                  {[
+                    {label:"Siguiente ciclo",    val:"01/06/2026",   c:"#00f5d4"},
+                    {label:"Suscripciones activas",val:"12",         c:"#39ff7e"},
+                    {label:"Monto a cobrar",     val:"$2.18M COP",   c:"#fbbf24"},
+                    {label:"Método preferido",   val:"Wompi 78%",    c:"#a78bfa"},
+                  ].map(r=>(
+                    <div key={r.label} className="flex items-center justify-between px-3 py-2 rounded-xl"
+                      style={{background:"rgba(0,0,0,0.25)"}}>
+                      <span className="text-[10px] text-white/40">{r.label}</span>
+                      <span className="text-[10px] font-black" style={{color:r.c}}>{r.val}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><BarChart3 size={13} style={{color:"#00c8ff"}}/> Ingresos por plan</h3>
+                <div className="space-y-2">
+                  {([
+                    {plan:"basico" as PlanId,   cnt:0, pct:0},
+                    {plan:"pro" as PlanId,       cnt:4, pct:28},
+                    {plan:"premium" as PlanId,   cnt:5, pct:41},
+                    {plan:"platino" as PlanId,   cnt:3, pct:31},
+                  ]).map(r=>(
+                    <div key={r.plan} className="space-y-0.5">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="flex items-center gap-1 text-white/60"><PlanBadge plan={r.plan}/>{r.cnt} clientes</span>
+                        <span className="font-black" style={{color:PLAN_COLOR[r.plan]}}>{r.pct}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-full rounded-full transition-all"
+                          style={{width:`${r.pct}%`,background:`linear-gradient(90deg,${PLAN_COLOR[r.plan]},${PLAN_COLOR[r.plan]}88)`}}/>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: VERSIONES
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "versiones" && (() => {
+        const versions = [
+          { v:"5.0.0", date:"2026-05-21", tag:"LATEST", notes:"Expansión masiva: Trama Executor, Sync IndexedDB, Admin Facturación, Dev DB Browser, Login plataforma.", active:true, plans:["basico","pro","premium","platino"] as PlanId[], changes:["Pesaje PRO: ejecutor de tramas en báscula + 9B builder","PWA Sync IndexedDB + indicador online/offline en topbar","Admin: tabs Facturación (Wompi) + Versiones + módulos matrix mejorada","Dev Console: DB Browser, Pipeline, Protocolo analyzer","Login: cuentas cliente vs sistema separadas","Developer/Superadmin dashboards completos"] },
+          { v:"4.3.0", date:"2026-05-18", tag:"ESTABLE", notes:"GPS real-time watchPosition. 6 cuentas de acceso. Admin/Developer dashboards. Pesaje PRO IA engine.", active:false, plans:["pro","premium","platino"] as PlanId[], changes:["GPS bovino con watchPosition real","6 cuentas (admin/vet/field/viewer/developer/superadmin)","Admin dashboard 8 tabs completo","Pesaje PRO con IA engine (BCS, GMD, 9 razas)","Login con planes y pasarela de pago"] },
+          { v:"4.2.1", date:"2026-05-12", tag:"PATCH",  notes:"Bugfix: Login form + GPS mapa SVG + Pesaje BCS recalc.",                active:false, plans:["basico","pro"] as PlanId[], changes:["Fix: login form validation","Fix: GPS SVG animal positions","Fix: Pesaje BCS recalculation on weight change"] },
+          { v:"4.2.0", date:"2026-05-05", tag:"MENOR",  notes:"28 módulos completos. Sidebar oscuro fijo. PWA manifest v3.",          active:false, plans:["basico","pro"] as PlanId[], changes:["28 módulos completos","Sidebar siempre oscuro (identidad marca)","PWA manifest v3 con shortcuts","Iconos Holstein SVG"] },
+          { v:"4.0.0", date:"2026-04-15", tag:"MAYOR",  notes:"Visual overhaul dark/light. Logo Holstein teal. CSS variables paleta.", active:false, plans:["basico"] as PlanId[], changes:["Visual overhaul dark/light mode","Logo Holstein teal chip IA","CSS variables paleta farm/marine","wouter routing + ThemeContext"] },
+        ];
+        const tagColor: Record<string,string> = { LATEST:"#39ff7e", ESTABLE:"#00f5d4", PATCH:"#fbbf24", MENOR:"#a78bfa", MAYOR:"#f87171" };
+        return (
+          <div className="space-y-4">
+            {/* Header actions */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex-1">
+                <h2 className="text-sm font-black text-white">Historial de versiones CIVAC GanaderIA</h2>
+                <p className="text-[10px] text-white/30">Gestión de releases, changelogs y despliegue por plan</p>
+              </div>
+              <button onClick={()=>{
+                const md = versions.map(v=>`## v${v.v} (${v.date}) [${v.tag}]\n${v.notes}\n${v.changes.map(c=>`- ${c}`).join("\n")}`).join("\n\n");
+                const blob=new Blob([`# CIVAC GanaderIA · Changelog\n\n${md}`],{type:"text/markdown"});
+                const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="CHANGELOG.md";a.click();URL.revokeObjectURL(url);
+              }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
+                style={{background:"rgba(0,245,212,0.1)",border:"1px solid rgba(0,245,212,0.25)",color:"#00f5d4"}}>
+                <Download size={12}/> CHANGELOG.md
+              </button>
+            </div>
+
+            {/* Version cards */}
+            <div className="space-y-3">
+              {versions.map(ver=>(
+                <div key={ver.v} className="rounded-2xl overflow-hidden transition-all"
+                  style={{
+                    border:`1.5px solid ${ver.active ? "rgba(57,255,126,0.35)" : "rgba(255,255,255,0.08)"}`,
+                    background: ver.active ? "linear-gradient(135deg,rgba(57,255,126,0.04),rgba(0,0,0,0.4))" : "rgba(255,255,255,0.02)",
+                    boxShadow: ver.active ? "0 0 24px rgba(57,255,126,0.08)" : "none",
+                  }}>
+                  {ver.active && <div className="h-0.5 w-full" style={{background:"linear-gradient(90deg,#39ff7e,#00f5d4,transparent)"}}/>}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-mono font-black text-sm flex-shrink-0"
+                          style={{background:"rgba(0,0,0,0.4)",border:`1px solid ${tagColor[ver.tag]}30`,color:tagColor[ver.tag]}}>
+                          v{ver.v}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                            <span className="text-white font-black text-sm">CIVAC GanaderIA v{ver.v}</span>
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                              style={{background:`${tagColor[ver.tag]}18`,border:`1px solid ${tagColor[ver.tag]}40`,color:tagColor[ver.tag]}}>
+                              {ver.tag}
+                            </span>
+                            {ver.active && (
+                              <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                                style={{background:"rgba(57,255,126,0.15)",border:"1px solid rgba(57,255,126,0.35)",color:"#39ff7e"}}>
+                                ✓ ACTIVA
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[9px] text-white/30">{ver.date} · Planes: {ver.plans.map(p=>`${PLAN_ICON[p]} ${PLAN_LABEL[p]}`).join(" · ")}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button onClick={()=>{
+                          const cfg={civac_version:ver.v,fecha:ver.date,tag:ver.tag,planes:ver.plans,cambios:ver.changes,notas:ver.notes};
+                          const blob=new Blob([JSON.stringify(cfg,null,2)],{type:"application/json"});
+                          const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`civac_v${ver.v}_config.json`;a.click();URL.revokeObjectURL(url);
+                        }} className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-[9px] font-bold"
+                          style={{background:"rgba(0,200,255,0.08)",border:"1px solid rgba(0,200,255,0.2)",color:"#00c8ff"}}>
+                          <Download size={10}/> JSON
+                        </button>
+                        {!ver.active && (
+                          <button className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-[9px] font-bold"
+                            style={{background:"rgba(255,214,10,0.08)",border:"1px solid rgba(255,214,10,0.2)",color:"#ffd60a"}}>
+                            Deploy
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-white/50 mb-2 italic">"{ver.notes}"</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                      {ver.changes.map((c,i)=>(
+                        <div key={i} className="flex items-start gap-1.5 text-[10px] text-white/50">
+                          <span className="flex-shrink-0 mt-0.5" style={{color:tagColor[ver.tag]}}>•</span>
+                          <span>{c}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Release stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                {label:"Total versiones", val:versions.length,   c:"#00f5d4"},
+                {label:"Tiempo promedio", val:"12 días",          c:"#fbbf24"},
+                {label:"Hotfixes",        val:"1",                c:"#f87171"},
+                {label:"Uptime 30d",      val:"99.9%",            c:"#39ff7e"},
+              ].map(k=>(
+                <div key={k.label} className="rounded-2xl p-3 text-center" style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${k.c}18`}}>
+                  <div className="text-xl font-black" style={{color:k.c}}>{k.val}</div>
+                  <div className="text-[10px] text-white/40">{k.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ════════════════════════════════════════════════════════════════════
           DIALOGS

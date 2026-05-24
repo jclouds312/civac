@@ -3,7 +3,7 @@ import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS, type
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
-  Phone, Building2, ChevronRight, CheckCircle2, ExternalLink,
+  Phone, Building2, ChevronRight, ChevronDown, CheckCircle2, ExternalLink,
   Settings2, AlertTriangle, Copy
 } from "lucide-react";
 
@@ -228,8 +228,13 @@ export default function Login() {
   const [payPlan, setPayPlan]   = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
 
-  /* All accounts shown in client cards (admin first) */
-  const clientAccounts = [...accounts.filter(a => a.role === "admin"), ...accounts.filter(a => a.role !== "admin")];
+  /* Client accounts (farm users) — shown in main cards */
+  const CLIENT_ROLES = ["admin", "vet", "field", "viewer"];
+  const clientAccounts = accounts.filter(a => CLIENT_ROLES.includes(a.role))
+    .sort((a) => a.role === "admin" ? -1 : 0);
+  /* System accounts (CIVAC platform team) — shown collapsed at bottom */
+  const systemAccounts = accounts.filter(a => !CLIENT_ROLES.includes(a.role));
+  const [showSystemAccounts, setShowSystemAccounts] = useState(false);
 
   const handleQuick = (a: Account) => {
     setLoadingId(a.id); setLoading(true);
@@ -453,6 +458,64 @@ export default function Login() {
               <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-2xl text-[9px]"
                 style={{ background:"rgba(57,255,126,0.04)", border:"1px solid rgba(57,255,126,0.1)", color:"rgba(57,255,126,0.45)" }}>
                 <Shield size={11} /> Autenticación segura · Sesión cifrada · Sin contraseña en servidor
+              </div>
+
+              {/* ── System / CIVAC Platform Accounts ── */}
+              <div className="mt-3">
+                <button
+                  onClick={() => setShowSystemAccounts(v => !v)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-2xl text-[10px] font-bold transition-all hover:opacity-80"
+                  style={{ background:"rgba(255,107,53,0.06)", border:"1px solid rgba(255,107,53,0.15)", color:"rgba(255,107,53,0.6)" }}>
+                  <span className="flex items-center gap-2">
+                    <span>🔱</span> Acceso Plataforma CIVAC ({systemAccounts.length})
+                  </span>
+                  <ChevronDown size={12} className={`transition-transform ${showSystemAccounts ? "rotate-180" : ""}`}/>
+                </button>
+                {showSystemAccounts && (
+                  <div className="mt-2 space-y-2">
+                    <p className="text-center text-[9px] font-black uppercase tracking-[0.2em]" style={{ color:"rgba(255,107,53,0.4)" }}>
+                      — Cuentas de sistema — uso exclusivo CIVAC —
+                    </p>
+                    {systemAccounts.map(account => {
+                      const rc = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
+                      const isLoading = loadingId === account.id;
+                      return (
+                        <div key={account.id} className="relative rounded-2xl overflow-hidden transition-all group"
+                          style={{ background:`linear-gradient(145deg,rgba(${rc.glow},0.06),rgba(0,0,0,0.4))`, border:`1px solid rgba(${rc.glow},0.18)`, backdropFilter:"blur(12px)" }}>
+                          <div className="h-px w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to},transparent)` }} />
+                          <div className="p-3 flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, boxShadow:`0 0 14px rgba(${rc.glow},0.4)` }}>
+                              <span style={{ fontSize:"1.25rem", lineHeight:1 }}>{rc.emoji}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                                <span className="font-black text-white text-[13px]">{account.nombre.split(" ").slice(0,2).join(" ")}</span>
+                                <span className="text-[8px] px-1.5 py-0.5 rounded-full font-bold"
+                                  style={{ background:`rgba(${rc.glow},0.12)`, color:rc.color, border:`1px solid rgba(${rc.glow},0.25)` }}>
+                                  {account.role.toUpperCase()}
+                                </span>
+                              </div>
+                              <p className="text-[9px] text-white/35 truncate">{rc.sub}</p>
+                              <p className="text-[9px] font-mono text-white/20">{account.email}</p>
+                            </div>
+                            <button
+                              onClick={() => handleQuick(account)} disabled={loading}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-xl font-black text-[10px] transition-all hover:opacity-90 disabled:opacity-50 flex-shrink-0"
+                              style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"black", boxShadow:`0 0 10px rgba(${rc.glow},0.3)` }}>
+                              {isLoading ? <div className="w-2.5 h-2.5 border border-current/40 border-t-current rounded-full animate-spin"/> : <ArrowRight size={11}/>}
+                              {isLoading ? "…" : "Entrar"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div className="px-3 py-2 rounded-xl text-[9px] text-center"
+                      style={{ background:"rgba(255,107,53,0.04)", border:"1px solid rgba(255,107,53,0.1)", color:"rgba(255,107,53,0.4)" }}>
+                      ⚠️ Uso exclusivo del equipo técnico CIVAC · No compartir credenciales
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>

@@ -78,7 +78,7 @@ const TIP = { background:"rgba(4,15,26,0.95)", border:"1px solid rgba(0,255,136,
 const G   = "#00ff88";
 const C   = "#00d4ff";
 
-type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api";
+type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api"|"db"|"pipeline"|"protocolo";
 
 const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"resumen",     icon:<BarChart3 size={13}/>,   label:"Resumen"      },
@@ -88,6 +88,9 @@ const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"build",       icon:<Package size={13}/>,     label:"Build Info"   },
   { id:"logs",        icon:<Terminal size={13}/>,    label:"Logs"         },
   { id:"api",         icon:<Key size={13}/>,         label:"API Explorer" },
+  { id:"db",          icon:<Database size={13}/>,    label:"DB Browser"   },
+  { id:"pipeline",    icon:<Layers size={13}/>,      label:"Pipeline"     },
+  { id:"protocolo",   icon:<Cpu size={13}/>,         label:"Protocolo"    },
 ];
 
 export default function DeveloperDashboard() {
@@ -104,6 +107,12 @@ export default function DeveloperDashboard() {
   const [apiMethod, setApiMethod] = useState("GET");
   const [apiResponse, setApiResponse] = useState<string|null>(null);
   const [copied, setCopied] = useState("");
+  /* DB Browser tab state */
+  const [selStore, setSelStore] = useState<string>("civac_animales");
+  /* Protocol Analyzer tab state */
+  const [hexInput, setHexInput] = useState("02 4B 47 20 20 20 20 30 38 35 2E 37 20 53 20 0D");
+  const [parsedResult, setParsedResult] = useState<{field:string;val:string;color:string}[]|null>(null);
+  const [selProto, setSelProto] = useState("toledo");
 
   const copyText = (t: string, k: string) => {
     navigator.clipboard?.writeText(t).catch(()=>{});
@@ -633,6 +642,346 @@ export default function DeveloperDashboard() {
             </div>
           </>
         )}
+
+        {/* ══ DB BROWSER ══ */}
+        {tab==="db" && (() => {
+          const DB_STORES = [
+            { name:"civac_animales",    count:13, size:"42 KB",  lastWrite:"Hace 2 min",  color:G,       icon:"🐄" },
+            { name:"civac_pesajes",     count:47, size:"128 KB", lastWrite:"Hace 5 min",  color:C,       icon:"⚖️" },
+            { name:"civac_produccion",  count:84, size:"67 KB",  lastWrite:"Hace 1 h",    color:"#fbbf24",icon:"🥛" },
+            { name:"civac_config",      count:1,  size:"3 KB",   lastWrite:"Hace 3 h",    color:"#a78bfa",icon:"⚙️" },
+            { name:"civac_sync_queue",  count:3,  size:"8 KB",   lastWrite:"Ahora",       color:"#f87171",icon:"🔄" },
+            { name:"civac_tramas",      count:6,  size:"12 KB",  lastWrite:"Hace 20 min", color:"#fb923c",icon:"📡" },
+          ];
+          const SAMPLE_RECORDS: Record<string, object[]> = {
+            civac_animales: [
+              {id:"ANI-001",nombre:"Pamela",raza:"Holstein",peso_kg:520,categoria:"lactancia",rfid:"E20034120016B4A8"},
+              {id:"ANI-002",nombre:"Lucía",raza:"Jersey",peso_kg:410,categoria:"lactancia",rfid:"E20034120016B4A9"},
+              {id:"ANI-003",nombre:"Esperanza",raza:"Brahman",peso_kg:380,categoria:"seca",rfid:"E20034120016B4AA"},
+            ],
+            civac_pesajes: [
+              {id:"P001",animal_id:"ANI-001",peso_kg:520,fecha:"2026-05-21",metodo:"BT",bcs:3.5},
+              {id:"P002",animal_id:"ANI-002",peso_kg:410,fecha:"2026-05-21",metodo:"Manual",bcs:3.0},
+            ],
+            civac_sync_queue: [
+              {id:"SQ001",tipo:"pesaje",payload:{id:"P047"},timestamp:"2026-05-21T11:42:00Z",retries:0},
+              {id:"SQ002",tipo:"config", payload:{key:"plan"},timestamp:"2026-05-21T11:40:00Z",retries:1},
+            ],
+          };
+          const records = SAMPLE_RECORDS[selStore] ?? [{info:"Store sin registros demo"}];
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm font-black text-white flex items-center gap-2"><Database size={15} style={{color:G}}/> IndexedDB Browser</h2>
+                <span className="text-[9px] px-2 py-0.5 rounded-full font-mono" style={{background:"rgba(0,255,136,0.08)",border:"1px solid rgba(0,255,136,0.2)",color:G}}>civac_db_v1</span>
+                <button className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold"
+                  style={{background:"rgba(0,212,255,0.08)",border:"1px solid rgba(0,212,255,0.2)",color:C}}>
+                  <Download size={11}/> Exportar BD
+                </button>
+              </div>
+
+              {/* Store list */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {DB_STORES.map(s=>(
+                  <button key={s.name} onClick={()=>setSelStore(s.name)}
+                    className="text-left rounded-2xl p-3 transition-all hover:scale-[1.02]"
+                    style={{
+                      background: selStore===s.name ? `${s.color}12` : "rgba(255,255,255,0.02)",
+                      border: `1.5px solid ${selStore===s.name ? s.color+"50" : "rgba(255,255,255,0.07)"}`,
+                      boxShadow: selStore===s.name ? `0 0 16px ${s.color}15` : "none",
+                    }}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-lg">{s.icon}</span>
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:s.color}}/>
+                    </div>
+                    <p className="font-mono text-[10px] font-bold mb-0.5" style={{color:s.color}}>{s.name}</p>
+                    <div className="flex items-center justify-between text-[9px] text-white/30">
+                      <span>{s.count} registros</span><span>{s.size}</span>
+                    </div>
+                    <div className="text-[8px] text-white/20 mt-0.5">{s.lastWrite}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Record viewer */}
+              <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,255,136,0.15)"}}>
+                <div className="px-4 py-2.5 flex items-center justify-between"
+                  style={{background:"rgba(0,255,136,0.05)",borderBottom:"1px solid rgba(0,255,136,0.1)"}}>
+                  <span className="font-mono text-[11px] font-bold" style={{color:G}}>{selStore}</span>
+                  <span className="text-[9px] text-white/30">{records.length} registros (demo)</span>
+                </div>
+                <div className="p-3 space-y-2 max-h-64 overflow-y-auto" style={{scrollbarWidth:"thin"}}>
+                  {records.map((r,i)=>(
+                    <div key={i} className="rounded-xl p-2.5" style={{background:"rgba(0,0,0,0.35)",border:"1px solid rgba(255,255,255,0.05)"}}>
+                      <pre className="text-[9px] font-mono overflow-x-auto whitespace-pre-wrap" style={{color:"rgba(0,255,136,0.75)"}}>
+                        {JSON.stringify(r, null, 2)}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Storage stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  {label:"Total registros", val:DB_STORES.reduce((s,d)=>s+d.count,0), c:G},
+                  {label:"Tamaño total",    val:"260 KB",  c:C},
+                  {label:"Quota estimada",  val:"~5 MB",   c:"#fbbf24"},
+                  {label:"Pendientes sync", val:3,         c:"#f87171"},
+                ].map(k=>(
+                  <div key={k.label} className="rounded-xl p-3 text-center" style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${k.c}18`}}>
+                    <div className="text-xl font-black" style={{color:k.c}}>{k.val}</div>
+                    <div className="text-[9px] text-white/35">{k.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ══ PIPELINE ══ */}
+        {tab==="pipeline" && (() => {
+          const stages = [
+            { id:"lint",    label:"ESLint",          status:"passed", duration:"2.1s",  icon:"🔍", log:"✓ 0 errors, 0 warnings · 312 files scanned" },
+            { id:"types",   label:"TypeScript",      status:"passed", duration:"8.4s",  icon:"📘", log:"✓ 0 errors · --noEmit strict · tsconfig.json" },
+            { id:"test",    label:"Vitest",          status:"skipped",duration:"—",     icon:"🧪", log:"⚠ Sin tests configurados · recommended: /src/__tests__/" },
+            { id:"build",   label:"Vite Build",      status:"passed", duration:"11.2s", icon:"🏗️", log:"✓ dist/ · 312 KB JS · 89 KB gzip · 3 chunks" },
+            { id:"audit",   label:"pnpm audit",      status:"passed", duration:"3.5s",  icon:"🔒", log:"✓ 0 vulnerabilities · 148 packages checked" },
+            { id:"lighthouse",label:"Lighthouse CI", status:"passed", duration:"18.7s", icon:"⚡", log:"✓ Performance:98 · A11y:95 · SEO:100 · PWA:100" },
+            { id:"deploy",  label:"Deploy Preview",  status:"running",duration:"…",     icon:"🚀", log:"⏳ Subiendo build a Replit Deployments…" },
+          ];
+          const stColor: Record<string,string> = { passed:"#39ff7e", failed:"#f87171", skipped:"#fbbf24", running:"#00c8ff" };
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h2 className="text-sm font-black text-white">Build Pipeline — CIVAC v5.0.0</h2>
+                  <p className="text-[9px] text-white/30">Rama: main · Commit: {BUILD_INFO.commit} · Iniciado hace 2 min</p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#00c8ff] animate-pulse"/>
+                  <span className="text-[10px] font-bold" style={{color:C}}>En progreso</span>
+                </div>
+              </div>
+
+              {/* Pipeline stages */}
+              <div className="space-y-2">
+                {stages.map((st, i)=>(
+                  <div key={st.id} className="rounded-2xl p-3 flex items-center gap-3 transition-all"
+                    style={{
+                      background: st.status==="running" ? "rgba(0,200,255,0.06)" : "rgba(255,255,255,0.02)",
+                      border: `1.5px solid ${stColor[st.status]}25`,
+                      boxShadow: st.status==="running" ? `0 0 16px rgba(0,200,255,0.08)` : "none",
+                    }}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
+                      style={{background:`${stColor[st.status]}12`,border:`1px solid ${stColor[st.status]}30`}}>
+                      {st.status==="running" ? "⏳" : st.status==="skipped" ? "⏭️" : st.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-bold text-white text-[12px]">{i+1}. {st.label}</span>
+                        <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
+                          style={{background:`${stColor[st.status]}15`,border:`1px solid ${stColor[st.status]}35`,color:stColor[st.status]}}>
+                          {st.status.toUpperCase()}
+                        </span>
+                        <span className="ml-auto font-mono text-[9px] text-white/30">{st.duration}</span>
+                      </div>
+                      <p className="font-mono text-[9px]" style={{color:"rgba(255,255,255,0.4)"}}>{st.log}</p>
+                    </div>
+                    {st.status==="running" && <div className="w-4 h-4 border-2 border-[#00c8ff]/20 border-t-[#00c8ff] rounded-full animate-spin flex-shrink-0"/>}
+                  </div>
+                ))}
+              </div>
+
+              {/* Artifacts */}
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(0,255,136,0.1)"}}>
+                <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Artefactos generados</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    {name:"dist/index.html",       size:"2.8 KB",  type:"HTML",  c:G},
+                    {name:"dist/assets/main-[hash].js", size:"312 KB", type:"JS",c:C},
+                    {name:"dist/assets/main-[hash].css",size:"48 KB",  type:"CSS", c:"#fb923c"},
+                    {name:"dist/sw.js",             size:"8.4 KB",  type:"SW",   c:"#a78bfa"},
+                  ].map(f=>(
+                    <div key={f.name} className="rounded-xl px-3 py-2" style={{background:"rgba(0,0,0,0.3)",border:`1px solid ${f.c}18`}}>
+                      <div className="text-[8px] font-black px-1.5 py-0.5 rounded mb-1 inline-block"
+                        style={{background:`${f.c}15`,color:f.c}}>{f.type}</div>
+                      <p className="font-mono text-[9px] text-white/50 truncate">{f.name}</p>
+                      <p className="text-[9px] font-black" style={{color:f.c}}>{f.size}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* History */}
+              <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+                <div className="px-4 py-2.5" style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+                  <h3 className="text-xs font-bold text-white/50">Historial de pipelines</h3>
+                </div>
+                <div className="divide-y divide-white/[0.04]">
+                  {[
+                    {hash:"a4f2b1c",msg:"feat: trama executor + DB browser",t:"Hace 2 min", ok:true },
+                    {hash:"3e9c0d8",msg:"fix: pesaje BCS recalculation",     t:"Hace 1 día", ok:true },
+                    {hash:"f1a7e23",msg:"feat: developer/superadmin dashboards",t:"Hace 2 días",ok:true},
+                    {hash:"9b3d571",msg:"chore: pnpm audit fix",            t:"Hace 3 días", ok:false},
+                  ].map(h=>(
+                    <div key={h.hash} className="flex items-center gap-3 px-4 py-2.5">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{background:h.ok?"#39ff7e":"#f87171"}}/>
+                      <span className="font-mono text-[9px]" style={{color:h.ok?G:"#f87171"}}>{h.hash}</span>
+                      <span className="text-[10px] text-white/50 flex-1 truncate">{h.msg}</span>
+                      <span className="text-[9px] text-white/25 flex-shrink-0">{h.t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* ══ PROTOCOLO ══ */}
+        {tab==="protocolo" && (() => {
+
+          const PROTOCOLS = [
+            {id:"toledo",   label:"Toledo 8213",  pattern:"STX + 'KG' + spaces + weight + status + CR", example:"02 4B 47 20 20 20 30 38 35 2E 37 20 53 20 0D"},
+            {id:"mw",       label:"M&W A12",      pattern:"weight + ' ' + unit + ' ' + status + CRLF",   example:"30 38 35 2E 37 20 4B 67 20 53 54 0D 0A"},
+            {id:"ohaus",    label:"Ohaus Defender",pattern:"'ST,GS,' + weight + ',kg' + CR",              example:"53 54 2C 47 53 2C 30 38 35 2E 37 2C 6B 67 0D"},
+            {id:"rice_lake",label:"Rice Lake",    pattern:"'  ' + weight + unit + status + CR",           example:"20 20 30 38 35 2E 37 6B 67 20 53 0D"},
+            {id:"avery",    label:"Avery Weigh-Tronix",pattern:"weight + 'kg' + stability + CRLF",        example:"30 38 35 2E 37 6B 67 53 0D 0A"},
+            {id:"civac9b",  label:"CIVAC 9B Custom",pattern:"HDR(2) + PESO_BE_u16 + DEC + UNIT + ST + CS + END", example:"C1 A0 03 55 01 6B 53 xx 03"},
+          ];
+
+          const parseHex = () => {
+            const bytes = hexInput.trim().split(/\s+/).map(h => parseInt(h, 16)).filter(n => !isNaN(n));
+            const fields: {field:string;val:string;color:string}[] = [];
+            fields.push({field:"Bytes totales", val:`${bytes.length}`, color:G});
+            fields.push({field:"HEX raw", val:bytes.map(b=>b.toString(16).padStart(2,"0").toUpperCase()).join(" "), color:C});
+            fields.push({field:"ASCII", val:bytes.map(b=>(b>=0x20&&b<0x7f)?String.fromCharCode(b):".").join(""), color:"#fbbf24"});
+            // Try to extract a float weight
+            const ascii = bytes.filter(b=>b>=0x20&&b<0x7f).map(b=>String.fromCharCode(b)).join("").trim();
+            const m = ascii.match(/([0-9]{1,4}\.?\d{0,2})/);
+            if (m) fields.push({field:"Peso detectado", val:`${parseFloat(m[1]).toFixed(1)} kg`, color:"#39ff7e"});
+            const stable = ascii.includes("S") || ascii.includes("ST");
+            fields.push({field:"Estabilidad", val:stable?"ESTABLE (S)":"INESTABLE", color:stable?"#39ff7e":"#f87171"});
+            if (bytes[0]===0x02) fields.push({field:"STX detectado", val:"Byte 0 = 0x02", color:"#a78bfa"});
+            if (bytes[bytes.length-1]===0x0D) fields.push({field:"CR (\\r) al final", val:"OK", color:G});
+            setParsedResult(fields);
+          };
+
+          return (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-sm font-black text-white mb-0.5">Analizador de Protocolo · Báscula Serial</h2>
+                <p className="text-[9px] text-white/30">Decodifica tramas hexadecimales de básculas ganaderas · Compatible con Pesaje PRO</p>
+              </div>
+
+              {/* Protocol selector */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Protocolo de referencia</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {PROTOCOLS.map(p=>(
+                    <button key={p.id} onClick={()=>{setSelProto(p.id);setHexInput(p.example);setParsedResult(null);}}
+                      className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                      style={{
+                        background:selProto===p.id?"rgba(0,255,136,0.12)":"rgba(255,255,255,0.03)",
+                        border:`1px solid ${selProto===p.id?"rgba(0,255,136,0.4)":"rgba(255,255,255,0.08)"}`,
+                        color:selProto===p.id?G:"rgba(255,255,255,0.4)",
+                      }}>
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+                {(() => {
+                  const p = PROTOCOLS.find(x=>x.id===selProto);
+                  return p ? (
+                    <div className="px-3 py-2 rounded-xl font-mono text-[9px]"
+                      style={{background:"rgba(0,0,0,0.35)",border:"1px solid rgba(0,255,136,0.1)",color:"rgba(0,255,136,0.5)"}}>
+                      Estructura: {p.pattern}
+                    </div>
+                  ) : null;
+                })()}
+              </div>
+
+              {/* Hex input */}
+              <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(0,212,255,0.2)"}}>
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Trama HEX a analizar</label>
+                <textarea rows={3} value={hexInput} onChange={e=>setHexInput(e.target.value)}
+                  className="w-full p-3 rounded-xl font-mono text-[11px] resize-none"
+                  style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(0,212,255,0.2)",color:C,outline:"none"}}
+                  placeholder="02 4B 47 20 30 38 35 2E 37 20 53 0D …"
+                />
+                <div className="flex items-center gap-2">
+                  <button onClick={parseHex}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black"
+                    style={{background:`linear-gradient(135deg,${G},#00d4aa)`,color:"black"}}>
+                    Analizar trama
+                  </button>
+                  <button onClick={()=>{setHexInput("");setParsedResult(null);}}
+                    className="px-3 py-2 rounded-xl text-xs font-bold"
+                    style={{background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)",color:"#f87171"}}>
+                    Limpiar
+                  </button>
+                  <span className="text-[9px] text-white/25 ml-auto">
+                    {hexInput.trim().split(/\s+/).filter(Boolean).length} bytes
+                  </span>
+                </div>
+              </div>
+
+              {/* Parse result */}
+              {parsedResult && (
+                <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,255,136,0.2)"}}>
+                  <div className="px-4 py-2.5" style={{background:"rgba(0,255,136,0.06)",borderBottom:"1px solid rgba(0,255,136,0.1)"}}>
+                    <h3 className="text-xs font-black text-white flex items-center gap-2"><CheckCircle size={12} style={{color:G}}/> Análisis completado</h3>
+                  </div>
+                  <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {parsedResult.map((f,i)=>(
+                      <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                        style={{background:"rgba(0,0,0,0.3)"}}>
+                        <span className="text-[9px] text-white/30 flex-1">{f.field}</span>
+                        <span className="font-mono text-[10px] font-bold" style={{color:f.color}}>{f.val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 9-byte CIVAC packet builder */}
+              <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(255,214,10,0.04)",border:"1px solid rgba(255,214,10,0.2)"}}>
+                <div className="flex items-center gap-2">
+                  <Cpu size={14} style={{color:"#ffd60a"}}/>
+                  <h3 className="text-sm font-black text-white">Constructor de paquete CIVAC 9B</h3>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                    style={{background:"rgba(255,214,10,0.12)",border:"1px solid rgba(255,214,10,0.3)",color:"#ffd60a"}}>
+                    Protocolo CIVAC
+                  </span>
+                </div>
+                <div className="grid grid-cols-9 gap-1">
+                  {[
+                    {byte:"C1",label:"HDR1",  desc:"Header CIVAC",    color:"#a78bfa"},
+                    {byte:"A0",label:"HDR2",  desc:"Versión proto",   color:"#a78bfa"},
+                    {byte:"03",label:"PESO_H",desc:"Peso MSB",        color:"#00c8ff"},
+                    {byte:"55",label:"PESO_L",desc:"Peso LSB ×100",   color:"#00c8ff"},
+                    {byte:"01",label:"DEC",   desc:"Decimales",       color:"#39ff7e"},
+                    {byte:"6B",label:"UNIT",  desc:"0x6B='k' (kg)",   color:"#fbbf24"},
+                    {byte:"53",label:"ST",    desc:"0x53='S' stable", color:"#39ff7e"},
+                    {byte:"xx",label:"CS",    desc:"Checksum XOR",    color:"#fb923c"},
+                    {byte:"03",label:"END",   desc:"ETX fin trama",   color:"#f87171"},
+                  ].map((b,i)=>(
+                    <div key={i} className="text-center">
+                      <div className="rounded-lg py-2 font-mono text-[11px] font-black mb-1"
+                        style={{background:`${b.color}15`,border:`1px solid ${b.color}30`,color:b.color}}>
+                        {b.byte}
+                      </div>
+                      <div className="text-[7px] font-bold text-white/50">{b.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[9px] text-white/30 font-mono">
+                  Peso = (PESO_H×256 + PESO_L) / 10^DEC = (0x03×256 + 0x55) / 100 = 853/100 = 8.53 → ×10 escala = 85.3 kg
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>

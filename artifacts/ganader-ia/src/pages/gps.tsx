@@ -12,6 +12,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  saveGpsDevices, loadGpsDevices, appendGpsPosition, loadGpsTrack,
+  clearGpsTrack, exportGpsTrack,
+  checkGeolocationPermission, checkBluetoothAvailability,
+  type StoredPos,
+} from "../lib/offline-storage";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    TYPES

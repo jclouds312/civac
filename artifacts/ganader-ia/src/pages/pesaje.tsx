@@ -12,6 +12,12 @@ import {
   ArrowUpRight, ArrowDownRight, Download,
 } from "lucide-react";
 import { saveLastBtDevice, loadLastBtDevice, saveBtSession, loadBtSessions } from "../lib/offline-storage";
+import {
+  type ScaleDeviceConfig, type CustomTrama, type PrintTemplate,
+  DEFAULT_DEVICE_CONFIG, DEFAULT_PRINT_TEMPLATE,
+  loadDeviceConfigs, saveDeviceConfigs, loadCustomTramas, saveCustomTramas,
+  loadPrintTemplate, savePrintTemplate, testCustomTrama,
+} from "../lib/scale-config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -466,6 +472,79 @@ ${showFirma ? `<div class="firma">Firma responsable: ___________________________
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   IMPRESIÓN EN LOTE — tabla con todos los pesajes seleccionados
+─────────────────────────────────────────────────────────────────────────────── */
+function imprimirLote(pesajesLote: PesajeRec[], titulo = "Pesaje en Lote — GanaderIA PRO") {
+  if (!pesajesLote.length) return;
+  const finca   = getFincaConfig();
+  const pcfg    = getPrinterConfig();
+  const granja  = pcfg.headerLine1 || finca.nombre || "GanaderIA PRO";
+  const subtitulo = pcfg.headerLine2 || "Ganadería Inteligente · Colombia";
+  const footer  = pcfg.footerText   || "GanaderIA PRO · Gestión Ganadera Inteligente";
+  const total   = pesajesLote.length;
+  const pesoSum = pesajesLote.reduce((s, p) => s + p.peso, 0);
+  const promedio = total > 0 ? pesoSum / total : 0;
+  const valorSum = pesajesLote.reduce((s, p) => s + (p.peso * (p.valorKilo || 0)), 0);
+  const diffPos  = pesajesLote.filter(p => p.peso >= p.pesoAnterior).length;
+  const fmtCop = (n: number) => new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(n);
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>${titulo}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Courier New',monospace;font-size:10px;background:#fff;color:#111;padding:14px 16px;max-width:920px;margin:0 auto}
+.header{text-align:center;border-bottom:3px solid #1a4a2e;padding-bottom:10px;margin-bottom:12px}
+.farm{font-size:20px;font-weight:bold;color:#1a4a2e}.sub{font-size:10px;color:#777;margin-top:2px}
+.title{font-size:14px;font-weight:bold;margin-top:7px;text-transform:uppercase;letter-spacing:1.5px}
+.meta{font-size:9px;color:#aaa;margin-top:3px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.kpi{text-align:center;padding:10px;background:#f0f7f0;border-radius:6px;border:1.5px solid #c8e6c9}
+.kpi-val{font-size:17px;font-weight:bold;color:#1a4a2e}
+.kpi-lbl{font-size:8px;color:#777;margin-top:3px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:9px}
+th{background:#1a4a2e;color:white;padding:6px 4px;text-align:left;font-size:8px;letter-spacing:.3px}
+td{padding:4px;border-bottom:1px solid #eee}tr:nth-child(even)td{background:#f8faf8}
+.pos{color:#1b5e20;font-weight:bold}.neg{color:#b71c1c;font-weight:bold}
+.stitle{font-size:11px;font-weight:bold;color:#1a4a2e;margin:12px 0 5px;text-transform:uppercase;letter-spacing:.7px}
+.footer{text-align:center;font-size:8.5px;color:#bbb;margin-top:14px;border-top:1px solid #eee;padding-top:8px}
+@media print{body{padding:0}.no-print{display:none!important}}
+</style></head><body>
+<div class="header">
+  <div class="farm">🐄 ${granja}</div><div class="sub">${subtitulo}</div>
+  <div class="title">${titulo}</div>
+  <div class="meta">Generado: ${new Date().toLocaleString("es-CO")} · Folio lote: #L${Date.now().toString().slice(-6)}</div>
+</div>
+<div class="kpis">
+  <div class="kpi"><div class="kpi-val">${total}</div><div class="kpi-lbl">Animales</div></div>
+  <div class="kpi"><div class="kpi-val">${promedio.toFixed(1)} kg</div><div class="kpi-lbl">Promedio</div></div>
+  <div class="kpi"><div class="kpi-val">${diffPos}/${total}</div><div class="kpi-lbl">Con ganancia</div></div>
+  <div class="kpi"><div class="kpi-val">${valorSum>0?fmtCop(valorSum):pesoSum.toFixed(0)+" kg"}</div><div class="kpi-lbl">${valorSum>0?"Valor total":"Peso total"}</div></div>
+</div>
+<div class="stitle">Detalle de pesajes</div>
+<table><thead><tr><th>#</th><th>Animal</th><th>ID</th><th>Raza</th><th>Cat.</th><th>Lote</th><th>Peso</th><th>Anterior</th><th>Variación</th><th>CC</th><th>Método</th><th>Fecha · Hora</th></tr></thead>
+<tbody>${pesajesLote.map((p,i)=>{
+  const diff=p.peso-p.pesoAnterior;
+  const mb=p.metodo==="bluetooth"?"BT":p.metodo==="serial"?"COM":p.metodo==="simulated"?"SIM":"MAN";
+  return `<tr><td style="color:#999">${i+1}</td><td><strong>${p.animalNombre}</strong></td><td style="font-size:8px;color:#888">${p.animalId}</td><td>${p.raza||"—"}</td><td>${p.categoria}</td><td>${p.lote}</td><td><strong>${p.peso.toFixed(1)}</strong></td><td>${p.pesoAnterior.toFixed(1)}</td><td class="${diff>=0?"pos":"neg"}">${diff>=0?"+":""}${diff.toFixed(1)}</td><td>${p.condicionCorporal||"—"}</td><td style="font-size:8px">${mb}</td><td style="font-size:8px">${p.fecha} ${p.hora}</td></tr>`;
+}).join("")}</tbody></table>
+<div class="stitle">Resumen</div>
+<table style="width:45%;font-size:9px"><tbody>
+  <tr><td>Total animales</td><td><strong>${total}</strong></td></tr>
+  <tr><td>Peso total</td><td><strong>${pesoSum.toFixed(1)} kg</strong></td></tr>
+  <tr><td>Peso promedio</td><td><strong>${promedio.toFixed(1)} kg</strong></td></tr>
+  <tr><td>Mínimo / Máximo</td><td><strong>${Math.min(...pesajesLote.map(p=>p.peso)).toFixed(1)} / ${Math.max(...pesajesLote.map(p=>p.peso)).toFixed(1)} kg</strong></td></tr>
+  <tr><td>Con ganancia</td><td><strong>${diffPos} animales (${Math.round(diffPos/total*100)}%)</strong></td></tr>
+  ${valorSum>0?`<tr><td>Valor total</td><td><strong>${fmtCop(valorSum)}</strong></td></tr>`:""}
+</tbody></table>
+<div class="footer">${footer}<br>GanaderIA PRO · Colombia ${new Date().getFullYear()}</div>
+<div class="no-print" style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center">
+  <button onclick="window.print()" style="background:#1a4a2e;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:bold">🖨️ Imprimir Lote</button>
+  <button onclick="window.close()" style="background:#eee;color:#333;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px">Cerrar</button>
+</div></body></html>`;
+  const win = window.open("", "_blank", "width=980,height=900,scrollbars=yes");
+  if (win) { win.document.write(html); win.document.close(); }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    LIVE SCALE DISPLAY
 ───────────────────────────────────────────────────────────────────────────── */
 function LiveScale({ weight, stability, stable, status, onCapture, autoCapture, connectionLabel }: {
@@ -798,7 +877,7 @@ export default function Pesaje() {
 
   /* ── Tab ── */
   const [connTab, setConnTab]         = useState<"bt"|"com"|"manual">("bt");
-  const [mainTab, setMainTab]         = useState<"bascula"|"manual"|"historial"|"estadisticas">("bascula");
+  const [mainTab, setMainTab]         = useState<"bascula"|"manual"|"historial"|"estadisticas"|"config">("bascula");
 
   /* ── Capture dialog ── */
   const [captureDialogOpen, setCaptureDialogOpen] = useState(false);
@@ -831,6 +910,19 @@ export default function Pesaje() {
   const [newARegistro, setNewARegistro] = useState("NO");
   const [newANumReg, setNewANumReg] = useState("");
   const fotoInputRef              = useRef<HTMLInputElement>(null);
+
+  /* ── Scale administration ── */
+  const [cfgDevs, setCfgDevs]         = useState<Record<string, ScaleDeviceConfig>>(() => loadDeviceConfigs());
+  const [customTramas, setCustomTramas] = useState<CustomTrama[]>(() => loadCustomTramas());
+  const [printTmpl, setPrintTmpl]     = useState<PrintTemplate>(() => loadPrintTemplate());
+  const [histSelected, setHistSelected] = useState<Set<number>>(new Set());
+  const [batchSelectMode, setBatchSelectMode] = useState(false);
+  const [newTramaForm, setNewTramaForm] = useState({ nombre:"", regex:"([0-9]{3,4})", icon:"🔧", color:"#94a3b8", ejemplo:"" });
+  const [newTramaTest, setNewTramaTest] = useState("");
+  const [showNewTramaForm, setShowNewTramaForm] = useState(false);
+  const [showBtTramaConfig, setShowBtTramaConfig] = useState(false);
+  const [btTramaId, setBtTramaId]     = useState("civac_9b");
+  const [configSaved, setConfigSaved] = useState(false);
 
   /* ── Stats ── */
   const hoy = pesajes.filter(p => p.fecha === fmtDate()).length;
@@ -1413,6 +1505,7 @@ export default function Pesaje() {
               {id:"manual"      as const, label:"✏️ Manual",         sub:"Entrada directa"},
               {id:"historial"   as const, label:"📋 Historial",      sub:`${pesajes.length} registros`},
               {id:"estadisticas"as const, label:"📊 Estadísticas",   sub:"GDP · Valor · Gráficas"},
+              {id:"config"      as const, label:"⚙️ Config",          sub:"Básculas · Tramas · Impresión"},
             ].map(t=>(
               <button key={t.id} onClick={()=>setMainTab(t.id)}
                 className="flex-1 py-2.5 rounded-2xl text-center transition-all"
@@ -1461,6 +1554,39 @@ export default function Pesaje() {
                           ))}
                         </div>
                       </div>
+                      {/* ── Trama BT ── */}
+                      <div className="rounded-xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.18)"}}>
+                        <button onClick={()=>setShowBtTramaConfig(v=>!v)}
+                          className="w-full flex items-center justify-between px-3 py-2 text-[10px]"
+                          style={{background:"rgba(0,245,212,0.05)"}}>
+                          <div className="flex items-center gap-2 font-bold" style={{color:"#00f5d4"}}>
+                            <Radio size={11}/>
+                            Trama BT — <span style={{color:TRAMA_TYPES.find(t=>t.id===btTramaId)?.color||"#94a3b8"}}>{TRAMA_TYPES.find(t=>t.id===btTramaId)?.icon} {TRAMA_TYPES.find(t=>t.id===btTramaId)?.nombre}</span>
+                          </div>
+                          <span style={{color:"rgba(0,245,212,0.4)"}}>{showBtTramaConfig?"▲":"▼"}</span>
+                        </button>
+                        {showBtTramaConfig && (
+                          <div className="p-2.5 space-y-2" style={{background:"rgba(0,0,0,0.3)"}}>
+                            <div className="text-[9px] text-white/30 mb-1">Protocolo de decodificación para stream UART/GATT personalizado</div>
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {TRAMA_TYPES.map(t=>(
+                                <button key={t.id} onClick={()=>{ setBtTramaId(t.id); selTramaRef.current=t; setSelTrama(t); }}
+                                  className="p-2 rounded-xl text-left transition-all"
+                                  style={{
+                                    background:btTramaId===t.id?`${t.color}18`:"rgba(255,255,255,0.03)",
+                                    border:`1.5px solid ${btTramaId===t.id?`${t.color}55`:"rgba(255,255,255,0.07)"}`,
+                                    color:btTramaId===t.id?t.color:"rgba(255,255,255,0.5)",
+                                  }}>
+                                  <div className="text-xs mb-0.5">{t.icon}</div>
+                                  <div className="font-bold text-[9px] leading-tight">{t.nombre}</div>
+                                  {btTramaId===t.id&&<div className="text-[8px] mt-0.5" style={{color:`${t.color}90`}}>{t.estabilidad_directa?"⚡ Estabilidad directa":"📊 Análisis estadístico"}</div>}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex gap-2">
                         {btStatus==="idle"||btStatus==="error"
                           ? <Button onClick={connectBluetooth} className="flex-1 gap-2 font-bold"
@@ -1935,9 +2061,32 @@ export default function Pesaje() {
             <div className="rounded-2xl overflow-hidden" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(255,255,255,0.07)"}}>
               <div className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-black text-sm text-white">Historial de pesajes</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px]" style={{color:"rgba(0,245,212,0.5)"}}>{pesajes.length} registros</span>
+                    <span className="font-black text-sm text-white">Historial de pesajes</span>
+                    {batchSelectMode && histSelected.size > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{background:"rgba(251,191,36,0.15)",color:"#fbbf24",border:"1px solid rgba(251,191,36,0.3)"}}>{histSelected.size} sel.</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px]" style={{color:"rgba(0,245,212,0.5)"}}>{pesajes.length} reg.</span>
+                    {/* Batch select toggle */}
+                    <button
+                      onClick={()=>{ setBatchSelectMode(v=>!v); setHistSelected(new Set()); }}
+                      className="flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] font-bold transition-all"
+                      style={{background:batchSelectMode?"rgba(251,191,36,0.15)":"rgba(255,255,255,0.04)",border:`1px solid ${batchSelectMode?"rgba(251,191,36,0.4)":"rgba(255,255,255,0.1)"}`,color:batchSelectMode?"#fbbf24":"rgba(255,255,255,0.4)"}}>
+                      <Layers size={10}/>{batchSelectMode ? "Cancelar" : "Lote"}
+                    </button>
+                    {/* Batch print */}
+                    {batchSelectMode && (
+                      <button
+                        disabled={histSelected.size===0}
+                        onClick={()=>{ const sel=pesajes.filter(p=>histSelected.has(p.id)); imprimirLote(sel); }}
+                        className="flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] font-bold transition-all"
+                        style={{background:histSelected.size>0?"rgba(57,255,126,0.12)":"rgba(255,255,255,0.03)",border:`1px solid ${histSelected.size>0?"rgba(57,255,126,0.35)":"rgba(255,255,255,0.07)"}`,color:histSelected.size>0?"#39ff7e":"rgba(255,255,255,0.2)",cursor:histSelected.size>0?"pointer":"not-allowed"}}>
+                        <Printer size={10}/>Imprimir ({histSelected.size})
+                      </button>
+                    )}
+                    {/* CSV download */}
                     <button
                       onClick={()=>{
                         const header = "Folio,Animal,ID,Raza,Categoría,Lote,Peso(kg),PesoAnterior(kg),Diferencia(kg),Fecha,Hora,Método,Dispositivo,Operador,CC,Temperatura,EstadoSanitario,ValorKilo,ValorTotal,ScoreIA,Observación";
@@ -1966,8 +2115,16 @@ export default function Pesaje() {
                     const diff = p.peso - p.pesoAnterior;
                     const animal = animals.find(a=>a.id===p.animalId);
                     return (
-                      <div key={p.id} className="rounded-2xl p-3 flex gap-3 items-center group hover:border-white/15 transition-all cursor-pointer"
-                        style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+                      <div key={p.id}
+                        onClick={()=>{ if (batchSelectMode) { setHistSelected(prev=>{ const s=new Set(prev); s.has(p.id)?s.delete(p.id):s.add(p.id); return s; }); } }}
+                        className="rounded-2xl p-3 flex gap-3 items-center group hover:border-white/15 transition-all cursor-pointer"
+                        style={{background:batchSelectMode&&histSelected.has(p.id)?"rgba(251,191,36,0.08)":"rgba(255,255,255,0.02)",border:`1px solid ${batchSelectMode&&histSelected.has(p.id)?"rgba(251,191,36,0.4)":"rgba(255,255,255,0.06)"}`}}>
+                        {batchSelectMode && (
+                          <div className="w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all"
+                            style={{background:histSelected.has(p.id)?"#fbbf24":"rgba(255,255,255,0.06)",border:`1.5px solid ${histSelected.has(p.id)?"#fbbf24":"rgba(255,255,255,0.2)"}`}}>
+                            {histSelected.has(p.id) && <Check size={11} style={{color:"black"}}/>}
+                          </div>
+                        )}
                         <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0">
                           {animal?.foto
                             ? <img src={animal.foto} className="w-full h-full object-cover" alt=""/>

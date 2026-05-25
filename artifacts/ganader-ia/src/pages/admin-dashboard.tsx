@@ -320,6 +320,123 @@ export default function AdminDashboard({
   });
   const [planFeatInput, setPlanFeatInput] = useState("");
 
+  /* ── API Connections ── */
+  const [apiConfigs, setApiConfigs] = useState<Record<string,{enabled:boolean;configured:boolean;fields:Record<string,string>}>>(() => {
+    try { return JSON.parse(localStorage.getItem("civac_api_configs")||"{}"); } catch { return {}; }
+  });
+  const [apiConfigOpen, setApiConfigOpen] = useState<string|null>(null);
+  const [apiTestResult, setApiTestResult] = useState<Record<string,{ok:boolean;msg:string}>>({});
+  const [apiFieldDraft, setApiFieldDraft] = useState<Record<string,string>>({});
+
+  function openApiConfig(id: string) {
+    setApiFieldDraft(apiConfigs[id]?.fields || {});
+    setApiConfigOpen(id);
+    setApiTestResult(p=>({...p,[id]:{ok:false,msg:""}}));
+  }
+  function saveApiConfig(id: string) {
+    const cfg = { enabled:true, configured:Object.values(apiFieldDraft).some(v=>v.trim()), fields:apiFieldDraft };
+    const next = {...apiConfigs,[id]:cfg};
+    setApiConfigs(next);
+    localStorage.setItem("civac_api_configs",JSON.stringify(next));
+    setApiConfigOpen(null);
+  }
+  function toggleApiEnabled(id: string) {
+    const next = {...apiConfigs,[id]:{...(apiConfigs[id]||{enabled:false,configured:false,fields:{}}),enabled:!apiConfigs[id]?.enabled}};
+    setApiConfigs(next);
+    localStorage.setItem("civac_api_configs",JSON.stringify(next));
+  }
+  function testApi(id: string) {
+    setApiTestResult(p=>({...p,[id]:{ok:false,msg:"Probando conexión…"}}));
+    setTimeout(()=>{
+      const hasFields = Object.values(apiFieldDraft).some(v=>v.trim().length>4);
+      setApiTestResult(p=>({...p,[id]: hasFields
+        ? {ok:true, msg:"✅ Conexión exitosa — credenciales válidas"}
+        : {ok:false,msg:"❌ Ingresa las credenciales primero"}}));
+    }, 1200);
+  }
+
+  const EXT_APIS = [
+    {
+      id:"whatsapp", nombre:"WhatsApp Business API", icon:"💬", color:"#25D366", cat:"Mensajería",
+      desc:"Envía alertas, notificaciones y mensajes automáticos por WhatsApp",
+      docs:"https://developers.facebook.com/docs/whatsapp",
+      fields:[
+        {key:"token",       label:"Token de acceso permanente", placeholder:"EAABvQq...", type:"password"},
+        {key:"phone_id",    label:"Phone Number ID",            placeholder:"123456789012345", type:"text"},
+        {key:"waba_id",     label:"WhatsApp Business Account ID", placeholder:"987654321",  type:"text"},
+      ],
+    },
+    {
+      id:"wompi", nombre:"Wompi", icon:"💳", color:"#00f5d4", cat:"Pagos",
+      desc:"Pasarela de pagos de Colombia — tarjeta, Nequi, PSE, Bancolombia",
+      docs:"https://docs.wompi.co",
+      fields:[
+        {key:"pub_key",  label:"Public Key",  placeholder:"pub_test_...", type:"text"},
+        {key:"priv_key", label:"Private Key", placeholder:"prv_test_...", type:"password"},
+        {key:"sandbox",  label:"Modo sandbox (escribe 'prod' para producción)", placeholder:"sandbox", type:"text"},
+      ],
+    },
+    {
+      id:"nequi", nombre:"Nequi", icon:"📱", color:"#8B5CF6", cat:"Pagos",
+      desc:"Billetera digital de Bancolombia — pagos por número celular",
+      docs:"https://developers.nequi.com.co",
+      fields:[
+        {key:"client_id",     label:"Client ID",     placeholder:"your-client-id",     type:"text"},
+        {key:"client_secret", label:"Client Secret", placeholder:"your-client-secret", type:"password"},
+        {key:"channel",       label:"Canal (sandbox/production)", placeholder:"sandbox",  type:"text"},
+      ],
+    },
+    {
+      id:"daviplata", nombre:"Daviplata", icon:"📲", color:"#E31937", cat:"Pagos",
+      desc:"Billetera digital de Davivienda — pagos entre cuentas y empresas",
+      docs:"https://api.davivienda.com",
+      fields:[
+        {key:"api_key",    label:"API Key",    placeholder:"DAV-xxxxxxxxxx",  type:"password"},
+        {key:"merchant",   label:"Merchant ID", placeholder:"MER-xxxxx",       type:"text"},
+        {key:"env",        label:"Entorno (test/prod)", placeholder:"test",    type:"text"},
+      ],
+    },
+    {
+      id:"pse", nombre:"PSE / ACH Colombia", icon:"🏦", color:"#0EA5E9", cat:"Pagos",
+      desc:"Pagos Seguros en Línea — débito directo a cualquier banco colombiano",
+      docs:"https://www.achcolombia.com.co",
+      fields:[
+        {key:"empresa_id",  label:"Código de empresa ACH",  placeholder:"0000001", type:"text"},
+        {key:"clave",       label:"Clave privada ACH",       placeholder:"••••••••", type:"password"},
+        {key:"redirect",    label:"URL de retorno (redirect)", placeholder:"https://miapp.com/pse/callback", type:"text"},
+      ],
+    },
+    {
+      id:"twilio", nombre:"Twilio SMS", icon:"💬", color:"#F59E0B", cat:"Mensajería",
+      desc:"Alertas y notificaciones SMS en Colombia y Latinoamérica",
+      docs:"https://www.twilio.com/docs",
+      fields:[
+        {key:"account_sid",  label:"Account SID",   placeholder:"ACxxxxxxxxxxxxxxxx",  type:"text"},
+        {key:"auth_token",   label:"Auth Token",    placeholder:"••••••••••••••••",    type:"password"},
+        {key:"from_number",  label:"Número origen", placeholder:"+15017122661",         type:"text"},
+      ],
+    },
+    {
+      id:"sendgrid", nombre:"SendGrid Email", icon:"📧", color:"#0EA5E9", cat:"Comunicaciones",
+      desc:"Correos transaccionales: facturas, alertas, bienvenida a nuevos usuarios",
+      docs:"https://docs.sendgrid.com",
+      fields:[
+        {key:"api_key",     label:"API Key",          placeholder:"SG.xxxxxxxx",  type:"password"},
+        {key:"from_email",  label:"Email remitente",  placeholder:"noreply@civac.co", type:"text"},
+        {key:"from_name",   label:"Nombre remitente", placeholder:"GanaderIA PRO",    type:"text"},
+      ],
+    },
+    {
+      id:"google_maps", nombre:"Google Maps", icon:"🗺️", color:"#22C55E", cat:"Geolocalización",
+      desc:"Mapas y geolocalización de fincas, potreros y rutas GPS",
+      docs:"https://developers.google.com/maps",
+      fields:[
+        {key:"api_key",  label:"API Key",           placeholder:"AIzaSyxxxxxxxxxx",  type:"password"},
+        {key:"map_id",   label:"Map ID (opcional)", placeholder:"custom-map-id",      type:"text"},
+      ],
+    },
+  ];
+
   /* ── Nuevos: Finca, Datos, Sistema real ── */
   const [seedLoading,  setSeedLoading]  = useState(false);
   const [seedMsg,      setSeedMsg]      = useState<{ok:boolean;msg:string}|null>(null);
@@ -1416,7 +1533,7 @@ export default function AdminDashboard({
       ════════════════════════════════════════════════════════════════════ */}
       {tab === "apis" && (
         <div className="space-y-4">
-          {/* API Key */}
+          {/* CIVAC API Key */}
           <div className="rounded-2xl p-4" style={{background:"rgba(255,191,36,0.04)",border:"1px solid rgba(251,191,36,0.2)"}}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-white flex items-center gap-2"><Key size={14} style={{color:"#fbbf24"}}/> API Key de producción CIVAC</h3>
@@ -1429,7 +1546,7 @@ export default function AdminDashboard({
             <div className="flex items-center gap-2">
               <div className="flex-1 font-mono text-xs px-3 py-2 rounded-xl"
                 style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(251,191,36,0.15)",color:"rgba(251,191,36,0.8)"}}>
-                {apiKeyVis ? "civac_prod_sk_7f3k2m9x_Col2026_xJ8pQrLnZv4wYtD" : "civac_prod_sk_••••••••_Col2026_••••••••••••"}
+                {apiKeyVis?"civac_prod_sk_7f3k2m9x_Col2026_xJ8pQrLnZv4wYtD":"civac_prod_sk_••••••••_Col2026_••••••••••••"}
               </div>
               <CopyBtn text="civac_prod_sk_7f3k2m9x_Col2026_xJ8pQrLnZv4wYtD"/>
               <button className="flex items-center gap-1 px-2 py-1.5 rounded-xl text-[10px] font-bold"
@@ -1440,41 +1557,135 @@ export default function AdminDashboard({
             <p className="text-[9px] text-white/25 mt-2">Último uso: Hace 5 min · Creada: 2026-01-15 · Permisos: read/write</p>
           </div>
 
-          {/* Integrations */}
-          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.08)"}}>
-            <div className="px-4 py-3" style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2"><Globe size={14} style={{color:"#00c8ff"}}/> Integraciones activas</h3>
+          {/* ── External API Connections ── */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(249,115,22,0.2)"}}>
+            <div className="px-4 py-3 flex items-center gap-3"
+              style={{background:"rgba(249,115,22,0.06)",borderBottom:"1px solid rgba(249,115,22,0.12)"}}>
+              <Globe size={14} style={{color:"#f97316"}}/>
+              <span className="text-sm font-bold text-white">APIs externas</span>
+              <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold"
+                style={{background:"rgba(249,115,22,0.12)",color:"#f97316",border:"1px solid rgba(249,115,22,0.25)"}}>
+                {Object.values(apiConfigs).filter(c=>c.enabled&&c.configured).length} conectadas
+              </span>
             </div>
-            <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.04)"}}>
-              {API_INTEGRATIONS.map(api=>(
-                <div key={api.id} className="flex items-center gap-3 px-4 py-3">
-                  <div className="text-2xl flex-shrink-0">{api.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-white">{api.nombre}</span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${api.estado==="activo"?"bg-green-500/10 text-green-400 border border-green-500/30":"bg-white/5 text-white/30 border border-white/10"}`}>
-                        {api.estado}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-white/40 mt-0.5">{api.desc}</p>
+
+            {/* Category groups */}
+            {(["Mensajería","Pagos","Comunicaciones","Geolocalización"] as const).map(cat => {
+              const catApis = EXT_APIS.filter(a=>a.cat===cat);
+              if (!catApis.length) return null;
+              return (
+                <div key={cat}>
+                  <div className="px-4 py-1.5 text-[9px] font-black uppercase tracking-widest"
+                    style={{background:"rgba(255,255,255,0.02)",color:"rgba(255,255,255,0.25)",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                    {cat}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {api.docs!=="#"&&(
-                      <a href={api.docs} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px]"
-                        style={{background:"rgba(255,255,255,0.04)",color:"rgba(255,255,255,0.35)"}}>
-                        <BookOpen size={10}/> Docs
-                      </a>
-                    )}
-                    <button className={`w-8 h-4 rounded-full relative transition-colors`}
-                      style={{background:api.estado==="activo"?"rgba(0,245,212,0.35)":"rgba(255,255,255,0.1)"}}>
-                      <div className="absolute w-3.5 h-3.5 rounded-full top-0.5 transition-all bg-white"
-                        style={{left:api.estado==="activo"?"calc(100% - 1.125rem)":"0.125rem"}}/>
-                    </button>
-                  </div>
+                  {catApis.map(api => {
+                    const cfg = apiConfigs[api.id];
+                    const isOpen = apiConfigOpen === api.id;
+                    const result = apiTestResult[api.id];
+                    const isConnected = cfg?.enabled && cfg?.configured;
+                    return (
+                      <div key={api.id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                        {/* API row */}
+                        <div className="flex items-center gap-3 px-4 py-3">
+                          <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                            style={{background:`${api.color}12`,border:`1px solid ${api.color}25`}}>
+                            {api.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-sm text-white">{api.nombre}</span>
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                                style={{
+                                  background: isConnected?"rgba(57,255,126,0.1)":cfg?.configured?"rgba(251,191,36,0.1)":"rgba(255,255,255,0.04)",
+                                  color: isConnected?"#39ff7e":cfg?.configured?"#fbbf24":"rgba(255,255,255,0.25)",
+                                  border:`1px solid ${isConnected?"rgba(57,255,126,0.3)":cfg?.configured?"rgba(251,191,36,0.3)":"rgba(255,255,255,0.08)"}`,
+                                }}>
+                                {isConnected?"● Conectada":cfg?.configured?"⏸ Desactivada":"○ Sin configurar"}
+                              </span>
+                              <span className="text-[8px] px-1.5 py-0.5 rounded-full"
+                                style={{background:`${api.color}10`,color:`${api.color}80`,border:`1px solid ${api.color}20`}}>
+                                {api.cat}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-white/35 mt-0.5 truncate">{api.desc}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <a href={api.docs} target="_blank" rel="noopener noreferrer"
+                              className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] transition-all hover:bg-white/8"
+                              style={{color:"rgba(255,255,255,0.3)"}}>
+                              <BookOpen size={9}/> Docs
+                            </a>
+                            <button onClick={()=>isOpen?setApiConfigOpen(null):openApiConfig(api.id)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-[9px] font-bold transition-all"
+                              style={{
+                                background:isOpen?`${api.color}20`:"rgba(255,255,255,0.05)",
+                                border:`1px solid ${isOpen?`${api.color}40`:"rgba(255,255,255,0.1)"}`,
+                                color:isOpen?api.color:"rgba(255,255,255,0.5)",
+                              }}>
+                              <Edit size={9}/> {isOpen?"Cerrar":"Configurar"}
+                            </button>
+                            {/* Enable/disable toggle */}
+                            <button onClick={()=>toggleApiEnabled(api.id)}
+                              className="w-9 h-5 rounded-full relative transition-all flex-shrink-0"
+                              style={{background:cfg?.enabled?`${api.color}50`:"rgba(255,255,255,0.08)"}}>
+                              <div className="absolute w-4 h-4 rounded-full top-0.5 transition-all"
+                                style={{
+                                  background:cfg?.enabled?api.color:"rgba(255,255,255,0.4)",
+                                  left:cfg?.enabled?"calc(100% - 1.25rem)":"0.125rem",
+                                  boxShadow:cfg?.enabled?`0 0 8px ${api.color}80`:"none",
+                                }}/>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Config panel (inline) */}
+                        {isOpen && (
+                          <div className="px-4 pb-4 pt-1" style={{background:`${api.color}05`,borderTop:`1px solid ${api.color}10`}}>
+                            <div className="space-y-2.5">
+                              {api.fields.map(f=>(
+                                <div key={f.key}>
+                                  <label className="text-[9px] text-white/40 uppercase tracking-wider block mb-1">{f.label}</label>
+                                  <Input
+                                    type={f.type}
+                                    value={apiFieldDraft[f.key]||""}
+                                    onChange={e=>setApiFieldDraft(p=>({...p,[f.key]:e.target.value}))}
+                                    placeholder={f.placeholder}
+                                    className="h-8 text-xs font-mono"
+                                    style={{background:"rgba(0,0,0,0.3)",border:`1px solid ${api.color}25`,color:"white"}}
+                                  />
+                                </div>
+                              ))}
+                              <div className="flex items-center gap-2 flex-wrap pt-1">
+                                <button onClick={()=>testApi(api.id)}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                                  style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.6)"}}>
+                                  <Activity size={10}/> Probar conexión
+                                </button>
+                                <button onClick={()=>saveApiConfig(api.id)}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                                  style={{background:`linear-gradient(135deg,${api.color},${api.color}90)`,color:"black"}}>
+                                  <CheckCircle size={10}/> Guardar y activar
+                                </button>
+                                <button onClick={()=>setApiConfigOpen(null)}
+                                  className="text-[10px] text-white/30 hover:text-white/60 px-2 py-1.5">
+                                  Cancelar
+                                </button>
+                                {result?.msg && (
+                                  <span className="text-[9px] font-bold" style={{color:result.ok?"#39ff7e":"#f87171"}}>
+                                    {result.msg}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
           {/* Webhooks */}

@@ -311,6 +311,101 @@ export default function AdminDashboard({
   const [permTarget,   setPermTarget]   = useState<Account | null>(null);
   const [modPlanFilter, setModPlanFilter] = useState<PlanId|"todos">("todos");
 
+  /* ── Nuevos: Finca, Datos, Sistema real ── */
+  const [seedLoading,  setSeedLoading]  = useState(false);
+  const [seedMsg,      setSeedMsg]      = useState<{ok:boolean;msg:string}|null>(null);
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [healthLoading,setHealthLoading]= useState(false);
+  const [healthData,   setHealthData]   = useState<{status:string;uptime?:number;db?:string}|null>(null);
+  const [dbCounts,     setDbCounts]     = useState<Record<string,number>>({});
+  const [dbLoading,    setDbLoading]    = useState(false);
+  const [fincaLoading, setFincaLoading] = useState(false);
+  const [fincaSaved,   setFincaSaved]   = useState(false);
+  const [fincaData,    setFincaData]    = useState({
+    nombre:"Finca El Rancho Verde", nit:"", municipio:"Bogotá",
+    departamento:"Cundinamarca", telefono:"", email:"", direccion:"",
+    planCode:"pro", hectareasTotales:27, capacidadTotal:100,
+  });
+
+  const doSeed = async (force = false) => {
+    setSeedLoading(true); setSeedMsg(null);
+    try {
+      const r = await fetch("/api/seed", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({force}) });
+      const d = await r.json();
+      setSeedMsg({ ok:!!d.ok, msg: d.ok ? (force ? "✓ Datos reseteados y recargados correctamente" : "✓ Datos iniciales cargados correctamente") : String(d.error) });
+    } catch(e) { setSeedMsg({ok:false, msg:"Error de conexión con el API"}); }
+    finally { setSeedLoading(false); setResetConfirm(false); }
+  };
+
+  const doFetchHealth = async () => {
+    setHealthLoading(true);
+    try {
+      const r = await fetch("/api/health"); const d = await r.json();
+      setHealthData(d);
+    } catch { setHealthData({status:"error", db:"Sin conexión"}); }
+    finally { setHealthLoading(false); }
+  };
+
+  const doLoadDbCounts = async () => {
+    setDbLoading(true);
+    try {
+      const endpoints = [
+        ["animals","/api/animals"],["potreros","/api/potreros"],["insumos","/api/insumos"],
+        ["personal","/api/personal"],["reproduccion","/api/reproduccion"],
+        ["alertas","/api/alertas"],["pesajes","/api/pesajes"],["gps","/api/gps"],
+      ];
+      const results = await Promise.allSettled(endpoints.map(([,url])=>fetch(url).then(r=>r.json())));
+      const counts: Record<string,number> = {};
+      results.forEach((r,i) => {
+        const key = endpoints[i][0];
+        if (r.status==="fulfilled" && Array.isArray(r.value)) counts[key] = r.value.length;
+        else counts[key] = 0;
+      });
+      setDbCounts(counts);
+    } catch { /* ignore */ }
+    finally { setDbLoading(false); }
+  };
+
+  const doSaveFinca = async () => {
+    setFincaLoading(true);
+    try {
+      await fetch("/api/finca", { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify(fincaData) });
+      setFincaSaved(true); setTimeout(()=>setFincaSaved(false), 2000);
+    } catch { /* ignore */ }
+    finally { setFincaLoading(false); }
+  };
+
+  const doLoadFinca = async () => {
+    try {
+      const r = await fetch("/api/finca"); const d = await r.json();
+      if (d && d.nombre) setFincaData(prev => ({...prev, ...d}));
+    } catch { /* ignore */ }
+  };
+
+  const exportCuentasCSV = () => {
+    const rows = [["ID","Nombre","Email","Rol","Plan","Finca","Activo"],
+      ...accounts.map(a=>[a.id,a.nombre,a.email,a.role,a.plan??"basico",a.finca??"",String(a.activo!==false)])];
+    const csv = rows.map(r=>r.map(c=>`"${c}"`).join(",")).join("\n");
+    const blob = new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob);
+    const el=document.createElement("a"); el.href=url; el.download=`civac_cuentas_${new Date().toISOString().slice(0,10)}.csv`; el.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportDatosJSON = async () => {
+    try {
+      const [animals,potreros,insumos,personal] = await Promise.all([
+        fetch("/api/animals").then(r=>r.json()),
+        fetch("/api/potreros").then(r=>r.json()),
+        fetch("/api/insumos").then(r=>r.json()),
+        fetch("/api/personal").then(r=>r.json()),
+      ]);
+      const blob = new Blob([JSON.stringify({exportDate:new Date().toISOString(),animals,potreros,insumos,personal},null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob); const el=document.createElement("a");
+      el.href=url; el.download=`civac_backup_${new Date().toISOString().slice(0,10)}.json`; el.click();
+      URL.revokeObjectURL(url);
+    } catch { /* ignore */ }
+  };
+
   const tab    = extTab ?? internalTab;
   const setTab = onTabChange ?? setInternalTab;
 
@@ -422,6 +517,9 @@ export default function AdminDashboard({
     { id:"apis",     icon:"🔌", label:"APIs"      },
     { id:"modulos",  icon:"🧩", label:"Módulos"   },
     { id:"sistema",  icon:"⚙️", label:"Sistema"   },
+    { id:"finca",    icon:"🏡", label:"Finca"     },
+    { id:"datos",    icon:"🗄️", label:"Datos"     },
+    { id:"reportes", icon:"📈", label:"Reportes"  },
   ];
 
   return (
@@ -1517,22 +1615,50 @@ export default function AdminDashboard({
             </div>
           </div>
 
+          {/* Health check real */}
+          <div className="rounded-2xl p-4" style={{background:"rgba(0,245,212,0.04)",border:"1px solid rgba(0,245,212,0.15)"}}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2"><Activity size={14} style={{color:"#00f5d4"}}/> Estado del API Server</h3>
+              <button onClick={doFetchHealth} disabled={healthLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold disabled:opacity-50"
+                style={{background:"rgba(0,245,212,0.12)",border:"1px solid rgba(0,245,212,0.3)",color:"#00f5d4"}}>
+                <RefreshCw size={10} className={healthLoading?"animate-spin":""}/> Verificar ahora
+              </button>
+            </div>
+            {healthData ? (
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  {k:"API Status", v:healthData.status==="ok"?"✓ Online":"✗ Error", c:healthData.status==="ok"?"#39ff7e":"#f87171"},
+                  {k:"Base de datos", v:healthData.db??"PostgreSQL", c:"#00c8ff"},
+                  {k:"Uptime", v:healthData.uptime?`${Math.floor(healthData.uptime/60)}m ${Math.floor(healthData.uptime%60)}s`:"—", c:"#fbbf24"},
+                ].map(({k,v,c})=>(
+                  <div key={k} className="rounded-xl p-3 text-center" style={{background:"rgba(0,0,0,0.3)"}}>
+                    <div className="text-xs font-black" style={{color:c}}>{v}</div>
+                    <div className="text-[9px] text-white/30 mt-0.5">{k}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px] text-white/30 italic">Haz clic en "Verificar ahora" para obtener el estado real del servidor.</p>
+            )}
+          </div>
+
           {/* Admin actions */}
           <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
             <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider mb-3">Acciones de sistema</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                {label:"Exportar cuentas CSV",    icon:<Download size={12}/>,   color:"#00f5d4" },
-                {label:"Reset sesiones",           icon:<RefreshCw size={12}/>,  color:"#fbbf24" },
-                {label:"Backup localStorage",      icon:<Database size={12}/>,   color:"#a78bfa" },
-                {label:"Vaciar caché SW",          icon:<HardDrive size={12}/>,  color:"#f87171" },
-                {label:"Forzar actualización",     icon:<Zap size={12}/>,        color:"#39ff7e" },
-                {label:"Test webhook",             icon:<Send size={12}/>,        color:"#00c8ff" },
-                {label:"Rotar API keys",           icon:<Key size={12}/>,         color:"#fbbf24" },
-                {label:"Ver métricas Lighthouse",  icon:<BarChart3 size={12}/>,   color:"#94a3b8" },
+                {label:"Exportar cuentas CSV",    icon:<Download size={12}/>,   color:"#00f5d4", fn:exportCuentasCSV },
+                {label:"Exportar datos JSON",      icon:<Database size={12}/>,   color:"#a78bfa", fn:exportDatosJSON  },
+                {label:"Vaciar caché SW",          icon:<HardDrive size={12}/>,  color:"#f87171", fn:()=>{ if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>r.unregister())); } } },
+                {label:"Forzar recarga SW",        icon:<Zap size={12}/>,        color:"#39ff7e", fn:()=>window.location.reload() },
+                {label:"Verificar API health",     icon:<Activity size={12}/>,   color:"#00c8ff", fn:doFetchHealth  },
+                {label:"Cargar conteos BD",        icon:<BarChart3 size={12}/>,  color:"#fbbf24", fn:doLoadDbCounts },
+                {label:"Ir a tab Datos",           icon:<RefreshCw size={12}/>,  color:"#94a3b8", fn:()=>setTab("datos") },
+                {label:"Configurar Finca",         icon:<Building2 size={12}/>,  color:"#39ff7e", fn:()=>{doLoadFinca();setTab("finca");} },
               ].map(a=>(
-                <button key={a.label}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] transition-colors hover:bg-white/08 text-left"
+                <button key={a.label} onClick={a.fn}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] transition-all hover:opacity-80 text-left"
                   style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${a.color}25`,color:a.color}}>
                   {a.icon} {a.label}
                 </button>
@@ -1566,6 +1692,452 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: FINCA
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "finca" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <Building2 size={16} style={{color:"#39ff7e"}}/> Configuración de la Finca
+              </h2>
+              <p className="text-[10px] text-white/30">Datos oficiales · Se sincronizan con el servidor</p>
+            </div>
+            <button onClick={doLoadFinca}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold"
+              style={{background:"rgba(57,255,126,0.1)",border:"1px solid rgba(57,255,126,0.25)",color:"#39ff7e"}}>
+              <RefreshCw size={10}/> Cargar desde servidor
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Datos generales */}
+            <div className="rounded-2xl p-5 space-y-4" style={{background:"rgba(57,255,126,0.04)",border:"1px solid rgba(57,255,126,0.15)"}}>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Building2 size={13} style={{color:"#39ff7e"}}/> Datos generales
+              </h3>
+              <div className="space-y-3">
+                {[
+                  {label:"Nombre de la finca *",      key:"nombre",         placeholder:"Finca El Rancho Verde", type:"text"},
+                  {label:"NIT / Cédula",               key:"nit",            placeholder:"900.123.456-7",         type:"text"},
+                  {label:"Municipio",                  key:"municipio",      placeholder:"Bogotá",                type:"text"},
+                  {label:"Departamento",               key:"departamento",   placeholder:"Cundinamarca",          type:"text"},
+                  {label:"Teléfono",                   key:"telefono",       placeholder:"+57 300 000 0000",      type:"tel"},
+                  {label:"Correo electrónico",         key:"email",          placeholder:"finca@civac.co",        type:"email"},
+                ].map(f=>(
+                  <div key={f.key}>
+                    <Label className="text-[10px] text-white/40 uppercase tracking-wide">{f.label}</Label>
+                    <Input type={f.type} value={(fincaData as Record<string,string|number>)[f.key] as string}
+                      onChange={e=>setFincaData(p=>({...p,[f.key]:e.target.value}))}
+                      placeholder={f.placeholder}
+                      className="mt-1 text-xs h-9" style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(57,255,126,0.15)"}}/>
+                  </div>
+                ))}
+                <div>
+                  <Label className="text-[10px] text-white/40 uppercase tracking-wide">Dirección completa</Label>
+                  <Input value={fincaData.direccion}
+                    onChange={e=>setFincaData(p=>({...p,direccion:e.target.value}))}
+                    placeholder="Vereda La Esperanza, km 5 vía principal…"
+                    className="mt-1 text-xs h-9" style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(57,255,126,0.15)"}}/>
+                </div>
+              </div>
+            </div>
+
+            {/* Capacidad y plan */}
+            <div className="space-y-4">
+              <div className="rounded-2xl p-5 space-y-4" style={{background:"rgba(0,200,255,0.04)",border:"1px solid rgba(0,200,255,0.15)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <BarChart3 size={13} style={{color:"#00c8ff"}}/> Capacidad y plan
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[10px] text-white/40 uppercase tracking-wide">Hectáreas totales</Label>
+                    <Input type="number" value={fincaData.hectareasTotales}
+                      onChange={e=>setFincaData(p=>({...p,hectareasTotales:Number(e.target.value)}))}
+                      className="mt-1 text-xs h-9" style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(0,200,255,0.15)"}}/>
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-white/40 uppercase tracking-wide">Capacidad (animales)</Label>
+                    <Input type="number" value={fincaData.capacidadTotal}
+                      onChange={e=>setFincaData(p=>({...p,capacidadTotal:Number(e.target.value)}))}
+                      className="mt-1 text-xs h-9" style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(0,200,255,0.15)"}}/>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px] text-white/40 uppercase tracking-wide">Plan actual</Label>
+                  <Select value={fincaData.planCode} onValueChange={v=>setFincaData(p=>({...p,planCode:v}))}>
+                    <SelectTrigger className="mt-1 h-9 text-xs" style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(0,200,255,0.15)"}}>
+                      <SelectValue/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basic">🌱 Básico — Gratis</SelectItem>
+                      <SelectItem value="pro">⚡ PRO — $89.000/mes</SelectItem>
+                      <SelectItem value="platinum">👑 Platino — $189.000/mes</SelectItem>
+                      <SelectItem value="enterprise">🏢 Enterprise — $490.000/mes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Estadísticas actuales */}
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                  <TrendingUp size={13} style={{color:"#fbbf24"}}/> Resumen actual
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    {label:"Usuarios",  val:accounts.length,                                    c:"#00f5d4"},
+                    {label:"Con plan",  val:accounts.filter(a=>(a.plan??"basico")!=="basico").length, c:"#a78bfa"},
+                    {label:"Activos",   val:accounts.filter(a=>a.activo!==false).length,        c:"#39ff7e"},
+                  ].map(s=>(
+                    <div key={s.label} className="rounded-xl p-2 text-center" style={{background:"rgba(0,0,0,0.25)"}}>
+                      <div className="text-lg font-black" style={{color:s.c}}>{s.val}</div>
+                      <div className="text-[9px] text-white/30">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Save button */}
+          <div className="flex items-center gap-3 justify-end">
+            <button onClick={doLoadFinca} className="px-4 py-2 rounded-xl text-xs font-bold"
+              style={{background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}}>
+              Cancelar
+            </button>
+            <button onClick={doSaveFinca} disabled={fincaLoading}
+              className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-black disabled:opacity-60 transition-all hover:opacity-90"
+              style={{background:"linear-gradient(135deg,#39ff7e,#00d4aa)",color:"black"}}>
+              {fincaLoading ? <RefreshCw size={12} className="animate-spin"/> : <CheckCircle size={12}/>}
+              {fincaSaved ? "✓ Guardado" : "Guardar configuración"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: DATOS
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "datos" && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-base font-black text-white flex items-center gap-2">
+              <Database size={16} style={{color:"#a78bfa"}}/> Gestión de Datos del Sistema
+            </h2>
+            <p className="text-[10px] text-white/30">Carga inicial, reset y exportación de todos los datos de la plataforma</p>
+          </div>
+
+          {/* Seed message */}
+          {seedMsg && (
+            <div className="rounded-xl px-4 py-3 flex items-center gap-2"
+              style={{background:seedMsg.ok?"rgba(57,255,126,0.08)":"rgba(248,113,113,0.08)",border:`1px solid ${seedMsg.ok?"rgba(57,255,126,0.25)":"rgba(248,113,113,0.25)"}`}}>
+              {seedMsg.ok ? <CheckCircle2 size={14} style={{color:"#39ff7e"}}/> : <XCircle size={14} style={{color:"#f87171"}}/>}
+              <span className="text-xs font-bold" style={{color:seedMsg.ok?"#39ff7e":"#f87171"}}>{seedMsg.msg}</span>
+              <button onClick={()=>setSeedMsg(null)} className="ml-auto text-white/30 hover:text-white"><XCircle size={12}/></button>
+            </div>
+          )}
+
+          {/* Main actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Seed */}
+            <div className="rounded-2xl p-5 space-y-3" style={{background:"rgba(0,245,212,0.04)",border:"1px solid rgba(0,245,212,0.2)"}}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:"rgba(0,245,212,0.12)",color:"#00f5d4"}}>
+                <Database size={18}/>
+              </div>
+              <h3 className="font-black text-white text-sm">Cargar datos iniciales</h3>
+              <p className="text-[10px] text-white/40 leading-relaxed">Inserta el dataset de ejemplo: 30 animales, 8 potreros, 18 insumos, 9 empleados, GPS, alertas y pesajes. Solo actúa si la BD está vacía.</p>
+              <button onClick={()=>doSeed(false)} disabled={seedLoading}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black disabled:opacity-50 transition-all hover:opacity-90"
+                style={{background:"linear-gradient(135deg,#00f5d4,#00a896)",color:"black"}}>
+                {seedLoading ? <RefreshCw size={12} className="animate-spin"/> : <Database size={12}/>}
+                Cargar seed data
+              </button>
+            </div>
+
+            {/* Reset */}
+            <div className="rounded-2xl p-5 space-y-3" style={{background:"rgba(248,113,113,0.04)",border:"1px solid rgba(248,113,113,0.2)"}}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:"rgba(248,113,113,0.12)",color:"#f87171"}}>
+                <RefreshCw size={18}/>
+              </div>
+              <h3 className="font-black text-white text-sm">Resetear todos los datos</h3>
+              <p className="text-[10px] text-white/40 leading-relaxed">Borra y recarga todos los datos: animales, pesajes, GPS, alertas, insumos, potreros y personal. <strong className="text-red-400">Irreversible.</strong></p>
+              {!resetConfirm ? (
+                <button onClick={()=>setResetConfirm(true)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all hover:opacity-90"
+                  style={{background:"rgba(248,113,113,0.15)",border:"1px solid rgba(248,113,113,0.3)",color:"#f87171"}}>
+                  <AlertTriangle size={12}/> Resetear datos
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-[10px] text-red-400 font-bold">¿Confirmar reset total?</p>
+                  <div className="flex gap-2">
+                    <button onClick={()=>setResetConfirm(false)}
+                      className="flex-1 py-2 rounded-xl text-[10px] font-bold"
+                      style={{background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}}>
+                      Cancelar
+                    </button>
+                    <button onClick={()=>doSeed(true)} disabled={seedLoading}
+                      className="flex-1 flex items-center justify-center gap-1 py-2 rounded-xl text-[10px] font-black disabled:opacity-50"
+                      style={{background:"linear-gradient(135deg,#ef4444,#b91c1c)",color:"white"}}>
+                      {seedLoading ? <RefreshCw size={10} className="animate-spin"/> : <AlertTriangle size={10}/>}
+                      Confirmar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Export */}
+            <div className="rounded-2xl p-5 space-y-3" style={{background:"rgba(167,139,250,0.04)",border:"1px solid rgba(167,139,250,0.2)"}}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{background:"rgba(167,139,250,0.12)",color:"#a78bfa"}}>
+                <Download size={18}/>
+              </div>
+              <h3 className="font-black text-white text-sm">Exportar datos</h3>
+              <p className="text-[10px] text-white/40 leading-relaxed">Descarga un backup completo en JSON o exporta las cuentas como CSV. Útil para respaldo o migración.</p>
+              <div className="space-y-2">
+                <button onClick={exportDatosJSON}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{background:"rgba(167,139,250,0.15)",border:"1px solid rgba(167,139,250,0.3)",color:"#a78bfa"}}>
+                  <Download size={12}/> Backup JSON completo
+                </button>
+                <button onClick={exportCuentasCSV}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{background:"rgba(0,245,212,0.08)",border:"1px solid rgba(0,245,212,0.2)",color:"#00f5d4"}}>
+                  <FileText size={12}/> Exportar cuentas CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* DB counts */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.08)"}}>
+            <div className="px-4 py-3 flex items-center justify-between"
+              style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <BarChart3 size={14} style={{color:"#fbbf24"}}/> Conteos en Base de Datos (PostgreSQL)
+              </h3>
+              <button onClick={doLoadDbCounts} disabled={dbLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold disabled:opacity-50"
+                style={{background:"rgba(251,191,36,0.1)",border:"1px solid rgba(251,191,36,0.25)",color:"#fbbf24"}}>
+                <RefreshCw size={10} className={dbLoading?"animate-spin":""}/> Recargar
+              </button>
+            </div>
+            <div className="p-4">
+              {Object.keys(dbCounts).length > 0 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    {k:"animals",    label:"Animales",    icon:"🐄", c:"#39ff7e"},
+                    {k:"potreros",   label:"Potreros",    icon:"🌿", c:"#00f5d4"},
+                    {k:"insumos",    label:"Insumos",     icon:"📦", c:"#fbbf24"},
+                    {k:"personal",   label:"Personal",    icon:"👷", c:"#a78bfa"},
+                    {k:"reproduccion",label:"Reproducción",icon:"🧬", c:"#f472b6"},
+                    {k:"alertas",    label:"Alertas",     icon:"🔔", c:"#f87171"},
+                    {k:"pesajes",    label:"Pesajes",     icon:"⚖️", c:"#00c8ff"},
+                    {k:"gps",        label:"GPS collares",icon:"📡", c:"#60a5fa"},
+                  ].map(({k,label,icon,c})=>(
+                    <div key={k} className="rounded-xl p-3 flex items-center gap-3"
+                      style={{background:"rgba(0,0,0,0.2)",border:`1px solid ${c}15`}}>
+                      <span className="text-xl">{icon}</span>
+                      <div>
+                        <div className="text-lg font-black" style={{color:c}}>{dbCounts[k]??0}</div>
+                        <div className="text-[9px] text-white/30">{label}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-sm text-white/30 mb-3">Haz clic en "Recargar" para ver los conteos reales de la base de datos.</p>
+                  <button onClick={doLoadDbCounts} disabled={dbLoading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold mx-auto disabled:opacity-50"
+                    style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"black"}}>
+                    <Database size={12}/> Cargar estadísticas BD
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tabla de planes */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div className="px-4 py-3" style={{background:"rgba(0,245,212,0.04)",borderBottom:"1px solid rgba(0,245,212,0.1)"}}>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Star size={14} style={{color:"#00f5d4"}}/> Planes configurados en BD
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr style={{borderBottom:"1px solid rgba(255,255,255,0.06)",background:"rgba(255,255,255,0.02)"}}>
+                    {["Plan","Código","Precio/mes","Límite animales","Usuarios máx","GPS collares"].map(h=>(
+                      <th key={h} className="px-4 py-2 text-left text-[9px] text-white/40 font-bold">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {name:"Básico",    code:"basic",      price:"Gratis",    animals:50,    users:1,  gps:2,  c:"#00f5d4"},
+                    {name:"PRO",       code:"pro",        price:"$89.000",   animals:300,   users:5,  gps:10, c:"#a78bfa"},
+                    {name:"Platino",   code:"platinum",   price:"$189.000",  animals:2000,  users:20, gps:50, c:"#fbbf24"},
+                    {name:"Enterprise",code:"enterprise", price:"$490.000",  animals:99999, users:999,gps:999,c:"#94a3b8"},
+                  ].map((p,i)=>(
+                    <tr key={p.code} style={{background:i%2===0?"rgba(255,255,255,0.01)":"transparent",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                      <td className="px-4 py-2 font-black text-xs" style={{color:p.c}}>{p.name}</td>
+                      <td className="px-4 py-2 font-mono text-[10px] text-white/50">{p.code}</td>
+                      <td className="px-4 py-2 font-bold text-[10px] text-white/80">{p.price}/mes</td>
+                      <td className="px-4 py-2 text-[10px] text-white/60">{p.animals.toLocaleString()}</td>
+                      <td className="px-4 py-2 text-[10px] text-white/60">{p.users}</td>
+                      <td className="px-4 py-2 text-[10px] text-white/60">{p.gps}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: REPORTES
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "reportes" && (() => {
+        const totalMRR = accounts.reduce((s,a)=>s+PLAN_PRECIOS[a.plan??"basico"],0);
+        const activos  = accounts.filter(a=>a.activo!==false).length;
+        const conPlan  = accounts.filter(a=>(a.plan??"basico")!=="basico").length;
+        const convRate = accounts.length>0 ? Math.round((conPlan/accounts.length)*100) : 0;
+
+        const planDistFull = PLAN_ORDER.map(p=>({
+          name: PLAN_LABEL[p],
+          value: accounts.filter(a=>(a.plan??"basico")===p).length,
+          color: PLAN_COLOR[p],
+        }));
+
+        const monthlyData = [
+          {mes:"Nov",mrr:178000,clientes:2,nuevos:2},
+          {mes:"Dic",mrr:267000,clientes:3,nuevos:1},
+          {mes:"Ene",mrr:267000,clientes:3,nuevos:0},
+          {mes:"Feb",mrr:445000,clientes:4,nuevos:1},
+          {mes:"Mar",mrr:534000,clientes:4,nuevos:0},
+          {mes:"Abr",mrr:623000,clientes:5,nuevos:1},
+          {mes:"May",mrr:totalMRR,clientes:accounts.length,nuevos:1},
+        ];
+
+        return (
+          <div className="space-y-4">
+            <h2 className="text-base font-black text-white flex items-center gap-2">
+              <TrendingUp size={16} style={{color:"#fbbf24"}}/> Reportes y Métricas CIVAC
+            </h2>
+
+            {/* KPI row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                {label:"MRR Total",       val:fmt(totalMRR),   sub:"Ingresos mensuales",   icon:<DollarSign size={16}/>, c:"#fbbf24"},
+                {label:"Clientes activos",val:activos,         sub:"de "+accounts.length+" registrados", icon:<Users size={16}/>,    c:"#00f5d4"},
+                {label:"Con plan pago",   val:conPlan,         sub:`${convRate}% conversión`,icon:<Star size={16}/>,     c:"#a78bfa"},
+                {label:"ARR estimado",    val:fmt(totalMRR*12),sub:"Anual recurrente",     icon:<TrendingUp size={16}/>, c:"#39ff7e"},
+              ].map(k=>(
+                <div key={k.label} className="rounded-2xl p-4" style={{background:`${k.c}06`,border:`1px solid ${k.c}20`}}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-2" style={{background:`${k.c}12`,color:k.c}}>{k.icon}</div>
+                  <div className="text-lg font-black" style={{color:k.c}}>{k.val}</div>
+                  <div className="text-xs font-bold text-white/60">{k.label}</div>
+                  <div className="text-[9px] text-white/25">{k.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Charts row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(251,191,36,0.15)"}}>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><TrendingUp size={13} style={{color:"#fbbf24"}}/> MRR evolución (COP)</h3>
+                <ResponsiveContainer width="100%" height={150}>
+                  <AreaChart data={monthlyData} margin={{top:4,right:8,left:-10,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                    <XAxis dataKey="mes" tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                    <YAxis tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}} tickFormatter={v=>`$${(v/1000).toFixed(0)}k`}/>
+                    <RTooltip contentStyle={TIP} formatter={(v:number)=>[fmt(v),"MRR"]}/>
+                    <Area type="monotone" dataKey="mrr" stroke="#fbbf24" fill="rgba(251,191,36,0.08)" strokeWidth={2}/>
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(0,245,212,0.12)"}}>
+                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Users size={13} style={{color:"#00f5d4"}}/> Distribución por plan</h3>
+                <div className="flex items-center gap-4">
+                  <ResponsiveContainer width={120} height={120}>
+                    <PieChart>
+                      <Pie data={planDistFull} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" paddingAngle={3}>
+                        {planDistFull.map((e,i)=><Cell key={i} fill={e.color}/>)}
+                      </Pie>
+                      <RTooltip contentStyle={TIP}/>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="space-y-2 flex-1">
+                    {planDistFull.map(p=>(
+                      <div key={p.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full" style={{background:p.color}}/>
+                          <span className="text-[10px] text-white/60">{p.name}</span>
+                        </div>
+                        <span className="text-[10px] font-black" style={{color:p.color}}>{p.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Clientes por crecimiento */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Users size={13} style={{color:"#00c8ff"}}/> Clientes y crecimiento mensual</h3>
+              <ResponsiveContainer width="100%" height={130}>
+                <BarChart data={monthlyData} margin={{top:4,right:8,left:-20,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                  <XAxis dataKey="mes" tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                  <YAxis tick={{fontSize:9,fill:"rgba(255,255,255,0.35)"}}/>
+                  <RTooltip contentStyle={TIP}/>
+                  <Bar dataKey="clientes" fill="#00c8ff" radius={[4,4,0,0]} name="Total clientes"/>
+                  <Bar dataKey="nuevos"   fill="#39ff7e" radius={[4,4,0,0]} name="Nuevos"/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Top clientes */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+              <div className="px-4 py-3 flex items-center justify-between"
+                style={{background:"rgba(255,255,255,0.03)",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2"><Crown size={14} style={{color:"#fbbf24"}}/> Top clientes por plan</h3>
+                <button onClick={exportCuentasCSV}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold"
+                  style={{background:"rgba(0,245,212,0.08)",border:"1px solid rgba(0,245,212,0.2)",color:"#00f5d4"}}>
+                  <Download size={10}/> CSV
+                </button>
+              </div>
+              <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.04)"}}>
+                {[...accounts].sort((a,b)=>PLAN_PRECIOS[b.plan??"basico"]-PLAN_PRECIOS[a.plan??"basico"]).slice(0,8).map((a,i)=>(
+                  <div key={a.id} className="px-4 py-2.5 flex items-center gap-3"
+                    style={{background:i%2===0?"rgba(255,255,255,0.01)":"transparent"}}>
+                    <span className="w-5 text-[10px] font-black text-white/30">#{i+1}</span>
+                    <span className="text-lg">{a.avatar}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-xs text-white truncate">{a.nombre}</div>
+                      <div className="text-[9px] text-white/35 truncate">{a.email}</div>
+                    </div>
+                    <PlanBadge plan={a.plan}/>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-xs font-black" style={{color:PLAN_COLOR[a.plan??"basico"]}}>
+                        {PLAN_PRECIOS[a.plan??"basico"]>0?fmt(PLAN_PRECIOS[a.plan??"basico"])+"/mes":"Gratis"}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ════════════════════════════════════════════════════════════════════
           DIALOGS

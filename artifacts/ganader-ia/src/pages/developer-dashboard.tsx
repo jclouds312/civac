@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   Terminal, Code, GitBranch, Zap, Activity, Database, Globe,
@@ -78,7 +78,7 @@ const TIP = { background:"rgba(4,15,26,0.95)", border:"1px solid rgba(0,255,136,
 const G   = "#00ff88";
 const C   = "#00d4ff";
 
-type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api";
+type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api"|"pwa"|"bd";
 
 const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"resumen",     icon:<BarChart3 size={13}/>,   label:"Resumen"      },
@@ -88,6 +88,8 @@ const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"build",       icon:<Package size={13}/>,     label:"Build Info"   },
   { id:"logs",        icon:<Terminal size={13}/>,    label:"Logs"         },
   { id:"api",         icon:<Key size={13}/>,         label:"API Explorer" },
+  { id:"pwa",         icon:<Globe size={13}/>,       label:"PWA"          },
+  { id:"bd",          icon:<Database size={13}/>,    label:"Base de Datos"},
 ];
 
 export default function DeveloperDashboard() {
@@ -100,10 +102,62 @@ export default function DeveloperDashboard() {
   const [newVerNum, setNewVerNum] = useState("");
   const [newVerNotes, setNewVerNotes] = useState("");
   const [logFilter, setLogFilter] = useState("all");
-  const [apiEndpoint, setApiEndpoint] = useState("/api/v1/animales");
-  const [apiMethod, setApiMethod] = useState("GET");
-  const [apiResponse, setApiResponse] = useState<string|null>(null);
-  const [copied, setCopied] = useState("");
+  const [apiEndpoint, setApiEndpoint]   = useState("/api/animals");
+  const [apiMethod, setApiMethod]       = useState("GET");
+  const [apiBody, setApiBody]           = useState("");
+  const [apiResponse, setApiResponse]   = useState<string|null>(null);
+  const [apiLoading, setApiLoading]     = useState(false);
+  const [apiStatus, setApiStatus]       = useState<number|null>(null);
+  const [copied, setCopied]             = useState("");
+  const [bdCounts, setBdCounts]         = useState<Record<string,number>>({});
+  const [bdLoading, setBdLoading]       = useState(false);
+  const [swInfo, setSwInfo]             = useState<{registered:boolean;scope?:string;scriptURL?:string}|null>(null);
+  const [pwaInstalled, setPwaInstalled] = useState(false);
+
+  /* Persist feature flags to localStorage */
+  useEffect(()=>{
+    const stored = localStorage.getItem("civac_dev_flags");
+    if (stored) { try { setFlags(JSON.parse(stored)); } catch { /* ignore */ } }
+  }, []);
+  const toggleFlag = useCallback((id: string) => {
+    setFlags(prev => {
+      const next = prev.map(f => f.id===id ? {...f, enabled:!f.enabled} : f);
+      localStorage.setItem("civac_dev_flags", JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  /* Check SW registration */
+  const checkSW = useCallback(async () => {
+    if (!("serviceWorker" in navigator)) { setSwInfo({registered:false}); return; }
+    const regs = await navigator.serviceWorker.getRegistrations();
+    if (regs.length > 0) {
+      const r = regs[0];
+      setSwInfo({ registered:true, scope:r.scope, scriptURL:r.active?.scriptURL ?? r.installing?.scriptURL ?? "—" });
+    } else { setSwInfo({registered:false}); }
+    window.addEventListener("beforeinstallprompt", ()=>setPwaInstalled(true), {once:true});
+  }, []);
+
+  /* Load BD counts */
+  const loadBdCounts = useCallback(async () => {
+    setBdLoading(true);
+    try {
+      const endpoints = [
+        ["animals","/api/animals"],["potreros","/api/potreros"],["insumos","/api/insumos"],
+        ["personal","/api/personal"],["reproduccion","/api/reproduccion"],
+        ["alertas","/api/alertas"],["pesajes","/api/pesajes"],["gps","/api/gps"],
+        ["usuarios","/api/usuarios"],
+      ];
+      const results = await Promise.allSettled(endpoints.map(([,u])=>fetch(u).then(r=>r.json())));
+      const counts: Record<string,number> = {};
+      results.forEach((r,i) => {
+        if (r.status==="fulfilled" && Array.isArray(r.value)) counts[endpoints[i][0]] = r.value.length;
+        else counts[endpoints[i][0]] = 0;
+      });
+      setBdCounts(counts);
+    } catch { /* ignore */ }
+    finally { setBdLoading(false); }
+  }, []);
 
   const copyText = (t: string, k: string) => {
     navigator.clipboard?.writeText(t).catch(()=>{});
@@ -417,7 +471,7 @@ export default function DeveloperDashboard() {
                       <p className="font-mono text-[9px] mt-1" style={{color:"rgba(0,255,136,0.3)"}}>CIVAC_FLAG_{f.id.toUpperCase()}</p>
                     </div>
                     <button
-                      onClick={()=>setFlags(prev=>prev.map((x,j)=>j===i?{...x,enabled:!x.enabled}:x))}
+                      onClick={()=>toggleFlag(f.id)}
                       className="w-11 h-6 rounded-full flex-shrink-0 relative transition-colors"
                       style={{ background:f.enabled?"rgba(0,255,136,0.35)":"rgba(255,255,255,0.1)" }}>
                       <div className="absolute w-4.5 h-4.5 rounded-full top-0.5 bg-white transition-all"
@@ -582,20 +636,50 @@ export default function DeveloperDashboard() {
                 </select>
                 <Input value={apiEndpoint} onChange={e=>setApiEndpoint(e.target.value)}
                   className="flex-1 text-xs font-mono h-9" style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(0,212,255,0.2)",color:"white"}}/>
-                <button onClick={()=>setApiResponse(JSON.stringify({ok:true,data:[{id:"ANI-001",nombre:"Pamela-Holstein",categoria:"lactancia",peso_kg:520}],total:1,timestamp:new Date().toISOString()},null,2))}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
+                <button
+                  onClick={async ()=>{
+                    setApiLoading(true); setApiResponse(null); setApiStatus(null);
+                    try {
+                      const opts: RequestInit = { method:apiMethod, headers:{"Content-Type":"application/json"} };
+                      if (apiMethod!=="GET" && apiBody.trim()) opts.body = apiBody;
+                      const res = await fetch(apiEndpoint, opts);
+                      setApiStatus(res.status);
+                      const ct = res.headers.get("content-type")||"";
+                      const text = ct.includes("json") ? JSON.stringify(await res.json(), null, 2) : await res.text();
+                      setApiResponse(text);
+                    } catch(e) { setApiResponse(`Error: ${e}`); setApiStatus(0); }
+                    finally { setApiLoading(false); }
+                  }}
+                  disabled={apiLoading}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold disabled:opacity-60"
                   style={{background:`linear-gradient(135deg,${C},#0ea5e9)`,color:"black"}}>
-                  <Play size={11}/> Enviar
+                  {apiLoading ? <RefreshCw size={11} className="animate-spin"/> : <Play size={11}/>} Enviar
                 </button>
               </div>
+              {(apiMethod!=="GET") && (
+                <textarea value={apiBody} onChange={e=>setApiBody(e.target.value)} rows={3}
+                  placeholder={'{\n  "force": true\n}'}
+                  className="w-full p-2.5 rounded-xl text-[10px] font-mono resize-none mb-2 outline-none"
+                  style={{background:"rgba(0,0,0,0.4)",border:"1px solid rgba(0,212,255,0.15)",color:"rgba(255,255,255,0.7)"}}/>
+              )}
               {apiResponse && (
                 <div className="relative">
+                  <div className="flex items-center gap-2 mb-1">
+                    {apiStatus !== null && (
+                      <span className="text-[9px] font-black px-2 py-0.5 rounded-md"
+                        style={{background:apiStatus>=200&&apiStatus<300?"rgba(0,255,136,0.1)":"rgba(248,113,113,0.1)",
+                                color:apiStatus>=200&&apiStatus<300?G:"#f87171",border:`1px solid ${apiStatus>=200&&apiStatus<300?"rgba(0,255,136,0.2)":"rgba(248,113,113,0.2)"}`}}>
+                        HTTP {apiStatus}
+                      </span>
+                    )}
+                    <span className="text-[9px] text-white/30">{new Date().toLocaleTimeString()}</span>
+                  </div>
                   <pre className="p-3 rounded-xl text-[10px] font-mono overflow-x-auto max-h-64"
                     style={{background:"rgba(0,0,0,0.5)",color:"rgba(0,255,136,0.8)",border:"1px solid rgba(0,255,136,0.12)"}}>
                     {apiResponse}
                   </pre>
                   <button onClick={()=>copyText(apiResponse,"api")}
-                    className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg text-[8px]"
+                    className="absolute top-8 right-2 flex items-center gap-1 px-2 py-1 rounded-lg text-[8px]"
                     style={{background:"rgba(0,255,136,0.1)",border:"1px solid rgba(0,255,136,0.2)",color:G}}>
                     {copied==="api"?"✓":<Copy size={9}/>}
                   </button>
@@ -603,18 +687,22 @@ export default function DeveloperDashboard() {
               )}
             </div>
             <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
-              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Endpoints disponibles</h3>
+              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Endpoints del API Server (reales)</h3>
               <div className="space-y-1.5">
                 {[
-                  {m:"GET",    path:"/api/v1/animales",         desc:"Lista todos los animales"},
-                  {m:"GET",    path:"/api/v1/animales/:id",     desc:"Ficha individual"},
-                  {m:"POST",   path:"/api/v1/animales",         desc:"Registrar nuevo animal"},
-                  {m:"GET",    path:"/api/v1/produccion",       desc:"Historial de producción"},
-                  {m:"GET",    path:"/api/v1/pesajes",          desc:"Historial de pesajes"},
-                  {m:"POST",   path:"/api/v1/pesajes",          desc:"Registrar pesaje"},
-                  {m:"GET",    path:"/api/v1/planes/:userId",   desc:"Config de plan por usuario"},
-                  {m:"POST",   path:"/api/v1/licencias",        desc:"Generar licencia JSON"},
-                  {m:"GET",    path:"/api/v1/versiones",        desc:"Historial de versiones"},
+                  {m:"GET",    path:"/api/health",         desc:"Estado del servidor"},
+                  {m:"POST",   path:"/api/seed",           desc:"Seed / reset datos"},
+                  {m:"GET",    path:"/api/animals",        desc:"Lista todos los animales"},
+                  {m:"POST",   path:"/api/animals",        desc:"Registrar nuevo animal"},
+                  {m:"GET",    path:"/api/potreros",       desc:"Lista potreros"},
+                  {m:"GET",    path:"/api/insumos",        desc:"Inventario insumos"},
+                  {m:"GET",    path:"/api/personal",       desc:"Lista personal"},
+                  {m:"GET",    path:"/api/pesajes",        desc:"Historial pesajes"},
+                  {m:"GET",    path:"/api/gps",            desc:"Collares GPS"},
+                  {m:"GET",    path:"/api/alertas",        desc:"Centro alertas"},
+                  {m:"GET",    path:"/api/usuarios",       desc:"Usuarios del sistema"},
+                  {m:"GET",    path:"/api/finca",          desc:"Config de la finca"},
+                  {m:"GET",    path:"/api/reproduccion",   desc:"Registros reproductivos"},
                 ].map(ep=>(
                   <div key={ep.path} className="flex items-center gap-3 px-3 py-2 rounded-xl"
                     style={{background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.04)"}}>
@@ -622,12 +710,219 @@ export default function DeveloperDashboard() {
                       style={{color:ep.m==="GET"?G:ep.m==="POST"?"#fbbf24":"#f87171"}}>{ep.m}</span>
                     <span className="font-mono text-[10px] flex-1 truncate" style={{color:C}}>{ep.path}</span>
                     <span className="text-[9px] text-white/30 hidden sm:block">{ep.desc}</span>
-                    <button onClick={()=>setApiEndpoint(ep.path)}
+                    <button onClick={()=>{setApiEndpoint(ep.path);setApiMethod(ep.m);}}
                       className="text-[8px] px-1.5 py-0.5 rounded-lg flex-shrink-0"
                       style={{background:"rgba(0,212,255,0.08)",border:"1px solid rgba(0,212,255,0.18)",color:C}}>
                       ↑
                     </button>
                   </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ══ PWA ══ */}
+        {tab==="pwa" && (
+          <>
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-black text-white flex items-center gap-2"><Globe size={14} style={{color:G}}/> PWA · Service Worker</h2>
+              <button onClick={checkSW}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold"
+                style={{background:`rgba(0,255,136,0.1)`,border:`1px solid rgba(0,255,136,0.25)`,color:G}}>
+                <RefreshCw size={10}/> Verificar SW
+              </button>
+            </div>
+
+            {/* SW status */}
+            <div className="rounded-2xl p-4" style={{background:`rgba(0,255,136,0.04)`,border:`1px solid rgba(0,255,136,0.15)`}}>
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Server size={13} style={{color:G}}/> Service Worker</h3>
+              {swInfo ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 rounded-xl" style={{background:"rgba(0,0,0,0.3)"}}>
+                    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${swInfo.registered?"bg-[#00ff88] animate-pulse":"bg-red-500"}`}/>
+                    <div className="flex-1">
+                      <div className="font-bold text-xs text-white">{swInfo.registered ? "Service Worker Activo" : "Sin Service Worker"}</div>
+                      {swInfo.scope && <div className="text-[9px] font-mono text-white/40">scope: {swInfo.scope}</div>}
+                      {swInfo.scriptURL && <div className="text-[9px] font-mono text-white/40">script: {swInfo.scriptURL}</div>}
+                    </div>
+                    {swInfo.registered && (
+                      <button onClick={async ()=>{
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        await Promise.all(regs.map(r=>r.unregister()));
+                        setSwInfo({registered:false});
+                      }}
+                        className="text-[9px] px-2 py-1 rounded-lg"
+                        style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.2)",color:"#f87171"}}>
+                        Dar de baja
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[10px] text-white/30 italic">Haz clic en "Verificar SW" para inspeccionar el estado real.</p>
+              )}
+            </div>
+
+            {/* Manifest info */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(0,212,255,0.04)",border:"1px solid rgba(0,212,255,0.15)"}}>
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><BookOpen size={13} style={{color:C}}/> Web App Manifest</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  {k:"name",             v:"GanaderIA CIVAC PRO"},
+                  {k:"short_name",       v:"GanaderIA"},
+                  {k:"display",          v:"standalone"},
+                  {k:"theme_color",      v:"#020d1a"},
+                  {k:"background_color", v:"#020d1a"},
+                  {k:"start_url",        v:"/"},
+                  {k:"scope",            v:"/"},
+                  {k:"icons",            v:"192px, 512px SVG"},
+                  {k:"shortcuts",        v:"4 accesos directos"},
+                ].map(({k,v})=>(
+                  <div key={k} className="rounded-xl p-2.5" style={{background:"rgba(0,0,0,0.3)"}}>
+                    <div className="text-[8px] font-mono text-white/30">{k}</div>
+                    <div className="text-[10px] font-bold text-white/70 mt-0.5">{v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Cache strategy */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Zap size={13} style={{color:"#fbbf24"}}/> Estrategias de caché — SW v6</h3>
+              <div className="space-y-2">
+                {[
+                  {strategy:"Cache-First",              resources:".js · .css · .woff2 · imágenes",     c:G},
+                  {strategy:"Stale-While-Revalidate",   resources:"Navegación HTML (SPA shell)",          c:C},
+                  {strategy:"Network-First + Fallback", resources:"Rutas /api/*",                         c:"#fbbf24"},
+                  {strategy:"Cache-First TTL largo",    resources:"Fuentes externas · tiles Unsplash",    c:"#a78bfa"},
+                ].map(s=>(
+                  <div key={s.strategy} className="flex items-center gap-3 px-3 py-2 rounded-xl" style={{background:"rgba(0,0,0,0.2)"}}>
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{background:s.c}}/>
+                    <span className="text-[10px] font-bold w-44 flex-shrink-0" style={{color:s.c}}>{s.strategy}</span>
+                    <span className="text-[9px] text-white/40">{s.resources}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* PWA actions */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Acciones PWA</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  {label:"Vaciar caché SW",   c:"#f87171", fn:async ()=>{ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); alert("Caché SW vaciado"); }},
+                  {label:"Forzar SW update",  c:G,         fn:async ()=>{ const regs=await navigator.serviceWorker.getRegistrations(); regs.forEach(r=>r.update()); }},
+                  {label:"Recargar app",      c:"#fbbf24", fn:()=>window.location.reload()},
+                  {label:"Ver manifest.json", c:C,         fn:()=>window.open("/manifest.json","_blank")},
+                ].map(a=>(
+                  <button key={a.label} onClick={a.fn}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-bold transition-all hover:opacity-80"
+                    style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${a.c}25`,color:a.c}}>
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ══ BASE DE DATOS ══ */}
+        {tab==="bd" && (
+          <>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-black text-white flex items-center gap-2">
+                  <Database size={14} style={{color:C}}/> Base de Datos PostgreSQL
+                </h2>
+                <p className="text-[10px] text-white/30">Conteos reales · Drizzle ORM · Replit DB</p>
+              </div>
+              <button onClick={loadBdCounts} disabled={bdLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold disabled:opacity-50"
+                style={{background:`rgba(0,212,255,0.1)`,border:`1px solid rgba(0,212,255,0.25)`,color:C}}>
+                <RefreshCw size={10} className={bdLoading?"animate-spin":""}/> Cargar conteos
+              </button>
+            </div>
+
+            {/* DB counts grid */}
+            {Object.keys(bdCounts).length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  {k:"animals",     label:"Animales",       icon:"🐄", c:"#39ff7e"},
+                  {k:"potreros",    label:"Potreros",       icon:"🌿", c:C},
+                  {k:"insumos",     label:"Insumos",        icon:"📦", c:"#fbbf24"},
+                  {k:"personal",    label:"Personal",       icon:"👷", c:"#a78bfa"},
+                  {k:"reproduccion",label:"Reproducción",   icon:"🧬", c:"#f472b6"},
+                  {k:"alertas",     label:"Alertas",        icon:"🔔", c:"#f87171"},
+                  {k:"pesajes",     label:"Pesajes",        icon:"⚖️", c:G},
+                  {k:"gps",         label:"GPS collares",   icon:"📡", c:"#60a5fa"},
+                  {k:"usuarios",    label:"Usuarios",       icon:"👥", c:"#00f5d4"},
+                ].map(({k,label,icon,c})=>(
+                  <div key={k} className="rounded-2xl p-4 flex items-center gap-3"
+                    style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${c}18`}}>
+                    <span className="text-2xl">{icon}</span>
+                    <div>
+                      <div className="text-2xl font-black" style={{color:c}}>{bdCounts[k]??0}</div>
+                      <div className="text-[10px] text-white/40">{label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl p-8 text-center" style={{background:"rgba(0,212,255,0.04)",border:"1px solid rgba(0,212,255,0.12)"}}>
+                <Database size={28} className="mx-auto mb-3" style={{color:"rgba(0,212,255,0.4)"}}/>
+                <p className="text-sm text-white/40 mb-4">Haz clic en "Cargar conteos" para consultar la BD.</p>
+                <button onClick={loadBdCounts} disabled={bdLoading}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black mx-auto disabled:opacity-50"
+                  style={{background:`linear-gradient(135deg,${C},#0ea5e9)`,color:"black"}}>
+                  <Database size={12}/> Cargar ahora
+                </button>
+              </div>
+            )}
+
+            {/* Schema overview */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+              <div className="px-4 py-3" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Code size={13} style={{color:G}}/> Schema Drizzle ORM (lib/db/src/schema/index.ts)
+                </h3>
+              </div>
+              <div className="p-3 font-mono text-[9px] space-y-1 max-h-52 overflow-y-auto" style={{background:"rgba(0,0,0,0.5)"}}>
+                {[
+                  {table:"animalsTable",          cols:"id, nombre, rfid, raza, categoria, sexo, peso_kg, lote, estado, foto_url"},
+                  {table:"potrerosTable",         cols:"id, nombre, area_ha, estado, pasto, animales_actuales, capacidad_maxima"},
+                  {table:"insumosTable",          cols:"id, nombre, categoria, cantidad, unidad, stock_minimo, precio_unidad"},
+                  {table:"personalTable",         cols:"id, nombre, cargo, telefono, salario, eps, arl, activo"},
+                  {table:"reproduccionTable",     cols:"id, animal_id, tipo, fecha, toro, resultado, observaciones"},
+                  {table:"alertasTable",          cols:"id, titulo, mensaje, severidad, modulo, estado, fecha"},
+                  {table:"pesajesTable",          cols:"id, animal_id, peso_kg, bcs, gmd, tecnico, metodo, fecha"},
+                  {table:"gpsTable",              cols:"id, device_id, animal_id, nombre_device, lat, lng, bateria, estado"},
+                  {table:"usuariosTable",         cols:"id, nombre, email, rol, plan, finca, activo"},
+                  {table:"fincaTable",            cols:"id, nombre, nit, municipio, departamento, hectareas, capacidad"},
+                  {table:"plansTable",            cols:"id, code, nombre, precio_mensual, limite_animales, limite_usuarios"},
+                ].map(({table,cols})=>(
+                  <div key={table} className="flex gap-3">
+                    <span style={{color:G}} className="font-black flex-shrink-0 w-48">{table}</span>
+                    <span style={{color:"rgba(255,255,255,0.35)"}}>{cols}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Quick SQL actions */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Acciones rápidas</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  {label:"Seed datos demo",     c:G,         fn:async()=>{ await fetch("/api/seed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({})}); await loadBdCounts(); }},
+                  {label:"Reset + reseed",       c:"#f87171", fn:async()=>{ if(!confirm("¿Resetear todos los datos?")) return; await fetch("/api/seed",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({force:true})}); await loadBdCounts(); }},
+                  {label:"Recargar conteos",     c:C,         fn:loadBdCounts},
+                ].map(a=>(
+                  <button key={a.label} onClick={a.fn} disabled={bdLoading}
+                    className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all hover:opacity-80 disabled:opacity-50"
+                    style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${a.c}25`,color:a.c}}>
+                    <Database size={11}/> {a.label}
+                  </button>
                 ))}
               </div>
             </div>

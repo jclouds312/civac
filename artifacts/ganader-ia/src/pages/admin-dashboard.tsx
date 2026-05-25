@@ -18,6 +18,8 @@ import {
   TrendingDown, ArrowUpRight, ArrowDownRight, Percent,
   Receipt, Landmark, CreditCard as Card, Banknote,
   ShieldCheck, ShieldOff, AlertOctagon, Info, Layers,
+  Scale, Bluetooth, BluetoothConnected, Usb, Cable,
+  Weight, Wrench, BarChart2, PieChart as PieIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +73,43 @@ const ALL_MODULES = [
   { id:"configuracion",  label:"Configuración",     icon:"⚙️", plan:"platino" },
   { id:"documentacion",  label:"Documentación",     icon:"📖", plan:"platino" },
 ];
+
+/* ── Básculas: estadísticas de uso simuladas ── */
+const PESAJE_MES = [
+  { mes:"Nov", bt:12, com:8,  manual:25, total:45 },
+  { mes:"Dic", bt:18, com:10, manual:30, total:58 },
+  { mes:"Ene", bt:22, com:12, manual:28, total:62 },
+  { mes:"Feb", bt:28, com:15, manual:35, total:78 },
+  { mes:"Mar", bt:35, com:18, manual:32, total:85 },
+  { mes:"Abr", bt:41, com:20, manual:38, total:99 },
+  { mes:"May", bt:48, com:22, manual:42, total:112 },
+];
+
+const BT_DEVS_ADMIN = [
+  { id:"tru-test-xr3",     nombre:"Tru-Test XR3000",   marca:"Tru-Test",    tipo:"Indicador BLE 5.0",  color:"#00f5d4", desc:"±0.1 kg · IP67 · BLE 5.0",         icon:"⚖️", usos:48, estado:"activo",       ultima:"Hace 5 min",  bateria:82 },
+  { id:"gallagher-w210-bt",nombre:"Gallagher W210 BT",  marca:"Gallagher",   tipo:"Báscula WiFi/BT",    color:"#fbbf24", desc:"NLIS · ±50 g · BT 4.2",            icon:"🏋️", usos:22, estado:"activo",       ultima:"Hace 2 h",    bateria:65 },
+  { id:"ahi-caroplus",     nombre:"AHI Caroplus 2",     marca:"AHI",         tipo:"Báscula RFID BT",    color:"#a78bfa", desc:"RFID ISO 11784 · BLE",              icon:"📡", usos:15, estado:"disponible",   ultima:"Hace 1 día",  bateria:90 },
+  { id:"tru-test-s3",      nombre:"Tru-Test S3",        marca:"Tru-Test",    tipo:"Portátil BLE",        color:"#34d399", desc:"5000 registros · BLE 5.0",          icon:"📱", usos:8,  estado:"disponible",   ultima:"Hace 3 días", bateria:55 },
+  { id:"simcro-biotrack",  nombre:"Simcro BioTrack",    marca:"Simcro",      tipo:"RFID + Báscula",     color:"#f87171", desc:"ISO 11785 · EID dual",              icon:"🔖", usos:3,  estado:"sin_señal",    ultima:"Hace 1 sem",  bateria:20 },
+  { id:"zee-tag-bt",       nombre:"Zee Tag EID BT",     marca:"Zee Tag",     tipo:"RFID Bluetooth",     color:"#fb923c", desc:"EID ISO 11784/85 · Colombia",       icon:"🏷️", usos:12, estado:"disponible",   ultima:"Hace 6 h",    bateria:74 },
+];
+
+const COM_DEVS_ADMIN = [
+  { id:"tru-test-xr3-com", nombre:"Tru-Test XR3000 COM",marca:"Tru-Test",      tipo:"RS232/USB-Serial", baud:9600,   color:"#00f5d4", desc:"RS232 · STW format · IP67",     icon:"⚖️", usos:22, estado:"activo"     },
+  { id:"gallagher-w210-com",nombre:"Gallagher W210 COM", marca:"Gallagher",     tipo:"RS232/USB-Serial", baud:9600,   color:"#fbbf24", desc:"RS232 · NLIS compatible",        icon:"🏋️", usos:18, estado:"activo"     },
+  { id:"sema-bascula",      nombre:"SEMA Báscula",        marca:"SEMA",          tipo:"COM Colombiana",   baud:9600,   color:"#f59e0b", desc:"Marca colombiana pecuaria",      icon:"🇨🇴", usos:9,  estado:"disponible" },
+  { id:"ruddweigh-600",     nombre:"Ruddweigh 600",       marca:"Ruddweigh",     tipo:"RS232 portátil",   baud:4800,   color:"#a3e635", desc:"4800 bps · Latam",               icon:"🔌", usos:5,  estado:"disponible" },
+  { id:"agrident-apr650",   nombre:"Agrident APR650",     marca:"Agrident",      tipo:"USB-Serial RFID",  baud:115200, color:"#38bdf8", desc:"USB · RFID ISO 11784 + peso",    icon:"📟", usos:7,  estado:"disponible" },
+  { id:"mettler-toledo",    nombre:"Mettler Toledo IND",  marca:"Mettler Toledo",tipo:"RS232 Industrial", baud:9600,   color:"#e879f9", desc:"SCS format · ±0.05 kg",          icon:"🏭", usos:4,  estado:"disponible" },
+  { id:"toledo-prix3",      nombre:"Toledo Prix 3",        marca:"Toledo Brasil", tipo:"COM Pecuario",     baud:9600,   color:"#fb7185", desc:"9600 7E2 · Brasil/CO",           icon:"⚡", usos:2,  estado:"inactivo"   },
+  { id:"generic-com",       nombre:"Generic RS232",        marca:"Genérico",      tipo:"Cualquier COM",    baud:9600,   color:"#94a3b8", desc:"Detecta cualquier nº >100 kg",   icon:"🔧", usos:1,  estado:"disponible" },
+];
+
+const BASC_MODULES_DEFAULT = {
+  pesaje_bt:     { enabled:true,  plan:"pro"     as PlanId, usos:48, label:"Pesaje Bluetooth",   icon:"🔵", color:"#00f5d4", devs:6, desc:"Báscula BT/BLE 5.0 · 6 modelos soportados"    },
+  pesaje_com:    { enabled:true,  plan:"premium" as PlanId, usos:22, label:"Pesaje COM/Serial",  icon:"🔌", color:"#f97316", devs:8, desc:"RS232/USB · 8 controladores COM certificados"  },
+  pesaje_manual: { enabled:true,  plan:"basico"  as PlanId, usos:42, label:"Pesaje Manual",      icon:"✏️", color:"#a78bfa", devs:0, desc:"Entrada directa · Recibo PDF imprimible"        },
+};
 
 const SIMULATED_SESSIONS = [
   { id:"s1", nombre:"Administrador General",  email:"admin@ganader.ia",  ultima:"Hace 2 min",  ip:"181.132.45.12",  dis:"Chrome 124",  tipo:"desktop",  ciudad:"Bogotá, CO",      activa:true,  login:"Hoy 08:14" },
@@ -319,6 +358,29 @@ export default function AdminDashboard({
     platino: { nombre:"Platino",  precio:399000, features:["Todo Premium","Usuarios & Roles","Admin Panel","Multi-Tenant","Soporte dedicado","Sin límite animales","Ilimitados usuarios","GPS ilimitados"] },
   });
   const [planFeatInput, setPlanFeatInput] = useState("");
+
+  /* ── Básculas: módulos y configuración ── */
+  const [bascMods, setBascMods] = useState<Record<string,{enabled:boolean;plan:PlanId}>>(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem("civac_basc_mods")||"{}");
+      return {
+        pesaje_bt:     { enabled: s.pesaje_bt?.enabled     ?? true,  plan: s.pesaje_bt?.plan     ?? "pro"     },
+        pesaje_com:    { enabled: s.pesaje_com?.enabled    ?? true,  plan: s.pesaje_com?.plan    ?? "premium" },
+        pesaje_manual: { enabled: s.pesaje_manual?.enabled ?? true,  plan: s.pesaje_manual?.plan ?? "basico"  },
+      };
+    } catch { return { pesaje_bt:{enabled:true,plan:"pro"}, pesaje_com:{enabled:true,plan:"premium"}, pesaje_manual:{enabled:true,plan:"basico"} }; }
+  });
+  const [bascGlobal, setBascGlobal] = useState({ trama:"stw", autoSave:true, alertaCalib:true, unidad:"kg", umbralAlerta:20 });
+  const [bascDevFilter, setBascDevFilter] = useState<"todos"|"activo"|"disponible"|"sin_señal">("todos");
+
+  function toggleBascMod(id: string) {
+    const next = {...bascMods, [id]:{...bascMods[id],enabled:!bascMods[id].enabled}};
+    setBascMods(next); localStorage.setItem("civac_basc_mods",JSON.stringify(next));
+  }
+  function setBascPlan(id: string, plan: PlanId) {
+    const next = {...bascMods, [id]:{...bascMods[id],plan}};
+    setBascMods(next); localStorage.setItem("civac_basc_mods",JSON.stringify(next));
+  }
 
   /* ── API Connections ── */
   const [apiConfigs, setApiConfigs] = useState<Record<string,{enabled:boolean;configured:boolean;fields:Record<string,string>}>>(() => {
@@ -642,6 +704,7 @@ export default function AdminDashboard({
     { id:"sesiones", icon:"📡", label:"Sesiones",  color:"#00c8ff" },
     { id:"apis",     icon:"🔌", label:"APIs",      color:"#f97316" },
     { id:"modulos",  icon:"🧩", label:"Módulos",   color:"#e879f9" },
+    { id:"basculas", icon:"⚖️", label:"Básculas",  color:"#fb923c" },
     { id:"sistema",  icon:"⚙️", label:"Sistema",   color:"#94a3b8" },
     { id:"finca",    icon:"🏡", label:"Finca",     color:"#4ade80" },
     { id:"datos",    icon:"🗄️", label:"Datos",     color:"#c084fc" },
@@ -1974,6 +2037,416 @@ export default function AdminDashboard({
                 </table>
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: BÁSCULAS
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "basculas" && (() => {
+        const totalPesajes = PESAJE_MES.reduce((a,m)=>a+m.total,0);
+        const lastMes = PESAJE_MES[PESAJE_MES.length-1];
+        const btActive = BT_DEVS_ADMIN.filter(d=>d.estado==="activo").length;
+        const filteredBT = bascDevFilter==="todos" ? BT_DEVS_ADMIN : BT_DEVS_ADMIN.filter(d=>d.estado===bascDevFilter);
+        const filteredCOM = bascDevFilter==="todos" ? COM_DEVS_ADMIN : COM_DEVS_ADMIN.filter(d=>d.estado===bascDevFilter);
+        const pieData = [
+          { name:"Bluetooth", value:lastMes.bt,     fill:"#00f5d4" },
+          { name:"COM/Serial", value:lastMes.com,    fill:"#f97316" },
+          { name:"Manual",     value:lastMes.manual, fill:"#a78bfa" },
+        ];
+        const BM = BASC_MODULES_DEFAULT;
+        return (
+          <div className="space-y-4">
+
+            {/* ── Banner ── */}
+            <div className="relative rounded-2xl overflow-hidden p-5" style={{background:"linear-gradient(135deg,#100a00,#1a1000 50%,#100a00)",border:"1px solid rgba(251,146,60,0.25)",boxShadow:"0 0 40px rgba(251,146,60,0.06)"}}>
+              <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full" style={{background:"radial-gradient(circle,rgba(251,146,60,0.15),transparent 70%)"}}/>
+              <div className="absolute top-0 left-0 right-0 h-0.5" style={{background:"linear-gradient(90deg,transparent,#fb923c,#fbbf24,transparent)"}}/>
+              <div className="relative flex flex-wrap items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:"linear-gradient(135deg,#fb923c,#f97316)",boxShadow:"0 0 20px rgba(251,146,60,0.5)"}}>
+                  <Scale size={22} style={{color:"black"}}/>
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-white" style={{fontFamily:"'Sora',sans-serif"}}>Gestión de Básculas</h2>
+                  <p className="text-xs mt-0.5" style={{color:"rgba(251,146,60,0.6)"}}>Control de módulos · Estadísticas de uso · Dispositivos BT/COM · Configuración global</p>
+                </div>
+                <div className="ml-auto flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] px-2.5 py-1 rounded-full font-bold" style={{background:"rgba(251,146,60,0.1)",border:"1px solid rgba(251,146,60,0.3)",color:"#fb923c"}}>
+                    {btActive} dispositivos activos
+                  </span>
+                  <span className="text-[10px] px-2.5 py-1 rounded-full font-bold" style={{background:"rgba(57,255,126,0.08)",border:"1px solid rgba(57,255,126,0.25)",color:"#39ff7e"}}>
+                    {Object.values(bascMods).filter(m=>m.enabled).length}/3 módulos ON
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── KPIs ── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { label:"Total pesajes",    val:totalPesajes,                     sub:"7 meses acumulados",          icon:<Scale size={16}/>,          from:"#fb923c",to:"#f97316",glow:"251,146,60"   },
+                { label:"Este mes",         val:lastMes.total,                    sub:`BT:${lastMes.bt} COM:${lastMes.com} M:${lastMes.manual}`, icon:<BarChart3 size={16}/>, from:"#00f5d4",to:"#00a896",glow:"0,245,212"   },
+                { label:"Dispositivos BT",  val:`${btActive}/${BT_DEVS_ADMIN.length}`, sub:"activos / registrados",    icon:<Bluetooth size={16}/>,       from:"#00c8ff",to:"#0ea5e9",glow:"0,200,255"   },
+                { label:"Promedio/sesión",  val:"342 kg",                         sub:"peso promedio por pesaje",    icon:<Weight size={16}/>,           from:"#a78bfa",to:"#7c3aed",glow:"167,139,250" },
+              ].map(k=>(
+                <div key={k.label} className="rounded-2xl p-4 relative overflow-hidden"
+                  style={{background:`linear-gradient(145deg,rgba(${k.glow},0.08),rgba(${k.glow},0.03))`,border:`1px solid rgba(${k.glow},0.2)`}}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:`linear-gradient(135deg,${k.from},${k.to})`,color:"black"}}>
+                      {k.icon}
+                    </div>
+                    <TrendingUp size={11} style={{color:`rgba(${k.glow},0.5)`}}/>
+                  </div>
+                  <p className="text-2xl font-black text-white">{k.val}</p>
+                  <p className="text-[10px] mt-0.5" style={{color:`rgba(${k.glow},0.6)`}}>{k.label}</p>
+                  <p className="text-[9px] text-white/25 mt-0.5">{k.sub}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* ── Módulos de pesaje ── */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(251,146,60,0.2)"}}>
+              <div className="px-4 py-3 flex items-center gap-3" style={{background:"rgba(251,146,60,0.06)",borderBottom:"1px solid rgba(251,146,60,0.12)"}}>
+                <Settings2 size={14} style={{color:"#fb923c"}}/>
+                <span className="text-sm font-bold text-white">Control de módulos de pesaje</span>
+                <span className="text-[9px] text-white/30 ml-auto">Activa/desactiva y ajusta el plan mínimo requerido por módulo</span>
+              </div>
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {(Object.entries(BM) as [string,typeof BM[keyof typeof BM]][]).map(([id,def])=>{
+                  const ms = bascMods[id] ?? { enabled:def.enabled, plan:def.plan };
+                  return (
+                    <div key={id} className="rounded-2xl p-4 transition-all" style={{
+                      background: ms.enabled ? `${def.color}08` : "rgba(255,255,255,0.02)",
+                      border:`1px solid ${ms.enabled ? def.color+"30" : "rgba(255,255,255,0.07)"}`,
+                      opacity: ms.enabled ? 1 : 0.65,
+                    }}>
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl" style={{background:`${def.color}15`,border:`1px solid ${def.color}30`}}>
+                            {def.icon}
+                          </div>
+                          <div>
+                            <div className="font-bold text-sm text-white leading-tight">{def.label}</div>
+                            <div className="text-[8px] text-white/30 mt-0.5">ID: {id}</div>
+                          </div>
+                        </div>
+                        {/* Toggle */}
+                        <button onClick={()=>toggleBascMod(id)}
+                          className="w-10 h-5 rounded-full relative transition-all flex-shrink-0"
+                          style={{background:ms.enabled?`${def.color}60`:"rgba(255,255,255,0.1)"}}>
+                          <div className="absolute w-4 h-4 rounded-full top-0.5 transition-all"
+                            style={{background:ms.enabled?def.color:"rgba(255,255,255,0.35)",left:ms.enabled?"calc(100% - 1.25rem)":"0.125rem",boxShadow:ms.enabled?`0 0 8px ${def.color}80`:"none"}}/>
+                        </button>
+                      </div>
+
+                      <p className="text-[10px] text-white/40 mb-3">{def.desc}</p>
+
+                      {/* Stats */}
+                      <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="text-center px-2 py-1.5 rounded-xl" style={{background:"rgba(255,255,255,0.04)"}}>
+                          <div className="text-lg font-black" style={{color:def.color}}>{def.usos}</div>
+                          <div className="text-[8px] text-white/25">usos este mes</div>
+                        </div>
+                        <div className="text-center px-2 py-1.5 rounded-xl" style={{background:"rgba(255,255,255,0.04)"}}>
+                          <div className="text-lg font-black text-white">{def.devs}</div>
+                          <div className="text-[8px] text-white/25">dispositivos</div>
+                        </div>
+                      </div>
+
+                      {/* Plan mínimo selector */}
+                      <div>
+                        <div className="text-[8px] text-white/30 uppercase tracking-wider mb-1.5">Plan mínimo requerido</div>
+                        <div className="flex gap-1">
+                          {PLAN_ORDER.map(p=>(
+                            <button key={p} onClick={()=>setBascPlan(id,p)}
+                              className="flex-1 py-1 rounded-lg text-[8px] font-black transition-all"
+                              style={{
+                                background: ms.plan===p ? `${PLAN_COLOR[p]}20` : "rgba(255,255,255,0.03)",
+                                border:`1px solid ${ms.plan===p ? PLAN_COLOR[p]+"60" : "rgba(255,255,255,0.06)"}`,
+                                color: ms.plan===p ? PLAN_COLOR[p] : "rgba(255,255,255,0.25)",
+                                boxShadow: ms.plan===p ? `0 0 8px ${PLAN_COLOR[p]}30` : "none",
+                              }}>
+                              {PLAN_ICON[p]}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="text-[8px] text-center mt-1" style={{color:"rgba(255,255,255,0.25)"}}>
+                          Desde plan {PLAN_LABEL[ms.plan]}
+                        </div>
+                      </div>
+
+                      {/* Status pill */}
+                      <div className="mt-3 pt-3 flex items-center gap-2" style={{borderTop:`1px solid ${def.color}15`}}>
+                        <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                          style={{background:ms.enabled?"rgba(57,255,126,0.1)":"rgba(255,80,80,0.1)",border:`1px solid ${ms.enabled?"rgba(57,255,126,0.3)":"rgba(255,80,80,0.3)"}`,color:ms.enabled?"#39ff7e":"#f87171"}}>
+                          {ms.enabled?"● Activo":"○ Desactivado"}
+                        </span>
+                        <span className="text-[8px] text-white/20 ml-auto">clic toggle para {ms.enabled?"desactivar":"activar"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Estadísticas de uso ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* BarChart */}
+              <div className="lg:col-span-2 rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(251,146,60,0.15)"}}>
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 size={14} style={{color:"#fb923c"}}/>
+                  <span className="text-sm font-bold text-white">Pesajes por mes y modo</span>
+                  <span className="ml-auto text-[9px] text-white/30">7 meses · {totalPesajes} total</span>
+                </div>
+                <div className="h-44">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={PESAJE_MES} barSize={8} barGap={2}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
+                      <XAxis dataKey="mes" tick={{fill:"rgba(255,255,255,0.3)",fontSize:9}} axisLine={false} tickLine={false}/>
+                      <YAxis tick={{fill:"rgba(255,255,255,0.25)",fontSize:9}} axisLine={false} tickLine={false} width={24}/>
+                      <RTooltip contentStyle={TIP}/>
+                      <Bar dataKey="bt"     name="Bluetooth" fill="#00f5d4" radius={[3,3,0,0]}/>
+                      <Bar dataKey="com"    name="COM/Serial" fill="#f97316" radius={[3,3,0,0]}/>
+                      <Bar dataKey="manual" name="Manual"    fill="#a78bfa" radius={[3,3,0,0]}/>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex gap-4 mt-2 justify-center">
+                  {[["#00f5d4","Bluetooth"],["#f97316","COM/Serial"],["#a78bfa","Manual"]].map(([c,l])=>(
+                    <div key={l} className="flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{background:c as string}}/>
+                      <span className="text-[9px] text-white/40">{l}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* PieChart distribución */}
+              <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(167,139,250,0.15)"}}>
+                <div className="flex items-center gap-2 mb-3">
+                  <PieIcon size={13} style={{color:"#a78bfa"}}/>
+                  <span className="text-sm font-bold text-white">Distribución</span>
+                  <span className="text-[9px] text-white/30 ml-auto">Mayo 2026</span>
+                </div>
+                <div className="h-36">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieData} cx="50%" cy="50%" innerRadius={38} outerRadius={60} dataKey="value" paddingAngle={3}>
+                        {pieData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                      </Pie>
+                      <RTooltip contentStyle={TIP}/>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-1.5 mt-1">
+                  {pieData.map(e=>(
+                    <div key={e.name} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{background:e.fill}}/>
+                      <span className="text-[9px] text-white/50 flex-1">{e.name}</span>
+                      <span className="text-[9px] font-bold" style={{color:e.fill}}>{e.value}</span>
+                      <span className="text-[9px] text-white/25">{Math.round(e.value/(lastMes.total||1)*100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Dispositivos: filtro + BT + COM ── */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,200,255,0.15)"}}>
+              <div className="px-4 py-3 flex items-center gap-3 flex-wrap" style={{background:"rgba(0,200,255,0.05)",borderBottom:"1px solid rgba(0,200,255,0.1)"}}>
+                <Bluetooth size={14} style={{color:"#00c8ff"}}/>
+                <span className="text-sm font-bold text-white">Dispositivos registrados</span>
+                <span className="text-[10px] text-white/30">{BT_DEVS_ADMIN.length} BT · {COM_DEVS_ADMIN.length} COM</span>
+                <div className="ml-auto flex gap-1 flex-wrap">
+                  {(["todos","activo","disponible","sin_señal"] as const).map(f=>(
+                    <button key={f} onClick={()=>setBascDevFilter(f)}
+                      className="px-2.5 py-1 rounded-xl text-[9px] font-bold transition-all"
+                      style={{
+                        background: bascDevFilter===f ? "rgba(0,200,255,0.15)" : "rgba(255,255,255,0.04)",
+                        border:`1px solid ${bascDevFilter===f ? "rgba(0,200,255,0.4)" : "rgba(255,255,255,0.08)"}`,
+                        color: bascDevFilter===f ? "#00c8ff" : "rgba(255,255,255,0.3)",
+                      }}>
+                      {f==="todos"?"Todos":f==="activo"?"● Activo":f==="disponible"?"○ Disponible":"⚠ Sin señal"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* BT Devices */}
+              <div>
+                <div className="px-4 py-2 text-[9px] font-black uppercase tracking-widest" style={{background:"rgba(0,245,212,0.04)",color:"rgba(0,245,212,0.5)",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                  🔵 Bluetooth / BLE — {filteredBT.length} dispositivos
+                </div>
+                <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.04)"}}>
+                  {filteredBT.map(dev=>(
+                    <div key={dev.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        style={{background:`${dev.color}12`,border:`1px solid ${dev.color}25`}}>
+                        {dev.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-white">{dev.nombre}</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                            style={{
+                              background: dev.estado==="activo"?"rgba(57,255,126,0.1)":dev.estado==="sin_señal"?"rgba(248,113,113,0.1)":"rgba(255,255,255,0.05)",
+                              border:`1px solid ${dev.estado==="activo"?"rgba(57,255,126,0.3)":dev.estado==="sin_señal"?"rgba(248,113,113,0.3)":"rgba(255,255,255,0.1)"}`,
+                              color: dev.estado==="activo"?"#39ff7e":dev.estado==="sin_señal"?"#f87171":"rgba(255,255,255,0.4)",
+                            }}>
+                            {dev.estado==="activo"?"● Activo":dev.estado==="sin_señal"?"⚠ Sin señal":"○ Disponible"}
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-white/35 truncate">{dev.marca} · {dev.tipo} · {dev.desc}</p>
+                      </div>
+                      {/* Batería */}
+                      <div className="hidden sm:flex flex-col items-center gap-0.5 flex-shrink-0 w-12">
+                        <div className="w-full h-1.5 rounded-full" style={{background:"rgba(255,255,255,0.08)"}}>
+                          <div className="h-full rounded-full transition-all"
+                            style={{width:`${dev.bateria}%`,background:dev.bateria>50?"#39ff7e":dev.bateria>25?"#fbbf24":"#f87171"}}/>
+                        </div>
+                        <span className="text-[8px] text-white/30">{dev.bateria}%</span>
+                      </div>
+                      <div className="flex-shrink-0 text-right">
+                        <div className="text-[10px] font-bold" style={{color:dev.color}}>{dev.usos}</div>
+                        <div className="text-[8px] text-white/20">usos</div>
+                        <div className="text-[8px] text-white/20 mt-0.5">{dev.ultima}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COM Devices */}
+              <div>
+                <div className="px-4 py-2 text-[9px] font-black uppercase tracking-widest" style={{background:"rgba(249,115,22,0.04)",color:"rgba(249,115,22,0.5)",borderBottom:"1px solid rgba(255,255,255,0.04)",borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+                  🔌 COM / RS232 / USB-Serial — {filteredCOM.length} controladores
+                </div>
+                <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.04)"}}>
+                  {filteredCOM.map(dev=>(
+                    <div key={dev.id} className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        style={{background:`${dev.color}12`,border:`1px solid ${dev.color}25`}}>
+                        {dev.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-white">{dev.nombre}</span>
+                          <span className="text-[8px] font-mono px-1.5 py-0.5 rounded-lg"
+                            style={{background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.3)"}}>
+                            {dev.baud} bps
+                          </span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                            style={{
+                              background: dev.estado==="activo"?"rgba(57,255,126,0.1)":dev.estado==="inactivo"?"rgba(248,113,113,0.1)":"rgba(255,255,255,0.05)",
+                              border:`1px solid ${dev.estado==="activo"?"rgba(57,255,126,0.3)":dev.estado==="inactivo"?"rgba(248,113,113,0.3)":"rgba(255,255,255,0.1)"}`,
+                              color: dev.estado==="activo"?"#39ff7e":dev.estado==="inactivo"?"#f87171":"rgba(255,255,255,0.4)",
+                            }}>
+                            {dev.estado==="activo"?"● Activo":dev.estado==="inactivo"?"○ Inactivo":"○ Disponible"}
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-white/35 truncate">{dev.marca} · {dev.tipo} · {dev.desc}</p>
+                      </div>
+                      <div className="flex-shrink-0 text-right">
+                        <div className="text-[10px] font-bold" style={{color:dev.color}}>{dev.usos}</div>
+                        <div className="text-[8px] text-white/20">usos</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Configuración global ── */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(167,139,250,0.2)"}}>
+              <div className="px-4 py-3 flex items-center gap-3" style={{background:"rgba(167,139,250,0.06)",borderBottom:"1px solid rgba(167,139,250,0.1)"}}>
+                <Wrench size={14} style={{color:"#a78bfa"}}/>
+                <span className="text-sm font-bold text-white">Configuración global de básculas</span>
+              </div>
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Trama por defecto */}
+                <div>
+                  <label className="text-[9px] text-white/35 uppercase tracking-wider block mb-1.5">Formato de trama por defecto</label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {[["stw","STW (Tru-Test)"],["wn","WN (Gallagher)"],["scs","SCS (Mettler)"],["raw","RAW genérico"]].map(([id,label])=>(
+                      <button key={id} onClick={()=>setBascGlobal(g=>({...g,trama:id}))}
+                        className="px-2.5 py-1.5 rounded-xl text-[9px] font-bold transition-all"
+                        style={{
+                          background: bascGlobal.trama===id ? "rgba(167,139,250,0.18)" : "rgba(255,255,255,0.03)",
+                          border:`1px solid ${bascGlobal.trama===id ? "rgba(167,139,250,0.5)" : "rgba(255,255,255,0.08)"}`,
+                          color: bascGlobal.trama===id ? "#a78bfa" : "rgba(255,255,255,0.35)",
+                        }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Unidad de peso */}
+                <div>
+                  <label className="text-[9px] text-white/35 uppercase tracking-wider block mb-1.5">Unidad de peso</label>
+                  <div className="flex gap-1.5">
+                    {[["kg","Kilogramos (kg)"],["lb","Libras (lb)"]].map(([id,label])=>(
+                      <button key={id} onClick={()=>setBascGlobal(g=>({...g,unidad:id}))}
+                        className="px-3 py-1.5 rounded-xl text-[9px] font-bold transition-all"
+                        style={{
+                          background: bascGlobal.unidad===id ? "rgba(251,146,60,0.18)" : "rgba(255,255,255,0.03)",
+                          border:`1px solid ${bascGlobal.unidad===id ? "rgba(251,146,60,0.5)" : "rgba(255,255,255,0.08)"}`,
+                          color: bascGlobal.unidad===id ? "#fb923c" : "rgba(255,255,255,0.35)",
+                        }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Auto-guardar */}
+                <div className="flex items-center justify-between py-2 px-3 rounded-xl" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                  <div>
+                    <div className="text-xs font-bold text-white">Guardar pesaje automáticamente</div>
+                    <div className="text-[9px] text-white/30">Al estabilizarse la báscula</div>
+                  </div>
+                  <button onClick={()=>setBascGlobal(g=>({...g,autoSave:!g.autoSave}))}
+                    className="w-10 h-5 rounded-full relative transition-all"
+                    style={{background:bascGlobal.autoSave?"rgba(57,255,126,0.4)":"rgba(255,255,255,0.1)"}}>
+                    <div className="absolute w-4 h-4 rounded-full top-0.5 transition-all"
+                      style={{background:bascGlobal.autoSave?"#39ff7e":"rgba(255,255,255,0.35)",left:bascGlobal.autoSave?"calc(100% - 1.25rem)":"0.125rem",boxShadow:bascGlobal.autoSave?"0 0 8px rgba(57,255,126,0.6)":"none"}}/>
+                  </button>
+                </div>
+                {/* Alertas calibración */}
+                <div className="flex items-center justify-between py-2 px-3 rounded-xl" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                  <div>
+                    <div className="text-xs font-bold text-white">Alertas de calibración</div>
+                    <div className="text-[9px] text-white/30">Notificar cuando batería &lt; {bascGlobal.umbralAlerta}%</div>
+                  </div>
+                  <button onClick={()=>setBascGlobal(g=>({...g,alertaCalib:!g.alertaCalib}))}
+                    className="w-10 h-5 rounded-full relative transition-all"
+                    style={{background:bascGlobal.alertaCalib?"rgba(251,191,36,0.4)":"rgba(255,255,255,0.1)"}}>
+                    <div className="absolute w-4 h-4 rounded-full top-0.5 transition-all"
+                      style={{background:bascGlobal.alertaCalib?"#fbbf24":"rgba(255,255,255,0.35)",left:bascGlobal.alertaCalib?"calc(100% - 1.25rem)":"0.125rem",boxShadow:bascGlobal.alertaCalib?"0 0 8px rgba(251,191,36,0.6)":"none"}}/>
+                  </button>
+                </div>
+                {/* Umbral batería */}
+                <div className="sm:col-span-2">
+                  <label className="text-[9px] text-white/35 uppercase tracking-wider block mb-2">Umbral de alerta de batería: <span style={{color:"#fbbf24"}}>{bascGlobal.umbralAlerta}%</span></label>
+                  <input type="range" min={10} max={50} step={5} value={bascGlobal.umbralAlerta}
+                    onChange={e=>setBascGlobal(g=>({...g,umbralAlerta:+e.target.value}))}
+                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                    style={{accentColor:"#fb923c",background:`linear-gradient(to right, #fb923c ${((bascGlobal.umbralAlerta-10)/40)*100}%, rgba(255,255,255,0.1) 0%)`}}
+                  />
+                  <div className="flex justify-between text-[8px] text-white/20 mt-1">
+                    <span>10%</span><span>20%</span><span>30%</span><span>40%</span><span>50%</span>
+                  </div>
+                </div>
+              </div>
+              {/* Save button */}
+              <div className="px-4 pb-4">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-[1.02]"
+                  style={{background:"linear-gradient(135deg,#fb923c,#f97316)",color:"black",boxShadow:"0 0 16px rgba(251,146,60,0.3)"}}>
+                  <CheckCircle size={13}/> Guardar configuración global
+                </button>
+              </div>
+            </div>
+
           </div>
         );
       })()}

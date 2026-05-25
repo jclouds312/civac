@@ -97,8 +97,10 @@ export default function Gps() {
   const { gpsUbicaciones, animals, potreros } = useAppState();
   const { user } = useAuth();
 
-  /* ── Devices state ── */
-  const [devices, setDevices] = useState<GpsDevice[]>(INITIAL_DEVICES);
+  /* ── Devices state — cargado desde localStorage (offline-first) ── */
+  const [devices, setDevices] = useState<GpsDevice[]>(
+    () => loadGpsDevices<GpsDevice>() ?? INITIAL_DEVICES
+  );
   const [activeTab, setActiveTab] = useState<'mapa'|'geovallado'|'lista'|'vincular'>('mapa');
 
   /* ── Map interaction ── */
@@ -107,6 +109,14 @@ export default function Gps() {
   const [svgPositions, setSvgPositions]   = useState<Record<string,{x:number;y:number}>>(ANIMAL_SVG);
   const [searchQ, setSearchQ]             = useState('');
   const [filterActivo, setFilterActivo]   = useState<'todos'|'online'|'offline'>('todos');
+
+  /* ── GPS track (historial persistido en localStorage) ── */
+  const [gpsTrack, setGpsTrack]           = useState<StoredPos[]>(() => loadGpsTrack());
+  const [showTrackPanel, setShowTrackPanel] = useState(false);
+
+  /* ── Permisos de hardware ── */
+  const [geoPermission, setGeoPermission] = useState<'granted'|'denied'|'prompt'|'unavailable'|null>(null);
+  const [btAvailable, setBtAvailable]     = useState<'available'|'unavailable'|'disabled'|null>(null);
 
   /* ── Real GPS tracking ── */
   const [livePos, setLivePos]             = useState<LivePos|null>(null);
@@ -185,7 +195,14 @@ export default function Gps() {
     setTracking(true);
     watchIdRef.current = navigator.geolocation.watchPosition(
       pos => {
-        setLivePos({ lat:pos.coords.latitude, lng:pos.coords.longitude, acc:Math.round(pos.coords.accuracy), ts:Date.now() });
+        const p: StoredPos = {
+          lat: pos.coords.latitude, lng: pos.coords.longitude,
+          acc: Math.round(pos.coords.accuracy), ts: Date.now(),
+          speed: pos.coords.speed ?? undefined, alt: pos.coords.altitude ?? undefined,
+        };
+        setLivePos(p);
+        setGpsTrack(appendGpsPosition(p));  // persiste en localStorage
+        setGeoPermission('granted');
         setGeoError(null);
       },
       err => {
@@ -215,6 +232,15 @@ export default function Gps() {
   };
 
   useEffect(() => () => { if (watchIdRef.current!==null) navigator.geolocation.clearWatch(watchIdRef.current); }, []);
+
+  /* ── Persistir devices en localStorage cada vez que cambian ── */
+  useEffect(() => { saveGpsDevices(devices); }, [devices]);
+
+  /* ── Comprobar permisos de hardware al montar ── */
+  useEffect(() => {
+    checkGeolocationPermission().then(setGeoPermission);
+    checkBluetoothAvailability().then(setBtAvailable);
+  }, []);
 
   /* ─── Bluetooth scan ─── */
   const scanBluetooth = async () => {
@@ -291,7 +317,7 @@ export default function Gps() {
       {/* ── Banner ── */}
       <div className="relative rounded-3xl overflow-hidden px-5 py-5"
         style={{background:'linear-gradient(135deg,#020d1a 0%,#0a2745 55%,#071e38 100%)',border:'1px solid rgba(20,100,180,0.4)',boxShadow:'0 0 40px rgba(20,100,180,0.1)'}}>
-        <div className="absolute inset-0 pointer-events-none" style={{background:"url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=900&q=20&auto=format&fit=crop') center/cover no-repeat",opacity:0.04}}/>
+        <div className="absolute inset-0 pointer-events-none" style={{background:"radial-gradient(ellipse at 70% 50%, rgba(20,80,180,0.12) 0%, transparent 70%)",opacity:1}}/>
         <div className="absolute right-16 top-4 opacity-10 pointer-events-none">
           <div className="w-20 h-20 rounded-full border-2 border-blue-400 animate-ping" style={{animationDuration:'2.5s'}}/>
         </div>
@@ -325,6 +351,32 @@ export default function Gps() {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#00f5d4] animate-pulse"/>
                   Seguimiento activo
                 </span>}
+                {/* ── Offline-capability badges ── */}
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                  style={{
+                    background:'rgba(0,245,212,0.07)',
+                    border:`1px solid ${geoPermission==='granted'?'rgba(0,245,212,0.45)':geoPermission==='denied'?'rgba(248,113,113,0.4)':'rgba(255,255,255,0.12)'}`,
+                    color:geoPermission==='granted'?'#00f5d4':geoPermission==='denied'?'#f87171':'rgba(255,255,255,0.4)',
+                  }}>
+                  <LocateFixed size={9}/>
+                  GPS {geoPermission==='granted'?'✓':geoPermission==='denied'?'✗ denegado':'· sin permiso aún'}
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                  style={{
+                    background:'rgba(0,200,255,0.07)',
+                    border:`1px solid ${btAvailable==='available'?'rgba(0,200,255,0.4)':btAvailable==='disabled'?'rgba(251,146,60,0.35)':'rgba(255,255,255,0.12)'}`,
+                    color:btAvailable==='available'?'#00c8ff':btAvailable==='disabled'?'#fb923c':'rgba(255,255,255,0.35)',
+                  }}>
+                  <Bluetooth size={9}/>
+                  BT {btAvailable==='available'?'✓':btAvailable==='disabled'?'apagado':'no disponible'}
+                </span>
+                {gpsTrack.length>0&&(
+                  <button onClick={()=>setShowTrackPanel(v=>!v)}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                    style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.35)',color:'#a78bfa'}}>
+                    📍 {gpsTrack.length} puntos guardados
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -345,6 +397,48 @@ export default function Gps() {
           </div>
         </div>
       </div>
+
+      {/* ── Track History Panel ── */}
+      {showTrackPanel && (
+        <div className="rounded-2xl overflow-hidden" style={{border:'1px solid rgba(167,139,250,0.25)'}}>
+          <div className="flex items-center gap-3 px-4 py-3 flex-wrap" style={{background:'rgba(167,139,250,0.07)',borderBottom:'1px solid rgba(167,139,250,0.12)'}}>
+            <span className="text-sm font-bold text-white">📍 Historial GPS guardado localmente</span>
+            <span className="text-[9px] text-white/30">{gpsTrack.length} puntos · almacenado 100% offline en este dispositivo</span>
+            <div className="ml-auto flex gap-2">
+              <button
+                onClick={()=>{
+                  const csv = exportGpsTrack();
+                  const a = document.createElement('a');
+                  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+                  a.download = `civac_gps_track_${new Date().toISOString().slice(0,10)}.csv`;
+                  a.click();
+                }}
+                className="text-[9px] font-bold px-2.5 py-1 rounded-lg"
+                style={{background:'rgba(0,245,212,0.1)',border:'1px solid rgba(0,245,212,0.3)',color:'#00f5d4'}}>
+                ⬇ Exportar CSV
+              </button>
+              <button
+                onClick={()=>{ clearGpsTrack(); setGpsTrack([]); }}
+                className="text-[9px] font-bold px-2.5 py-1 rounded-lg"
+                style={{background:'rgba(248,113,113,0.1)',border:'1px solid rgba(248,113,113,0.25)',color:'#f87171'}}>
+                🗑 Borrar track
+              </button>
+            </div>
+          </div>
+          <div className="divide-y max-h-52 overflow-y-auto" style={{borderColor:'rgba(255,255,255,0.04)'}}>
+            {[...gpsTrack].reverse().slice(0,80).map((p,i)=>(
+              <div key={i} className="flex items-center gap-3 px-4 py-2 text-[10px]">
+                <span className="text-white/25 w-4 flex-shrink-0">{i+1}</span>
+                <span className="font-mono text-white/60">{p.lat.toFixed(6)}, {p.lng.toFixed(6)}</span>
+                <span className="text-white/30">±{p.acc}m</span>
+                {p.speed!=null&&<span className="text-white/25">{(p.speed*3.6).toFixed(1)} km/h</span>}
+                <span className="ml-auto text-white/20">{new Date(p.ts).toLocaleTimeString('es-CO')}</span>
+              </div>
+            ))}
+            {gpsTrack.length>80&&<div className="px-4 py-2 text-[9px] text-white/20">... y {gpsTrack.length-80} puntos más (exporta el CSV para verlos todos)</div>}
+          </div>
+        </div>
+      )}
 
       {/* ── Alert banner if offline ── */}
       {devices.some(d=>!d.activo&&d.vinculado)&&(

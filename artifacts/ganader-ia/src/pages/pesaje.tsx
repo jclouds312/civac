@@ -11,6 +11,7 @@ import {
   Info, ChevronRight, BookOpen, Leaf, Shield, RefreshCw, Check, Edit3,
   ArrowUpRight, ArrowDownRight, Download,
 } from "lucide-react";
+import { saveLastBtDevice, loadLastBtDevice, saveBtSession, loadBtSessions } from "../lib/offline-storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -924,6 +925,8 @@ export default function Pesaje() {
         }
         if (ok) {
           setBtStatus("connected");
+          // Persistir último dispositivo BT localmente (offline-first)
+          saveLastBtDevice({ id: device.id || `BT-${Date.now()}`, name: device.name || selBt.nombre, controllerId: selBt.id, lastSeen: Date.now(), address: device.id });
           device.addEventListener("gattserverdisconnected", () => { setBtStatus("idle"); setLiveWeight(null); setStable(false); setStability(0); weightSamplesRef.current=[]; });
           return;
         }

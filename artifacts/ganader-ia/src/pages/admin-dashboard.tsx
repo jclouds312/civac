@@ -310,6 +310,15 @@ export default function AdminDashboard({
   const [modSearch,    setModSearch]    = useState("");
   const [permTarget,   setPermTarget]   = useState<Account | null>(null);
   const [modPlanFilter, setModPlanFilter] = useState<PlanId|"todos">("todos");
+  const [editPlanId,   setEditPlanId]   = useState<PlanId|null>(null);
+  const [planExpandUsers, setPlanExpandUsers] = useState<PlanId|null>(null);
+  const [planEdits, setPlanEdits] = useState<Record<PlanId,{nombre:string;precio:number;features:string[]}>>({
+    basico:  { nombre:"Básico",   precio:0,      features:["Dashboard","Inventario","Producción","Potreros","Alertas","Hasta 50 animales","1 usuario","2 GPS collares"] },
+    pro:     { nombre:"PRO",      precio:89000,  features:["Todo lo Básico","Reproducción","Genética","Pesaje BT","Insumos","Semen","Costos P&G","Personal y nómina","GPS Collares","Hasta 300 animales","5 usuarios","10 GPS"] },
+    premium: { nombre:"Premium",  precio:189000, features:["Todo lo PRO","Multi-Finca","Predicciones IA","Huella CO₂","Ficha Individual","Pesaje Manual/COM","2000 animales","20 usuarios","50 GPS"] },
+    platino: { nombre:"Platino",  precio:399000, features:["Todo Premium","Usuarios & Roles","Admin Panel","Multi-Tenant","Soporte dedicado","Sin límite animales","Ilimitados usuarios","GPS ilimitados"] },
+  });
+  const [planFeatInput, setPlanFeatInput] = useState("");
 
   /* ── Nuevos: Finca, Datos, Sistema real ── */
   const [seedLoading,  setSeedLoading]  = useState(false);
@@ -509,17 +518,17 @@ export default function AdminDashboard({
 
   /* ── Tab items ── */
   const TABS = [
-    { id:"resumen",  icon:"📊", label:"Resumen"   },
-    { id:"cuentas",  icon:"👥", label:"Cuentas"   },
-    { id:"planes",   icon:"⭐", label:"Planes"    },
-    { id:"pagos",    icon:"💳", label:"Pagos"     },
-    { id:"sesiones", icon:"📡", label:"Sesiones"  },
-    { id:"apis",     icon:"🔌", label:"APIs"      },
-    { id:"modulos",  icon:"🧩", label:"Módulos"   },
-    { id:"sistema",  icon:"⚙️", label:"Sistema"   },
-    { id:"finca",    icon:"🏡", label:"Finca"     },
-    { id:"datos",    icon:"🗄️", label:"Datos"     },
-    { id:"reportes", icon:"📈", label:"Reportes"  },
+    { id:"resumen",  icon:"📊", label:"Resumen",   color:"#00f5d4" },
+    { id:"cuentas",  icon:"👥", label:"Cuentas",   color:"#39ff7e" },
+    { id:"planes",   icon:"⭐", label:"Planes",    color:"#a78bfa" },
+    { id:"pagos",    icon:"💳", label:"Pagos",     color:"#fbbf24" },
+    { id:"sesiones", icon:"📡", label:"Sesiones",  color:"#00c8ff" },
+    { id:"apis",     icon:"🔌", label:"APIs",      color:"#f97316" },
+    { id:"modulos",  icon:"🧩", label:"Módulos",   color:"#e879f9" },
+    { id:"sistema",  icon:"⚙️", label:"Sistema",   color:"#94a3b8" },
+    { id:"finca",    icon:"🏡", label:"Finca",     color:"#4ade80" },
+    { id:"datos",    icon:"🗄️", label:"Datos",     color:"#c084fc" },
+    { id:"reportes", icon:"📈", label:"Reportes",  color:"#facc15" },
   ];
 
   return (
@@ -619,9 +628,10 @@ export default function AdminDashboard({
           <button key={t.id} onClick={() => setTab(t.id)}
             className="flex-shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-xl text-xs font-bold transition-all whitespace-nowrap"
             style={{
-              background: tab===t.id ? "rgba(0,245,212,0.12)" : "transparent",
-              color: tab===t.id ? "#00f5d4" : "rgba(255,255,255,0.4)",
-              borderBottom: tab===t.id ? "2px solid #00f5d4" : "2px solid transparent",
+              background: tab===t.id ? `${t.color}18` : "transparent",
+              color: tab===t.id ? t.color : "rgba(255,255,255,0.38)",
+              borderBottom: tab===t.id ? `2px solid ${t.color}` : "2px solid transparent",
+              boxShadow: tab===t.id ? `0 0 12px ${t.color}25` : "none",
             }}>
             <span>{t.icon}</span>{t.label}
           </button>
@@ -741,6 +751,41 @@ export default function AdminDashboard({
               </div>
             ))}
           </div>
+
+          {/* ── Acceso rápido a todos los módulos del admin ── */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.12)"}}>
+            <div className="px-4 py-3 flex items-center gap-2"
+              style={{background:"rgba(0,245,212,0.06)",borderBottom:"1px solid rgba(0,245,212,0.1)"}}>
+              <Layers size={14} style={{color:"#00f5d4"}}/>
+              <span className="text-sm font-bold text-white">Navegación rápida</span>
+              <span className="text-[9px] text-white/30 ml-1">— haz clic para ir al módulo</span>
+            </div>
+            <div className="p-3 grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-2">
+              {[
+                { id:"cuentas",  icon:"👥", label:"Cuentas",   color:"#39ff7e", desc:"Gestión de usuarios" },
+                { id:"planes",   icon:"⭐", label:"Planes",    color:"#a78bfa", desc:"Editar planes" },
+                { id:"pagos",    icon:"💳", label:"Pagos",     color:"#fbbf24", desc:"Transacciones" },
+                { id:"sesiones", icon:"📡", label:"Sesiones",  color:"#00c8ff", desc:"Sesiones activas" },
+                { id:"apis",     icon:"🔌", label:"APIs",      color:"#f97316", desc:"Integraciones" },
+                { id:"modulos",  icon:"🧩", label:"Módulos",   color:"#e879f9", desc:"Módulos del sistema" },
+                { id:"sistema",  icon:"⚙️", label:"Sistema",   color:"#94a3b8", desc:"Estado servidor" },
+                { id:"finca",    icon:"🏡", label:"Finca",     color:"#4ade80", desc:"Config. finca" },
+                { id:"datos",    icon:"🗄️", label:"Datos",     color:"#c084fc", desc:"BD y backups" },
+                { id:"reportes", icon:"📈", label:"Reportes",  color:"#facc15", desc:"Métricas" },
+              ].map(m=>(
+                <button key={m.id} onClick={()=>setTab(m.id)}
+                  className="flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all hover:scale-[1.03] active:scale-100"
+                  style={{
+                    background:`${m.color}08`,
+                    border:`1px solid ${m.color}25`,
+                  }}>
+                  <span className="text-xl">{m.icon}</span>
+                  <span className="text-[9px] font-bold" style={{color:m.color}}>{m.label}</span>
+                  <span className="text-[8px] text-white/25 text-center leading-tight">{m.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -806,33 +851,37 @@ export default function AdminDashboard({
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1 flex-wrap">
-                        <button onClick={()=>toggleStatus(a)} title={a.activo!==false?"Desactivar":"Activar"}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:bg-white/10"
-                          style={{color:a.activo!==false?"#39ff7e":"#f87171"}}>
-                          {a.activo!==false?<ToggleRight size={14}/>:<ToggleLeft size={14}/>}
+                        {/* Activate / Deactivate — prominent pill */}
+                        <button onClick={()=>toggleStatus(a)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
+                          style={{
+                            background: a.activo!==false ? "rgba(57,255,126,0.12)" : "rgba(248,113,113,0.12)",
+                            border: `1px solid ${a.activo!==false ? "rgba(57,255,126,0.35)" : "rgba(248,113,113,0.35)"}`,
+                            color: a.activo!==false ? "#39ff7e" : "#f87171",
+                          }}>
+                          {a.activo!==false ? <ToggleRight size={11}/> : <ToggleLeft size={11}/>}
+                          {a.activo!==false ? "Activo" : "Inactivo"}
                         </button>
-                        <button onClick={()=>setEditTarget(a)}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white">
-                          <Edit size={12}/>
+                        <button onClick={()=>setEditTarget(a)} title="Editar usuario"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+                          <Edit size={11}/>
                         </button>
-                        <button onClick={()=>{setPermTarget(a);}}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-blue-400">
-                          <Shield size={12}/>
+                        <button onClick={()=>setPermTarget(a)} title="Permisos"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-blue-500/15 transition-colors" style={{color:"#60a5fa"}}>
+                          <Shield size={11}/>
                         </button>
-                        <button onClick={()=>{setPlanTarget(a);setNewPlan(a.plan??"basico");}}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-purple-400">
-                          <Star size={12}/>
+                        <button onClick={()=>{setPlanTarget(a);setNewPlan(a.plan??"basico");}} title="Cambiar plan"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-purple-500/15 transition-colors" style={{color:"#c084fc"}}>
+                          <Star size={11}/>
                         </button>
-                        <button
-                          onClick={()=>genLicencia(a)}
-                          title="Descargar licencia JSON del plan asignado"
+                        <button onClick={()=>genLicencia(a)} title="Descargar licencia"
                           className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-amber-500/15 transition-colors"
                           style={{color:PLAN_COLOR[a.plan??"basico"]}}>
-                          <Download size={12}/>
+                          <Download size={11}/>
                         </button>
-                        <button onClick={()=>setDeleteTarget(a)} disabled={a.id==="admin"}
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/60 hover:text-red-400 disabled:opacity-20">
-                          <Trash2 size={12}/>
+                        <button onClick={()=>setDeleteTarget(a)} disabled={a.id==="admin"} title="Eliminar"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/50 hover:text-red-400 disabled:opacity-20 transition-colors">
+                          <Trash2 size={11}/>
                         </button>
                       </div>
                     </td>
@@ -882,47 +931,213 @@ export default function AdminDashboard({
       ════════════════════════════════════════════════════════════════════ */}
       {tab === "planes" && (
         <div className="space-y-4">
-          {/* Plan cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {PLAN_ORDER.map(p=>(
-              <div key={p} className="rounded-2xl overflow-hidden"
-                style={{background:`${PLAN_COLOR[p]}06`,border:`1px solid ${PLAN_COLOR[p]}30`}}>
-                <div className="h-1" style={{background:`linear-gradient(90deg,${PLAN_COLOR[p]},transparent)`}}/>
-                <div className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{PLAN_ICON[p]}</span>
-                    <div>
-                      <div className="font-black text-sm" style={{color:PLAN_COLOR[p]}}>{PLAN_LABEL[p]}</div>
-                      <div className="text-[10px] font-bold" style={{color:PLAN_COLOR[p]}}>
-                        {PLAN_PRECIOS[p]>0?`${fmt(PLAN_PRECIOS[p])}/mes`:"Gratis"}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-black text-white mb-0.5">
-                    {accounts.filter(a=>(a.plan??"basico")===p).length}
-                  </div>
-                  <div className="text-[9px] text-white/35">clientes activos</div>
-                  <div className="mt-3 space-y-1">
-                    {PLAN_MODULES[p].map(m=>(
-                      <div key={m} className="flex items-center gap-1.5 text-[9px]" style={{color:`${PLAN_COLOR[p]}80`}}>
-                        <CheckCircle size={8} style={{color:PLAN_COLOR[p],flexShrink:0}}/> {m}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 pt-3 border-t" style={{borderColor:`${PLAN_COLOR[p]}20`}}>
-                    <div className="text-[9px] text-white/25 mb-1">MRR de este plan</div>
-                    <div className="font-black text-sm" style={{color:PLAN_COLOR[p]}}>
-                      {fmt(accounts.filter(a=>(a.plan??"basico")===p).length*PLAN_PRECIOS[p])}
-                    </div>
-                  </div>
+          {/* KPI header */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label:"Total clientes",  val:accounts.filter(a=>a.id!=="admin").length, icon:"👥", c:"#00f5d4" },
+              { label:"MRR total",       val:fmt(mrrTotal),                              icon:"💰", c:"#39ff7e" },
+              { label:"Planes activos",  val:PLAN_ORDER.filter(p=>accounts.some(a=>(a.plan??"basico")===p)).length, icon:"⭐", c:"#a78bfa" },
+              { label:"ARPU promedio",   val:accounts.filter(a=>a.id!=="admin").length>0?fmt(Math.round(mrrTotal/accounts.filter(a=>a.id!=="admin").length)):"$0", icon:"📊", c:"#fbbf24" },
+            ].map(k=>(
+              <div key={k.label} className="rounded-2xl p-3 flex items-center gap-3"
+                style={{background:`${k.c}09`,border:`1px solid ${k.c}25`}}>
+                <span className="text-2xl">{k.icon}</span>
+                <div>
+                  <div className="font-black text-white text-lg leading-none">{k.val}</div>
+                  <div className="text-[9px] mt-0.5" style={{color:`${k.c}80`}}>{k.label}</div>
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Plan cards — 2×2 grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {PLAN_ORDER.map(p => {
+              const planUsers  = accounts.filter(a => (a.plan ?? "basico") === p);
+              const isEditing  = editPlanId === p;
+              const isExpanded = planExpandUsers === p;
+              const pData      = planEdits[p];
+              const mrr        = planUsers.length * pData.precio;
+              const clr        = PLAN_COLOR[p];
+
+              return (
+                <div key={p} className="space-y-0">
+                  {/* ── Plan card ── */}
+                  <div className="rounded-2xl overflow-hidden" style={{border:`1.5px solid ${clr}35`,background:`${clr}07`}}>
+                    {/* Color top bar */}
+                    <div className="h-1.5" style={{background:`linear-gradient(90deg,${clr},${clr}40,transparent)`}}/>
+
+                    {/* Header row */}
+                    <div className="px-4 pt-3 pb-2 flex items-center justify-between"
+                      style={{borderBottom:`1px solid ${clr}15`}}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{PLAN_ICON[p]}</span>
+                        <div>
+                          <div className="font-black text-base leading-none" style={{color:clr}}>{pData.nombre}</div>
+                          <div className="text-[10px] font-bold mt-0.5" style={{color:`${clr}90`}}>
+                            {pData.precio>0?`${fmt(pData.precio)}/mes`:"Gratis · Plan de entrada"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={()=>{ setEditPlanId(isEditing?null:p); setPlanFeatInput(""); }}
+                          className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
+                          style={{background:isEditing?`${clr}20`:"rgba(255,255,255,0.06)",border:`1px solid ${isEditing?`${clr}50`:"rgba(255,255,255,0.1)"}`,color:isEditing?clr:"rgba(255,255,255,0.45)"}}>
+                          <Edit size={9}/> {isEditing?"Cancelar":"Editar"}
+                        </button>
+                        <button onClick={()=>setPlanExpandUsers(isExpanded?null:p)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
+                          style={{background:isExpanded?`${clr}20`:"rgba(255,255,255,0.06)",border:`1px solid ${isExpanded?`${clr}50`:"rgba(255,255,255,0.1)"}`,color:isExpanded?clr:"rgba(255,255,255,0.45)"}}>
+                          <Users size={9}/> {planUsers.length} usuarios
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="p-4">
+                      {isEditing ? (
+                        /* ──── EDIT FORM ──── */
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[9px] text-white/40 block mb-1">Nombre del plan</label>
+                              <Input value={pData.nombre} onChange={e=>setPlanEdits(prev=>({...prev,[p]:{...prev[p],nombre:e.target.value}}))}
+                                className="h-7 text-xs" style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${clr}30`,color:"white"}}/>
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-white/40 block mb-1">Precio mensual (COP)</label>
+                              <Input type="number" value={pData.precio} onChange={e=>setPlanEdits(prev=>({...prev,[p]:{...prev[p],precio:Number(e.target.value)}}))}
+                                className="h-7 text-xs" style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${clr}30`,color:"white"}}/>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-[9px] text-white/40 block mb-1">Funcionalidades incluidas</label>
+                            <div className="flex flex-wrap gap-1 mb-2 max-h-24 overflow-y-auto">
+                              {pData.features.map((f,fi)=>(
+                                <span key={fi} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium"
+                                  style={{background:`${clr}18`,border:`1px solid ${clr}35`,color:clr}}>
+                                  {f}
+                                  <button onClick={()=>setPlanEdits(prev=>({...prev,[p]:{...prev[p],features:prev[p].features.filter((_,i)=>i!==fi)}}))}
+                                    className="hover:opacity-60 ml-0.5">✕</button>
+                                </span>
+                              ))}
+                            </div>
+                            <div className="flex gap-1">
+                              <Input value={planFeatInput} onChange={e=>setPlanFeatInput(e.target.value)}
+                                onKeyDown={e=>{if(e.key==="Enter"&&planFeatInput.trim()){setPlanEdits(prev=>({...prev,[p]:{...prev[p],features:[...prev[p].features,planFeatInput.trim()]}}));setPlanFeatInput("");}}}
+                                placeholder="Nueva funcionalidad… Enter para agregar" className="h-7 text-[10px] flex-1"
+                                style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${clr}30`,color:"white"}}/>
+                              <button onClick={()=>{if(planFeatInput.trim()){setPlanEdits(prev=>({...prev,[p]:{...prev[p],features:[...prev[p].features,planFeatInput.trim()]}}));setPlanFeatInput("");}}}
+                                className="px-3 h-7 rounded-xl text-[9px] font-bold"
+                                style={{background:`${clr}20`,border:`1px solid ${clr}40`,color:clr}}>
+                                <Plus size={10}/>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex justify-end gap-2 pt-1">
+                            <button onClick={()=>setEditPlanId(null)}
+                              className="px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/40 hover:text-white/70 transition-colors">
+                              Cancelar
+                            </button>
+                            <button onClick={()=>setEditPlanId(null)}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                              style={{background:`linear-gradient(135deg,${clr},${clr}90)`,color:"black"}}>
+                              <CheckCircle size={10}/> Guardar plan
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ──── DISPLAY MODE ──── */
+                        <div>
+                          {/* Stats row */}
+                          <div className="grid grid-cols-3 gap-2 mb-3">
+                            <div className="rounded-xl p-2 text-center" style={{background:"rgba(255,255,255,0.04)"}}>
+                              <div className="font-black text-white text-xl leading-none">{planUsers.length}</div>
+                              <div className="text-[8px] text-white/35 mt-0.5">Clientes</div>
+                            </div>
+                            <div className="rounded-xl p-2 text-center" style={{background:"rgba(255,255,255,0.04)"}}>
+                              <div className="font-black text-sm leading-tight" style={{color:clr}}>{fmt(mrr)}</div>
+                              <div className="text-[8px] text-white/35 mt-0.5">MRR</div>
+                            </div>
+                            <div className="rounded-xl p-2 text-center" style={{background:"rgba(255,255,255,0.04)"}}>
+                              <div className="font-black text-white text-sm leading-tight">{pData.features.length}</div>
+                              <div className="text-[8px] text-white/35 mt-0.5">Funciones</div>
+                            </div>
+                          </div>
+                          {/* Features list */}
+                          <div className="space-y-1 max-h-36 overflow-y-auto" style={{scrollbarWidth:"thin"}}>
+                            {pData.features.map((f,fi)=>(
+                              <div key={fi} className="flex items-center gap-1.5 text-[9px]" style={{color:`${clr}90`}}>
+                                <CheckCircle size={8} style={{color:clr,flexShrink:0}}/> {f}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Users per plan panel (expandable) ── */}
+                  {isExpanded && (
+                    <div className="rounded-b-2xl overflow-hidden mt-0.5"
+                      style={{border:`1.5px solid ${clr}30`,borderTop:`1px solid ${clr}20`,background:`${clr}05`}}>
+                      <div className="px-4 py-2.5 flex items-center justify-between"
+                        style={{background:`${clr}10`,borderBottom:`1px solid ${clr}15`}}>
+                        <span className="text-xs font-bold" style={{color:clr}}>
+                          <Users size={12} className="inline mr-1.5"/>
+                          Usuarios en plan {pData.nombre}
+                        </span>
+                        <button onClick={()=>setPlanExpandUsers(null)} className="text-white/30 hover:text-white/70 transition-colors">
+                          <XC size={13}/>
+                        </button>
+                      </div>
+                      {planUsers.length === 0 ? (
+                        <div className="py-6 text-center text-[10px] text-white/25">
+                          Ningún usuario en este plan aún
+                        </div>
+                      ) : (
+                        <div className="divide-y" style={{borderColor:`${clr}10`}}>
+                          {planUsers.map(u => (
+                            <div key={u.id} className="px-4 py-2.5 flex items-center gap-3">
+                              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+                                style={{background:`${clr}15`,border:`1px solid ${clr}25`}}>
+                                {u.avatar}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-bold text-white truncate">{u.nombre}</div>
+                                <div className="text-[9px] truncate" style={{color:`${clr}60`}}>{u.email} · {u.cargo || u.role}</div>
+                              </div>
+                              {/* Activate / Deactivate toggle */}
+                              <button onClick={()=>toggleStatus(u)}
+                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[9px] font-bold transition-all flex-shrink-0"
+                                style={{
+                                  background: u.activo!==false ? "rgba(57,255,126,0.12)" : "rgba(248,113,113,0.12)",
+                                  border: `1px solid ${u.activo!==false?"rgba(57,255,126,0.35)":"rgba(248,113,113,0.35)"}`,
+                                  color: u.activo!==false ? "#39ff7e" : "#f87171",
+                                }}>
+                                {u.activo!==false ? <ToggleRight size={11}/> : <ToggleLeft size={11}/>}
+                                {u.activo!==false ? "Activo" : "Inactivo"}
+                              </button>
+                              {/* Change plan */}
+                              <button onClick={()=>{setPlanTarget(u);setNewPlan(u.plan??"basico");}}
+                                className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all flex-shrink-0"
+                                style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",color:"rgba(255,255,255,0.45)"}}>
+                                <Star size={9}/> Plan
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
           {/* Feature matrix */}
-          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.08)"}}>
-            <div className="px-4 py-3" style={{background:"rgba(255,255,255,0.04)",borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(167,139,250,0.2)"}}>
+            <div className="px-4 py-3" style={{background:"rgba(167,139,250,0.06)",borderBottom:"1px solid rgba(167,139,250,0.1)"}}>
               <h3 className="text-sm font-bold text-white flex items-center gap-2"><Layers size={14} style={{color:"#a78bfa"}}/> Matriz de módulos por plan</h3>
             </div>
             <div className="overflow-x-auto">
@@ -932,7 +1147,7 @@ export default function AdminDashboard({
                     <th className="px-4 py-2.5 text-left text-[10px] text-white/40 font-bold w-40">Módulo</th>
                     {PLAN_ORDER.map(p=>(
                       <th key={p} className="px-3 py-2.5 text-center text-[10px] font-black" style={{color:PLAN_COLOR[p]}}>
-                        {PLAN_ICON[p]} {PLAN_LABEL[p]}
+                        {PLAN_ICON[p]} {planEdits[p].nombre}
                       </th>
                     ))}
                   </tr>
@@ -941,13 +1156,13 @@ export default function AdminDashboard({
                   {ALL_MODULES.map((m,i)=>{
                     const planIdx = PLAN_ORDER.indexOf(m.plan as PlanId);
                     return (
-                      <tr key={m.id} style={{background:i%2===0?"rgba(255,255,255,0.01)":"transparent",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                      <tr key={m.id} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
                         <td className="px-4 py-2 text-[10px] text-white/60">{m.icon} {m.label}</td>
                         {PLAN_ORDER.map((p,j)=>(
                           <td key={p} className="px-3 py-2 text-center">
                             {j>=planIdx
                               ? <CheckCircle size={13} style={{color:PLAN_COLOR[p],margin:"0 auto"}}/>
-                              : <XC size={13} style={{color:"rgba(255,255,255,0.12)",margin:"0 auto"}}/>
+                              : <XC size={13} style={{color:"rgba(255,255,255,0.1)",margin:"0 auto"}}/>
                             }
                           </td>
                         ))}

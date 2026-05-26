@@ -299,7 +299,7 @@ export default function Drive() {
             <p className="text-xs mt-1 text-white/20">Sube tu primer backup con el botón "Subir Backup"</p>
           </div>
         ) : (
-          <div className="divide-y" style={{ divideColor:"rgba(0,200,255,0.06)" }}>
+          <div className="divide-y divide-white/5">
             {files.map(f => (
               <div key={f.id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/2 transition-colors">
                 <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base"

@@ -254,8 +254,9 @@ function GoogleSignInButton() {
               plan: "basico" as const,
               cargo: "Usuario Google",
               finca: "Nueva Finca",
-              avatar: payload.picture ? "" : "🙂",
-              picture: payload.picture ?? "",
+              avatar: "🙂",
+              gradient: "from-[#4a148c] to-[#6a1b9a]",
+              permisos: ["inventario","produccion","alertas"],
             };
             // Save to localStorage registry
             const reg: typeof newAcc[] = JSON.parse(localStorage.getItem("civac_google_users") ?? "[]");

@@ -46,6 +46,7 @@ import Lotes from "./pages/lotes";
 import Datos from "./pages/datos";
 import Ventas from "./pages/ventas";
 import VentasDashboard from "./pages/ventas-dashboard";
+import Drive from "./pages/drive";
 
 const queryClient = new QueryClient();
 
@@ -345,6 +346,7 @@ function AuthGate() {
         <Route path="/lotes" component={Lotes} />
         <Route path="/datos" component={Datos} />
         <Route path="/ventas" component={Ventas} />
+        <Route path="/drive" component={Drive} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

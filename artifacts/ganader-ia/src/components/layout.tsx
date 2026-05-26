@@ -5,7 +5,7 @@ import {
   FileText, Heart, Droplets, Dna, Layers, Wheat, Zap, Scale,
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
-  ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag,
+  ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { useState, useEffect } from "react";
@@ -60,6 +60,7 @@ const MODULES: Record<string, ModuleDef> = {
   '/lotes':         { icon: Truck,           from:'#00c8ff', to:'#0891b2', glow:'0,200,255',    emoji:'🐂', label:'Movimiento Lotes',     shortLabel:'Lotes'     },
   '/datos':         { icon: Database,        from:'#818cf8', to:'#4f46e5', glow:'129,140,248',  emoji:'🗄️', label:'Data Warehouse',       shortLabel:'Datos'     },
   '/ventas':        { icon: ShoppingBag,     from:'#e879f9', to:'#a855f7', glow:'232,121,249',  emoji:'💼', label:'Asesora de Ventas',    shortLabel:'CRM'       },
+  '/drive':         { icon: Cloud,           from:'#00c8ff', to:'#0070cc', glow:'0,200,255',    emoji:'☁️', label:'Google Drive',          shortLabel:'Drive'     },
 };
 
 /* ── Plan-based route access ───────────────────────────────────────────────── */
@@ -72,19 +73,19 @@ const PLAN_ROUTES: Record<string, string[]> = {
   premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
-            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas'],
+            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive'],
   platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
-            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas'],
+            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas', '/drive'],
 };
 
 const PLAN_REQUIRED: Record<string, string> = {
   '/reproduccion': 'PRO', '/genetica': 'PRO', '/pesaje': 'PRO', '/ficha': 'PRO',
   '/alimentacion': 'PRO', '/gps': 'PRO', '/insumos': 'PRO', '/semen': 'PRO',
   '/costos': 'PRO', '/personal': 'PRO', '/multifinca': 'PRO', '/prediccion': 'PRO',
-  '/pesaje-manual': 'PREMIUM', '/co2': 'PREMIUM', '/lotes': 'PREMIUM', '/datos': 'PREMIUM',
+  '/pesaje-manual': 'PREMIUM', '/co2': 'PREMIUM', '/lotes': 'PREMIUM', '/datos': 'PREMIUM', '/drive': 'PREMIUM',
   '/usuarios': 'PLATINO', '/configuracion': 'PLATINO', '/documentacion': 'PLATINO',
   '/manual': 'PLATINO', '/planes': 'PLATINO',
 };

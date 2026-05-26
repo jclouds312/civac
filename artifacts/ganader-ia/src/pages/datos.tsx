@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAppState } from "../lib/data";
-import { useAuth } from "../lib/auth";
+import { useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, type Account } from "../lib/auth";
+import { syncToCloud, buildSyncPayload, getLastSyncInfo, getSyncQueue } from "../lib/sync";
 import {
   getStorageStats, getTotalStorageBytes, formatBytes, getTotalRecords,
   exportFullBackup, exportModuleCSV, exportAllModulesCSV,
@@ -41,7 +42,7 @@ export default function Datos() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ ok: boolean; msg: string; modules?: string[] } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [activeSection, setActiveSection] = useState<'overview'|'export'|'import'|'modulos'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview'|'export'|'import'|'modulos'|'sesiones'|'planes'|'sync'>('overview');
 
   const refresh = () => setRefreshKey(k => k + 1);
   void refreshKey;
@@ -102,10 +103,13 @@ export default function Datos() {
   };
 
   const navTabs = [
-    { id: 'overview', label: 'Estado',   emoji: '📊' },
-    { id: 'export',   label: 'Exportar', emoji: '⬇️' },
-    { id: 'import',   label: 'Restaurar',emoji: '⬆️' },
-    { id: 'modulos',  label: 'Módulos',  emoji: '🗂️' },
+    { id: 'overview', label: 'Estado',    emoji: '📊' },
+    { id: 'export',   label: 'Exportar',  emoji: '⬇️' },
+    { id: 'import',   label: 'Restaurar', emoji: '⬆️' },
+    { id: 'modulos',  label: 'Módulos',   emoji: '🗂️' },
+    { id: 'sesiones', label: 'Sesiones',  emoji: '🔐' },
+    { id: 'planes',   label: 'Cuentas',   emoji: '👤' },
+    { id: 'sync',     label: 'Sync ☁️',  emoji: '🌐' },
   ] as const;
 
   return (
@@ -687,6 +691,325 @@ export default function Datos() {
           </div>
         </div>
       )}
+
+      {/* ── SECTION: SESIONES ───────────────────────────────────────────────── */}
+      {activeSection === 'sesiones' && (
+        <SesionesBD user={user} />
+      )}
+
+      {/* ── SECTION: CUENTAS & PLANES ───────────────────────────────────────── */}
+      {activeSection === 'planes' && (
+        <CuentasBD />
+      )}
+
+      {/* ── SECTION: SYNC CLOUD ─────────────────────────────────────────────── */}
+      {activeSection === 'sync' && (
+        <SyncBD user={user} stateMap={stateMap} />
+      )}
+    </div>
+  );
+}
+
+/* ─── SESIONES component ────────────────────────────────────────────────── */
+function SesionesBD({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
+  interface SessionEntry { id: string; email: string; nombre: string; role: string; plan: string; loginAt: string; device: string; }
+  const [sessions, setSessions] = useState<SessionEntry[]>([]);
+  useEffect(() => {
+    try { setSessions(JSON.parse(localStorage.getItem('civac_session_history') ?? '[]')); } catch {}
+  }, []);
+
+  const logCurrentSession = () => {
+    if (!user) return;
+    const entry: SessionEntry = {
+      id: crypto.randomUUID(),
+      email: user.email,
+      nombre: user.nombre,
+      role: user.role,
+      plan: user.plan,
+      loginAt: new Date().toISOString(),
+      device: navigator.userAgent.slice(0, 80),
+    };
+    const hist = JSON.parse(localStorage.getItem('civac_session_history') ?? '[]') as SessionEntry[];
+    hist.unshift(entry);
+    if (hist.length > 50) hist.pop();
+    localStorage.setItem('civac_session_history', JSON.stringify(hist));
+    setSessions(hist);
+  };
+
+  const googleUsers: { id:string; nombre:string; email:string; plan:string }[] = (() => {
+    try { return JSON.parse(localStorage.getItem('civac_google_users') ?? '[]'); } catch { return []; }
+  })();
+
+  return (
+    <div className="space-y-4">
+      {/* Active session */}
+      <div className="rounded-2xl p-5" style={{ background:'linear-gradient(135deg,#001f0a,#002a10)', border:'1px solid rgba(34,197,94,0.22)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background:'#39ff7e', boxShadow:'0 0 8px rgba(57,255,126,0.9)' }}/>
+            <span className="font-bold text-sm text-white">Sesión Activa Ahora</span>
+          </div>
+          <button onClick={logCurrentSession}
+            className="text-[10px] px-2.5 py-1 rounded-lg font-bold transition-all hover:opacity-80"
+            style={{ background:'rgba(57,255,126,0.1)', color:'#39ff7e', border:'1px solid rgba(57,255,126,0.25)' }}>
+            📋 Registrar sesión
+          </button>
+        </div>
+        {user ? (
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+              style={{ background:'rgba(57,255,126,0.1)', border:'1px solid rgba(57,255,126,0.25)' }}>
+              {user.avatar || '👤'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-white text-sm">{user.nombre}</p>
+              <p className="text-[10px] text-white/45">{user.email} · {user.role} · Plan {PLAN_LABEL[user.plan as keyof typeof PLAN_LABEL] ?? user.plan}</p>
+              <p className="text-[9px] text-white/25 mt-0.5 truncate">{navigator.userAgent.slice(0,60)}…</p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <div className="text-[10px] font-bold" style={{ color:'#39ff7e' }}>Online</div>
+              <div className="text-[9px] text-white/25">{new Date().toLocaleTimeString('es-CO')}</div>
+            </div>
+          </div>
+        ) : <p className="text-white/30 text-sm">Sin sesión activa</p>}
+      </div>
+
+      {/* Google users registered */}
+      {googleUsers.length > 0 && (
+        <div className="rounded-2xl p-5" style={{ background:'linear-gradient(135deg,#001428,#001e3c)', border:'1px solid rgba(0,200,255,0.18)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <svg width="14" height="14" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            <span className="font-bold text-sm text-white">Usuarios registrados con Google</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background:'rgba(0,200,255,0.12)', color:'#00c8ff' }}>{googleUsers.length}</span>
+          </div>
+          <div className="space-y-2">
+            {googleUsers.map(u => (
+              <div key={u.id} className="flex items-center gap-2 text-xs">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background:'rgba(0,200,255,0.1)', border:'1px solid rgba(0,200,255,0.2)' }}>🙂</div>
+                <span className="text-white/70 flex-1 truncate">{u.nombre}</span>
+                <span className="text-white/35 truncate">{u.email}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ color: PLAN_COLOR[u.plan as keyof typeof PLAN_COLOR] ?? '#94a3b8', background:`${PLAN_COLOR[u.plan as keyof typeof PLAN_COLOR] ?? '#94a3b8'}18` }}>
+                  {PLAN_ICON[u.plan as keyof typeof PLAN_ICON] ?? '🔷'} {PLAN_LABEL[u.plan as keyof typeof PLAN_LABEL] ?? u.plan}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Session history */}
+      <div className="rounded-2xl overflow-hidden" style={{ border:'1px solid rgba(139,92,246,0.15)' }}>
+        <div className="px-5 py-3 flex items-center justify-between" style={{ background:'linear-gradient(90deg,rgba(139,92,246,0.08),rgba(139,92,246,0.03))', borderBottom:'1px solid rgba(139,92,246,0.1)' }}>
+          <div className="flex items-center gap-2"><Lock size={14} style={{ color:'#8b5cf6' }}/><span className="font-bold text-sm text-white">Historial de Sesiones</span></div>
+          <span className="text-[10px] text-white/30">{sessions.length} registros</span>
+        </div>
+        {sessions.length === 0 ? (
+          <div className="px-5 py-8 text-center"><p className="text-white/25 text-sm">No hay historial de sesiones</p><p className="text-[10px] text-white/15 mt-1">Haz clic en "Registrar sesión" para guardar la sesión actual</p></div>
+        ) : (
+          <div className="divide-y" style={{ '--tw-divide-opacity':'1' } as React.CSSProperties}>
+            {sessions.slice(0,20).map(s => (
+              <div key={s.id} className="flex items-center gap-3 px-5 py-2.5 hover:bg-white/2 transition-colors">
+                <div className="text-lg flex-shrink-0">{s.role === 'admin' ? '👑' : s.role === 'vet' ? '🩺' : s.role === 'sales' ? '💼' : s.role === 'field' ? '🌿' : '👤'}</div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-white/80 truncate">{s.nombre}</p>
+                  <p className="text-[9px] text-white/30">{s.email} · {s.role}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[10px] text-white/50">{new Date(s.loginAt).toLocaleDateString('es-CO')}</p>
+                  <p className="text-[9px] text-white/25">{new Date(s.loginAt).toLocaleTimeString('es-CO')}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── CUENTAS & PLANES component ────────────────────────────────────────── */
+function CuentasBD() {
+  const { accounts } = useAuth();
+  const [googleUsers] = useState<Array<{id:string;nombre:string;email:string;plan:string;cargo?:string}>>(() => {
+    try { return JSON.parse(localStorage.getItem('civac_google_users') ?? '[]'); } catch { return []; }
+  });
+
+  const allAccounts: Array<Account & { isGoogle?: boolean }> = [
+    ...accounts,
+    ...googleUsers.map(u => ({ ...u, role: 'viewer' as const, plan: (u.plan ?? 'basico') as Account['plan'], password: '', avatar: '🙂', finca: 'Google', isGoogle: true, cargo: u.cargo ?? 'Usuario Google' })),
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon:'👤', label:'Cuentas totales',    val: String(allAccounts.length),           c:'#00f5d4' },
+          { icon:'🌐', label:'Usuarios Google',     val: String(googleUsers.length),           c:'#4285f4' },
+          { icon:'💎', label:'Plan más alto',       val: accounts.some(a=>a.plan==='platino') ? 'Platino' : accounts.some(a=>a.plan==='premium') ? 'Premium' : 'PRO', c:'#fbbf24' },
+          { icon:'✅', label:'Cuentas activas',     val: String(accounts.filter(a=>a.plan!=='basico').length), c:'#39ff7e' },
+        ].map(k => (
+          <div key={k.label} className="rounded-2xl p-4" style={{ background:'linear-gradient(135deg,#0a0015,#120020)', border:'1px solid rgba(139,92,246,0.18)' }}>
+            <div className="text-2xl mb-2">{k.icon}</div>
+            <div className="text-[9px] font-bold uppercase tracking-wider mb-0.5 text-white/40">{k.label}</div>
+            <div className="text-xl font-black" style={{ color:k.c, fontFamily:'Sora,sans-serif' }}>{k.val}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Accounts table */}
+      <div className="rounded-2xl overflow-hidden" style={{ border:'1px solid rgba(139,92,246,0.15)' }}>
+        <div className="px-5 py-3" style={{ background:'linear-gradient(90deg,rgba(139,92,246,0.1),rgba(139,92,246,0.03))', borderBottom:'1px solid rgba(139,92,246,0.1)' }}>
+          <div className="flex items-center gap-2"><Users size={14} style={{ color:'#8b5cf6' }}/><span className="font-bold text-sm text-white">Directorio de Cuentas CIVAC</span></div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr style={{ background:'rgba(139,92,246,0.05)', borderBottom:'1px solid rgba(139,92,246,0.1)' }}>
+                {['Avatar','Nombre','Email','Rol','Plan','Finca/Empresa'].map(h=>(
+                  <th key={h} className="text-left px-4 py-2.5 text-[9px] font-black uppercase tracking-wider text-white/30">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {allAccounts.map((a,i) => (
+                <tr key={a.id ?? i} className="border-b hover:bg-white/2 transition-colors" style={{ borderColor:'rgba(139,92,246,0.06)' }}>
+                  <td className="px-4 py-2.5 text-lg">{a.avatar || '🙂'}</td>
+                  <td className="px-4 py-2.5">
+                    <p className="font-semibold text-white/85">{a.nombre}</p>
+                    <p className="text-[9px] text-white/35">{a.cargo}</p>
+                  </td>
+                  <td className="px-4 py-2.5 font-mono text-white/45 text-[10px]">{a.email}</td>
+                  <td className="px-4 py-2.5">
+                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
+                      style={{ background:`${PLAN_COLOR[a.plan as keyof typeof PLAN_COLOR] ?? '#94a3b8'}15`, color: PLAN_COLOR[a.plan as keyof typeof PLAN_COLOR] ?? '#94a3b8', border:`1px solid ${PLAN_COLOR[a.plan as keyof typeof PLAN_COLOR] ?? '#94a3b8'}30` }}>
+                      {a.role}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <span className="text-[9px] font-bold">
+                      {PLAN_ICON[a.plan as keyof typeof PLAN_ICON] ?? '🔷'} {PLAN_LABEL[a.plan as keyof typeof PLAN_LABEL] ?? a.plan}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-white/35 text-[10px]">{a.finca}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SYNC CLOUD component ──────────────────────────────────────────────── */
+function SyncBD({ user, stateMap }: { user: ReturnType<typeof useAuth>['user']; stateMap: Record<string, unknown[]> }) {
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ ok:boolean; message:string } | null>(null);
+  const [syncInfo, setSyncInfo] = useState(() => getLastSyncInfo());
+  const [queue] = useState(() => getSyncQueue());
+
+  const fmtDt = (iso: string | null) => {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString('es-CO', { dateStyle:'medium', timeStyle:'short' }); } catch { return iso; }
+  };
+
+  const handleSync = async () => {
+    if (!user) return;
+    setSyncing(true); setSyncResult(null);
+    const payload = buildSyncPayload(user.id ?? user.email, user.plan);
+    // Inject some real data
+    payload.data.animals = stateMap.animals ?? [];
+    payload.data.pesajes  = stateMap.pesajes ?? [];
+    payload.data.alertas  = stateMap.alertas ?? [];
+    try {
+      const result = await syncToCloud(payload);
+      setSyncResult(result);
+      setSyncInfo(getLastSyncInfo());
+    } finally { setSyncing(false); }
+  };
+
+  const online = navigator.onLine;
+
+  return (
+    <div className="space-y-4">
+      {/* Sync status banner */}
+      <div className="rounded-2xl p-5" style={{ background:`linear-gradient(135deg,${online?'#001428':'#1a0a00'},${online?'#001e3c':'#2a1200'})`, border:`1px solid rgba(${online?'0,200,255':'245,158,11'},0.22)` }}>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="text-4xl">{online ? '☁️' : '📡'}</div>
+            <div>
+              <p className="font-black text-white text-base">{online ? 'Online — Sync disponible' : 'Offline — Cola local activa'}</p>
+              <p className="text-sm mt-0.5" style={{ color:`rgba(${online?'0,200,255':'245,158,11'},0.65)` }}>
+                {online ? 'Puedes sincronizar con el servidor padre CIVAC' : 'Los cambios se enviarán al reconectarse'}
+              </p>
+            </div>
+          </div>
+          <button onClick={handleSync} disabled={syncing || !online}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-sm transition-all disabled:opacity-40"
+            style={{ background:online?'linear-gradient(135deg,#00c8ff,#0070cc)':'rgba(255,255,255,0.05)', color:'white', boxShadow:online?'0 0 20px rgba(0,200,255,0.3)':undefined }}>
+            <RefreshCw size={14} className={syncing?'animate-spin':''}/> {syncing ? 'Sincronizando…' : 'Sincronizar ahora'}
+          </button>
+        </div>
+      </div>
+
+      {/* Sync result */}
+      {syncResult && (
+        <div className="rounded-2xl px-4 py-3 flex items-center gap-2 text-sm font-medium"
+          style={{ background:syncResult.ok?'rgba(34,197,94,0.08)':'rgba(245,158,11,0.08)', border:`1px solid rgba(${syncResult.ok?'34,197,94':'245,158,11'},0.25)`, color:syncResult.ok?'#39ff7e':'#fbbf24' }}>
+          {syncResult.ok ? <CheckCircle2 size={14}/> : <WifiOff size={14}/>} {syncResult.message}
+        </div>
+      )}
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon:'🕐', label:'Último sync',      val: fmtDt(syncInfo.lastSync).split(',')[0] ?? '—',         c:'#00c8ff' },
+          { icon:'📱', label:'Device ID',         val: syncInfo.deviceId.slice(0,12)+'…',                     c:'#00f5d4' },
+          { icon:'📋', label:'En cola',           val: String(syncInfo.pendingChanges + queue.length),         c: (syncInfo.pendingChanges+queue.length)>0?'#f59e0b':'#39ff7e' },
+          { icon:'🌐', label:'Estado red',        val: online ? 'Online' : 'Offline',                         c: online?'#39ff7e':'#f43f5e' },
+        ].map(k => (
+          <div key={k.label} className="rounded-2xl p-4" style={{ background:'linear-gradient(135deg,#001428,#001e3c)', border:'1px solid rgba(0,200,255,0.12)' }}>
+            <div className="text-2xl mb-2">{k.icon}</div>
+            <div className="text-[9px] font-bold uppercase tracking-wider mb-0.5 text-white/40">{k.label}</div>
+            <div className="text-lg font-black truncate" style={{ color:k.c, fontFamily:'Sora,sans-serif' }}>{k.val}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Queue detail */}
+      {queue.length > 0 && (
+        <div className="rounded-2xl p-4" style={{ background:'linear-gradient(135deg,#1a0800,#2a1200)', border:'1px solid rgba(245,158,11,0.2)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Zap size={14} style={{ color:'#f59e0b' }}/><span className="font-bold text-sm text-white">Cola pendiente de sync</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background:'rgba(245,158,11,0.15)', color:'#fbbf24' }}>{queue.length}</span>
+          </div>
+          <div className="space-y-1.5 max-h-40 overflow-y-auto">
+            {queue.slice(0,10).map((q,i) => (
+              <div key={i} className="flex items-center gap-2 text-[10px]">
+                <span className="text-white/40 font-mono">{q.type}</span>
+                <span className="text-white/25">·</span>
+                <span className="text-white/30">{q.id.slice(0,12)}…</span>
+                <span className="ml-auto text-white/20">{new Date(q.ts).toLocaleTimeString('es-CO')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sync schema info */}
+      <div className="rounded-2xl p-5" style={{ background:'linear-gradient(135deg,#001428,#001e3c)', border:'1px solid rgba(0,200,255,0.12)' }}>
+        <div className="flex items-center gap-2 mb-3"><Database size={14} style={{ color:'#00c8ff' }}/><span className="font-bold text-sm text-white">Esquema de Sync — CIVAC v1</span></div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {['accounts','animals','pesajes','sesiones','alertas','payments','contacts_crm','sales_crm'].map(s => (
+            <div key={s} className="flex items-center gap-1.5 text-[10px]">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background:'#00c8ff' }}/>
+              <span className="text-white/45 font-mono">{s}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[9px] text-white/20 mt-3">Servidor: {import.meta.env.VITE_SYNC_SERVER_URL ?? 'https://api.civac.co/sync/v1'} · Schema: civac-sync-v1</p>
+      </div>
     </div>
   );
 }

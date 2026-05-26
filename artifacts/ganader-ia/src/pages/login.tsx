@@ -220,6 +220,94 @@ function Particles() {
   );
 }
 
+/* ── Google Sign-In button ───────────────────────────────────────────────────── */
+function GoogleSignInButton() {
+  const { loginAs, accounts } = useAuth();
+  const [gLoading, setGLoading] = useState(false);
+  const [gErr,     setGErr]     = useState("");
+  const configured = !!(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+
+  const handleGoogle = () => {
+    if (!configured) { setGErr("Google OAuth no está configurado en esta instancia."); return; }
+    if (!window.google?.accounts?.id) { setGErr("Cargando Google Identity Services…"); return; }
+    setGLoading(true); setGErr("");
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      callback: (response: { credential: string }) => {
+        try {
+          const parts = response.credential.split(".");
+          const payload = JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/"))) as {
+            sub: string; email: string; name: string; picture?: string; given_name?: string;
+          };
+          // Check if this Google email matches an existing account
+          const existing = accounts.find(a => a.email === payload.email);
+          if (existing) {
+            loginAs(existing);
+          } else {
+            // Register as new viewer account stored in localStorage
+            const newAcc = {
+              id: `google_${payload.sub}`,
+              nombre: payload.name,
+              email: payload.email,
+              password: "",
+              role: "viewer" as const,
+              plan: "basico" as const,
+              cargo: "Usuario Google",
+              finca: "Nueva Finca",
+              avatar: payload.picture ? "" : "🙂",
+              picture: payload.picture ?? "",
+            };
+            // Save to localStorage registry
+            const reg: typeof newAcc[] = JSON.parse(localStorage.getItem("civac_google_users") ?? "[]");
+            if (!reg.find(u => u.id === newAcc.id)) { reg.push(newAcc); localStorage.setItem("civac_google_users", JSON.stringify(reg)); }
+            // Log session
+            loginAs(newAcc as Parameters<typeof loginAs>[0]);
+          }
+        } catch { setGErr("Error procesando credencial de Google."); }
+        setGLoading(false);
+      },
+    });
+    window.google.accounts.id.prompt((notification: { isNotDisplayed: () => boolean; isSkippedMoment: () => boolean }) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fallback: render button popup
+        const div = document.createElement("div");
+        div.style.cssText = "position:fixed;top:-999px;left:-999px;";
+        document.body.appendChild(div);
+        window.google.accounts.id.renderButton(div, { theme:"filled_black", size:"large" });
+        const btn = div.querySelector("div[role=button]") as HTMLElement|null;
+        btn?.click();
+        setTimeout(() => document.body.removeChild(div), 500);
+      }
+    });
+  };
+
+  return (
+    <div>
+      <button onClick={handleGoogle} disabled={gLoading}
+        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl font-bold text-sm transition-all hover:opacity-90 disabled:opacity-50"
+        style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", color:"white" }}>
+        {gLoading ? (
+          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"/>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+        )}
+        {gLoading ? "Verificando con Google…" : "Continuar con Google"}
+      </button>
+      {gErr && <p className="mt-2 text-center text-[10px]" style={{ color:"#ff6b8a" }}>{gErr}</p>}
+      {!configured && (
+        <p className="mt-1.5 text-center text-[9px]" style={{ color:"rgba(255,255,255,0.2)" }}>
+          (Google OAuth requiere configurar VITE_GOOGLE_CLIENT_ID)
+        </p>
+      )}
+    </div>
+  );
+}
+
 /* ── Main component ─────────────────────────────────────────────────────────── */
 export default function Login() {
   const { login, loginAs, accounts } = useAuth();
@@ -541,6 +629,17 @@ export default function Login() {
                         : <span className="flex items-center justify-center gap-2">Ingresar al sistema <ArrowRight className="w-4 h-4"/></span>}
                     </button>
                   </form>
+
+                  {/* ── Google Sign-In divider ── */}
+                  <div className="relative flex items-center gap-3 my-4">
+                    <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
+                    <span className="text-[10px] font-bold text-white/25 uppercase tracking-wider flex-shrink-0">o continúa con</span>
+                    <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
+                  </div>
+
+                  {/* ── Google button ── */}
+                  <GoogleSignInButton />
+
                   <div className="mt-4 pt-4 border-t text-center text-[10px] text-white/15" style={{ borderColor:"rgba(0,245,212,0.08)" }}>
                     Sistema privado GanaderIA PRO · Solo acceso autorizado
                   </div>

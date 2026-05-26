@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""
+Requirements for GanaderIA Scale Service
+Install with: pip install -r requirements.txt
+"""
+
+# Web Framework
+Flask==3.0.0
+Flask-CORS==4.0.0
+Flask-SocketIO==5.3.5
+python-socketio==5.10.0
+python-engineio==4.8.0
+
+# Serial Communication
+pyserial==3.5
+
+# Data Processing
+numpy==1.24.3
+pandas==2.0.3
+scipy==1.11.1
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Production Server
+gunicorn==21.2.0
+gevent==23.9.1
+gevent-websocket==0.10.1
+
+# Logging & Monitoring
+python-json-logger==2.0.7
+
+# Development
+python-dotenv==1.0.0
+

@@ -4,6 +4,7 @@ import {
 } from "recharts";
 import { useAppState } from "../lib/data";
 import { useAuth, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_LABEL, type PlanId } from "@/lib/auth";
+import { usePlanTheme } from "@/lib/plan-theme";
 import { useTheme } from "@/lib/theme";
 import {
   Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
@@ -84,6 +85,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const pt = usePlanTheme();
   const [chartTab, setChartTab] = useState<'produccion'|'peso'|'finanzas'>('produccion');
   const now  = new Date();
   const hour = now.getHours();
@@ -267,15 +269,18 @@ export default function Dashboard() {
                 ? `1px solid rgba(${k.glow},0.22)`
                 : `2px solid rgba(${k.glow},0.45)`,
               boxShadow: isDark
-                ? `inset 0 1px 0 rgba(255,255,255,0.06)`
-                : `0 4px 16px rgba(${k.glow},0.22), 0 1px 4px rgba(0,0,0,0.08)`,
+                ? `inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(${pt.glow},0.10), 0 0 22px rgba(${pt.glow},0.06)`
+                : `0 4px 16px rgba(${k.glow},0.22), 0 1px 4px rgba(0,0,0,0.08), 0 0 14px rgba(${pt.glow},0.08)`,
               borderRadius:20,
               padding:'14px 12px',
               animationDelay:`${i*60}ms`,
             }}
-            onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 28px rgba(${k.glow},0.35), 0 8px 30px rgba(0,0,0,0.2)`;}}
-            onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=isDark?`0 0 0 rgba(${k.glow},0)`:`0 4px 16px rgba(${k.glow},0.22), 0 1px 4px rgba(0,0,0,0.08)`;}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=`0 0 28px rgba(${k.glow},0.35), 0 8px 30px rgba(0,0,0,0.2), 0 0 16px rgba(${pt.glow},0.15)`;}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLDivElement).style.boxShadow=isDark?`inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(${pt.glow},0.10), 0 0 22px rgba(${pt.glow},0.06)`:`0 4px 16px rgba(${k.glow},0.22), 0 1px 4px rgba(0,0,0,0.08), 0 0 14px rgba(${pt.glow},0.08)`;}}
             >
+              {/* Plan metallic top stripe */}
+              <div className="absolute top-0 left-0 right-0 h-px rounded-t-[20px]"
+                style={{background: pt.cardTopStripe, opacity: 0.7}}/>
               {/* Glow blob */}
               <div className="absolute top-0 right-0 w-20 h-20 rounded-full pointer-events-none"
                 style={{background:`radial-gradient(circle,rgba(${k.glow},${isDark?'0.22':'0.18'}),transparent)`,transform:'translate(40%,-40%)',opacity:isDark?1:0.7}}/>

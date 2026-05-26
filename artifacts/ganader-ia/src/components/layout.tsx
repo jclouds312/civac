@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import { PLAN_ICON, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_LABEL } from "@/lib/auth";
 import { applyPlanTheme } from "@/lib/api";
+import { usePlanTheme } from "@/lib/plan-theme";
 
 interface LayoutProps { children: React.ReactNode; }
 
@@ -342,6 +343,7 @@ export function Layout({ children }: LayoutProps) {
   });
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const pt = usePlanTheme();
 
   const mod = MODULES[location] || MODULES['/'];
 
@@ -862,9 +864,9 @@ export function Layout({ children }: LayoutProps) {
             </Link>
 
             <Link href="/planes">
-              <button className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all"
-                style={{ color: PIÑA, background: `rgba(255,214,10,0.08)`, border: `1px solid rgba(255,214,10,0.22)`, borderRadius: 10 }}>
-                <Crown size={12} /> PRO
+              <button className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all hover:scale-105"
+                style={{ color: pt.primary, background: pt.topbarBg, border: `1px solid ${pt.topbarBorder}`, borderRadius: 10, boxShadow: `0 0 10px rgba(${pt.glow},0.18)` }}>
+                <Crown size={12} /> {pt.label}
               </button>
             </Link>
 

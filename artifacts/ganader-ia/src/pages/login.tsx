@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, type PlanId } from "@/lib/auth";
+import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, type PlanId } from "@/lib/auth";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
@@ -389,10 +389,16 @@ export default function Login() {
                   const isLoading = loadingId === account.id;
                   const plan = (account.plan ?? "basico") as PlanId;
                   const features = PLAN_FEATURES[plan];
+                  const planPrimary  = PLAN_COLOR[plan];
+                  const planSecond   = PLAN_COLOR2[plan];
+                  const planGlow     = PLAN_GLOW[plan];
                   return (
                     <div key={account.id} className="relative rounded-3xl overflow-hidden transition-all group"
-                      style={{ background:`linear-gradient(145deg,rgba(${rc.glow},0.08),rgba(${rc.glow},0.03),rgba(0,0,0,0.4))`, border:`1.5px solid rgba(${rc.glow},0.2)`, backdropFilter:"blur(16px)" }}>
-                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to},transparent)` }} />
+                      style={{ background:`linear-gradient(145deg,rgba(${planGlow},0.07),rgba(0,0,0,0.55))`, border:`1.5px solid rgba(${planGlow},0.32)`, backdropFilter:"blur(16px)", boxShadow:`0 0 18px rgba(${planGlow},0.12)` }}>
+                      {/* Plan metallic top stripe */}
+                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${planPrimary},${planSecond},transparent)` }} />
+                      {/* Role accent underline */}
+                      <div className="h-px w-1/2 opacity-35" style={{ background:`linear-gradient(90deg,${rc.from},transparent)` }} />
                       <div className="p-4 flex items-center gap-4">
                         {/* Avatar */}
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105"
@@ -443,8 +449,8 @@ export default function Login() {
                         <div className="h-0.5 rounded-full" style={{ background:"rgba(255,255,255,0.06)" }}>
                           <div className="h-full rounded-full" style={{
                             width: plan==="basico"?"25%":plan==="pro"?"50%":plan==="premium"?"75%":"100%",
-                            background:`linear-gradient(90deg,${rc.from},${rc.to})`,
-                            boxShadow:`0 0 4px rgba(${rc.glow},0.5)`
+                            background:`linear-gradient(90deg,${planPrimary},${planSecond})`,
+                            boxShadow:`0 0 4px rgba(${planGlow},0.5)`
                           }} />
                         </div>
                       </div>

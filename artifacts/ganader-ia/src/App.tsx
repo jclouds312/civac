@@ -7,6 +7,7 @@ import { Layout } from "./components/layout";
 import CivacBot from "./components/civac-bot";
 import CivacAgent from "./components/civac-agent";
 import Acerca from "./pages/acerca";
+import PlanLanding from "./pages/plan-landing";
 import { AppStateProvider } from "./lib/data";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
@@ -390,7 +391,10 @@ function App() {
           <AuthProvider>
             <AppStateProvider>
               <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <AuthGate />
+                <Switch>
+                  <Route path="/plan/:planId" component={PlanLanding} />
+                  <Route component={AuthGate} />
+                </Switch>
               </WouterRouter>
               <Toaster />
             </AppStateProvider>

@@ -84,7 +84,7 @@ const ADMIN_SECTIONS = [
 
 function AdminGate() {
   const { user, logout } = useAuth();
-  const [activeSection, setActiveSection] = useState("cuentas");
+  const [activeSection, setActiveSection] = useState("resumen");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 

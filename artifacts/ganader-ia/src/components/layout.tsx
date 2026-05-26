@@ -255,7 +255,7 @@ function PwaInstallButton({
 
   const downloadPlanConfig = () => {
     const config = {
-      civac_version: "4.2",
+      civac_version: "1.0",
       tipo: "pwa_plan_config",
       generada: new Date().toISOString(),
       usuario: user?.nombre ?? "Usuario",
@@ -777,7 +777,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: `rgba(255,214,10,0.08)` }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: 'rgba(255,214,10,0.25)' }}>
-              <Wifi size={9} /><span>CIVAC PRO v7.0 · IndexedDB · Offline PWA · Colombia</span>
+              <Wifi size={9} /><span>CIVAC PRO v1.0 · IndexedDB · Offline PWA · Colombia</span>
             </div>
           )}
           {!collapsed && (

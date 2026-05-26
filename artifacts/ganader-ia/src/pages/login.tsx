@@ -185,10 +185,10 @@ function ColombianTicker() {
   const items = [
     "🇨🇴 Hecho en Colombia · 100% Colombiano","🐄 13 Animales activos · Hato Certificado",
     "🥛 84 L/día · Producción récord","💰 $40.2M utilidad · Marzo 2026",
-    "📡 GPS Real-Time · 13 collares activos","🤖 IA Predictiva CIVAC v7.0",
+    "📡 GPS Real-Time · 13 collares activos","🤖 IA Predictiva CIVAC v1.0",
     "🩺 Sanidad ICA · Vacunas al día","🌿 -18% Huella CO₂ · Carbono neutro 2027",
     "⚖️ 3 Básculas Bluetooth vinculadas","☁️ Analytics Server ONLINE · 99.8% uptime",
-    "🔒 CIVAC PRO v7.0 · Licencia activa","🏆 #1 Software Ganadero Colombia",
+    "🔒 CIVAC PRO v1.0 · Licencia activa","🏆 #1 Software Ganadero Colombia",
   ];
   const doubled = [...items, ...items];
   return (
@@ -282,7 +282,7 @@ function RightWidgets() {
       <div className="rounded-2xl p-3"
         style={{ background:"rgba(0,0,0,0.5)", border:"1px solid rgba(168,85,247,0.2)", backdropFilter:"blur(12px)" }}>
         <div className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color:"rgba(168,85,247,0.55)" }}>
-          📦 Módulos v7
+          📦 Módulos v1
         </div>
         {[
           { name:"Productivos", val:"20", c:"#00f5d4" },
@@ -614,7 +614,7 @@ export default function Login() {
               { icon:<Smartphone size={11}/>, label:"GPS Real-Time",  c:"0,200,255",   glow:"#00c8ff" },
               { icon:<Star size={11}/>,       label:"IA Predictiva",  c:"232,121,249", glow:"#e879f9" },
               { icon:<Globe size={11}/>,      label:"22 Módulos",     c:"57,255,126",  glow:"#39ff7e" },
-              { icon:<Cpu size={11}/>,        label:"IndexedDB v7",   c:"168,85,247",  glow:"#a855f7" },
+              { icon:<Cpu size={11}/>,        label:"IndexedDB v1",   c:"168,85,247",  glow:"#a855f7" },
             ].map(p => (
               <span key={p.label}
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all hover:scale-110 cursor-default"
@@ -953,7 +953,7 @@ export default function Login() {
                     </div>
                   </div>
                   <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {["🐄 Ganadería","🌿 Agro","📡 Tech","🤖 IA","🏆 v7.0"].map(t=>(
+                    {["🐄 Ganadería","🌿 Agro","📡 Tech","🤖 IA","🏆 v1.0"].map(t=>(
                       <span key={t} className="text-[8px] px-1.5 py-0.5 rounded-full font-bold"
                         style={{ background:"rgba(252,209,22,0.1)", color:"rgba(252,209,22,0.7)", border:"1px solid rgba(252,209,22,0.2)" }}>
                         {t}
@@ -969,7 +969,7 @@ export default function Login() {
                     {[
                       { icon:"🔒", label:"SSL 256-bit",       sub:"Cifrado total" },
                       { icon:"📱", label:"PWA Offline",       sub:"Sin internet" },
-                      { icon:"🧬", label:"IndexedDB v7",      sub:"50k registros" },
+                      { icon:"🧬", label:"IndexedDB v1",      sub:"50k registros" },
                       { icon:"🛡️",  label:"DIAN Certificado", sub:"Factura elect." },
                     ].map(s => (
                       <div key={s.label} className="flex items-center gap-1.5">

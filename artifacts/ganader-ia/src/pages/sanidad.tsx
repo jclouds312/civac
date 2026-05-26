@@ -174,7 +174,7 @@ export default function Sanidad() {
                   <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif" }}>
                     Sanidad Animal
                   </h1>
-                  <p className="text-xs text-white/50">Protocolos · Tratamientos · Registros · CIVAC v7</p>
+                  <p className="text-xs text-white/50">Protocolos · Tratamientos · Registros · CIVAC v1</p>
                 </div>
               </div>
             </div>

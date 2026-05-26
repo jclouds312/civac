@@ -141,7 +141,7 @@ export default function Documentacion() {
     inicio: (
       <div className="space-y-6">
         <SectionBanner emoji="🚀" title="GanaderIA CIVAC PRO" c1="rgba(0,30,20,0.9)" c2="rgba(0,50,30,0.9)"
-          border="rgba(0,245,212,0.35)" subtitle="Sistema integral de gestión ganadera · Colombia · v7.0 · 22 módulos · IndexedDB offline"/>
+          border="rgba(0,245,212,0.35)" subtitle="Sistema integral de gestión ganadera · Colombia · v1.0 · 22 módulos · IndexedDB offline"/>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
@@ -654,7 +654,7 @@ export default function Documentacion() {
     ),
     sanidad: (
       <div className="space-y-6">
-        <SectionBanner emoji="🩺" title="Sanidad Animal v7" subtitle="Protocolos · Vacunas · Tratamientos · Alertas ICA · Historial clínico"
+        <SectionBanner emoji="🩺" title="Sanidad Animal v1" subtitle="Protocolos · Vacunas · Tratamientos · Alertas ICA · Historial clínico"
           c1="rgba(0,20,15,0.9)" c2="rgba(0,40,30,0.9)" border="rgba(0,245,212,0.35)"/>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FeatureCard icon={<Activity size={14}/>} color="#00f5d4" title="Protocolos Sanitarios"
@@ -685,7 +685,7 @@ export default function Documentacion() {
     ),
     trazabilidad: (
       <div className="space-y-6">
-        <SectionBanner emoji="🏷️" title="Trazabilidad ICA v7" subtitle="Guías de movilización · Códigos QR · Registro SINIGAN · Movimientos"
+        <SectionBanner emoji="🏷️" title="Trazabilidad ICA v1" subtitle="Guías de movilización · Códigos QR · Registro SINIGAN · Movimientos"
           c1="rgba(20,0,40,0.9)" c2="rgba(40,0,80,0.9)" border="rgba(168,85,247,0.35)"/>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FeatureCard icon={<Tag size={14}/>} color="#a855f7" title="Guías de Movilización ICA"

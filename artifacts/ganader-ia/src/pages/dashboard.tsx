@@ -68,8 +68,8 @@ function StatTicker() {
     '🐄 13 Animales activos','🥛 84 L/día producción','💰 $40.2M utilidad mes',
     '⚠ 4 alertas insumos','🌿 6 potreros gestionados','📡 GPS activo · 13 collares',
     '🤖 IA predictiva ON','🧬 DEP Score: 94.2','🌱 -18% huella CO₂',
-    '🩺 Sanidad v7 · 10 registros','🏷️ Trazabilidad ICA · activa','⚖️ 3 básculas BT vinculadas',
-    '☁️ Analytics Server ONLINE','🔒 CIVAC PRO v7.0 · Licencia activa',
+    '🩺 Sanidad v1 · 10 registros','🏷️ Trazabilidad ICA · activa','⚖️ 3 básculas BT vinculadas',
+    '☁️ Analytics Server ONLINE','🔒 CIVAC PRO v1.0 · Licencia activa',
   ];
   const doubled = [...items, ...items];
   return (
@@ -237,7 +237,7 @@ export default function Dashboard() {
                 {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                 &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
               </p>
-              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v7.0</p>
+              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v1.0</p>
             </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[

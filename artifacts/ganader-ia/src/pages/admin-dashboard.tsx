@@ -3123,6 +3123,224 @@ export default function AdminDashboard({
         </DialogContent>
       </Dialog>
 
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: LOGS & AUDITORÍA
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "logs" && (
+        <div className="space-y-4">
+          <div className="rounded-2xl p-4" style={{background:"rgba(96,165,250,0.06)",border:"1px solid rgba(96,165,250,0.2)"}}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v1.0</h3>
+              <div className="flex gap-2">
+                <button className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
+                  style={{background:"rgba(96,165,250,0.12)",color:"#60a5fa",border:"1px solid rgba(96,165,250,0.25)"}}>
+                  🔽 Exportar CSV
+                </button>
+                <button className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
+                  style={{background:"rgba(239,68,68,0.08)",color:"#f87171",border:"1px solid rgba(239,68,68,0.2)"}}>
+                  🗑️ Limpiar logs
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {[
+                {time:"Hoy 10:42",user:"admin@ganader.ia",      action:"LOGIN",        module:"Auth",       ip:"181.132.45.12",  ok:true,  detail:"Sesión iniciada — Chrome 124 · Bogotá"},
+                {time:"Hoy 10:38",user:"vet@ganader.ia",        action:"CONSULTA",     module:"Inventario", ip:"190.25.134.88",  ok:true,  detail:"Listado 13 animales · filtro: activos"},
+                {time:"Hoy 10:30",user:"luis@ganader.ia",       action:"PESAJE",       module:"Pesaje BT",  ip:"181.78.99.201",  ok:true,  detail:"Vaca CIVA-007 · 382 kg · BT Tru-Test"},
+                {time:"Hoy 09:55",user:"visor@ganader.ia",      action:"EXPORT",       module:"Costos",     ip:"190.144.22.55",  ok:true,  detail:"Descarga CSV P&G Mayo 2026"},
+                {time:"Hoy 09:22",user:"admin@ganader.ia",      action:"CREAR",        module:"Usuarios",   ip:"181.132.45.12",  ok:true,  detail:"Nueva cuenta: vendedora@civac.co · Plan PRO"},
+                {time:"Ayer 17:45",user:"???@externo.com",      action:"LOGIN_FAIL",   module:"Auth",       ip:"195.220.11.4",   ok:false, detail:"Contraseña inválida — IP bloqueada 30 min"},
+                {time:"Ayer 16:30",user:"admin@ganader.ia",     action:"PLAN_UPGRADE", module:"Planes",     ip:"181.132.45.12",  ok:true,  detail:"vet@ganader.ia: PRO → Premium"},
+                {time:"Ayer 14:12",user:"dev@civac.co",         action:"FEATURE_FLAG", module:"Dev Panel",  ip:"127.0.0.1",      ok:true,  detail:"Flag 'ai_prediccion' → enabled"},
+                {time:"Ayer 11:05",user:"super@civac.co",       action:"SISTEMA",      module:"Admin",      ip:"localhost",      ok:true,  detail:"Restart Analytics Server · uptime 99.8%"},
+                {time:"Hace 2 días",user:"admin@ganader.ia",    action:"DELETE",       module:"Usuarios",   ip:"181.132.45.12",  ok:true,  detail:"Eliminada cuenta: test@civac.co"},
+              ].map((log,i) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-xl transition-all hover:bg-white/3"
+                  style={{background:"rgba(255,255,255,0.02)",border:`1px solid rgba(${log.ok?"96,165,250":"239,68,68"},0.15)`}}>
+                  <div className="text-xs font-mono px-2 py-0.5 rounded-lg flex-shrink-0 mt-0.5"
+                    style={{background:log.ok?"rgba(52,211,153,0.1)":"rgba(239,68,68,0.1)",color:log.ok?"#34d399":"#f87171",border:`1px solid ${log.ok?"rgba(52,211,153,0.25)":"rgba(239,68,68,0.25)"}`}}>
+                    {log.ok ? "✓" : "✗"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black" style={{color:log.ok?"#60a5fa":"#f87171"}}>{log.action}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold text-white/50" style={{background:"rgba(255,255,255,0.05)"}}>{log.module}</span>
+                      <span className="text-[9px] text-white/25 font-mono">{log.ip}</span>
+                    </div>
+                    <p className="text-[10px] text-white/50 mt-0.5 truncate">{log.user} · {log.detail}</p>
+                  </div>
+                  <span className="text-[9px] text-white/25 flex-shrink-0">{log.time}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-center text-[10px] text-white/25">
+              Mostrando últimas 10 entradas · Total en BD: 2,847 eventos · Retención: 90 días
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: SOPORTE
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "soporte" && (
+        <div className="space-y-4">
+          {/* KPI row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              {label:"Tickets abiertos",  val:"3",  sub:"2 sin respuesta",  c:"#f472b6", g:"244,114,182"},
+              {label:"Resueltos hoy",     val:"7",  sub:"< 2h promedio",    c:"#34d399", g:"52,211,153"},
+              {label:"CSAT Score",        val:"4.8",sub:"de 5.0 · 32 reseñas",c:"#fbbf24",g:"251,191,36"},
+              {label:"WhatsApp pendientes",val:"5", sub:"Línea soporte",    c:"#00f5d4", g:"0,245,212"},
+            ].map(k=>(
+              <div key={k.label} className="rounded-2xl p-4" style={{background:`rgba(${k.g},0.07)`,border:`1px solid rgba(${k.g},0.2)`}}>
+                <div className="text-2xl font-black" style={{color:k.c}}>{k.val}</div>
+                <div className="text-[10px] font-bold text-white/70 mt-0.5">{k.label}</div>
+                <div className="text-[9px] text-white/30">{k.sub}</div>
+              </div>
+            ))}
+          </div>
+          {/* Tickets */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(244,114,182,0.2)"}}>
+            <div className="px-4 py-3 flex items-center justify-between"
+              style={{background:"rgba(244,114,182,0.06)",borderBottom:"1px solid rgba(244,114,182,0.12)"}}>
+              <span className="text-sm font-bold text-white">🎧 Tickets de Soporte</span>
+              <button className="px-3 py-1.5 rounded-xl text-xs font-bold"
+                style={{background:"rgba(244,114,182,0.12)",color:"#f472b6",border:"1px solid rgba(244,114,182,0.3)"}}>
+                + Nuevo ticket
+              </button>
+            </div>
+            <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.05)"}}>
+              {[
+                {id:"TK-041",cliente:"Dr. Carlos Ramírez",  asunto:"GPS collar #7 sin señal",               estado:"abierto",     prioridad:"alta",   plan:"premium", canal:"WhatsApp", hace:"5 min"},
+                {id:"TK-040",cliente:"Luis Patiño",         asunto:"Error al exportar CSV pesaje",          estado:"en_progreso", prioridad:"media",  plan:"pro",     canal:"Email",     hace:"1 h"},
+                {id:"TK-039",cliente:"Inversiones Bovinas", asunto:"Solicitud módulo multi-tenant",          estado:"abierto",     prioridad:"alta",   plan:"platino", canal:"Teléfono",  hace:"2 h"},
+                {id:"TK-038",cliente:"Agropecuaria Santos", asunto:"Error al procesar pago PSE",             estado:"resuelto",    prioridad:"urgente",plan:"pro",     canal:"WhatsApp", hace:"3 h"},
+                {id:"TK-037",cliente:"Finca El Palmar",     asunto:"¿Cómo vincular báscula Gallagher W210?", estado:"resuelto",    prioridad:"baja",   plan:"basico",  canal:"Email",     hace:"1 día"},
+                {id:"TK-036",cliente:"Ana Lucía Torres",    asunto:"Capacitación módulo Reproducción",       estado:"resuelto",    prioridad:"media",  plan:"premium", canal:"Video",    hace:"2 días"},
+              ].map(t=>{
+                const ec = t.estado==="abierto"?"#f472b6":t.estado==="en_progreso"?"#fbbf24":"#34d399";
+                const eg = t.estado==="abierto"?"244,114,182":t.estado==="en_progreso"?"251,191,36":"52,211,153";
+                const pc = t.prioridad==="urgente"?"#f87171":t.prioridad==="alta"?"#fb923c":t.prioridad==="media"?"#fbbf24":"#94a3b8";
+                return (
+                  <div key={t.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/2 transition-colors">
+                    <div className="w-16 flex-shrink-0">
+                      <div className="text-[9px] font-mono font-bold text-white/40">{t.id}</div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm text-white truncate">{t.asunto}</div>
+                      <div className="text-[10px] text-white/40">{t.cliente} · {t.canal} · {t.hace}</div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-[9px] font-bold" style={{color:pc}}>⬤ {t.prioridad}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black" style={{background:`rgba(${eg},0.12)`,color:ec,border:`1px solid rgba(${eg},0.3)`}}>
+                        {t.estado.replace("_"," ")}
+                      </span>
+                      <button className="px-2 py-1 rounded-lg text-[9px] font-bold hover:opacity-80 transition-opacity"
+                        style={{background:"rgba(255,255,255,0.06)",color:"rgba(255,255,255,0.5)"}}>
+                        Ver →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* Quick contact channels */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              {emoji:"💬",label:"WhatsApp Soporte",sub:"+57 300 CIVAC 00",color:"#25D366",g:"37,211,102"},
+              {emoji:"📧",label:"Email Soporte",   sub:"soporte@softgan.com.co",color:"#0ea5e9",g:"14,165,233"},
+              {emoji:"📞",label:"Línea Directa",   sub:"01-8000-CIVAC-CO",color:"#f472b6",g:"244,114,182"},
+            ].map(c=>(
+              <div key={c.label} className="rounded-2xl p-4 text-center" style={{background:`rgba(${c.g},0.07)`,border:`1px solid rgba(${c.g},0.2)`}}>
+                <div className="text-3xl mb-2">{c.emoji}</div>
+                <div className="text-sm font-black text-white">{c.label}</div>
+                <div className="text-[10px] mt-1" style={{color:`rgba(${c.g},0.7)`}}>{c.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: SEGURIDAD
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "seguridad" && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Intentos fallidos */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(248,113,113,0.06)",border:"1px solid rgba(248,113,113,0.2)"}}>
+              <h3 className="font-bold text-white mb-3 flex items-center gap-2"><span>🚨</span> Intentos de acceso fallidos (30 días)</h3>
+              <div className="space-y-2">
+                {[
+                  {ip:"195.220.11.4",  intentos:14, pais:"RU", bloq:true,  ultimo:"Hoy 09:22"},
+                  {ip:"45.33.32.156",  intentos:7,  pais:"US", bloq:true,  ultimo:"Ayer 23:10"},
+                  {ip:"190.144.22.55", intentos:3,  pais:"CO", bloq:false, ultimo:"Hace 3 días"},
+                  {ip:"103.21.244.0",  intentos:22, pais:"CN", bloq:true,  ultimo:"Hace 5 días"},
+                ].map(ip=>(
+                  <div key={ip.ip} className="flex items-center justify-between p-2 rounded-xl" style={{background:"rgba(255,255,255,0.03)"}}>
+                    <div>
+                      <span className="font-mono text-xs text-white/70">{ip.ip}</span>
+                      <span className="text-[9px] ml-2 text-white/30">{ip.pais} · {ip.ultimo}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] font-bold text-red-400">{ip.intentos} intentos</span>
+                      <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${ip.bloq?"bg-red-500/15 text-red-400 border border-red-500/30":"bg-yellow-500/10 text-yellow-400"}`}>
+                        {ip.bloq?"Bloqueada":"Monitoreando"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Política de contraseñas */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.2)"}}>
+              <h3 className="font-bold text-white mb-3 flex items-center gap-2"><span>🔒</span> Política de Seguridad</h3>
+              <div className="space-y-3">
+                {[
+                  {label:"Longitud mínima contraseña",    val:"8 caracteres",      ok:true},
+                  {label:"Autenticación 2FA",             val:"Opcional (JWT)",     ok:true},
+                  {label:"Sesión máxima inactiva",        val:"8 horas",           ok:true},
+                  {label:"Bloqueo por intentos fallidos", val:"5 intentos → 30 min",ok:true},
+                  {label:"Cifrado en tránsito",           val:"HTTPS / TLS 1.3",   ok:true},
+                  {label:"Logs de auditoría",             val:"90 días retención",  ok:true},
+                  {label:"Rate limiting API",             val:"100 req/min/IP",     ok:true},
+                  {label:"Dominio autorizado CIVAC",      val:"civac.pro · replit", ok:true},
+                ].map(r=>(
+                  <div key={r.label} className="flex items-center justify-between">
+                    <span className="text-xs text-white/60">{r.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white/80">{r.val}</span>
+                      <CheckCircle size={12} style={{color:"#34d399"}}/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Certificados */}
+          <div className="rounded-2xl p-4" style={{background:"rgba(96,165,250,0.06)",border:"1px solid rgba(96,165,250,0.15)"}}>
+            <h3 className="font-bold text-white mb-3 flex items-center gap-2"><span>🛡️</span> Certificados y Cumplimiento</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                {emoji:"🏛️",label:"DIAN Colombia",sub:"Factura electrónica",ok:true},
+                {emoji:"🔐",label:"SSL/TLS 1.3",sub:"Cifrado extremo a extremo",ok:true},
+                {emoji:"📊",label:"GDPR Básico",sub:"Protección de datos",ok:true},
+                {emoji:"🇨🇴",label:"Ley 1581/2012",sub:"Habeas Data Colombia",ok:true},
+              ].map(c=>(
+                <div key={c.label} className="rounded-xl p-3 text-center" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(96,165,250,0.12)"}}>
+                  <div className="text-2xl mb-1">{c.emoji}</div>
+                  <div className="text-[10px] font-black text-white">{c.label}</div>
+                  <div className="text-[9px] text-white/40 mt-0.5">{c.sub}</div>
+                  <div className="mt-1.5 text-[9px] font-bold text-green-400">✓ Activo</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete confirm */}
       <Dialog open={!!deleteTarget} onOpenChange={v=>{if(!v)setDeleteTarget(null);}}>
         <DialogContent className="sm:max-w-sm">

@@ -17,30 +17,30 @@ import {
 
 /* ── Version history ────────────────────────────────────────────────────── */
 const CIVAC_VERSIONS = [
-  { v:"4.3.0", date:"2026-05-21", status:"current", tag:"stable",
-    changes:["Nuevos roles: Developer + SuperAdmin","Version management panel","Plan-based PWA install + popup","Generación de licencias JSON por usuario","Fix: registerUser preserva plan asignado","Módulos tab completo con matriz"],
-    plans:{ basico:"4.2.1", pro:"4.2.1", premium:"4.3.0", platino:"4.3.0" },
-    notes:"Release mayor: gestión de versiones y nuevos roles avanzados.",
+  { v:"1.0.0", date:"2026-05-26", status:"current", tag:"stable",
+    changes:["Panel Admin 14 tabs completo (Logs, Soporte, Seguridad)","Sidebar Admin expandido con todos los módulos","v1.0 branding unificado en toda la plataforma","Login redesign con widgets animados Colombia","Nuevos roles: Developer + SuperAdmin","Plan-based PWA install + popup","Generación de licencias JSON por usuario"],
+    plans:{ basico:"1.0.0", pro:"1.0.0", premium:"1.0.0", platino:"1.0.0" },
+    notes:"Release oficial v1.0 — plataforma CIVAC PRO Colombia.",
   },
-  { v:"4.2.1", date:"2026-05-10", status:"stable", tag:"lts",
-    changes:["Fix plan hardcode en registerUser","Módulos tab admin con filtros","Botón licencia JSON en cuentas","Admin dashboard plan-aware"],
-    plans:{ basico:"4.2.1", pro:"4.2.1", premium:"4.2.1", platino:"4.2.1" },
-    notes:"Patch de estabilidad post-v4.2.",
+  { v:"0.9.5", date:"2026-05-21", status:"stable", tag:"lts",
+    changes:["Nuevos roles: Developer + SuperAdmin","Version management panel","Módulos tab completo con matriz de permisos","Generación de licencias JSON por usuario","Fix: registerUser preserva plan asignado"],
+    plans:{ basico:"0.9.5", pro:"0.9.5", premium:"0.9.5", platino:"0.9.5" },
+    notes:"Release candidato estable pre-v1.0.",
   },
-  { v:"4.2.0", date:"2026-04-28", status:"stable", tag:"stable",
-    changes:["Pesaje CIVAC BT 9-byte parser","RFID lector CIVAC","Tab estadísticas pesaje","CSV export historial","IA predict GDP"],
-    plans:{ basico:"4.1.0", pro:"4.2.0", premium:"4.2.0", platino:"4.2.0" },
+  { v:"0.9.0", date:"2026-04-28", status:"stable", tag:"stable",
+    changes:["Pesaje CIVAC BT 9-byte parser","RFID lector CIVAC","Tab estadísticas pesaje","CSV export historial","IA predict GMD","Bluetooth Web API integración"],
+    plans:{ basico:"0.9.0", pro:"0.9.0", premium:"0.9.0", platino:"0.9.0" },
     notes:"Release Pesaje Automatizado con Bluetooth.",
   },
-  { v:"4.1.0", date:"2026-03-15", status:"stable", tag:"stable",
-    changes:["Admin dashboard 8 tabs completo","Wompi payments integración","Session management + revoke","API keys + webhooks"],
-    plans:{ basico:"4.1.0", pro:"4.1.0", premium:"4.1.0", platino:"4.1.0" },
-    notes:"Platform release — monetización completa.",
+  { v:"0.8.0", date:"2026-03-15", status:"stable", tag:"stable",
+    changes:["Admin dashboard 12 tabs completo","Wompi payments integración Colombia","Session management + revoke","API keys + webhooks externos"],
+    plans:{ basico:"0.8.0", pro:"0.8.0", premium:"0.8.0", platino:"0.8.0" },
+    notes:"Platform release — monetización completa Colombia.",
   },
-  { v:"4.0.0", date:"2026-01-10", status:"archived", tag:"legacy",
-    changes:["Visual overhaul v4 completo","Dark navy / warm cream","Holstein cow logo SVG","PWA service worker v6"],
-    plans:{ basico:"4.0.0", pro:"4.0.0", premium:"4.0.0", platino:"4.0.0" },
-    notes:"Major redesign release.",
+  { v:"0.5.0", date:"2026-01-10", status:"archived", tag:"legacy",
+    changes:["Visual overhaul MVP completo","Dark navy / warm cream theme","Holstein cow logo SVG CIVAC","PWA service worker v6 · offline shell"],
+    plans:{ basico:"0.5.0", pro:"0.5.0", premium:"0.5.0", platino:"0.5.0" },
+    notes:"MVP inicial GanaderIA Colombia.",
   },
 ];
 
@@ -60,7 +60,7 @@ const FEATURE_FLAGS_DEFAULT = [
 ];
 
 const BUILD_INFO = {
-  version: "4.3.0", build: "2026-05-21.0001", commit: "6eaf326f",
+  version: "1.0.0", build: "2026-05-26.0001", commit: "1a0f5d9c",
   branch: "main", env: "production",
   node: "24.x", react: "18.3.1", vite: "5.x", typescript: "5.9.x",
   tailwind: "4.x", shadcn: "latest", recharts: "2.x", wouter: "3.x",
@@ -97,7 +97,7 @@ export default function DeveloperDashboard() {
   const [tab, setTab]           = useState<TabId>("resumen");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [flags, setFlags]       = useState(FEATURE_FLAGS_DEFAULT);
-  const [activeVer, setActiveVer] = useState("4.3.0");
+  const [activeVer, setActiveVer] = useState("1.0.0");
   const [newVerOpen, setNewVerOpen] = useState(false);
   const [newVerNum, setNewVerNum] = useState("");
   const [newVerNotes, setNewVerNotes] = useState("");
@@ -179,13 +179,13 @@ export default function DeveloperDashboard() {
     {t:"DEBUG",  msg:"[2026-05-21 11:42] HMR update · components/layout.tsx · +23 módulos",     c:"#a3a3a3"},
     {t:"INFO",   msg:"[2026-05-21 11:40] Build exitoso · 312 KB · gzip 89 KB",                  c:G},
     {t:"INFO",   msg:"[2026-05-21 11:38] TypeScript check · 0 errors · 0 warnings",             c:G},
-    {t:"INFO",   msg:"[2026-05-21 11:35] Auth version bump → 4.3.0 · 6 cuentas cargadas",       c:C},
+    {t:"INFO",   msg:"[2026-05-26 11:35] Auth version bump → 1.0.0 · 6 cuentas cargadas",       c:C},
     {t:"WARN",   msg:"[2026-05-21 10:22] Bundle size excede 300 KB target (actual: 312 KB)",    c:"#fbbf24"},
     {t:"INFO",   msg:"[2026-05-21 10:18] Service Worker v6 registrado · scope /",               c:C},
     {t:"INFO",   msg:"[2026-05-21 10:15] Feature flag 'audit_log' desactivado",                 c:G},
     {t:"DEBUG",  msg:"[2026-05-21 09:58] Vite dev server en puerto 5000",                       c:"#a3a3a3"},
     {t:"ERROR",  msg:"[2026-05-20 16:40] Pago rechazado — CIVAC-2026-005 · timeout Wompi",     c:"#f87171"},
-    {t:"INFO",   msg:"[2026-05-20 14:12] localStorage migración → v4.3.0 · OK",                c:G},
+    {t:"INFO",   msg:"[2026-05-26 14:12] localStorage migración → v1.0.0 · OK",                c:G},
   ];
   const filteredLogs = LOGS_MOCK.filter(l=> logFilter==="all" || l.t===logFilter);
 

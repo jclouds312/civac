@@ -12,7 +12,7 @@ import {
   Database, Download, Upload, RefreshCw, CheckCircle2, AlertTriangle,
   HardDrive, Archive, FileJson, FileText, Clock, Shield,
   Layers, Zap, Package, WifiOff, Smartphone, RotateCcw,
-  FolderOpen, CloudOff, Lock, TrendingUp, ChevronRight,
+  FolderOpen, CloudOff, Lock, TrendingUp, ChevronRight, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -725,7 +725,7 @@ function SesionesBD({ user }: { user: ReturnType<typeof useAuth>['user'] }) {
       email: user.email,
       nombre: user.nombre,
       role: user.role,
-      plan: user.plan,
+      plan: user.plan ?? 'basico',
       loginAt: new Date().toISOString(),
       device: navigator.userAgent.slice(0, 80),
     };
@@ -836,7 +836,18 @@ function CuentasBD() {
 
   const allAccounts: Array<Account & { isGoogle?: boolean }> = [
     ...accounts,
-    ...googleUsers.map(u => ({ ...u, role: 'viewer' as const, plan: (u.plan ?? 'basico') as Account['plan'], password: '', avatar: '🙂', finca: 'Google', isGoogle: true, cargo: u.cargo ?? 'Usuario Google' })),
+    ...googleUsers.map(u => ({
+      ...u,
+      role: 'viewer' as const,
+      plan: (u.plan ?? 'basico') as Account['plan'],
+      password: '',
+      avatar: '🙂',
+      finca: 'Google',
+      isGoogle: true,
+      cargo: u.cargo ?? 'Usuario Google',
+      gradient: 'from-[#4a148c] to-[#6a1b9a]',
+      permisos: ['inventario','produccion','alertas'],
+    })),
   ];
 
   return (
@@ -917,7 +928,7 @@ function SyncBD({ user, stateMap }: { user: ReturnType<typeof useAuth>['user']; 
   const handleSync = async () => {
     if (!user) return;
     setSyncing(true); setSyncResult(null);
-    const payload = buildSyncPayload(user.id ?? user.email, user.plan);
+    const payload = buildSyncPayload(user.id, user.plan ?? 'basico');
     // Inject some real data
     payload.data.animals = stateMap.animals ?? [];
     payload.data.pesajes  = stateMap.pesajes ?? [];

@@ -736,6 +736,7 @@ export function Layout({ children }: LayoutProps) {
           </Section>
           <Section title="Ventas CRM">
             <NavItem href="/ventas" accent="CRM" accentColor="bg-[#e879f9]/15 text-[#e879f9] border-[#e879f9]/25" />
+            <NavItem href="/drive" accent="NUBE" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
           </Section>
           <Section title="Gestión">
             <NavItem href="/insumos" badge={3} />

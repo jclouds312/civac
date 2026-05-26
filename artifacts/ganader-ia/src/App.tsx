@@ -45,6 +45,7 @@ import Planes from "./pages/planes";
 import Lotes from "./pages/lotes";
 import Datos from "./pages/datos";
 import Asesora from "./pages/asesora";
+import GpsChips from "./pages/gps-chips";
 import Ventas from "./pages/ventas";
 import VentasDashboard from "./pages/ventas-dashboard";
 import Drive from "./pages/drive";
@@ -306,6 +307,7 @@ function AuthGate() {
           <Route path="/pesaje" component={Pesaje} />
           <Route path="/pesaje-manual" component={PesajeManual} />
           <Route path="/gps" component={Gps} />
+          <Route path="/gps-chips" component={GpsChips} />
           <Route path="/planes" component={Planes} />
           <Route path="/lotes" component={Lotes} />
           <Route path="/datos" component={Datos} />
@@ -350,6 +352,7 @@ function AuthGate() {
         <Route path="/ventas" component={Ventas} />
         <Route path="/drive" component={Drive} />
         <Route path="/asesora" component={Asesora} />
+        <Route path="/gps-chips" component={GpsChips} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

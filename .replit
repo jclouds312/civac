@@ -30,6 +30,10 @@ args = "GanaderIA Frontend"
 task = "workflow.run"
 args = "Analytics Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "GPS Server"
+
 [[workflows.workflow]]
 name = "API Server"
 author = "agent"
@@ -66,6 +70,18 @@ waitForPort = 8099
 [workflows.workflow.metadata]
 outputType = "console"
 
+[[workflows.workflow]]
+name = "GPS Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8000 bash artifacts/gps-server/start.sh"
+waitForPort = 8000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
@@ -77,6 +93,10 @@ timeoutMs = 20000
 [[ports]]
 localPort = 5000
 externalPort = 5000
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
 
 [[ports]]
 localPort = 8080

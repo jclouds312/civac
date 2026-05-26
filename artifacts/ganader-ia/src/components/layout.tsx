@@ -6,7 +6,7 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles,
+  Sparkles, Satellite,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
@@ -64,6 +64,7 @@ const MODULES: Record<string, ModuleDef> = {
   '/ventas':        { icon: ShoppingBag,     from:'#e879f9', to:'#a855f7', glow:'232,121,249',  emoji:'💼', label:'Asesora de Ventas',    shortLabel:'CRM'       },
   '/drive':         { icon: Cloud,           from:'#00c8ff', to:'#0070cc', glow:'0,200,255',    emoji:'☁️', label:'Google Drive',          shortLabel:'Drive'     },
   '/asesora':       { icon: Sparkles,        from:'#a855f7', to:'#7c3aed', glow:'168,85,247',   emoji:'🤖', label:'Asesora IA',            shortLabel:'Asesora'   },
+  '/gps-chips':     { icon: Satellite,       from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',    emoji:'📡', label:'GPS Chips',             shortLabel:'Chips'     },
 };
 
 /* ── Plan-based route access ───────────────────────────────────────────────── */
@@ -71,15 +72,15 @@ const PLAN_ROUTES: Record<string, string[]> = {
   basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros'],
   pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
-            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
+            '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/ventas', '/asesora'],
   premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
-            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
+            '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive', '/asesora'],
   platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
-            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
+            '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
             '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas', '/drive', '/asesora'],
 };
@@ -91,7 +92,8 @@ const PLAN_REQUIRED: Record<string, string> = {
   '/pesaje-manual': 'PREMIUM', '/co2': 'PREMIUM', '/lotes': 'PREMIUM', '/datos': 'PREMIUM', '/drive': 'PREMIUM',
   '/usuarios': 'PLATINO', '/configuracion': 'PLATINO', '/documentacion': 'PLATINO',
   '/manual': 'PLATINO', '/planes': 'PLATINO',
-  '/asesora': 'PRO',
+  '/asesora':   'PRO',
+  '/gps-chips': 'PRO',
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -737,6 +739,7 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/potreros" />
             <NavItem href="/alimentacion" />
             <NavItem href="/gps" accent="GPS" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
+            <NavItem href="/gps-chips" accent="Chips" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
           </Section>
           <Section title="Ventas CRM">
             <NavItem href="/ventas" accent="CRM" accentColor="bg-[#e879f9]/15 text-[#e879f9] border-[#e879f9]/25" />

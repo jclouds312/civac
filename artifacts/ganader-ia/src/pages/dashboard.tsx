@@ -6,6 +6,7 @@ import { useAppState } from "../lib/data";
 import { useAuth, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_LABEL, type PlanId } from "@/lib/auth";
 import { usePlanTheme } from "@/lib/plan-theme";
 import { useTheme } from "@/lib/theme";
+import { PlanWidgets } from "@/components/plan-widgets";
 import {
   Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
   ChevronRight, Activity, Zap, Target, BarChart2, Printer,
@@ -331,6 +332,9 @@ export default function Dashboard() {
           </Link>
         ))}
       </div>
+
+      {/* ── PLAN WIDGETS ─────────────────────────────────────────────────── */}
+      <PlanWidgets />
 
       {/* ── ANALYTICS ROW ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">

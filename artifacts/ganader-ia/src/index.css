@@ -243,6 +243,29 @@
   --lm-table-hdr:  rgba(0,212,184,0.08);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME TRANSITIONS — smooth dark/light switch
+   ═══════════════════════════════════════════════════════════════════════════ */
+html {
+  transition: background-color 0.30s ease, color 0.25s ease;
+  color-scheme: dark light;
+}
+body {
+  transition: background-color 0.30s ease, color 0.25s ease;
+}
+main {
+  transition: background 0.30s ease;
+}
+/* Cards & panels */
+.card, [class*="lm-card"], [class*="glass-"], .card-lift, .kpi-card, .module-card {
+  transition: background 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, color 0.25s ease !important;
+}
+/* Do NOT transition hover-animated elements (would slow hover effects) */
+button, a, [role="button"] {
+  transition: background-color 0.15s ease, color 0.12s ease, border-color 0.15s ease,
+              transform 0.12s ease, box-shadow 0.15s ease, opacity 0.12s ease;
+}
+
 @layer base {
   * { @apply border-border; box-sizing: border-box; }
   body { @apply font-sans antialiased bg-background text-foreground; }

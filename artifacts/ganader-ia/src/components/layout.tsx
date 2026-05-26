@@ -113,119 +113,177 @@ const ROLE_LABELS: Record<string, string> = {
   admin:'Admin', vet:'Veterinario', field:'Campo', viewer:'Visor', sales:'Ventas CRM'
 };
 
-/* ─── Logo vaca moderna GanaderIA ─────────────────────────────────────────── */
+/* ─── Logo vaca moderna GanaderIA — PRO v7 ────────────────────────────────── */
 function CivacLogo({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="lgBg1" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#0e3a20"/><stop offset="1" stopColor="#082818"/>
+          <stop stopColor="#071428"/><stop offset="0.5" stopColor="#0a1e38"/><stop offset="1" stopColor="#061020"/>
         </linearGradient>
-        <radialGradient id="lgBgR" cx="35%" cy="28%" r="55%">
-          <stop stopColor="#1a6640" stopOpacity="0.5"/>
-          <stop offset="1" stopColor="#082818" stopOpacity="0"/>
+        <radialGradient id="lgBgR" cx="30%" cy="25%" r="60%">
+          <stop stopColor="#1a4a30" stopOpacity="0.55"/>
+          <stop offset="0.6" stopColor="#0e2a18" stopOpacity="0.2"/>
+          <stop offset="1" stopColor="#061020" stopOpacity="0"/>
+        </radialGradient>
+        <radialGradient id="lgBgR2" cx="70%" cy="80%" r="55%">
+          <stop stopColor="#0a1e50" stopOpacity="0.40"/>
+          <stop offset="1" stopColor="#061020" stopOpacity="0"/>
         </radialGradient>
         <linearGradient id="lgBody" x1="0.1" y1="0" x2="0.9" y2="1">
-          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#d8d0b8"/>
+          <stop stopColor="#f2efe2"/><stop offset="1" stopColor="#d4ccb0"/>
         </linearGradient>
         <linearGradient id="lgHead" x1="0" y1="0" x2="0.5" y2="1">
-          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#ccc4a8"/>
+          <stop stopColor="#f0ede0"/><stop offset="1" stopColor="#c8c0a0"/>
         </linearGradient>
         <linearGradient id="lgMuzzle" x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="#e8c8b0"/><stop offset="1" stopColor="#d0a888"/>
+          <stop stopColor="#eac8a8"/><stop offset="1" stopColor="#c8a078"/>
         </linearGradient>
         <linearGradient id="lgHorn" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#f5d878"/><stop offset="1" stopColor="#c8a030"/>
+          <stop stopColor="#ffe090"/><stop offset="1" stopColor="#c09028"/>
         </linearGradient>
         <linearGradient id="lgSpot1" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#3a2818"/><stop offset="1" stopColor="#281808"/>
+          <stop stopColor="#3a2010"/><stop offset="1" stopColor="#201008"/>
         </linearGradient>
         <linearGradient id="lgEar" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#ddd4b8"/><stop offset="1" stopColor="#b8a880"/>
+          <stop stopColor="#e0d8b8"/><stop offset="1" stopColor="#b0a878"/>
         </linearGradient>
         <linearGradient id="lgChip" x1="0" y1="0" x2="1" y2="1">
           <stop stopColor="#FFD60A"/><stop offset="1" stopColor="#F59E0B"/>
         </linearGradient>
         <linearGradient id="lgCirc" x1="0" y1="0" x2="1" y2="0">
-          <stop stopColor="#FFD60A"/><stop offset="0.5" stopColor="#00c8ff"/><stop offset="1" stopColor="#FFD60A"/>
+          <stop stopColor="#FFD60A"/><stop offset="0.4" stopColor="#00f5d4"/><stop offset="1" stopColor="#FFD60A"/>
         </linearGradient>
         <linearGradient id="lgBorder" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#FFD60A" stopOpacity="0.8"/>
-          <stop offset="0.5" stopColor="#2aaa60" stopOpacity="0.5"/>
-          <stop offset="1" stopColor="#F59E0B" stopOpacity="0.7"/>
+          <stop stopColor="#FFD60A" stopOpacity="0.9"/>
+          <stop offset="0.35" stopColor="#00f5d4" stopOpacity="0.6"/>
+          <stop offset="0.65" stopColor="#2aaa60" stopOpacity="0.5"/>
+          <stop offset="1" stopColor="#F59E0B" stopOpacity="0.8"/>
+        </linearGradient>
+        <linearGradient id="lgBorder2" x1="1" y1="0" x2="0" y2="1">
+          <stop stopColor="#00c8ff" stopOpacity="0.35"/>
+          <stop offset="1" stopColor="#FFD60A" stopOpacity="0.20"/>
         </linearGradient>
         <radialGradient id="lgEye" cx="38%" cy="32%" r="65%">
           <stop stopColor="#4a3020"/><stop offset="0.5" stopColor="#281808"/><stop offset="1" stopColor="#180c04"/>
         </radialGradient>
-        <filter id="lgGlow" x="-25%" y="-25%" width="150%" height="150%">
-          <feGaussianBlur stdDeviation="2.5" result="b"/>
+        <radialGradient id="lgRfid" cx="40%" cy="35%" r="60%">
+          <stop stopColor="#FFD60A"/><stop offset="1" stopColor="#c09028"/>
+        </radialGradient>
+        <filter id="lgGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="2.8" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="lgGlow2" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.8" result="b"/>
           <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
         <filter id="lgShadow" x="-10%" y="-10%" width="120%" height="120%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000" floodOpacity="0.35"/>
+          <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000" floodOpacity="0.4"/>
         </filter>
         <filter id="lgInner" x="-5%" y="-5%" width="110%" height="110%">
-          <feDropShadow dx="0" dy="1" stdDeviation="1.5" floodColor="#000" floodOpacity="0.25"/>
+          <feDropShadow dx="0" dy="1" stdDeviation="1.8" floodColor="#000" floodOpacity="0.28"/>
         </filter>
-        <linearGradient id="lgShine" x1="0" y1="0" x2="0.3" y2="1">
-          <stop stopColor="white" stopOpacity="0.18"/><stop offset="1" stopColor="white" stopOpacity="0"/>
+        <filter id="lgOuterGlow" x="-15%" y="-15%" width="130%" height="130%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feColorMatrix in="b" type="matrix" values="1 0.8 0 0 0  0.8 0.6 0 0 0  0 0 0 0 0  0 0 0 0.6 0" result="g"/>
+          <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="lgShine" x1="0.05" y1="0" x2="0.35" y2="1">
+          <stop stopColor="white" stopOpacity="0.20"/><stop offset="1" stopColor="white" stopOpacity="0"/>
         </linearGradient>
-        <radialGradient id="lgRfid" cx="40%" cy="35%" r="60%">
-          <stop stopColor="#FFD60A"/><stop offset="1" stopColor="#c8a030"/>
-        </radialGradient>
+        <linearGradient id="lgShine2" x1="0.65" y1="0.5" x2="1" y2="1">
+          <stop stopColor="#00c8ff" stopOpacity="0.08"/><stop offset="1" stopColor="#00c8ff" stopOpacity="0"/>
+        </linearGradient>
       </defs>
-      <rect width="120" height="120" rx="26" fill="url(#lgBg1)"/>
-      <rect width="120" height="120" rx="26" fill="url(#lgBgR)"/>
+
+      {/* Background layers */}
+      <rect width="120" height="120" rx="28" fill="url(#lgBg1)"/>
+      <rect width="120" height="120" rx="28" fill="url(#lgBgR)"/>
+      <rect width="120" height="120" rx="28" fill="url(#lgBgR2)"/>
+
+      {/* Horns */}
       <path d="M38 46 C30 38 22 26 26 14 C29 5 38 8 40 18 C38 26 38 36 40 44" fill="url(#lgHorn)" filter="url(#lgShadow)"/>
       <path d="M82 46 C90 38 98 26 94 14 C91 5 82 8 80 18 C82 26 82 36 80 44" fill="url(#lgHorn)" filter="url(#lgShadow)"/>
-      <path d="M36 38 C31 30 28 20 31 13" stroke="rgba(255,240,160,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-      <path d="M84 38 C89 30 92 20 89 13" stroke="rgba(255,240,160,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+      <path d="M36 38 C31 30 28 20 31 13" stroke="rgba(255,230,140,0.55)" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
+      <path d="M84 38 C89 30 92 20 89 13" stroke="rgba(255,230,140,0.55)" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
+
+      {/* Ears */}
       <ellipse cx="27" cy="54" rx="13" ry="9" fill="url(#lgEar)" transform="rotate(-22 27 54)" filter="url(#lgShadow)"/>
-      <ellipse cx="27" cy="54" rx="7.5" ry="5" fill="#e8c0a0" transform="rotate(-22 27 54)"/>
+      <ellipse cx="27" cy="54" rx="7.5" ry="5" fill="#e0b898" transform="rotate(-22 27 54)"/>
       <ellipse cx="93" cy="54" rx="13" ry="9" fill="url(#lgEar)" transform="rotate(22 93 54)" filter="url(#lgShadow)"/>
-      <ellipse cx="93" cy="54" rx="7.5" ry="5" fill="#e8c0a0" transform="rotate(22 93 54)"/>
-      <circle cx="18" cy="55" r="6" fill="url(#lgRfid)" filter="url(#lgGlow)"/>
-      <circle cx="18" cy="55" r="3.2" fill="#0a2818"/>
-      <circle cx="18" cy="55" r="1.3" fill="#FFD60A" opacity="0.95"/>
+      <ellipse cx="93" cy="54" rx="7.5" ry="5" fill="#e0b898" transform="rotate(22 93 54)"/>
+
+      {/* RFID tag on ear */}
+      <circle cx="18" cy="55" r="6.5" fill="url(#lgRfid)" filter="url(#lgGlow)"/>
+      <circle cx="18" cy="55" r="3.5" fill="#061020"/>
+      <circle cx="18" cy="55" r="1.5" fill="#FFD60A" opacity="0.95"/>
+      <circle cx="18" cy="55" r="0.6" fill="white" opacity="0.8"/>
+
+      {/* Body */}
       <ellipse cx="60" cy="72" rx="34" ry="32" fill="url(#lgBody)" filter="url(#lgShadow)"/>
+      {/* Head */}
       <ellipse cx="60" cy="56" rx="29" ry="25" fill="url(#lgHead)" filter="url(#lgInner)"/>
-      <path d="M42 44 C38 40 35 46 38 52 C41 56 48 54 50 48 C52 42 46 40 42 44Z" fill="url(#lgSpot1)" opacity="0.75"/>
-      <path d="M70 48 C67 44 63 46 64 52 C65 57 71 57 73 52 C75 48 73 44 70 48Z" fill="url(#lgSpot1)" opacity="0.65"/>
-      <path d="M55 72 C52 68 50 74 53 78 C56 80 62 79 63 74 C64 70 58 68 55 72Z" fill="url(#lgSpot1)" opacity="0.45"/>
-      <path d="M43 38 L48 38 L51 34 L69 34 L72 38 L77 38" stroke="url(#lgCirc)" strokeWidth="1.1" fill="none" opacity="0.85" filter="url(#lgGlow)"/>
-      <path d="M51 34 L51 29 L56 29" stroke="url(#lgCirc)" strokeWidth="0.85" fill="none" opacity="0.7"/>
-      <path d="M69 34 L69 29 L64 29" stroke="url(#lgCirc)" strokeWidth="0.85" fill="none" opacity="0.7"/>
-      <rect x="56" y="24" width="8" height="8" rx="2.2" fill="url(#lgChip)" opacity="0.95" filter="url(#lgGlow)"/>
-      <rect x="58" y="26" width="4" height="4" rx="1" fill="#071a2f" opacity="0.95"/>
-      <line x1="58.5" y1="24" x2="58.5" y2="22" stroke="#FFD60A" strokeWidth="0.7" opacity="0.55"/>
-      <line x1="61.5" y1="24" x2="61.5" y2="22" stroke="#FFD60A" strokeWidth="0.7" opacity="0.55"/>
-      <circle cx="48" cy="38" r="1.8" fill="#FFD60A" opacity="0.9" filter="url(#lgGlow)"/>
-      <circle cx="72" cy="38" r="1.8" fill="#FFD60A" opacity="0.9" filter="url(#lgGlow)"/>
-      <circle cx="56" cy="29" r="1.4" fill="#00c8ff" opacity="0.85"/>
-      <circle cx="64" cy="29" r="1.4" fill="#00c8ff" opacity="0.85"/>
-      <ellipse cx="44" cy="58" rx="9" ry="8.5" fill="#1a1008" filter="url(#lgInner)"/>
-      <ellipse cx="44" cy="58" rx="7" ry="6.5" fill="url(#lgEye)"/>
-      <circle cx="44" cy="58" r="3.8" fill="#0e0804"/>
-      <circle cx="46" cy="55.5" r="2" fill="white" opacity="0.95"/>
-      <circle cx="42.5" cy="60" r="0.9" fill="white" opacity="0.4"/>
-      <path d="M37 53 Q44 50.5 51 53" stroke="#2a1808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <ellipse cx="76" cy="58" rx="9" ry="8.5" fill="#1a1008" filter="url(#lgInner)"/>
-      <ellipse cx="76" cy="58" rx="7" ry="6.5" fill="url(#lgEye)"/>
-      <circle cx="76" cy="58" r="3.8" fill="#0e0804"/>
-      <circle cx="78" cy="55.5" r="2" fill="white" opacity="0.95"/>
-      <circle cx="74.5" cy="60" r="0.9" fill="white" opacity="0.4"/>
-      <path d="M69 53 Q76 50.5 83 53" stroke="#2a1808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6"/>
-      <ellipse cx="60" cy="84" rx="19" ry="14" fill="url(#lgMuzzle)" filter="url(#lgShadow)"/>
-      <ellipse cx="60" cy="86" rx="15" ry="10" fill="#c89870" opacity="0.6"/>
-      <ellipse cx="53" cy="87" rx="4.2" ry="3.2" fill="#1a0e08" opacity="0.9"/>
-      <ellipse cx="67" cy="87" rx="4.2" ry="3.2" fill="#1a0e08" opacity="0.9"/>
-      <ellipse cx="54" cy="86" rx="1.4" ry="0.9" fill="rgba(255,255,255,0.15)"/>
-      <ellipse cx="68" cy="86" rx="1.4" ry="0.9" fill="rgba(255,255,255,0.15)"/>
-      <path d="M60 91 Q57 95.5 53 93.5" stroke="#180e06" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
-      <path d="M60 91 Q63 95.5 67 93.5" stroke="#180e06" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7"/>
-      <ellipse cx="58" cy="28" rx="34" ry="18" fill="url(#lgShine)"/>
-      <rect width="120" height="120" rx="26" fill="none" stroke="url(#lgBorder)" strokeWidth="1.8"/>
-      <rect x="2" y="2" width="116" height="116" rx="24" fill="none" stroke="rgba(255,214,10,0.12)" strokeWidth="0.8"/>
+
+      {/* Holstein spots */}
+      <path d="M42 44 C38 40 35 46 38 52 C41 56 48 54 50 48 C52 42 46 40 42 44Z" fill="url(#lgSpot1)" opacity="0.78"/>
+      <path d="M70 48 C67 44 63 46 64 52 C65 57 71 57 73 52 C75 48 73 44 70 48Z" fill="url(#lgSpot1)" opacity="0.68"/>
+      <path d="M55 72 C52 68 50 74 53 78 C56 80 62 79 63 74 C64 70 58 68 55 72Z" fill="url(#lgSpot1)" opacity="0.48"/>
+
+      {/* IoT circuit lines */}
+      <path d="M43 38 L48 38 L51 34 L69 34 L72 38 L77 38" stroke="url(#lgCirc)" strokeWidth="1.2" fill="none" opacity="0.90" filter="url(#lgGlow2)"/>
+      <path d="M51 34 L51 29 L56 29" stroke="url(#lgCirc)" strokeWidth="0.9" fill="none" opacity="0.75"/>
+      <path d="M69 34 L69 29 L64 29" stroke="url(#lgCirc)" strokeWidth="0.9" fill="none" opacity="0.75"/>
+
+      {/* AI chip on forehead */}
+      <rect x="55.5" y="23.5" width="9" height="9" rx="2.5" fill="url(#lgChip)" opacity="0.98" filter="url(#lgGlow)"/>
+      <rect x="57.5" y="25.5" width="5" height="5" rx="1.2" fill="#061020" opacity="0.95"/>
+      <rect x="58.5" y="26.5" width="3" height="3" rx="0.6" fill="#FFD60A" opacity="0.55"/>
+      <line x1="58" y1="23.5" x2="58" y2="21" stroke="#FFD60A" strokeWidth="0.8" opacity="0.65"/>
+      <line x1="62" y1="23.5" x2="62" y2="21" stroke="#FFD60A" strokeWidth="0.8" opacity="0.65"/>
+      <line x1="55.5" y1="27" x2="53" y2="27" stroke="#00f5d4" strokeWidth="0.7" opacity="0.60"/>
+      <line x1="64.5" y1="27" x2="67" y2="27" stroke="#00f5d4" strokeWidth="0.7" opacity="0.60"/>
+
+      {/* Circuit nodes */}
+      <circle cx="48" cy="38" r="2" fill="#FFD60A" opacity="0.92" filter="url(#lgGlow2)"/>
+      <circle cx="72" cy="38" r="2" fill="#FFD60A" opacity="0.92" filter="url(#lgGlow2)"/>
+      <circle cx="56" cy="29" r="1.6" fill="#00c8ff" opacity="0.88" filter="url(#lgGlow2)"/>
+      <circle cx="64" cy="29" r="1.6" fill="#00c8ff" opacity="0.88" filter="url(#lgGlow2)"/>
+
+      {/* Left eye */}
+      <ellipse cx="44" cy="58" rx="9.5" ry="9" fill="#151008" filter="url(#lgInner)"/>
+      <ellipse cx="44" cy="58" rx="7.5" ry="7" fill="url(#lgEye)"/>
+      <circle cx="44" cy="58" r="4" fill="#0c0806"/>
+      <circle cx="46.5" cy="55.5" r="2.2" fill="white" opacity="0.95"/>
+      <circle cx="42.5" cy="60.5" r="1" fill="white" opacity="0.38"/>
+      <path d="M37 53 Q44 50.5 51 53" stroke="#281808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.55"/>
+
+      {/* Right eye */}
+      <ellipse cx="76" cy="58" rx="9.5" ry="9" fill="#151008" filter="url(#lgInner)"/>
+      <ellipse cx="76" cy="58" rx="7.5" ry="7" fill="url(#lgEye)"/>
+      <circle cx="76" cy="58" r="4" fill="#0c0806"/>
+      <circle cx="78.5" cy="55.5" r="2.2" fill="white" opacity="0.95"/>
+      <circle cx="74.5" cy="60.5" r="1" fill="white" opacity="0.38"/>
+      <path d="M69 53 Q76 50.5 83 53" stroke="#281808" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.55"/>
+
+      {/* Muzzle */}
+      <ellipse cx="60" cy="84" rx="19.5" ry="14.5" fill="url(#lgMuzzle)" filter="url(#lgShadow)"/>
+      <ellipse cx="60" cy="86" rx="15" ry="10" fill="#c09068" opacity="0.55"/>
+      <ellipse cx="53" cy="87" rx="4.5" ry="3.5" fill="#180e06" opacity="0.92"/>
+      <ellipse cx="67" cy="87" rx="4.5" ry="3.5" fill="#180e06" opacity="0.92"/>
+      <ellipse cx="54" cy="86" rx="1.5" ry="1" fill="rgba(255,255,255,0.18)"/>
+      <ellipse cx="68" cy="86" rx="1.5" ry="1" fill="rgba(255,255,255,0.18)"/>
+      <path d="M60 91 Q57 95.5 53 93.5" stroke="#180e06" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity="0.72"/>
+      <path d="M60 91 Q63 95.5 67 93.5" stroke="#180e06" strokeWidth="1.6" strokeLinecap="round" fill="none" opacity="0.72"/>
+
+      {/* Shine / reflection layers */}
+      <ellipse cx="55" cy="26" rx="36" ry="19" fill="url(#lgShine)"/>
+      <ellipse cx="85" cy="85" rx="28" ry="22" fill="url(#lgShine2)"/>
+
+      {/* Border — gradient tri-color PRO */}
+      <rect width="120" height="120" rx="28" fill="none" stroke="url(#lgBorder)" strokeWidth="2.2"/>
+      <rect x="1.5" y="1.5" width="117" height="117" rx="26.5" fill="none" stroke="url(#lgBorder2)" strokeWidth="0.9"/>
+      <rect x="3" y="3" width="114" height="114" rx="25" fill="none" stroke="rgba(255,214,10,0.07)" strokeWidth="0.7"/>
     </svg>
   );
 }
@@ -432,23 +490,23 @@ export function Layout({ children }: LayoutProps) {
           style={{
             borderRadius: 13,
             background: active
-              ? `linear-gradient(135deg,rgba(255,214,10,0.16),rgba(245,158,11,0.07))`
+              ? `linear-gradient(135deg,${m.from}28,${m.to}10)`
               : 'transparent',
             border: active
-              ? `1px solid rgba(255,214,10,0.40)`
+              ? `1px solid rgba(${m.glow},0.50)`
               : `1px solid transparent`,
-            boxShadow: active ? `0 0 20px rgba(255,214,10,0.12)` : 'none',
+            boxShadow: active ? `0 0 18px rgba(${m.glow},0.15), inset 0 1px 0 rgba(${m.glow},0.10)` : 'none',
           }}
         >
           {/* Hover fill */}
           {!active && (
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
-              style={{ background: `rgba(${m.glow},0.06)`, borderRadius: 13, border: `1px solid rgba(${m.glow},0.12)` }} />
+              style={{ background: `linear-gradient(135deg,rgba(${m.glow},0.08),rgba(${m.glow},0.03))`, borderRadius: 13, border: `1px solid rgba(${m.glow},0.18)` }} />
           )}
           {/* Left accent bar */}
           {active && (
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
-              style={{ background: `linear-gradient(180deg,${PIÑA},${PIÑA2})`, boxShadow: `0 0 10px ${PIÑA}cc` }} />
+              style={{ background: `linear-gradient(180deg,${m.from},${m.to})`, boxShadow: `0 0 10px ${m.from}dd` }} />
           )}
           {/* Icon */}
           <div
@@ -457,11 +515,11 @@ export function Layout({ children }: LayoutProps) {
               width: 30, height: 30, borderRadius: 10,
               background: active
                 ? `linear-gradient(135deg,${PIÑA},${PIÑA2})`
-                : `rgba(${m.glow},0.12)`,
-              border: active ? 'none' : `1px solid rgba(${m.glow},0.22)`,
+                : `linear-gradient(145deg,${m.from}2e,${m.to}18)`,
+              border: active ? 'none' : `1px solid rgba(${m.glow},0.40)`,
               boxShadow: active
                 ? `0 0 16px rgba(255,214,10,0.55), inset 0 1px 0 rgba(255,255,255,0.25)`
-                : `0 0 6px rgba(${m.glow},0.12)`,
+                : `0 2px 8px rgba(${m.glow},0.22), inset 0 1px 0 rgba(255,255,255,0.07)`,
               color: active ? '#000' : m.from,
             }}
           >
@@ -472,10 +530,10 @@ export function Layout({ children }: LayoutProps) {
               <span
                 className="flex-1 text-[13px] leading-none transition-all truncate"
                 style={{
-                  color: active ? PIÑA : 'rgba(255,255,255,0.68)',
+                  color: active ? m.from : 'rgba(255,255,255,0.68)',
                   fontWeight: active ? 700 : 500,
                   fontFamily: "'Space Grotesk','Sora',sans-serif",
-                  textShadow: active ? `0 0 12px rgba(255,214,10,0.4)` : 'none',
+                  textShadow: active ? `0 0 12px rgba(${m.glow},0.50)` : 'none',
                 }}
               >
                 {m.label}
@@ -585,38 +643,50 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {/* ── Logo header ── */}
-        <div className="h-[68px] flex items-center justify-between px-3 border-b flex-shrink-0 relative"
-          style={{ borderColor: `rgba(${pt.glow},0.20)` }}>
+        <div className="h-[76px] flex items-center justify-between px-3 border-b flex-shrink-0 relative overflow-hidden"
+          style={{ borderColor: `rgba(${pt.glow},0.22)` }}>
+          {/* Ambient glow behind logo */}
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full pointer-events-none"
+            style={{ background: `radial-gradient(circle, rgba(255,214,10,0.18) 0%, rgba(0,200,255,0.06) 55%, transparent 75%)`, filter: 'blur(10px)' }} />
           {!collapsed ? (
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0 relative">
+              {/* Logo with subtle ring frame */}
               <div className="relative flex-shrink-0">
-                <CivacLogo size={44} />
+                <div className="absolute -inset-[3px] rounded-[14px] pointer-events-none"
+                  style={{ background: `linear-gradient(135deg,rgba(255,214,10,0.55),rgba(0,245,212,0.30),rgba(255,214,10,0.20))`, borderRadius: 17, padding: 1.5 }} />
+                <div className="relative" style={{ borderRadius: 14, overflow: 'hidden', boxShadow: `0 0 20px rgba(255,214,10,0.28), 0 4px 16px rgba(0,0,0,0.45)` }}>
+                  <CivacLogo size={46} />
+                </div>
               </div>
               <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-black text-[19px] tracking-tight leading-none" style={{ fontFamily: "'Sora',sans-serif", letterSpacing: '-0.02em' }}>
-                    <span className="text-white">Ganad</span>
-                    <span style={{ color: PIÑA, textShadow: `0 0 18px rgba(255,214,10,0.9)` }}>erIA</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-[20px] tracking-tight leading-none" style={{ fontFamily: "'Sora',sans-serif", letterSpacing: '-0.03em' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.96)' }}>Ganad</span>
+                    <span style={{ color: PIÑA, textShadow: `0 0 16px rgba(255,214,10,1), 0 0 32px rgba(255,214,10,0.45)` }}>erIA</span>
                   </span>
-                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md"
-                    style={{ background: `linear-gradient(135deg,${PIÑA},${PIÑA2})`, color: '#000', letterSpacing: '0.03em' }}>
-                    v4
+                  <span className="text-[7.5px] font-black px-1.5 py-[2.5px] rounded-md flex-shrink-0"
+                    style={{ background: `linear-gradient(135deg,${PIÑA},${PIÑA2})`, color: '#000', letterSpacing: '0.06em', boxShadow: `0 0 8px rgba(255,214,10,0.55)` }}>
+                    v7
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[8px] font-black px-1.5 py-0.5 rounded"
-                    style={{ background: 'linear-gradient(135deg,#ff6a00,#ee0979)', color: 'white', letterSpacing: '0.08em' }}>
+                <div className="flex items-center gap-1.5 mt-[3px]">
+                  <span className="text-[7px] font-black px-1.5 py-[2px] rounded"
+                    style={{ background: 'linear-gradient(135deg,#ff6a00,#ee0979)', color: 'white', letterSpacing: '0.10em', boxShadow: '0 0 8px rgba(238,9,121,0.5)' }}>
                     PRO
                   </span>
-                  <span className="text-[8px] leading-none" style={{ color: 'rgba(255,214,10,0.40)' }}>
-                    CIVAC · Colombia
+                  <span className="text-[7px] font-semibold leading-none" style={{ color: 'rgba(255,214,10,0.42)', letterSpacing: '0.06em' }}>
+                    CIVAC · Colombia 🇨🇴
                   </span>
                 </div>
               </div>
             </div>
           ) : (
             <div className="mx-auto relative">
-              <CivacLogo size={38} />
+              <div className="absolute -inset-[2px] rounded-[13px] pointer-events-none"
+                style={{ background: `linear-gradient(135deg,rgba(255,214,10,0.45),rgba(0,245,212,0.25))`, borderRadius: 15 }} />
+              <div className="relative" style={{ boxShadow: `0 0 16px rgba(255,214,10,0.22)`, borderRadius: 12 }}>
+                <CivacLogo size={40} />
+              </div>
             </div>
           )}
           <div className="flex items-center gap-0.5">
@@ -804,10 +874,14 @@ export function Layout({ children }: LayoutProps) {
         <header
           className="h-[56px] sticky top-0 z-30 flex items-center justify-between px-3 lg:px-5 border-b"
           style={{
-            background: 'rgba(4,15,26,0.97)',
-            backdropFilter: 'blur(28px)',
-            borderColor: `rgba(255,214,10,0.08)`,
-            boxShadow: '0 1px 20px rgba(0,0,0,0.35)',
+            background: theme === 'dark'
+              ? `linear-gradient(90deg,rgba(4,12,28,0.97),rgba(8,18,40,0.97))`
+              : `linear-gradient(90deg,rgba(240,235,220,0.97),rgba(235,232,218,0.97))`,
+            backdropFilter: 'blur(32px)',
+            borderColor: theme === 'dark' ? `rgba(255,214,10,0.10)` : `rgba(120,100,60,0.20)`,
+            boxShadow: theme === 'dark'
+              ? `0 1px 24px rgba(0,0,0,0.40), inset 0 -1px 0 rgba(255,214,10,0.04)`
+              : `0 1px 18px rgba(100,80,40,0.14), inset 0 -1px 0 rgba(120,100,60,0.08)`,
           }}
         >
           <div className="flex items-center gap-2.5">
@@ -820,20 +894,22 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Active module indicator */}
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex w-8 h-8 items-center justify-center"
+              <div className="hidden sm:flex w-8 h-8 items-center justify-center transition-all duration-300"
                 style={{
                   borderRadius: 12,
-                  background: `linear-gradient(135deg,${PIÑA},${PIÑA2})`,
-                  boxShadow: `0 0 16px rgba(255,214,10,0.50)`,
+                  background: `linear-gradient(135deg,${mod.from},${mod.to})`,
+                  boxShadow: `0 0 16px rgba(${mod.glow},0.55), 0 2px 8px rgba(0,0,0,0.3)`,
                   color: '#000',
                 }}>
                 <mod.icon size={16} strokeWidth={2.3} />
               </div>
               <div className="hidden md:block">
-                <p className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+                <p className="text-[13px] font-bold leading-tight transition-colors"
+                  style={{ fontFamily: "'Space Grotesk',sans-serif", color: theme === 'dark' ? 'rgba(255,255,255,0.95)' : 'hsl(28 40% 12%)' }}>
                   {mod.label}
                 </p>
-                <p className="text-[9px] leading-none" style={{ color: 'rgba(255,214,10,0.35)' }}>
+                <p className="text-[9px] leading-none transition-colors"
+                  style={{ color: theme === 'dark' ? `rgba(${mod.glow},0.55)` : `rgba(${mod.glow},0.75)` }}>
                   CIVAC PRO · {new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
               </div>
@@ -866,7 +942,12 @@ export function Layout({ children }: LayoutProps) {
 
             <button
               onClick={toggleTheme}
-              className="w-8 h-8 rounded-xl text-white/50 hover:text-white/90 hover:bg-white/5 transition-all flex items-center justify-center"
+              className="w-8 h-8 rounded-xl transition-all flex items-center justify-center"
+              style={{
+                color: theme === 'dark' ? 'rgba(255,214,10,0.70)' : 'rgba(100,70,20,0.80)',
+                background: theme === 'dark' ? 'rgba(255,214,10,0.06)' : 'rgba(150,110,40,0.09)',
+                border: theme === 'dark' ? '1px solid rgba(255,214,10,0.15)' : '1px solid rgba(150,110,40,0.20)',
+              }}
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>

@@ -86,7 +86,6 @@ export function applyContextMenuProtection(): void {
     const el = target instanceof Element ? target : null;
     if (el?.closest('[data-protected]')) {
       e.preventDefault();
-      return false;
     }
   });
 

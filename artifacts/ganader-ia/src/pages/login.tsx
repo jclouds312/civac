@@ -546,20 +546,20 @@ export default function Login() {
 
   /* ── Detect pending invite from /invite/:token ── */
   useEffect(() => {
+    let tid: ReturnType<typeof setTimeout> | undefined;
     try {
       const raw = localStorage.getItem("civac_pending_invite");
-      if (!raw) return;
-      const inv = JSON.parse(raw) as { email:string; password:string; plan:string; nombre:string; finca:string };
-      localStorage.removeItem("civac_pending_invite");
-      setEmail(inv.email);
-      setPassword(inv.password);
-      setInviteBanner({ nombre: inv.nombre, plan: inv.plan });
-      /* Auto-login after short delay so user sees the welcome banner */
-      const tid = setTimeout(() => {
-        if (login(inv.email, inv.password)) return;
-      }, 1500);
-      return () => clearTimeout(tid);
+      if (raw) {
+        const inv = JSON.parse(raw) as { email:string; password:string; plan:string; nombre:string; finca:string };
+        localStorage.removeItem("civac_pending_invite");
+        setEmail(inv.email);
+        setPassword(inv.password);
+        setInviteBanner({ nombre: inv.nombre, plan: inv.plan });
+        /* Auto-login after short delay so user sees the welcome banner */
+        tid = setTimeout(() => { login(inv.email, inv.password); }, 1500);
+      }
     } catch { /* ignore */ }
+    return () => { if (tid !== undefined) clearTimeout(tid); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

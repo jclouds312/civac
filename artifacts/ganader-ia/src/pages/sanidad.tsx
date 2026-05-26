@@ -283,7 +283,7 @@ export default function Sanidad() {
             <span className="px-1.5 py-0.5 rounded-md bg-white/10 text-[10px]">{filtrados.length}</span>
           </span>
         </div>
-        <div className="divide-y" style={{ divideColor: border }}>
+        <div className="divide-y" style={{ borderColor: border }}>
           {filtrados.length === 0 && (
             <div className="py-12 text-center text-muted-foreground text-sm">Sin registros</div>
           )}

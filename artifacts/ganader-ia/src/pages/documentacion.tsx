@@ -4,7 +4,7 @@ import {
   Monitor, Globe, Cloud, FileDown, Database, Apple, CheckCircle, Scale,
   Shield, Beef, Baby, Droplets, Dna, Wheat, Package, DollarSign,
   MapPin, Bell, Zap, CreditCard, Settings, RefreshCw, Printer,
-  Tag, Grid3x3, Heart, Activity, FlaskConical, TreePine, ChevronRight, Award
+  Tag, Grid3x3, Heart, Activity, FlaskConical, TreePine, ChevronRight, Award, QrCode
 } from "lucide-react";
 import { exportToDrive, getDriveFiles, downloadLocalBackup, downloadCSV } from "@/lib/drive";
 import { useAppState } from "@/lib/data";

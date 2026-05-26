@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useAuth, PLAN_COLOR, PLAN_ICON, PLAN_LABEL, type PlanId } from "@/lib/auth";
-import { TrendingUp, Users, DollarSign, Target, Plus, Phone, Calendar, ChevronRight, BarChart2, Star, Clock, Zap, Send, FileText } from "lucide-react";
+import { TrendingUp, Users, DollarSign, Target, Plus, ChevronRight, Star, Clock, Send } from "lucide-react";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 type ContactoEstado = 'prospecto' | 'contactado' | 'demo' | 'negociando' | 'comprador' | 'lista_espera' | 'no_interesado';

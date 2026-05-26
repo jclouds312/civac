@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RPie, Pie, Cell } from "recharts";
 import { printModule } from "@/lib/print";
-import { exportToCSV } from "@/lib/export";
+import { downloadCSV } from "@/lib/export";
 
 type ContactoEstado = 'prospecto' | 'contactado' | 'demo' | 'negociando' | 'comprador' | 'lista_espera' | 'no_interesado';
 type ContactoTipo   = 'finca_familiar' | 'pyme' | 'corporativo';
@@ -135,7 +135,7 @@ export default function Ventas() {
   }));
   const pieColors = ['#e879f9','#00f5d4','#fbbf24'];
 
-  const exportCSV = () => exportToCSV(contactos.map(c=>({
+  const exportCSV = () => downloadCSV(contactos.map(c=>({
     Nombre:c.nombre, Empresa:c.empresa, Telefono:c.telefono, Email:c.email,
     Tipo:TIPO_CFG[c.tipo].label, Estado:ESTADO_CFG[c.estado].label,
     Plan:PLAN_LABEL[c.planInteres], ValorCOP:c.valor, Fecha:c.fecha, Notas:c.notas,

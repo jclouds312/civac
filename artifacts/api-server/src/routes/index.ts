@@ -17,6 +17,7 @@ import fincaRouter from "./finca";
 import plansRouter from "./plans";
 import syncRouter from "./sync";
 import crmRouter from "./crm";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(usuariosRouter);
 router.use(lotesRouter);
 router.use(syncRouter);
 router.use(crmRouter);
+router.use(adminRouter);
 
 export default router;

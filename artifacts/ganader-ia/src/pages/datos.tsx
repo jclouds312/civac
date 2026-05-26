@@ -998,10 +998,10 @@ function SyncBD({ user, stateMap }: { user: ReturnType<typeof useAuth>['user']; 
           <div className="space-y-1.5 max-h-40 overflow-y-auto">
             {queue.slice(0,10).map((q,i) => (
               <div key={i} className="flex items-center gap-2 text-[10px]">
-                <span className="text-white/40 font-mono">{q.type}</span>
+                <span className="text-white/40 font-mono">cambio</span>
                 <span className="text-white/25">·</span>
-                <span className="text-white/30">{q.id.slice(0,12)}…</span>
-                <span className="ml-auto text-white/20">{new Date(q.ts).toLocaleTimeString('es-CO')}</span>
+                <span className="text-white/30">{q.slice(0,12)}…</span>
+                <span className="ml-auto text-white/20">pendiente #{i+1}</span>
               </div>
             ))}
           </div>

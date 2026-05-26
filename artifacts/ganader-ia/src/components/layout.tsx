@@ -8,6 +8,7 @@ import {
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
+import { SyncStatusPill } from "./sync-status";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -824,15 +825,8 @@ export function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {/* Status pills */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-semibold"
-              style={{ color: '#39ff7e', background: 'rgba(57,255,126,0.08)', border: '1px solid rgba(57,255,126,0.2)', borderRadius: 10 }}>
-              <Database size={10} /><span>BD Sync</span>
-            </div>
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-semibold"
-              style={{ color: '#00c8ff', background: 'rgba(0,200,255,0.08)', border: '1px solid rgba(0,200,255,0.2)', borderRadius: 10 }}>
-              <Wifi size={10} /><span>PWA Offline</span>
-            </div>
+            {/* Sync status live pill */}
+            <SyncStatusPill className="hidden lg:flex" />
 
             <Link href="/pesaje-manual">
               <button className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold transition-all hover:scale-[1.04]"

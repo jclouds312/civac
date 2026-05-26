@@ -282,3 +282,28 @@ export const userSessionsTable = pgTable("user_sessions", {
 export const insertUserSessionSchema = createInsertSchema(userSessionsTable).omit({ createdAt: true });
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type UserSession = typeof userSessionsTable.$inferSelect;
+
+// ── Sync Log ─────────────────────────────────────────────────────────────────
+export const syncLogTable = pgTable("sync_log", {
+  id:             serial("id").primaryKey(),
+  deviceId:       text("device_id").notNull(),
+  userId:         text("user_id").notNull().default("anonymous"),
+  userRole:       text("user_role").notNull().default("viewer"),
+  planCode:       text("plan_code").notNull().default("basico"),
+  syncType:       text("sync_type").notNull().default("push"),  // push | pull | full
+  animalsCount:   integer("animals_count").notNull().default(0),
+  potrerosCount:  integer("potreros_count").notNull().default(0),
+  insumosCount:   integer("insumos_count").notNull().default(0),
+  personalCount:  integer("personal_count").notNull().default(0),
+  pesajesCount:   integer("pesajes_count").notNull().default(0),
+  alertasCount:   integer("alertas_count").notNull().default(0),
+  gpsCount:       integer("gps_count").notNull().default(0),
+  lotesCount:     integer("lotes_count").notNull().default(0),
+  totalRecords:   integer("total_records").notNull().default(0),
+  status:         text("status").notNull().default("ok"),       // ok | error
+  errorMsg:       text("error_msg").default(""),
+  syncedAt:       timestamp("synced_at").defaultNow(),
+});
+export const insertSyncLogSchema = createInsertSchema(syncLogTable).omit({ id: true, syncedAt: true });
+export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
+export type SyncLog = typeof syncLogTable.$inferSelect;

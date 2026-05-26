@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { syncEngine } from "./sync";
 
 // ─── Initial Seed Data — CIVAC PRO v3.0 ─────────────────────────────────────
 
@@ -321,6 +322,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   const [embriones,     _setEmbriones]     = useLocal('embriones',     initialEmbriones);
 
   useEffect(() => {
+    // Cargar datos del servidor al iniciar (si está online)
     apiGet<Animal[]>("/animals").then(data => { if (data && data.length > 0) _setAnimals(data); }).catch(() => {});
     apiGet<Potrero[]>("/potreros").then(data => { if (data && data.length > 0) _setPotreros(data); }).catch(() => {});
     apiGet<Insumo[]>("/insumos").then(data => { if (data && data.length > 0) _setInsumos(data); }).catch(() => {});
@@ -330,6 +332,29 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     apiGet<Pesaje[]>("/pesajes").then(data => { if (data && data.length > 0) _setPesajes(data); }).catch(() => {});
     apiGet<GpsUbicacion[]>("/gps").then(data => { if (data && data.length > 0) _setGpsUbicaciones(data); }).catch(() => {});
     apiGet<MovimientoLote[]>("/lotes").then(data => { if (data) _setLotes(data); }).catch(() => {});
+
+    // Escuchar cuando el SyncEngine aplique datos del servidor → actualizar React state
+    const handleServerSync = (e: Event) => {
+      const d = (e as CustomEvent).detail as Record<string, unknown[]>;
+      if (d["animals"]?.length)      _setAnimals(d["animals"] as Animal[]);
+      if (d["potreros"]?.length)     _setPotreros(d["potreros"] as Potrero[]);
+      if (d["insumos"]?.length)      _setInsumos(d["insumos"] as Insumo[]);
+      if (d["personal"]?.length)     _setPersonal(d["personal"] as Personal[]);
+      if (d["reproduccion"]?.length) _setReproduccion(d["reproduccion"] as Reproduccion[]);
+      if (d["alertas"]?.length)      _setAlertas(d["alertas"] as Alerta[]);
+      if (d["pesajes"]?.length)      _setPesajes(d["pesajes"] as Pesaje[]);
+      if (d["gps"]?.length)          _setGpsUbicaciones(d["gps"] as GpsUbicacion[]);
+      if (d["lotes"]?.length)        _setLotes(d["lotes"] as MovimientoLote[]);
+    };
+    window.addEventListener('civac:server-sync', handleServerSync);
+
+    // Sync inicial diferido (deja que la app cargue primero)
+    const t = setTimeout(() => syncEngine.flush(), 3000);
+
+    return () => {
+      window.removeEventListener('civac:server-sync', handleServerSync);
+      clearTimeout(t);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -337,6 +362,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setAnimals(prev => {
       const next = typeof action === "function" ? (action as (p: Animal[]) => Animal[])(prev) : action;
       apiPost("/animals/bulk", { animals: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setAnimals]);
@@ -345,6 +371,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPotreros(prev => {
       const next = typeof action === "function" ? (action as (p: Potrero[]) => Potrero[])(prev) : action;
       apiPost("/potreros/bulk", { potreros: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setPotreros]);
@@ -353,6 +380,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setInsumos(prev => {
       const next = typeof action === "function" ? (action as (p: Insumo[]) => Insumo[])(prev) : action;
       apiPost("/insumos/bulk", { insumos: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setInsumos]);
@@ -361,6 +389,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPersonal(prev => {
       const next = typeof action === "function" ? (action as (p: Personal[]) => Personal[])(prev) : action;
       apiPost("/personal/bulk", { personal: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setPersonal]);
@@ -369,6 +398,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setReproduccion(prev => {
       const next = typeof action === "function" ? (action as (p: Reproduccion[]) => Reproduccion[])(prev) : action;
       apiPost("/reproduccion/bulk", { reproduccion: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setReproduccion]);
@@ -377,6 +407,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setAlertas(prev => {
       const next = typeof action === "function" ? (action as (p: Alerta[]) => Alerta[])(prev) : action;
       apiPost("/alertas/bulk", { alertas: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setAlertas]);
@@ -385,6 +416,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setPesajes(prev => {
       const next = typeof action === "function" ? (action as (p: Pesaje[]) => Pesaje[])(prev) : action;
       apiPost("/pesajes/bulk", { pesajes: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setPesajes]);
@@ -393,6 +425,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setGpsUbicaciones(prev => {
       const next = typeof action === "function" ? (action as (p: GpsUbicacion[]) => GpsUbicacion[])(prev) : action;
       apiPost("/gps/bulk", { ubicaciones: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setGpsUbicaciones]);
@@ -401,6 +434,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     _setLotes(prev => {
       const next = typeof action === "function" ? (action as (p: MovimientoLote[]) => MovimientoLote[])(prev) : action;
       apiPost("/lotes/bulk", { lotes: next });
+      syncEngine.markPending();
       return next;
     });
   }, [_setLotes]);

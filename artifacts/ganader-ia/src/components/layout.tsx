@@ -6,7 +6,7 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles, Satellite,
+  Sparkles, Satellite, Shield,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";

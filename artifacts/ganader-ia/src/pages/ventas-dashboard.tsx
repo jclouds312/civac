@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth, PLAN_COLOR, PLAN_ICON, PLAN_LABEL, type PlanId } from "@/lib/auth";
 import { TrendingUp, Users, DollarSign, Target, Plus, Phone, Calendar, ChevronRight, BarChart2, Star, Clock, Zap, Send, FileText } from "lucide-react";
@@ -20,8 +19,6 @@ const weekData = [
 export default function VentasDashboard() {
   const { user } = useAuth();
   const contacts = loadContacts();
-  const [, setNow] = useState(0);
-
   const compradores   = contacts.filter(c=>c.estado==='comprador');
   const pipeline      = contacts.filter(c=>!['comprador','no_interesado'].includes(c.estado));
   const listaEspera   = contacts.filter(c=>c.estado==='lista_espera');
@@ -33,8 +30,6 @@ export default function VentasDashboard() {
   const avanceMeta    = Math.min(100, Math.round(ingresosTotal / metaMensual * 100));
   const hora          = new Date().getHours();
   const saludo        = hora<12?'Buenos días':hora<18?'Buenas tardes':'Buenas noches';
-
-  void setNow; // suppress lint
 
   return (
     <div className="space-y-4 sm:space-y-5 pb-8 civac-animate">

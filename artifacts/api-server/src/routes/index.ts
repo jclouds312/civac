@@ -15,6 +15,8 @@ import authRouter from "./auth";
 import imagesRouter from "./images";
 import fincaRouter from "./finca";
 import plansRouter from "./plans";
+import syncRouter from "./sync";
+import crmRouter from "./crm";
 
 const router: IRouter = Router();
 
@@ -34,5 +36,7 @@ router.use(pesajesRouter);
 router.use(gpsRouter);
 router.use(usuariosRouter);
 router.use(lotesRouter);
+router.use(syncRouter);
+router.use(crmRouter);
 
 export default router;

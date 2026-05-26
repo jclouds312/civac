@@ -70,6 +70,7 @@ const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; fr
   viewer:      { emoji:"💼",  label:"Propietario / Inversor", sub:"Sólo lectura · Dashboard · Costos · IA",                      from:"#c084fc", to:"#7c3aed", glow:"192,132,252",   color:"#c084fc" },
   developer:   { emoji:"🛠️", label:"Dev · Arquitecto CIVAC", sub:"Panel técnico · Versiones · APIs · Feature Flags · Deploy",   from:"#00ff88", to:"#00d4aa", glow:"0,255,136",     color:"#00ff88" },
   superadmin:  { emoji:"🔱",  label:"Super Administrador",    sub:"Plataforma completa · Auditoría · Versiones · Config global", from:"#ff6b35", to:"#f7931e", glow:"255,107,53",    color:"#ff6b35" },
+  sales:       { emoji:"💼",  label:"Asesora de Ventas",      sub:"CRM · Pipeline · Reportes diarios · Contabilidad de ventas",  from:"#e879f9", to:"#a855f7", glow:"232,121,249",   color:"#e879f9" },
 };
 
 /* ── Payment modal ──────────────────────────────────────────────────────────── */
@@ -201,10 +202,12 @@ function PaymentModal({ plan, onClose }: { plan: PlanId; onClose: () => void }) 
 /* ── Particles ──────────────────────────────────────────────────────────────── */
 function Particles() {
   const items = [
-    {e:"🐄",x:6,y:12,s:1.4,d:5.2,o:0.10},{e:"🌿",x:88,y:18,s:1.1,d:4.8,o:0.09},
-    {e:"⚡",x:14,y:70,s:0.9,d:6.0,o:0.07},{e:"📡",x:82,y:76,s:1.2,d:5.5,o:0.08},
-    {e:"🧬",x:50,y:6, s:1.0,d:7.0,o:0.06},{e:"💊",x:93,y:44,s:0.8,d:4.5,o:0.07},
-    {e:"🥛",x:4, y:44,s:1.0,d:5.8,o:0.08},{e:"🌾",x:46,y:90,s:1.3,d:6.5,o:0.07},
+    {e:"🐄",x:6, y:12,s:1.4,d:5.2,o:0.12},{e:"🌾",x:88,y:14,s:1.1,d:4.8,o:0.10},
+    {e:"🏡",x:14,y:72,s:1.0,d:6.0,o:0.08},{e:"🐂",x:82,y:76,s:1.2,d:5.5,o:0.09},
+    {e:"🌿",x:50,y:6, s:0.9,d:7.0,o:0.07},{e:"🐔",x:92,y:44,s:0.8,d:4.5,o:0.08},
+    {e:"🥛",x:4, y:46,s:1.0,d:5.8,o:0.09},{e:"🌻",x:46,y:90,s:1.3,d:6.5,o:0.08},
+    {e:"🐎",x:70,y:8, s:1.1,d:5.0,o:0.07},{e:"🌵",x:25,y:86,s:0.9,d:5.5,o:0.06},
+    {e:"💼",x:95,y:22,s:0.9,d:4.2,o:0.08},{e:"⚡",x:60,y:94,s:0.8,d:6.8,o:0.07},
   ];
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -250,19 +253,37 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{ background:"linear-gradient(145deg,#0e1e38 0%,#122440 35%,#162c50 65%,#112038 100%)", fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
+      style={{ fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
 
-      {/* Ambient layers */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0" style={{ background:`
-          radial-gradient(ellipse 80% 50% at 20% 10%, rgba(0,245,212,0.06) 0%, transparent 70%),
-          radial-gradient(ellipse 60% 60% at 80% 90%, rgba(45,122,79,0.08) 0%, transparent 70%),
-          radial-gradient(ellipse 50% 40% at 85% 15%, rgba(0,200,255,0.04) 0%, transparent 60%),
-          radial-gradient(ellipse 40% 50% at 10% 85%, rgba(192,132,252,0.04) 0%, transparent 60%)` }} />
-        <div className="absolute inset-0" style={{ backgroundImage:"radial-gradient(circle, rgba(0,200,255,0.06) 1px, transparent 1px)", backgroundSize:"48px 48px" }} />
-        <div className="absolute top-0 left-0 right-0 h-px opacity-20"
-          style={{ background:"linear-gradient(90deg,transparent,#00f5d4,transparent)", animation:"scan-line 8s linear infinite" }} />
-      </div>
+      {/* ── Farm background layers ── */}
+      {/* Layer 1: Colombian farm/cattle panorama */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1920&q=40&auto=format&fit=crop')",
+        backgroundSize:"cover", backgroundPosition:"center 40%", backgroundRepeat:"no-repeat",
+      }}/>
+      {/* Layer 2: Dark gradient overlay for readability */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background:"linear-gradient(160deg,rgba(5,12,28,0.93) 0%,rgba(8,20,45,0.88) 40%,rgba(4,14,30,0.95) 100%)",
+      }}/>
+      {/* Layer 3: Farm scene with barn and secondary pastoral image at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-56 pointer-events-none" style={{
+        backgroundImage:"url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1920&q=30&auto=format&fit=crop&crop=bottom')",
+        backgroundSize:"cover", backgroundPosition:"center bottom", opacity:0.18,
+        maskImage:"linear-gradient(transparent,rgba(0,0,0,0.8))", WebkitMaskImage:"linear-gradient(transparent,rgba(0,0,0,0.8))",
+      }}/>
+      {/* Layer 4: Tech grid */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage:"radial-gradient(circle, rgba(0,200,255,0.04) 1px, transparent 1px)",
+        backgroundSize:"52px 52px",
+      }}/>
+      {/* Layer 5: Ambient radial glows */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background:`
+        radial-gradient(ellipse 60% 40% at 15% 10%, rgba(0,245,212,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 50% at 85% 85%, rgba(57,255,126,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 80% 15%, rgba(0,200,255,0.04) 0%, transparent 60%)` }}/>
+      {/* Layer 6: Scan line */}
+      <div className="absolute top-0 left-0 right-0 h-px opacity-25"
+        style={{ background:"linear-gradient(90deg,transparent,#00f5d4,transparent)", animation:"scan-line 8s linear infinite" }}/>
       <Particles />
 
       {/* Payment modal */}
@@ -279,14 +300,15 @@ export default function Login() {
           </div>
           <div className="flex items-center justify-center gap-3 mb-1">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ fontFamily:"'Sora',sans-serif", letterSpacing:"-0.03em" }}>
-              <span className="text-white">GanaderIA</span>
+              <span className="text-white">CIVAC </span>
+              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>v1</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
-              <span className="text-[10px] font-black px-2.5 py-1 rounded-lg leading-none" style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black", letterSpacing:"0.05em" }}>v4.2</span>
-              <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none" style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO</span>
+              <span className="text-[10px] font-black px-2.5 py-1 rounded-lg leading-none" style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black", letterSpacing:"0.05em" }}>GanaderIA</span>
+              <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none" style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO · 2026</span>
             </div>
           </div>
-          <p className="text-sm font-semibold mb-1" style={{ color:"rgba(0,245,212,0.65)" }}>Ganadería Inteligente · Colombia · Gestión Bovina Premium</p>
+          <p className="text-sm font-semibold mb-1" style={{ color:"rgba(0,245,212,0.65)" }}>Control Inteligente de Valor Agropecuario · Colombia</p>
           <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
             {[{icon:<Wifi size={10}/>,label:"Offline PWA",c:"0,245,212"},{icon:<Zap size={10}/>,label:"Bluetooth BT",c:"255,149,0"},{icon:<Smartphone size={10}/>,label:"GPS Ganado",c:"0,200,255"},{icon:<Star size={10}/>,label:"IA predictiva",c:"232,121,249"}].map(p=>(
               <span key={p.label} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold"

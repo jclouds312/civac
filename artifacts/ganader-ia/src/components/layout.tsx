@@ -5,7 +5,7 @@ import {
   FileText, Heart, Droplets, Dna, Layers, Wheat, Zap, Scale,
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
-  ChevronRight, Building2, Cpu, BarChart3, Lock,
+  ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { useState, useEffect } from "react";
@@ -67,16 +67,17 @@ const PLAN_ROUTES: Record<string, string[]> = {
   basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros'],
   pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
-            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion'],
+            '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
+            '/ventas'],
   premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
-            '/pesaje-manual', '/co2', '/lotes', '/datos'],
+            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas'],
   platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
-            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes'],
+            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas'],
 };
 
 const PLAN_REQUIRED: Record<string, string> = {
@@ -732,6 +733,9 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/alimentacion" />
             <NavItem href="/gps" accent="GPS" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
           </Section>
+          <Section title="Ventas CRM">
+            <NavItem href="/ventas" accent="CRM" accentColor="bg-[#e879f9]/15 text-[#e879f9] border-[#e879f9]/25" />
+          </Section>
           <Section title="Gestión">
             <NavItem href="/insumos" badge={3} />
             <NavItem href="/semen" />
@@ -756,7 +760,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: `rgba(255,214,10,0.08)` }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: 'rgba(255,214,10,0.25)' }}>
-              <Wifi size={9} /><span>CIVAC v4.0 · Offline PWA · Colombia</span>
+              <Wifi size={9} /><span>CIVAC v1 · GanaderIA PRO · Offline PWA · Colombia</span>
             </div>
           )}
           {!collapsed && (

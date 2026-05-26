@@ -28,7 +28,7 @@ export interface Account {
   password: string;
   avatar: string;
   gradient: string;
-  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin';
+  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales';
   permisos: string[];
   activo?: boolean;
   /* ── Plan Wompi ── */
@@ -184,10 +184,25 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planExpiry: '2099-12-31',
     permisos: ['*'],
   },
+  {
+    id: 'ventas',
+    nombre: 'María Salazar — Asesora CIVAC',
+    cargo: 'Asesora Comercial Senior',
+    finca: 'CIVAC Sales Colombia · Bogotá',
+    email: 'ventas@civac.co',
+    password: 'ventas2026',
+    avatar: '💼',
+    gradient: 'from-[#1a0540] to-[#2d0a60]',
+    role: 'sales',
+    activo: true,
+    plan: 'pro',
+    planExpiry: '2027-12-31',
+    permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual'],
+  },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '4.3.0';
+const ACCOUNTS_VERSION = '5.0.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {

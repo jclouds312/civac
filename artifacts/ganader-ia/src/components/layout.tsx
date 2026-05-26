@@ -59,6 +59,7 @@ const MODULES: Record<string, ModuleDef> = {
   '/planes':        { icon: Crown,           from:'#fbbf24', to:'#ea580c', glow:'251,191,36',   emoji:'🛡️', label:'Licencia CIVAC',       shortLabel:'Licencia'  },
   '/lotes':         { icon: Truck,           from:'#00c8ff', to:'#0891b2', glow:'0,200,255',    emoji:'🐂', label:'Movimiento Lotes',     shortLabel:'Lotes'     },
   '/datos':         { icon: Database,        from:'#818cf8', to:'#4f46e5', glow:'129,140,248',  emoji:'🗄️', label:'Data Warehouse',       shortLabel:'Datos'     },
+  '/ventas':        { icon: ShoppingBag,     from:'#e879f9', to:'#a855f7', glow:'232,121,249',  emoji:'💼', label:'Asesora de Ventas',    shortLabel:'CRM'       },
 };
 
 /* ── Plan-based route access ───────────────────────────────────────────────── */
@@ -92,9 +93,10 @@ const ROLE_COLORS: Record<string, string> = {
   vet:    'bg-[#00c8ff] text-black',
   field:  'bg-[#39ff7e] text-black',
   viewer: 'bg-[#c084fc] text-black',
+  sales:  'bg-[#e879f9] text-black',
 };
 const ROLE_LABELS: Record<string, string> = {
-  admin:'Admin', vet:'Veterinario', field:'Campo', viewer:'Visor'
+  admin:'Admin', vet:'Veterinario', field:'Campo', viewer:'Visor', sales:'Ventas CRM'
 };
 
 /* ─── Logo vaca moderna GanaderIA ─────────────────────────────────────────── */

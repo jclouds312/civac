@@ -44,6 +44,8 @@ import Gps from "./pages/gps";
 import Planes from "./pages/planes";
 import Lotes from "./pages/lotes";
 import Datos from "./pages/datos";
+import Ventas from "./pages/ventas";
+import VentasDashboard from "./pages/ventas-dashboard";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +53,7 @@ function HomeRoute() {
   const { user } = useAuth();
   if (user?.role === "admin" || user?.role === "superadmin") return <AdminDashboard />;
   if (user?.role === "developer") return <DeveloperDashboard />;
+  if (user?.role === "sales") return <VentasDashboard />;
   return <Dashboard />;
 }
 
@@ -304,6 +307,7 @@ function AuthGate() {
           <Route path="/planes" component={Planes} />
           <Route path="/lotes" component={Lotes} />
           <Route path="/datos" component={Datos} />
+          <Route path="/ventas" component={Ventas} />
           <Route component={NotFound} />
         </Switch>
       </Layout>
@@ -340,6 +344,7 @@ function AuthGate() {
         <Route path="/planes" component={Planes} />
         <Route path="/lotes" component={Lotes} />
         <Route path="/datos" component={Datos} />
+        <Route path="/ventas" component={Ventas} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

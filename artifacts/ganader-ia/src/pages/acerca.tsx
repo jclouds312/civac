@@ -71,7 +71,7 @@ export default function Acerca() {
             Control Inteligente de Valor Agropecuario · Colombia
           </p>
           <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-            {['v5.0','PWA','Django','Flask','GPS Real'].map(tag => (
+            {['v7.0','PWA','IndexedDB','Django','Flask','GPS Real','22 módulos'].map(tag => (
               <span key={tag} className="text-[9px] font-black px-2.5 py-1 rounded-full"
                 style={{ background:'rgba(0,245,212,0.1)', border:'1px solid rgba(0,245,212,0.25)', color:'#00f5d4' }}>
                 {tag}

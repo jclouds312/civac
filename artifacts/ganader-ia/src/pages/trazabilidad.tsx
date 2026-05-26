@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { printModule } from "@/lib/print";
-import { exportToCSV } from "@/lib/export";
+import { downloadCSV } from "@/lib/export";
 
 /* ── Types ─────────────────────────────────────────────────────────────────── */
 interface EventoTrazabilidad {
@@ -173,7 +173,7 @@ export default function Trazabilidad() {
             </div>
             <div className="flex gap-2 flex-wrap">
               <Button size="sm"
-                onClick={() => exportToCSV(filtrados.map(e => ({ ...e })), "trazabilidad_civac")}
+                onClick={() => downloadCSV(filtrados.map(e => ({ ...e })), "trazabilidad_civac.csv")}
                 className="gap-1.5 text-xs h-8" style={{ background:"rgba(168,85,247,0.1)", border:"1px solid rgba(168,85,247,0.3)", color:"#a855f7" }}>
                 <Download size={13}/> CSV
               </Button>

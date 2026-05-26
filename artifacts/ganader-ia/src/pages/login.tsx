@@ -390,7 +390,7 @@ export default function Login() {
           <div className="flex items-center justify-center gap-3 mb-1">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ fontFamily:"'Sora',sans-serif", letterSpacing:"-0.03em" }}>
               <span className="text-white">CIVAC </span>
-              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>v1</span>
+              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>v7</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
               <span className="text-[10px] font-black px-2.5 py-1 rounded-lg leading-none" style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black", letterSpacing:"0.05em" }}>GanaderIA</span>

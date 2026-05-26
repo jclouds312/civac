@@ -24,6 +24,8 @@ const SECTIONS = [
   { id: "drive",        label: "Sync & Backups",       icon: Cloud },
   { id: "usuarios",     label: "Usuarios y Roles",     icon: Users },
   { id: "descarga",     label: "Exportar datos",       icon: FileDown },
+  { id: "sanidad",      label: "Sanidad Animal",       icon: Activity },
+  { id: "trazabilidad", label: "Trazabilidad ICA",     icon: Tag },
   { id: "ventas",       label: "🇨🇴 Agente de Ventas", icon: DollarSign },
 ];
 
@@ -139,7 +141,7 @@ export default function Documentacion() {
     inicio: (
       <div className="space-y-6">
         <SectionBanner emoji="🚀" title="GanaderIA CIVAC PRO" c1="rgba(0,30,20,0.9)" c2="rgba(0,50,30,0.9)"
-          border="rgba(0,245,212,0.35)" subtitle="Sistema integral de gestión ganadera · Colombia · v3.0"/>
+          border="rgba(0,245,212,0.35)" subtitle="Sistema integral de gestión ganadera · Colombia · v7.0 · 22 módulos · IndexedDB offline"/>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
@@ -646,6 +648,64 @@ export default function Documentacion() {
               style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
               <Printer size={14}/> Imprimir esta página
             </button>
+          </div>
+        </div>
+      </div>
+    ),
+    sanidad: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🩺" title="Sanidad Animal v7" subtitle="Protocolos · Vacunas · Tratamientos · Alertas ICA · Historial clínico"
+          c1="rgba(0,20,15,0.9)" c2="rgba(0,40,30,0.9)" border="rgba(0,245,212,0.35)"/>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Activity size={14}/>} color="#00f5d4" title="Protocolos Sanitarios"
+            desc="Registre vacunaciones (aftosa, brucela, IBR, BVD), desparasitaciones y vitaminas. Alertas automáticas 7 días antes del vencimiento." />
+          <FeatureCard icon={<FlaskConical size={14}/>} color="#38bdf8" title="Tratamientos y Diagnósticos"
+            desc="Historial clínico por animal. Registro de medicamentos, dosis, vía de administración, veterinario responsable y tiempo de retiro." />
+          <FeatureCard icon={<Bell size={14}/>} color="#f59e0b" title="Alertas de Revacunación"
+            desc="El sistema calcula automáticamente las fechas de refuerzo y genera alertas en el centro de notificaciones para no perder ninguna vacuna." />
+          <FeatureCard icon={<Shield size={14}/>} color="#a855f7" title="Certificados ICA"
+            desc="Genera reportes de vacunación en formato compatible con los requerimientos del ICA Colombia para movilización de ganado." />
+        </div>
+        <div className="rounded-xl p-4 space-y-2" style={{background:'rgba(0,245,212,0.05)',border:'1px solid rgba(0,245,212,0.15)'}}>
+          <div className="font-bold text-sm" style={{color:'#00f5d4'}}>📋 Enfermedades más registradas en Colombia</div>
+          {[
+            { e:'🦠', name:'Fiebre Aftosa', freq:'Vacunación obligatoria · ICA · Cada 4 meses', c:'#f87171' },
+            { e:'🔬', name:'Brucelosis',    freq:'Hembras de 3–8 meses · Cepa RB51 · Una sola vez', c:'#fb923c' },
+            { e:'🌡️', name:'Mastitis',      desc:'Higiene de ordeño · CMT mensual · Tratamiento temprano', c:'#fbbf24' },
+            { e:'🐛', name:'Parásitos',     freq:'Desparasitación cada 60–90 días según carga parasitaria', c:'#4ade80' },
+          ].map(r=>(
+            <div key={r.name} className="flex items-start gap-2 text-xs" style={{color:'rgba(255,255,255,0.6)'}}>
+              <span>{r.e}</span>
+              <strong className="text-white">{r.name}</strong>
+              <span>— {r.freq ?? r.desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    trazabilidad: (
+      <div className="space-y-6">
+        <SectionBanner emoji="🏷️" title="Trazabilidad ICA v7" subtitle="Guías de movilización · Códigos QR · Registro SINIGAN · Movimientos"
+          c1="rgba(20,0,40,0.9)" c2="rgba(40,0,80,0.9)" border="rgba(168,85,247,0.35)"/>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FeatureCard icon={<Tag size={14}/>} color="#a855f7" title="Guías de Movilización ICA"
+            desc="Registre todos los movimientos de animales entre predios. Genera guías en formato requerido por el ICA con número, origen, destino y animales." />
+          <FeatureCard icon={<QrCode size={14}/>} color="#e879f9" title="Código QR por Animal"
+            desc="Cada animal tiene su QR único. Escanéelo para ver su historial completo: vacunas, pesajes, partos, movimientos y certificados." />
+          <FeatureCard icon={<Globe size={14}/>} color="#38bdf8" title="Registro SINIGAN"
+            desc="Exporta los datos en formato compatible con el Sistema de Información de Ganadería Nacional (SINIGAN) para reportes al ICA." />
+          <FeatureCard icon={<CheckCircle size={14}/>} color="#4ade80" title="Historial de Movimientos"
+            desc="Trazabilidad completa del ciclo de vida: nacimiento, compra, traslados, exposiciones, ferias y venta. Todo auditado y con fecha." />
+        </div>
+        <div className="rounded-xl p-4 space-y-2" style={{background:'rgba(168,85,247,0.05)',border:'1px solid rgba(168,85,247,0.15)'}}>
+          <div className="font-bold text-sm" style={{color:'#a855f7'}}>📌 Tipos de movimiento registrados</div>
+          <div className="grid grid-cols-2 gap-2">
+            {['🏡 Traslado entre potreros','🚛 Movilización entre predios','🏪 Ingreso por compra','💰 Salida por venta',
+              '🏆 Exposición / Feria','🔬 Traslado veterinario','🐣 Nacimiento en finca','🌍 Exportación'].map(t=>(
+              <div key={t} className="text-xs rounded-lg px-2.5 py-1.5" style={{background:'rgba(168,85,247,0.08)',color:'rgba(255,255,255,0.65)'}}>
+                {t}
+              </div>
+            ))}
           </div>
         </div>
       </div>

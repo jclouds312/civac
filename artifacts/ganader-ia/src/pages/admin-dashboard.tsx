@@ -753,7 +753,7 @@ export default function AdminDashboard({
                 </span>
                 <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
                   style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"black", boxShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
-                  v5.0
+                  v7.0
                 </span>
               </div>
               <p className="text-xs" style={{ color:"rgba(255,149,0,0.65)" }}>

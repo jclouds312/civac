@@ -72,6 +72,10 @@ export default defineConfig({
         target: "http://localhost:8099",
         changeOrigin: true,
       },
+      "/api/gps": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,

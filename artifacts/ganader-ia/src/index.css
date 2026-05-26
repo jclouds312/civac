@@ -521,6 +521,16 @@ html { font-size: 15.5px; }
   from { transform: translateY(16px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+@keyframes slide-down {
+  from { transform: translateY(-20px) translateX(-50%); opacity: 0; }
+  to   { transform: translateY(0)     translateX(-50%); opacity: 1; }
+}
+@keyframes count-bounce {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  70%  { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
 @keyframes slide-right {
   from { transform: translateX(-12px); opacity: 0; }
   to   { transform: translateX(0);     opacity: 1; }

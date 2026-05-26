@@ -12,9 +12,38 @@ import {
   ChevronRight, Activity, Zap, Target, BarChart2, Printer,
 } from "lucide-react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { printModule } from "@/lib/print";
 import { Button } from "@/components/ui/button";
+
+/* ── Animated count-up hook ── */
+function useCountUp(target: number, duration = 900, trigger = true): number {
+  const [val, setVal] = useState(0);
+  const raf = useRef<number>(0);
+  useEffect(() => {
+    if (!trigger) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      const ease = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+      setVal(Math.round(ease * target));
+      if (p < 1) raf.current = requestAnimationFrame(tick);
+    };
+    raf.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf.current);
+  }, [target, duration, trigger]);
+  return val;
+}
+
+/* ── Live clock ── */
+function useLiveClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
 
 const dataProduccion = [
   { name:'Oct', litros:52000, meta:50000 },
@@ -92,8 +121,16 @@ export default function Dashboard() {
   const isDark = theme === 'dark';
   const pt = usePlanTheme();
   const [chartTab, setChartTab] = useState<'produccion'|'peso'|'finanzas'>('produccion');
-  const now  = new Date();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 200); return () => clearTimeout(t); }, []);
+  const now  = useLiveClock();
   const hour = now.getHours();
+
+  /* ── Animated KPI counters ── */
+  const totalAnimated    = useCountUp(animals.length || 13, 800, mounted);
+  const potrerosAnimated = useCountUp(potreros.length || 6, 700, mounted);
+  const personalAnimated = useCountUp(personal.length || 6, 600, mounted);
+  const alertasAnimated  = useCountUp(alertas.length || 4,  500, mounted);
   const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
 
   const total    = animals.length || 13;
@@ -132,7 +169,7 @@ export default function Dashboard() {
 
   const kpiCards = [
     {
-      label:'Total hato', emoji:'🐄', val:total, sub:'animales registrados', trend:'+2', up:true,
+      label:'Total hato', emoji:'🐄', val:totalAnimated, sub:'animales registrados', trend:'+2', up:true,
       grad:'linear-gradient(145deg,#002a1e,#003d2e,#004a38)',
       lGrad:'linear-gradient(145deg,#b8f0cc,#90e8b0)',
       neon:'#00f5d4', glow:'0,245,212', lText:'#0e4a28',
@@ -146,21 +183,21 @@ export default function Dashboard() {
       icon:<TrendingUp size={14}/>, href:'/produccion',
     },
     {
-      label:'Alertas', emoji:'🔔', val:alertas.length, sub:'requieren acción', trend:'3 críticas', up:false,
+      label:'Alertas', emoji:'🔔', val:alertasAnimated, sub:'requieren acción', trend:'3 críticas', up:false,
       grad:'linear-gradient(145deg,#2a0010,#3d0015,#4d0020)',
       lGrad:'linear-gradient(145deg,#ffc0c8,#ff9cac)',
       neon:'#ff4d6d', glow:'255,77,109', lText:'#7a0820',
       icon:<AlertCircle size={14}/>, href:'/alertas',
     },
     {
-      label:'Potreros', emoji:'🌿', val:potreros.length, sub:'áreas activas', trend:'1 libre', up:true,
+      label:'Potreros', emoji:'🌿', val:potrerosAnimated, sub:'áreas activas', trend:'1 libre', up:true,
       grad:'linear-gradient(145deg,#122800,#1a3d00,#1e4a00)',
       lGrad:'linear-gradient(145deg,#d0f090,#b4e060)',
       neon:'#84ef34', glow:'132,239,52', lText:'#284a10',
       icon:<Target size={14}/>, href:'/potreros',
     },
     {
-      label:'Personal', emoji:'👷', val:personal.length, sub:'empleados activos', trend:'todos OK', up:true,
+      label:'Personal', emoji:'👷', val:personalAnimated, sub:'empleados activos', trend:'todos OK', up:true,
       grad:'linear-gradient(145deg,#12182a,#182030,#1a2840)',
       lGrad:'linear-gradient(145deg,#d4dce8,#bcccd8)',
       neon:'#94a3b8', glow:'148,163,184', lText:'#283848',

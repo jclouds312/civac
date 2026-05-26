@@ -8,6 +8,7 @@ import CivacBot from "./components/civac-bot";
 import CivacAgent from "./components/civac-agent";
 import Acerca from "./pages/acerca";
 import PlanLanding from "./pages/plan-landing";
+import InvitePage from "./pages/invite";
 import { AppStateProvider } from "./lib/data";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
@@ -393,6 +394,7 @@ function App() {
               <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
                 <Switch>
                   <Route path="/plan/:planId" component={PlanLanding} />
+                  <Route path="/invite/:token" component={InvitePage} />
                   <Route component={AuthGate} />
                 </Switch>
               </WouterRouter>

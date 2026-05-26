@@ -339,6 +339,8 @@ export default function AdminDashboard({
   const [internalTab,  setInternalTab]  = useState("resumen");
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
   const [sessionsList, setSessionsList] = useState(SIMULATED_SESSIONS);
+  const [inviteTarget, setInviteTarget] = useState<Account | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const [linkPlan,     setLinkPlan]     = useState<PlanId>("pro");
   const [linkCopied,   setLinkCopied]   = useState(false);
   const [webhookOpen,  setWebhookOpen]  = useState(false);
@@ -633,6 +635,27 @@ export default function AdminDashboard({
       planExpiry: newPlan !== "basico" ? new Date(Date.now()+30*86400000).toISOString().slice(0,10) : undefined,
     });
     setPlanTarget(null);
+  };
+
+  /* ── Generar enlace de invitación ── */
+  const genInviteLink = (a: Account): string => {
+    const payload = {
+      e: a.email,
+      p: a.password,
+      pl: a.plan ?? "basico",
+      n: a.nombre,
+      f: a.finca ?? "",
+      r: a.role,
+      t: Date.now(),
+    };
+    const token = btoa(JSON.stringify(payload));
+    return `${window.location.origin}/invite/${encodeURIComponent(token)}`;
+  };
+  const copyInviteLink = (a: Account) => {
+    const link = genInviteLink(a);
+    navigator.clipboard?.writeText(link).catch(() => {});
+    setInviteCopied(true);
+    setTimeout(() => setInviteCopied(false), 2500);
   };
   const toggleStatus = (a: Account) => { if (a.id==="admin") return; updateUser(a.id, { activo:!(a.activo!==false) }); };
   const doDelete     = () => { if (!deleteTarget) return; deleteUser(deleteTarget.id); setDeleteTarget(null); };
@@ -1077,6 +1100,10 @@ export default function AdminDashboard({
                           style={{color:PLAN_COLOR[a.plan??"basico"]}}>
                           <Download size={11}/>
                         </button>
+                        <button onClick={()=>setInviteTarget(a)} title="Enviar acceso / invitación"
+                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-emerald-500/15 transition-colors" style={{color:"#34d399"}}>
+                          <Send size={11}/>
+                        </button>
                         <button onClick={()=>setDeleteTarget(a)} disabled={a.id==="admin"} title="Eliminar"
                           className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/50 hover:text-red-400 disabled:opacity-20 transition-colors">
                           <Trash2 size={11}/>
@@ -1088,6 +1115,73 @@ export default function AdminDashboard({
               </tbody>
             </table>
           </div>
+
+          {/* ── INVITE MODAL ── */}
+          {inviteTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:"rgba(0,0,0,0.7)",backdropFilter:"blur(8px)"}}>
+              <div className="w-full max-w-md rounded-3xl overflow-hidden" style={{background:"linear-gradient(145deg,#020d1a,#0a1a2e)",border:"1px solid rgba(52,211,153,0.3)",boxShadow:"0 0 60px rgba(52,211,153,0.12)"}}>
+                <div className="h-1" style={{background:"linear-gradient(90deg,#34d399,#00c8ff,transparent)"}}/>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-black text-base text-white flex items-center gap-2">
+                      <Send size={15} style={{color:"#34d399"}}/> Enviar Acceso
+                    </h3>
+                    <button onClick={()=>{setInviteTarget(null);setInviteCopied(false);}} className="text-white/30 hover:text-white w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10">
+                      <XC size={14}/>
+                    </button>
+                  </div>
+
+                  {/* User info */}
+                  <div className="flex items-center gap-3 mb-4 p-3 rounded-2xl" style={{background:"rgba(52,211,153,0.05)",border:"1px solid rgba(52,211,153,0.15)"}}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{background:"rgba(52,211,153,0.1)"}}>
+                      {inviteTarget.avatar}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{inviteTarget.nombre}</p>
+                      <p className="text-[10px] truncate" style={{color:"rgba(52,211,153,0.5)"}}>{inviteTarget.email}</p>
+                      <p className="text-[9px] text-white/30">{inviteTarget.finca} · Plan <span style={{color:PLAN_COLOR[inviteTarget.plan??"basico"]}}>{PLAN_LABEL[inviteTarget.plan??"basico"]}</span></p>
+                    </div>
+                  </div>
+
+                  {/* Generated link */}
+                  <p className="text-[10px] text-white/40 mb-2 uppercase tracking-wider flex items-center gap-1"><Link2 size={9}/> Enlace de acceso personalizado</p>
+                  <div className="flex gap-2 mb-3">
+                    <div className="flex-1 text-[9px] font-mono bg-white/5 px-3 py-2.5 rounded-xl text-white/40 overflow-hidden truncate border border-white/8">
+                      {genInviteLink(inviteTarget).slice(0,55)}…
+                    </div>
+                    <button onClick={()=>copyInviteLink(inviteTarget)}
+                      className="px-3 py-2.5 rounded-xl text-xs font-bold flex-shrink-0 transition-all"
+                      style={{background:inviteCopied?"rgba(52,211,153,0.2)":"rgba(52,211,153,0.08)",color:"#34d399",border:"1px solid rgba(52,211,153,0.3)"}}>
+                      {inviteCopied ? <CheckCircle size={13}/> : <Copy size={13}/>}
+                    </button>
+                  </div>
+
+                  {/* Share buttons */}
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <a href={`https://wa.me/?text=${encodeURIComponent("Tu acceso CIVAC: " + genInviteLink(inviteTarget))}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold transition-all hover:opacity-80"
+                      style={{background:"rgba(37,211,102,0.08)",color:"#25d366",border:"1px solid rgba(37,211,102,0.2)"}}>
+                      📱 WhatsApp
+                    </a>
+                    <a href={`mailto:${inviteTarget.email}?subject=Tu acceso CIVAC ${PLAN_LABEL[inviteTarget.plan??"basico"]}&body=${encodeURIComponent("Hola " + inviteTarget.nombre + ",\n\nTu acceso a GanaderIA CIVAC está listo:\n\n" + genInviteLink(inviteTarget) + "\n\nSoporte: soporte@civac.co")}`}
+                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold transition-all hover:opacity-80"
+                      style={{background:"rgba(0,120,255,0.08)",color:"#60a5fa",border:"1px solid rgba(0,120,255,0.2)"}}>
+                      ✉️ Email
+                    </a>
+                    <a href={`https://t.me/share/url?url=${encodeURIComponent(genInviteLink(inviteTarget))}&text=${encodeURIComponent("Tu acceso CIVAC 🐄")}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold transition-all hover:opacity-80"
+                      style={{background:"rgba(0,136,204,0.08)",color:"#0088cc",border:"1px solid rgba(0,136,204,0.2)"}}>
+                      ✈️ Telegram
+                    </a>
+                  </div>
+
+                  <div className="text-[9px] text-white/25 text-center flex items-center justify-center gap-1">
+                    <Shield size={8}/> El enlace contiene credenciales cifradas · Solo accesible por el destinatario
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Permisos inline */}
           {permTarget && (

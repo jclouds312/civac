@@ -540,8 +540,28 @@ export default function Login() {
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string|null>(null);
+  const [inviteBanner, setInviteBanner] = useState<{nombre:string;plan:string}|null>(null);
 
   useEffect(() => { const t = setTimeout(() => setEntered(true), 80); return () => clearTimeout(t); }, []);
+
+  /* ── Detect pending invite from /invite/:token ── */
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("civac_pending_invite");
+      if (!raw) return;
+      const inv = JSON.parse(raw) as { email:string; password:string; plan:string; nombre:string; finca:string };
+      localStorage.removeItem("civac_pending_invite");
+      setEmail(inv.email);
+      setPassword(inv.password);
+      setInviteBanner({ nombre: inv.nombre, plan: inv.plan });
+      /* Auto-login after short delay so user sees the welcome banner */
+      const tid = setTimeout(() => {
+        if (login(inv.email, inv.password)) return;
+      }, 1500);
+      return () => clearTimeout(tid);
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const clientAccounts = [...accounts.filter(a => a.role === "admin"), ...accounts.filter(a => a.role !== "admin")];
 
@@ -567,6 +587,29 @@ export default function Login() {
       <Particles />
 
       {payPlan && <PaymentModal plan={payPlan} onClose={() => setPayPlan(null)} />}
+
+      {/* ── Invite welcome banner ── */}
+      {inviteBanner && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl flex items-center gap-3 pointer-events-none"
+          style={{
+            background:"linear-gradient(135deg,#002a1e,#003d2e)",
+            border:"1px solid rgba(0,245,212,0.4)",
+            backdropFilter:"blur(16px)",
+            boxShadow:"0 0 50px rgba(0,245,212,0.25), 0 8px 32px rgba(0,0,0,0.5)",
+            animation:"slide-down 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+          }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
+            style={{background:"rgba(0,245,212,0.12)",border:"1px solid rgba(0,245,212,0.25)"}}>🎉</div>
+          <div>
+            <p className="text-xs font-black text-white whitespace-nowrap">¡Bienvenido, {inviteBanner.nombre.split(" ")[0]}!</p>
+            <p className="text-[9px] whitespace-nowrap" style={{color:"rgba(0,245,212,0.65)"}}>
+              Plan <strong className="text-white capitalize">{inviteBanner.plan}</strong> asignado · Iniciando sesión…
+            </p>
+          </div>
+          <div className="w-4 h-4 rounded-full border-2 flex-shrink-0"
+            style={{borderColor:"rgba(0,245,212,0.3)",borderTopColor:"#00f5d4",animation:"spin 0.8s linear infinite"}}/>
+        </div>
+      )}
 
       {/* Admin gate — secret click area bottom-right */}
       <button onClick={() => setShowAdminForm(true)}

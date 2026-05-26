@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "./components/layout";
 import CivacBot from "./components/civac-bot";
+import CivacAgent from "./components/civac-agent";
+import Acerca from "./pages/acerca";
 import { AppStateProvider } from "./lib/data";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
@@ -313,14 +315,17 @@ function AuthGate() {
           <Route path="/datos" component={Datos} />
           <Route path="/ventas" component={Ventas} />
           <Route path="/asesora" component={Asesora} />
+          <Route path="/acerca" component={Acerca} />
           <Route component={NotFound} />
         </Switch>
       </Layout>
       <CivacBot />
+      <CivacAgent />
     </>
   );
 
   return (
+    <>
     <Layout>
       <Switch>
         <Route path="/" component={HomeRoute} />
@@ -353,9 +358,12 @@ function AuthGate() {
         <Route path="/drive" component={Drive} />
         <Route path="/asesora" component={Asesora} />
         <Route path="/gps-chips" component={GpsChips} />
+        <Route path="/acerca" component={Acerca} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
+    <CivacAgent />
+    </>
   );
 }
 

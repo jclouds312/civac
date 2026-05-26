@@ -65,20 +65,21 @@ const MODULES: Record<string, ModuleDef> = {
   '/drive':         { icon: Cloud,           from:'#00c8ff', to:'#0070cc', glow:'0,200,255',    emoji:'☁️', label:'Google Drive',          shortLabel:'Drive'     },
   '/asesora':       { icon: Sparkles,        from:'#a855f7', to:'#7c3aed', glow:'168,85,247',   emoji:'🤖', label:'Asesora IA',            shortLabel:'Asesora'   },
   '/gps-chips':     { icon: Satellite,       from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',    emoji:'📡', label:'GPS Chips',             shortLabel:'Chips'     },
+  '/acerca':        { icon: Shield,          from:'#00f5d4', to:'#0891b2', glow:'0,245,212',    emoji:'ℹ️', label:'Acerca · Licencia',     shortLabel:'Acerca'    },
 };
 
 /* ── Plan-based route access ───────────────────────────────────────────────── */
 const PLAN_ROUTES: Record<string, string[]> = {
-  basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros'],
-  pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros',
+  basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca'],
+  pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/ventas', '/asesora'],
-  premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
+  premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive', '/asesora'],
-  platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
+  platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
@@ -763,6 +764,7 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/configuracion" />
             <NavItem href="/documentacion" />
             <NavItem href="/planes" accent="💳" accentColor="bg-amber-500/15 text-amber-400 border-amber-500/25" />
+            <NavItem href="/acerca" accent="©" accentColor="bg-[#00f5d4]/15 text-[#00f5d4] border-[#00f5d4]/25" />
           </Section>
         </div>
 

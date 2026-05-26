@@ -334,6 +334,156 @@ def health():
     return jsonify({"ok": True, "service": "CIVAC Analytics v1.0", "engine": "Flask + pandas"})
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT: /api/analytics/chat  — CIVAC Agente IA
+# ─────────────────────────────────────────────────────────────────────────────
+CIVAC_INTENTS = {
+    "produccion":   ["produccion","leche","litros","ordeño","ordeno","vacas producen","cuanto produce"],
+    "animales":     ["animales","bovinos","inventario","cuantas vacas","cuantos","hato","cabezas","bovino"],
+    "gps":          ["gps","collar","ubicacion","donde esta","rastreo","chip","dispositivo","geovalla"],
+    "alertas":      ["alertas","problemas","urgente","critico","notificaciones","advertencias"],
+    "costos":       ["costos","gastos","dinero","ingresos","utilidad","margen","financiero","plata","pesos"],
+    "reproduccion": ["reproduccion","celo","preñez","parto","inseminacion","gestacion","ternero"],
+    "potreros":     ["potreros","pasto","potrero","hectareas","lote","rotacion","forraje"],
+    "insumos":      ["insumos","medicamentos","vacunas","stock","inventario medicamentos","drogas","mineral"],
+    "personal":     ["personal","empleados","nomina","trabajadores","operarios"],
+    "precio":       ["precio leche","precio litro","fedegan","valor leche","cotizacion"],
+    "recomendacion":["recomienda","consejo","que hago","como mejoro","tip","sugerencia","ayuda","que debo"],
+    "clima":        ["clima","temperatura","lluvia","tiempo","sol","frio","calor","helada"],
+    "pesaje":       ["pesaje","peso","bcs","condicion corporal","kilos","bascula","bluetooth"],
+    "genetica":     ["genetica","dep","raza","pajilla","semen","pedigri","holstein","brahman","cebú","gyr"],
+    "saludo":       ["hola","buenos","buenas","buen dia","saludos","hey","hi"],
+    "despedida":    ["adios","chao","hasta luego","bye","gracias","listo","ok","bien"],
+    "planes":       ["plan","precio","costo suscripcion","pro","premium","platino","upgrade","mejorar"],
+    "cifras":       ["estadisticas","cifras","resumen","kpi","dashboard","numeros","reportes"],
+    "sync":         ["sincronizar","sync","offline","sin internet","conexion","backup","datos"],
+    "modulos":      ["modulos","funciones","que puedes","que haces","capacidades","que tiene"],
+}
+
+RESPUESTAS = {
+    "produccion": {
+        "texto": "🥛 **Producción actual del hato:**\n\n• **84 L/día** en total (5 vacas en ordeño)\n• **16.8 L/vaca** promedio diario\n• **Meta del mes:** 2,520 L\n• Precio leche hoy: **$1,380/L** (Fedegán)\n\n💰 Ingreso diario estimado: **$115,920 COP**\n\n📈 La producción aumentó un **+6%** respecto al mes anterior.",
+        "accion": "/produccion", "accion_label": "Ver módulo Producción",
+    },
+    "animales": {
+        "texto": "🐄 **Inventario del hato:**\n\n• **13 animales** registrados con RFID\n• Vacas en producción: **7**\n• Novillas: **3** | Terneros: **2** | Toros: **1**\n\n📊 Categoría principal: vacas lecheras (54%)\n🏥 Estado sanitario: **9/13 al día** con vacunas\n\nPuedo mostrarte la ficha individual de cualquier animal.",
+        "accion": "/inventario", "accion_label": "Ver inventario completo",
+    },
+    "gps": {
+        "texto": "📡 **Estado GPS del hato:**\n\n• **6 chips GPS** registrados en Django\n• Activos en línea: **5/6**\n• 1 dispositivo sin señal: **Caravana Bravo** (Potrero 4)\n• Batería crítica: **Bolo Perla** (17%)\n\n🗺️ Animales rastreados: Rosaura, Titan, Perla, Luna, Estrella\n\n⚠️ Tienes **2 alertas GPS activas**.",
+        "accion": "/gps-chips", "accion_label": "Ver GPS Chips",
+    },
+    "alertas": {
+        "texto": "🚨 **Alertas activas:**\n\n🔴 **Críticas (2):**\n• Caravana Bravo sin señal GPS > 1h\n• Batería Bolo Perla al 17%\n\n🟡 **Advertencias (2):**\n• 4 insumos bajo stock mínimo\n• Vacuna Aftosa vence en 12 días\n\n✅ Sin alertas de salud animal urgentes.",
+        "accion": "/alertas", "accion_label": "Ir al Centro de Alertas",
+    },
+    "costos": {
+        "texto": "💰 **Situación financiera del mes:**\n\n• **Ingresos:** $86.4M COP\n• **Costos totales:** $46.2M COP\n• **Utilidad neta:** $40.2M COP\n• **Margen:** 46.5%\n\n📉 Costo por litro: **$549/L**\n📈 Proyección anual (IA): **$482M utilidad**\n\nEl margen está **por encima** del promedio nacional (35%).",
+        "accion": "/costos", "accion_label": "Ver P&G completo",
+    },
+    "reproduccion": {
+        "texto": "🔁 **Estado reproductivo:**\n\n• **Tasa de preñez:** 78% (meta: 80%)\n• IEP actual: **390 días** (meta < 400 días)\n• Próximos partos: **2 en los próximos 30 días**\n• Celos detectados esta semana: **1**\n• Inseminaciones pendientes: **1**\n\n📅 Próximo parto: **Rosaura** (estimado 15 Jun)",
+        "accion": "/reproduccion", "accion_label": "Ver módulo Reproducción",
+    },
+    "potreros": {
+        "texto": "🌿 **Estado de potreros:**\n\n• **6 lotes** en rotación activa\n• **Potrero activo:** Potrero 1 — Kikuyo (4.5 ha)\n• **Disponible:** Potrero 2 — Raigrás (3.8 ha)\n• Capacidad de carga: **1.8 UA/ha**\n• Próximo movimiento: **en 5 días**\n\n⚠️ Potrero 6 necesita descanso (pastoreo alto).",
+        "accion": "/potreros", "accion_label": "Ver mapa potreros",
+    },
+    "insumos": {
+        "texto": "💊 **Estado de insumos:**\n\n⚠️ **4 items bajo stock mínimo:**\n• Vacuna Aftosa: 2 dosis (mín. 15)\n• Mineral sal: 12 kg (mín. 25 kg)\n• Ivermectina: 50 ml (mín. 100 ml)\n• Oxitocina: 3 amp (mín. 10)\n\n✅ Stock OK: antibióticos, vitaminas, desparasitante.",
+        "accion": "/insumos", "accion_label": "Ver Kardex de insumos",
+    },
+    "personal": {
+        "texto": "👷 **Personal de la finca:**\n\n• **6 empleados** activos\n• Mayordomo: Carlos Muñoz\n• Ordeñadores: 2 turnos mañana\n• Nómina del mes: **$7.2M COP**\n• Próximo pago: **30 de mayo**\n• Sin novedades de ARL/EPS este mes.",
+        "accion": "/personal", "accion_label": "Ver módulo Personal",
+    },
+    "precio": {
+        "texto": "💵 **Precio de leche Colombia (Fedegán):**\n\n• **Precio base:** $1,380/litro\n• Con incentivos calidad: hasta **$1,520/litro**\n• Variación semana: **+1.2%**\n• Precio carne en pie: **$5,800/kg**\n• Ternero destete: **$1,900,000/cabeza**\n\n📊 Fedegán registró producción nacional de 7,200 M L/año.",
+        "accion": "/asesora", "accion_label": "Ver precios en tiempo real",
+    },
+    "recomendacion": {
+        "texto": "🤖 **Recomendaciones CIVAC IA:**\n\n1. 🔋 **Urgente:** Cargar Bolo Perla (17% batería)\n2. 💊 **Esta semana:** Reponer vacuna Aftosa\n3. 🌿 **Rotación:** Mover hato al Potrero 2 en 5 días\n4. 🐄 **Oportunidad:** Rosaura produce 18L/día — revisar dieta\n5. 💰 **Finanzas:** Tu margen (46.5%) supera la meta — considera expansión\n6. 📡 **GPS:** Verificar señal de Caravana Bravo en Potrero 4",
+        "accion": "/asesora", "accion_label": "Ver Asesora IA completa",
+    },
+    "clima": {
+        "texto": "🌤️ **Clima finca (Boyacá · 2,600 msnm):**\n\n• **Temperatura:** 18°C (máx 22°C / mín 10°C)\n• **Humedad:** 74%\n• **Condición:** Parcialmente nublado\n• **Riesgo helada:** bajo (próximos 7 días)\n\n🌧️ Lluvia esperada: jueves y viernes\n🌾 Buenas condiciones para pastoreo esta semana.",
+        "accion": "/potreros", "accion_label": "Ver estado potreros",
+    },
+    "pesaje": {
+        "texto": "⚖️ **Últimos pesajes del hato:**\n\n• Promedio hato: **417 kg** (↑ +3 kg vs mes anterior)\n• Mejor GMD: **Titan** con +0.85 kg/día\n• BCS promedio: **3.2/5** (rango óptimo)\n• Pesaje pendiente: **4 animales**\n\n📱 Conéctate a la báscula Bluetooth para pesaje automático.",
+        "accion": "/pesaje", "accion_label": "Ir a módulo Pesaje BT",
+    },
+    "genetica": {
+        "texto": "🧬 **Genética del hato:**\n\n• Raza principal: **Holstein × GyrXHolstein**\n• DEP leche promedio: **+892 kg**\n• Mejor DEP: **Titan** (toro) con +1,240 kg leche\n• Pajillas disponibles: **8 dosis** (3 razas)\n• Próxima inseminación programada: **Perla** (sem. próxima)\n\n🏆 Potencial genético: mejora del 8% en próxima generación.",
+        "accion": "/genetica", "accion_label": "Ver módulo Genética",
+    },
+    "saludo": {
+        "texto": "¡Hola! 👋 Soy **CIVAC IA**, tu asistente ganadero inteligente.\n\nPuedo ayudarte con:\n• 🐄 Datos del inventario bovino\n• 🥛 Producción y precios de leche\n• 📡 Estado GPS de los animales\n• 🚨 Alertas y problemas activos\n• 💰 Finanzas y costos de la finca\n• 🌿 Potreros y alimentación\n• 💊 Insumos y medicamentos\n\n¿Qué necesitas consultar hoy?",
+        "accion": None, "accion_label": None,
+    },
+    "despedida": {
+        "texto": "¡Con gusto! 🤝 Estoy aquí cuando me necesites.\n\nRecuerda que puedes consultarme sobre cualquier módulo de CIVAC PRO. ¡Buena jornada ganadera! 🐄🌿",
+        "accion": None, "accion_label": None,
+    },
+    "planes": {
+        "texto": "💎 **Planes CIVAC PRO:**\n\n• **Básico** — Gratis: Inventario, Producción, Alertas\n• **PRO** — $129,000/mes: +GPS 5 chips, Reproducción, Costos, Asesora IA\n• **Premium** — $289,000/mes: +GPS 20 chips, Genética, CO₂, Multi-finca\n• **Platino** — $890,000/mes: GPS ilimitado + soporte dedicado\n\nLicencias: **SoftGan Colombia** · Propietario: **Johnatan Vallejo Marulanda**",
+        "accion": "/planes", "accion_label": "Ver todos los planes",
+    },
+    "cifras": {
+        "texto": "📊 **Resumen ejecutivo CIVAC PRO:**\n\n• 🐄 **13** animales · **7** en producción\n• 🥛 **84 L/día** · $1,380/litro\n• 📡 **5/6** chips GPS en línea\n• 💰 Margen **46.5%** · Utilidad $40.2M/mes\n• 🌿 **6** potreros · rotación activa\n• ⚠️ **4** alertas activas (2 críticas)\n• 👷 **6** empleados · Nómina $7.2M/mes",
+        "accion": "/", "accion_label": "Ver Dashboard principal",
+    },
+    "sync": {
+        "texto": "🔄 **Estado de sincronización CIVAC:**\n\n• **Modo offline:** activo (PWA Service Worker v6)\n• **Cola pendiente:** 0 registros\n• **Último sync:** hace 2 minutos\n• **GPS Server Django:** ✅ conectado (localhost:8000)\n• **Analytics Flask:** ✅ conectado (localhost:8099)\n\n📱 Al reconectarte, los datos offline se sincronizan automáticamente con el servidor.",
+        "accion": None, "accion_label": None,
+    },
+    "modulos": {
+        "texto": "🔧 **Módulos CIVAC PRO que puedo consultar:**\n\n🐄 Inventario · 🥛 Producción · 🔁 Reproducción\n🧬 Genética · 🌿 Potreros · 🌾 Alimentación\n💊 Insumos · 👷 Personal · 💰 Costos P&G\n🤖 Predicciones IA · 🌱 CO₂ · 🚨 Alertas\n🧊 Semen · 📋 Ficha individual · 🗺️ Multi-finca\n📡 GPS Bovino · ⚖️ Pesaje BT · 🛰️ GPS Chips\n\nPregúntame sobre cualquiera de ellos.",
+        "accion": None, "accion_label": None,
+    },
+}
+
+DEFAULT_RESPONSE = {
+    "texto": "Entendí tu pregunta 🤔 Puedo ayudarte con información sobre:\n\n• **Producción** de leche y precios\n• **Animales** e inventario bovino\n• **GPS** y rastreo de collares\n• **Alertas** y problemas activos\n• **Costos** y finanzas de la finca\n• **Reproducción** y genética\n• **Potreros** y alimentación\n• **Insumos** y medicamentos\n\nIntenta preguntarme algo específico como '¿cuántos litros produzco?' o '¿qué alertas tengo?'",
+    "accion": None, "accion_label": None,
+}
+
+@app.route("/api/analytics/chat", methods=["POST"])
+def chat():
+    data    = request.get_json() or {}
+    message = data.get("message", "").lower().strip()
+
+    if not message:
+        return jsonify({"ok": False, "error": "Mensaje vacío"}), 400
+
+    # Intent matching
+    detected = None
+    best_score = 0
+    for intent, keywords in CIVAC_INTENTS.items():
+        score = sum(1 for kw in keywords if kw in message)
+        if score > best_score:
+            best_score = score
+            detected = intent
+
+    # Fallback: single word partial match
+    if not detected or best_score == 0:
+        for intent, keywords in CIVAC_INTENTS.items():
+            if any(message.startswith(kw[:4]) for kw in keywords if len(kw) >= 4):
+                detected = intent
+                break
+
+    resp = RESPUESTAS.get(detected, DEFAULT_RESPONSE)
+    return jsonify({
+        "ok":         True,
+        "intent":     detected,
+        "respuesta":  resp["texto"],
+        "accion":     resp.get("accion"),
+        "accion_label": resp.get("accion_label"),
+        "agente":     "CIVAC IA v1.0",
+        "ts":         datetime.now().isoformat(),
+    })
+
+
 if __name__ == "__main__":
     port = int(__import__("os").environ.get("PORT", 8099))
     app.run(host="0.0.0.0", port=port, debug=False)

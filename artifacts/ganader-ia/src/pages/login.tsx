@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS, type PlanId } from "@/lib/auth";
+import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, type PlanId } from "@/lib/auth";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
@@ -29,10 +29,13 @@ function CivacLogo({ size = 80 }: { size?: number }) {
 function PlanBadge({ plan, size = "md" }: { plan?: PlanId; size?: "sm" | "md" | "lg" }) {
   const p = plan ?? "basico";
   const sizes = { sm:"text-[9px] px-1.5 py-0.5", md:"text-xs px-2.5 py-1", lg:"text-sm px-3 py-1.5" };
+  const c1 = PLAN_COLOR[p], c2 = PLAN_COLOR2[p], g = PLAN_GLOW[p];
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide ${sizes[size]}`}
-      style={{ background:`${PLAN_COLOR[p]}20`, border:`1.5px solid ${PLAN_COLOR[p]}55`, color:PLAN_COLOR[p] }}>
-      {PLAN_ICON[p]} {PLAN_LABEL[p]}
+    <span className={`inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide relative overflow-hidden ${sizes[size]}`}
+      style={{ background:`rgba(${g},0.14)`, border:`1.5px solid rgba(${g},0.45)`, color:c1, boxShadow:`0 0 10px rgba(${g},0.2)` }}>
+      <span className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity"
+        style={{ background:`linear-gradient(135deg,rgba(${g},0.15),transparent)` }} />
+      {PLAN_ICON[p]} <span style={{ background:`linear-gradient(90deg,${c1},${c2})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{PLAN_LABEL[p]}</span>
     </span>
   );
 }
@@ -46,10 +49,10 @@ const PLAN_FEATURES: Record<PlanId, string[]> = {
 };
 
 const PLAN_COLORS_GRADIENT: Record<PlanId, [string,string]> = {
-  basico:  ["#4b5563","#374151"],
-  pro:     ["#00f5d4","#00a896"],
-  premium: ["#a855f7","#7c3aed"],
-  platino: ["#fbbf24","#ea580c"],
+  basico:  ["#b8c4d4","#94a3b8"],
+  pro:     ["#00f5d4","#00c8ff"],
+  premium: ["#fbbf24","#f59e0b"],
+  platino: ["#cd7f32","#e07b54"],
 };
 
 const PLAN_PRECIOS_LABEL: Record<PlanId, string> = {

@@ -190,30 +190,33 @@ export default function DeveloperDashboard() {
   const filteredLogs = LOGS_MOCK.filter(l=> logFilter==="all" || l.t===logFilter);
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background:"linear-gradient(145deg,#020a12 0%,#040f1a 40%,#050e18 100%)", fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
+    <div className="min-h-screen flex flex-col" style={{ background:"linear-gradient(145deg,#010c06 0%,#021408 40%,#011006 100%)", fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
 
       {/* ── Topbar ── */}
-      <header className="h-[56px] sticky top-0 z-30 flex items-center justify-between px-4 border-b flex-shrink-0"
-        style={{ background:"rgba(2,10,18,0.97)", backdropFilter:"blur(24px)", borderColor:"rgba(0,255,136,0.12)", boxShadow:`0 1px 20px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,136,0.03)` }}>
+      <header className="h-[56px] sticky top-0 z-30 flex items-center justify-between px-4 border-b flex-shrink-0 relative overflow-hidden"
+        style={{ background:"rgba(1,12,6,0.97)", backdropFilter:"blur(24px)", borderColor:"rgba(0,255,136,0.18)", boxShadow:`0 1px 20px rgba(0,0,0,0.5), 0 0 60px rgba(0,255,136,0.06)` }}>
+        {/* Matrix scan line */}
+        <div className="absolute bottom-0 left-0 w-full h-px opacity-60"
+          style={{background:"linear-gradient(90deg,transparent,#00ff88,#00d4ff,#00ff88,transparent)"}}/>
         <div className="flex items-center gap-3">
           <button className="lg:hidden text-white/40 p-1.5" onClick={()=>setMobileOpen(v=>!v)}><Menu size={18}/></button>
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background:"linear-gradient(135deg,#00ff88,#00d4aa)", boxShadow:"0 0 16px rgba(0,255,136,0.5)" }}>
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 relative"
+            style={{ background:"linear-gradient(135deg,#00ff88,#00c864)", boxShadow:"0 0 20px rgba(0,255,136,0.7), 0 0 40px rgba(0,255,136,0.25)" }}>
             <Terminal size={14} strokeWidth={2.5} className="text-black"/>
           </div>
           <div>
-            <span className="font-black text-white text-sm">CIVAC</span>
-            <span className="font-black text-sm ml-1.5" style={{color:G}}>Dev Console</span>
+            <span className="font-black text-white text-sm" style={{textShadow:"0 0 20px rgba(0,255,136,0.3)"}}>CIVAC</span>
+            <span className="font-black text-sm ml-1.5" style={{color:G,textShadow:`0 0 20px ${G}80`}}>Dev Console</span>
           </div>
           <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg font-mono text-[9px]"
-            style={{ background:"rgba(0,255,136,0.06)", border:"1px solid rgba(0,255,136,0.15)", color:G }}>
+            style={{ background:"rgba(0,255,136,0.08)", border:"1px solid rgba(0,255,136,0.25)", color:G, boxShadow:"0 0 8px rgba(0,255,136,0.1)" }}>
             <Hash size={9}/> v{BUILD_INFO.version} · {BUILD_INFO.commit}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-semibold"
-            style={{ background:"rgba(0,255,136,0.08)", border:"1px solid rgba(0,255,136,0.2)", color:G }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse"/>
+            style={{ background:"rgba(0,255,136,0.10)", border:"1px solid rgba(0,255,136,0.28)", color:G, boxShadow:"0 0 12px rgba(0,255,136,0.12)" }}>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:G, boxShadow:`0 0 6px ${G}`}}/>
             {BUILD_INFO.env}
           </div>
           <span className="text-[11px] text-white/30 hidden sm:block">{user?.email}</span>

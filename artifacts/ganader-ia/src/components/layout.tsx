@@ -11,7 +11,7 @@ import { AiAssistant } from "./ai-assistant";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { PLAN_ICON, PLAN_COLOR } from "@/lib/auth";
+import { PLAN_ICON, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_LABEL } from "@/lib/auth";
 import { applyPlanTheme } from "@/lib/api";
 
 interface LayoutProps { children: React.ReactNode; }
@@ -353,10 +353,7 @@ export function Layout({ children }: LayoutProps) {
 
   // Apply plan-based CSS theme variables whenever the user or their plan changes
   useEffect(() => {
-    const planMap: Record<string, string> = {
-      basico: 'basic', pro: 'pro', premium: 'pro', platino: 'platinum', enterprise: 'enterprise',
-    };
-    const planCode = user?.plan ? (planMap[user.plan] ?? user.plan) : 'basic';
+    const planCode = user?.plan ?? 'basico';
     applyPlanTheme(planCode);
   }, [user]);
 
@@ -617,39 +614,58 @@ export function Layout({ children }: LayoutProps) {
         </div>
 
         {/* ── User badge ── */}
-        {user && !collapsed && (
-          <div className="px-2.5 py-2 border-b flex-shrink-0" style={{ borderColor: 'rgba(60,140,255,0.10)' }}>
-            <div className="flex items-center gap-2 px-2.5 py-2.5"
-              style={{
-                background: 'rgba(5,15,40,0.8)',
-                border: `1px solid rgba(60,140,255,0.16)`,
-                borderRadius: 13,
-              }}>
-              <div className={`w-8 h-8 rounded-full ${ROLE_COLORS[user.role]} flex items-center justify-center font-black text-[12px] flex-shrink-0`}
-                style={{ boxShadow: `0 0 10px rgba(255,214,10,0.25)` }}>
-                {user.nombre.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-[12px] font-semibold text-white/90 truncate leading-tight">
-                  {user.nombre.split(' ').slice(0, 2).join(' ')}
-                </p>
-                <p className="text-[9px] leading-none mt-0.5 flex items-center gap-1" style={{ color: PIÑA }}>
-                  <span>{ROLE_LABELS[user.role]}</span>
-                  {user.plan && user.plan !== 'basico' && (
-                    <span style={{ color: PLAN_COLOR[user.plan] }}>
-                      {PLAN_ICON[user.plan]} {user.plan.toUpperCase()}
+        {user && !collapsed && (() => {
+          const plan = (user.plan ?? 'basico') as import("@/lib/auth").PlanId;
+          const pc1  = PLAN_COLOR[plan];
+          const pc2  = PLAN_COLOR2[plan];
+          const pg   = PLAN_GLOW[plan];
+          return (
+            <div className="px-2.5 py-2 border-b flex-shrink-0" style={{ borderColor: `rgba(${pg},0.14)` }}>
+              <div className="flex items-center gap-2 px-2.5 py-2.5 relative overflow-hidden"
+                style={{
+                  background: `linear-gradient(135deg,rgba(5,15,40,0.92),rgba(8,20,50,0.88))`,
+                  border: `1px solid rgba(${pg},0.28)`,
+                  borderRadius: 13,
+                  boxShadow: `0 0 14px rgba(${pg},0.12), inset 0 1px 0 rgba(255,255,255,0.04)`,
+                }}>
+                {/* Metallic shimmer stripe */}
+                <div className="absolute top-0 left-0 w-full h-px opacity-60"
+                  style={{ background: `linear-gradient(90deg,transparent,${pc1},${pc2},transparent)` }} />
+                <div className={`w-8 h-8 rounded-full ${ROLE_COLORS[user.role]} flex items-center justify-center font-black text-[12px] flex-shrink-0`}
+                  style={{ boxShadow: `0 0 12px rgba(${pg},0.45), 0 0 4px rgba(${pg},0.3)`, border: `1.5px solid rgba(${pg},0.4)` }}>
+                  {user.nombre.charAt(0)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-semibold text-white/90 truncate leading-tight">
+                    {user.nombre.split(' ').slice(0, 2).join(' ')}
+                  </p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-[9px] leading-none" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      {ROLE_LABELS[user.role] || user.role}
                     </span>
-                  )}
-                </p>
+                    {user.plan && (
+                      <span className="text-[8px] font-black px-1.5 py-0.5 rounded-md leading-none"
+                        style={{
+                          background: `linear-gradient(135deg,${pc1},${pc2})`,
+                          color: plan === 'basico' || plan === 'premium' ? '#000' : plan === 'pro' ? '#000' : '#fff',
+                          letterSpacing: '0.04em',
+                          boxShadow: `0 0 8px rgba(${pg},0.5)`,
+                        }}>
+                        {PLAN_ICON[plan]} {PLAN_LABEL[plan].toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse"
+                  style={{ background: '#39ff7e', boxShadow: '0 0 8px rgba(57,255,126,0.9)' }} />
               </div>
-              <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse"
-                style={{ background: '#39ff7e', boxShadow: '0 0 8px rgba(57,255,126,0.9)' }} />
             </div>
-          </div>
-        )}
+          );
+        })()}
         {user && collapsed && (
           <div className="flex justify-center py-2 border-b flex-shrink-0" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-            <div className={`w-8 h-8 rounded-full ${ROLE_COLORS[user.role]} flex items-center justify-center font-black text-[12px]`}>
+            <div className={`w-8 h-8 rounded-full ${ROLE_COLORS[user.role]} flex items-center justify-center font-black text-[12px]`}
+              style={{ border: `1.5px solid ${PLAN_COLOR[(user.plan ?? 'basico') as import("@/lib/auth").PlanId]}40` }}>
               {user.nombre.charAt(0)}
             </div>
           </div>
@@ -890,13 +906,20 @@ export function Layout({ children }: LayoutProps) {
                           <p className="text-[10px]" style={{ color: PIÑA }}>{ROLE_LABELS[user?.role || 'admin']}</p>
                         </div>
                       </div>
-                      {user?.plan && (
-                        <div className="flex items-center gap-1.5 mt-1.5 px-2 py-1 rounded-lg text-[10px] font-bold"
-                          style={{ background: `${PLAN_COLOR[user.plan]}15`, color: PLAN_COLOR[user.plan], border: `1px solid ${PLAN_COLOR[user.plan]}30` }}>
-                          {PLAN_ICON[user.plan]} Plan {user.plan.toUpperCase()}
-                          {user.planExpiry && <span className="ml-auto text-white/30 font-normal">vence {user.planExpiry}</span>}
-                        </div>
-                      )}
+                      {user?.plan && (() => {
+                        const p = user.plan as import("@/lib/auth").PlanId;
+                        const c1 = PLAN_COLOR[p], c2 = PLAN_COLOR2[p], g = PLAN_GLOW[p];
+                        return (
+                          <div className="flex items-center gap-1.5 mt-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-black relative overflow-hidden"
+                            style={{ background: `rgba(${g},0.10)`, color: c1, border: `1px solid rgba(${g},0.35)`, boxShadow: `0 0 12px rgba(${g},0.15)` }}>
+                            <div className="absolute top-0 left-0 w-full h-px opacity-50"
+                              style={{ background: `linear-gradient(90deg,transparent,${c1},${c2},transparent)` }} />
+                            <span>{PLAN_ICON[p]}</span>
+                            <span>Plan <span style={{ background: `linear-gradient(90deg,${c1},${c2})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{PLAN_LABEL[p]}</span></span>
+                            {user.planExpiry && <span className="ml-auto text-white/25 font-normal text-[9px]">vence {user.planExpiry}</span>}
+                          </div>
+                        );
+                      })()}
                       <p className="text-[10px] text-white/35 mt-1">{user?.finca}</p>
                     </div>
                     <div className="p-1">

@@ -3,7 +3,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
 } from "recharts";
 import { useAppState } from "../lib/data";
-import { useAuth } from "@/lib/auth";
+import { useAuth, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_LABEL, type PlanId } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
 import {
   Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
@@ -102,6 +102,18 @@ export default function Dashboard() {
     { name:'Toros',    value:torosN,    pct:`${Math.round(torosN/total*100)}%` },
   ];
 
+  const plan = (user?.plan ?? 'basico') as PlanId;
+  const roleBanners: Record<string, { bg: string; accent1: string; accent2: string; glow: string }> = {
+    vet:        { bg:'linear-gradient(135deg,#001228 0%,#001840 35%,#001a50 70%,#001030 100%)', accent1:'#00c8ff', accent2:'#0ea5e9', glow:'0,200,255' },
+    field:      { bg:'linear-gradient(135deg,#001408 0%,#002010 35%,#001c08 70%,#001208 100%)', accent1:'#39ff7e', accent2:'#00c850', glow:'57,255,126' },
+    viewer:     { bg:'linear-gradient(135deg,#1a0830 0%,#280a40 35%,#200838 70%,#160628 100%)', accent1:'#a855f7', accent2:'#7c3aed', glow:'168,85,247' },
+    developer:  { bg:'linear-gradient(135deg,#001408 0%,#001e0a 35%,#001c0a 70%,#001008 100%)', accent1:'#00ff88', accent2:'#00d4ff', glow:'0,255,136' },
+    admin:      { bg:'linear-gradient(135deg,#1a0800 0%,#2a1000 35%,#240e00 70%,#180800 100%)', accent1:'#ff9500', accent2:'#ff6b00', glow:'255,149,0' },
+    superadmin: { bg:'linear-gradient(135deg,#1a0800 0%,#2a1000 35%,#240e00 70%,#180800 100%)', accent1:'#ff9500', accent2:'#ff6b00', glow:'255,149,0' },
+  };
+  const defaultBanner = { bg:'linear-gradient(135deg,#002e20 0%,#003d2e 35%,#003358 70%,#002050 100%)', accent1:'#00f5d4', accent2:'#00c8ff', glow:'0,245,212' };
+  const rb = roleBanners[user?.role ?? ''] ?? defaultBanner;
+
   const kpiCards = [
     {
       label:'Total hato', emoji:'🐄', val:total, sub:'animales registrados', trend:'+2', up:true,
@@ -153,26 +165,31 @@ export default function Dashboard() {
       {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden module-banner"
         style={{
-          background:'linear-gradient(135deg,#002e20 0%,#003d2e 35%,#003358 70%,#002050 100%)',
-          border:'1px solid rgba(0,245,212,0.22)',
-          boxShadow:'0 0 50px rgba(0,245,212,0.08), 0 8px 40px rgba(0,0,0,0.4)',
+          background: rb.bg,
+          border:`1px solid rgba(${rb.glow},0.22)`,
+          boxShadow:`0 0 50px rgba(${rb.glow},0.08), 0 8px 40px rgba(0,0,0,0.4)`,
         }}>
         {/* Unsplash aerial farm image */}
         <div className="absolute inset-0 pointer-events-none"
           style={{ background:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1000&q=20&auto=format&fit=crop') center/cover no-repeat", opacity: 0.05 }} />
         {/* Decorative blobs */}
         <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full pointer-events-none"
-          style={{background:'radial-gradient(circle,rgba(0,245,212,0.18),transparent 70%)'}}/>
+          style={{background:`radial-gradient(circle,rgba(${rb.glow},0.18),transparent 70%)`}}/>
         <div className="absolute -bottom-16 -left-10 w-56 h-56 rounded-full pointer-events-none"
-          style={{background:'radial-gradient(circle,rgba(0,200,255,0.12),transparent 70%)'}}/>
+          style={{background:`radial-gradient(circle,rgba(${rb.glow},0.10),transparent 70%)`}}/>
         <div className="absolute top-0 right-1/3 w-48 h-48 rounded-full pointer-events-none"
-          style={{background:'radial-gradient(circle,rgba(57,255,126,0.06),transparent 70%)'}}/>
+          style={{background:`radial-gradient(circle,rgba(${rb.glow},0.06),transparent 70%)`}}/>
         {/* Grid */}
         <div className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(0,245,212,0.025) 28px,rgba(0,245,212,0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(0,245,212,0.025) 28px,rgba(0,245,212,0.025) 29px)',
+          backgroundImage:`repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(${rb.glow},0.025) 28px,rgba(${rb.glow},0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(${rb.glow},0.025) 28px,rgba(${rb.glow},0.025) 29px)`,
         }}/>
-        {/* Top accent line */}
-        <div className="h-0.5 w-full" style={{background:'linear-gradient(90deg,transparent,#00f5d4,#00c8ff,transparent)'}}/>
+        {/* Top accent line — role color */}
+        <div className="h-0.5 w-full" style={{background:`linear-gradient(90deg,transparent,${rb.accent1},${rb.accent2},transparent)`}}/>
+        {/* Plan metallic stripe (if non-basic plan) */}
+        {plan !== 'basico' && (
+          <div className="absolute top-0.5 right-0 h-px w-1/3 opacity-40"
+            style={{background:`linear-gradient(270deg,transparent,${PLAN_COLOR[plan]})`}}/>
+        )}
 
         <div className="relative p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
@@ -182,16 +199,22 @@ export default function Dashboard() {
                   {greeting}, {user?.nombre?.split(' ')[0] || 'Admin'} 👋
                 </h1>
                 <span className="text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1.5"
-                  style={{background:'rgba(57,255,126,0.18)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.35)'}}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#39ff7e] animate-pulse inline-block"/>
+                  style={{background:`rgba(${rb.glow},0.18)`,color:rb.accent1,border:`1px solid rgba(${rb.glow},0.35)`}}>
+                  <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{background:rb.accent1}}/>
                   CIVAC Live
                 </span>
+                {plan !== 'basico' && (
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full hidden sm:flex items-center gap-1"
+                    style={{background:`rgba(${PLAN_GLOW[plan]},0.15)`,color:PLAN_COLOR[plan],border:`1px solid rgba(${PLAN_GLOW[plan]},0.35)`}}>
+                    {PLAN_ICON[plan]} {PLAN_LABEL[plan]}
+                  </span>
+                )}
               </div>
               <p className="text-white/55 text-xs sm:text-sm">
                 {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                 &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
               </p>
-              <p className="text-white/30 text-[10px] sm:text-xs mt-0.5">Control Inteligente de Valor Agropecuario · CIVAC v4.0 PRO</p>
+              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v5.0</p>
             </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[

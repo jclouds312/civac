@@ -41,7 +41,7 @@ import {
    CONSTANTS
 ────────────────────────────────────────────────────────────────────────── */
 const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
-const PLAN_COLORS_PIE = ["#94a3b8", "#00f5d4", "#a78bfa", "#fbbf24"];
+const PLAN_COLORS_PIE = ["#b8c4d4", "#00f5d4", "#fbbf24", "#cd7f32"];
 
 const PLAN_MODULES: Record<PlanId, string[]> = {
   basico:  ["Dashboard","Inventario","Producción","Potreros","Alertas"],
@@ -717,46 +717,57 @@ export default function AdminDashboard({
       {/* ── HERO BANNER ── */}
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden"
         style={{
-          background:"linear-gradient(135deg,#050d18 0%,#071a30 40%,#0a1e3a 70%,#050d18 100%)",
-          border:"1px solid rgba(0,245,212,0.25)",
-          boxShadow:"0 0 50px rgba(0,245,212,0.08)",
+          background:"linear-gradient(135deg,#1a0800 0%,#280d00 35%,#200a00 65%,#160800 100%)",
+          border:"1px solid rgba(255,149,0,0.28)",
+          boxShadow:"0 0 60px rgba(255,149,0,0.10), 0 8px 40px rgba(0,0,0,0.5)",
         }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background:"url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1000&q=15&auto=format&fit=crop') center/cover", opacity:0.04 }}/>
-        <div className="absolute -top-10 -right-10 w-72 h-72 rounded-full pointer-events-none"
-          style={{ background:"radial-gradient(circle,rgba(0,245,212,0.15),transparent 70%)" }}/>
+        {/* Amber glow spheres */}
+        <div className="absolute -top-10 -right-10 w-80 h-80 rounded-full pointer-events-none"
+          style={{ background:"radial-gradient(circle,rgba(255,149,0,0.18),transparent 70%)" }}/>
+        <div className="absolute -bottom-12 -left-8 w-60 h-60 rounded-full pointer-events-none"
+          style={{ background:"radial-gradient(circle,rgba(255,107,0,0.12),transparent 70%)" }}/>
+        {/* Grid */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          backgroundImage:"repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,149,0,0.02) 28px,rgba(255,149,0,0.02) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(255,149,0,0.02) 28px,rgba(255,149,0,0.02) 29px)",
+        }}/>
         <div className="absolute top-0 left-0 right-0 h-0.5"
-          style={{ background:"linear-gradient(90deg,transparent,#00f5d4,#00c8ff,transparent)" }}/>
+          style={{ background:"linear-gradient(90deg,transparent,#ff9500,#fbbf24,#ff6b00,transparent)" }}/>
 
         <div className="relative p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0"
-              style={{ border:"2px solid rgba(0,245,212,0.5)", boxShadow:"0 0 24px rgba(0,245,212,0.4)" }}>
+              style={{ border:"2px solid rgba(255,149,0,0.6)", boxShadow:"0 0 28px rgba(255,149,0,0.5), 0 0 60px rgba(255,149,0,0.15)" }}>
               <img src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=120&h=120&q=80&auto=format&fit=crop&crop=face"
                 alt="CIVAC" className="w-full h-full object-cover"/>
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-1">
-                <h1 className="text-xl sm:text-2xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif" }}>
+                <h1 className="text-xl sm:text-2xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif", textShadow:"0 0 30px rgba(255,149,0,0.3)" }}>
                   CIVAC Admin
                 </h1>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                  style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black" }}>SUPER PANEL</span>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                  style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white" }}>v5.0</span>
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
+                  style={{ background:"linear-gradient(135deg,#ff9500,#ff6b00)", color:"white", boxShadow:"0 0 12px rgba(255,149,0,0.5)" }}>
+                  👑 SUPER PANEL
+                </span>
+                <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
+                  style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"black", boxShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
+                  v5.0
+                </span>
               </div>
-              <p className="text-xs" style={{ color:"rgba(0,245,212,0.6)" }}>
+              <p className="text-xs" style={{ color:"rgba(255,149,0,0.65)" }}>
                 Control Inteligente de Valor Agropecuario · Panel de Administración Global
               </p>
               <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                <span className="flex items-center gap-1 text-[10px]" style={{ color:"rgba(0,245,212,0.45)" }}>
+                <span className="flex items-center gap-1 text-[10px]" style={{ color:"rgba(255,149,0,0.5)" }}>
                   <Shield size={10}/> {currentUser?.nombre ?? "Admin"}
                 </span>
                 <span className="flex items-center gap-1 text-[10px]" style={{ color:"rgba(255,255,255,0.3)" }}>
                   <Globe size={10}/> Colombia · {new Date().toLocaleDateString("es-CO")}
                 </span>
-                <span className="flex items-center gap-1 text-[10px] text-green-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"/> Sistema operativo
+                <span className="flex items-center gap-1 text-[10px]" style={{ color:"#39ff7e" }}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#39ff7e] animate-pulse"/> Sistema operativo
                 </span>
               </div>
             </div>
@@ -768,7 +779,7 @@ export default function AdminDashboard({
             </Button>
             <Button size="sm" onClick={() => setAddOpen(true)}
               className="gap-1.5 text-xs font-bold"
-              style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black" }}>
+              style={{ background:"linear-gradient(135deg,#ff9500,#ff6b00)", color:"white", boxShadow:"0 0 16px rgba(255,149,0,0.4)" }}>
               <Plus size={12}/> Nuevo cliente
             </Button>
           </div>

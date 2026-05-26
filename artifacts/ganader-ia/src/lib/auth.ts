@@ -53,17 +53,45 @@ export const PLAN_LABEL: Record<PlanId, string> = {
 };
 
 export const PLAN_COLOR: Record<PlanId, string> = {
-  basico:  '#94a3b8',
+  basico:  '#b8c4d4',
   pro:     '#00f5d4',
-  premium: '#a78bfa',
-  platino: '#fbbf24',
+  premium: '#fbbf24',
+  platino: '#cd7f32',
+};
+
+export const PLAN_COLOR2: Record<PlanId, string> = {
+  basico:  '#94a3b8',
+  pro:     '#00c8ff',
+  premium: '#f59e0b',
+  platino: '#e07b54',
+};
+
+export const PLAN_GLOW: Record<PlanId, string> = {
+  basico:  '184,196,212',
+  pro:     '0,245,212',
+  premium: '251,191,36',
+  platino: '205,127,50',
+};
+
+export const PLAN_GRADIENT: Record<PlanId, [string, string]> = {
+  basico:  ['#b8c4d4', '#94a3b8'],
+  pro:     ['#00f5d4', '#00c8ff'],
+  premium: ['#fbbf24', '#f59e0b'],
+  platino: ['#cd7f32', '#e07b54'],
+};
+
+export const PLAN_LABEL_METAL: Record<PlanId, string> = {
+  basico:  'Cromo',
+  pro:     'Teal Neón',
+  premium: 'Oro',
+  platino: 'Cobre',
 };
 
 export const PLAN_ICON: Record<PlanId, string> = {
-  basico:  '🌱',
+  basico:  '🥈',
   pro:     '⚡',
-  premium: '⭐',
-  platino: '👑',
+  premium: '🥇',
+  platino: '🔶',
 };
 
 export const DEFAULT_ACCOUNTS: Account[] = [

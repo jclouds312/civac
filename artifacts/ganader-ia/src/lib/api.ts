@@ -250,57 +250,100 @@ export async function flushOfflineQueue(): Promise<number> {
 }
 
 // ─── Plan theming helpers ─────────────────────────────────────────────────────
-export type PlanCode = "basic" | "pro" | "platinum" | "enterprise";
+export type PlanCode = "basic" | "pro" | "premium" | "platinum" | "enterprise";
 
 const PLAN_VARS: Record<PlanCode, Record<string, string>> = {
+  /* ── Básico — Cromo / Plata ───────────────────────────────────────────── */
   basic: {
-    "--plan-primary":       "#00f5d4",
-    "--plan-secondary":     "#00c8ff",
-    "--plan-accent":        "#39ff7e",
-    "--plan-glow":          "0,245,212",
-    "--plan-badge-bg":      "rgba(0,245,212,0.12)",
-    "--plan-badge-border":  "rgba(0,245,212,0.3)",
-    "--plan-badge-text":    "#00f5d4",
-    "--plan-sidebar-accent":"rgba(0,245,212,0.15)",
-    "--plan-ring-color":    "#00f5d4",
+    "--plan-primary":        "#b8c4d4",
+    "--plan-secondary":      "#94a3b8",
+    "--plan-accent":         "#e2e8f0",
+    "--plan-glow":           "184,196,212",
+    "--plan-badge-bg":       "rgba(184,196,212,0.10)",
+    "--plan-badge-border":   "rgba(184,196,212,0.32)",
+    "--plan-badge-text":     "#c8d4e4",
+    "--plan-sidebar-accent": "rgba(184,196,212,0.10)",
+    "--plan-ring-color":     "#b8c4d4",
+    "--plan-shimmer-from":   "#d0d8e8",
+    "--plan-shimmer-to":     "#8090a8",
+    "--plan-sidebar-border": "rgba(184,196,212,0.18)",
+    "--plan-metal-label":    "CROMO",
   },
+  /* ── PRO — Neón Teal ──────────────────────────────────────────────────── */
   pro: {
-    "--plan-primary":       "#00c8ff",
-    "--plan-secondary":     "#7c3aed",
-    "--plan-accent":        "#a855f7",
-    "--plan-glow":          "0,200,255",
-    "--plan-badge-bg":      "rgba(0,200,255,0.12)",
-    "--plan-badge-border":  "rgba(0,200,255,0.35)",
-    "--plan-badge-text":    "#00c8ff",
-    "--plan-sidebar-accent":"rgba(0,200,255,0.15)",
-    "--plan-ring-color":    "#00c8ff",
+    "--plan-primary":        "#00f5d4",
+    "--plan-secondary":      "#00c8ff",
+    "--plan-accent":         "#39ff7e",
+    "--plan-glow":           "0,245,212",
+    "--plan-badge-bg":       "rgba(0,245,212,0.12)",
+    "--plan-badge-border":   "rgba(0,245,212,0.38)",
+    "--plan-badge-text":     "#00f5d4",
+    "--plan-sidebar-accent": "rgba(0,245,212,0.15)",
+    "--plan-ring-color":     "#00f5d4",
+    "--plan-shimmer-from":   "#00f5d4",
+    "--plan-shimmer-to":     "#00c8ff",
+    "--plan-sidebar-border": "rgba(0,245,212,0.22)",
+    "--plan-metal-label":    "NEÓN",
   },
+  /* ── Premium — Oro / Dorado ───────────────────────────────────────────── */
+  premium: {
+    "--plan-primary":        "#fbbf24",
+    "--plan-secondary":      "#f59e0b",
+    "--plan-accent":         "#fcd34d",
+    "--plan-glow":           "251,191,36",
+    "--plan-badge-bg":       "rgba(251,191,36,0.12)",
+    "--plan-badge-border":   "rgba(251,191,36,0.42)",
+    "--plan-badge-text":     "#fbbf24",
+    "--plan-sidebar-accent": "rgba(251,191,36,0.15)",
+    "--plan-ring-color":     "#fbbf24",
+    "--plan-shimmer-from":   "#fcd34d",
+    "--plan-shimmer-to":     "#d97706",
+    "--plan-sidebar-border": "rgba(251,191,36,0.28)",
+    "--plan-metal-label":    "ORO",
+  },
+  /* ── Platino — Cobre / Rose-Gold ──────────────────────────────────────── */
   platinum: {
-    "--plan-primary":       "#ff9500",
-    "--plan-secondary":     "#fbbf24",
-    "--plan-accent":        "#f59e0b",
-    "--plan-glow":          "255,149,0",
-    "--plan-badge-bg":      "rgba(255,149,0,0.15)",
-    "--plan-badge-border":  "rgba(255,149,0,0.4)",
-    "--plan-badge-text":    "#ff9500",
-    "--plan-sidebar-accent":"rgba(255,149,0,0.15)",
-    "--plan-ring-color":    "#ff9500",
+    "--plan-primary":        "#e07b54",
+    "--plan-secondary":      "#cd7f32",
+    "--plan-accent":         "#b87333",
+    "--plan-glow":           "224,123,84",
+    "--plan-badge-bg":       "rgba(205,127,50,0.12)",
+    "--plan-badge-border":   "rgba(205,127,50,0.42)",
+    "--plan-badge-text":     "#e07b54",
+    "--plan-sidebar-accent": "rgba(205,127,50,0.15)",
+    "--plan-ring-color":     "#cd7f32",
+    "--plan-shimmer-from":   "#e09060",
+    "--plan-shimmer-to":     "#8b4513",
+    "--plan-sidebar-border": "rgba(205,127,50,0.28)",
+    "--plan-metal-label":    "COBRE",
   },
+  /* ── Enterprise — Platino Brillante ──────────────────────────────────── */
   enterprise: {
-    "--plan-primary":       "#e2e8f0",
-    "--plan-secondary":     "#94a3b8",
-    "--plan-accent":        "#cbd5e1",
-    "--plan-glow":          "226,232,240",
-    "--plan-badge-bg":      "rgba(226,232,240,0.12)",
-    "--plan-badge-border":  "rgba(226,232,240,0.3)",
-    "--plan-badge-text":    "#e2e8f0",
-    "--plan-sidebar-accent":"rgba(226,232,240,0.1)",
-    "--plan-ring-color":    "#e2e8f0",
+    "--plan-primary":        "#e2e8f0",
+    "--plan-secondary":      "#94a3b8",
+    "--plan-accent":         "#cbd5e1",
+    "--plan-glow":           "226,232,240",
+    "--plan-badge-bg":       "rgba(226,232,240,0.12)",
+    "--plan-badge-border":   "rgba(226,232,240,0.30)",
+    "--plan-badge-text":     "#e2e8f0",
+    "--plan-sidebar-accent": "rgba(226,232,240,0.10)",
+    "--plan-ring-color":     "#e2e8f0",
+    "--plan-shimmer-from":   "#ffffff",
+    "--plan-shimmer-to":     "#94a3b8",
+    "--plan-sidebar-border": "rgba(226,232,240,0.20)",
+    "--plan-metal-label":    "PLATINUM",
   },
 };
 
 export function applyPlanTheme(planCode: string) {
-  const code = (planCode ?? "basic") as PlanCode;
+  const map: Record<string, PlanCode> = {
+    basico: "basic", basic: "basic",
+    pro: "pro",
+    premium: "premium",
+    platino: "platinum", platinum: "platinum",
+    enterprise: "enterprise",
+  };
+  const code = map[planCode] ?? "basic";
   const vars = PLAN_VARS[code] ?? PLAN_VARS.basic;
   const root = document.documentElement;
   root.setAttribute("data-plan", code);

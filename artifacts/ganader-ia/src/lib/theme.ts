@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, createElement } from "react";
 
 type Theme = 'dark' | 'light';
 
@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (t: Theme) => setThemeState(t);
   const toggleTheme = () => setThemeState(prev => prev === 'dark' ? 'light' : 'dark');
 
-  return React.createElement(ThemeContext.Provider, { value: { theme, toggleTheme, setTheme } }, children);
+  return createElement(ThemeContext.Provider, { value: { theme, toggleTheme, setTheme } }, children);
 }
 
 export const useTheme = () => useContext(ThemeContext);

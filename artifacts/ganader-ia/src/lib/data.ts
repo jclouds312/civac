@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect, createElement } from "react";
 import { syncEngine } from "./sync";
 
 // ─── Initial Seed Data — CIVAC PRO v3.0 ─────────────────────────────────────
@@ -471,7 +471,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     apiPost("/seed", {});
   }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones, _setLotes, _setSemen, _setEmbriones]);
 
-  return React.createElement(
+  return createElement(
     AppStateContext.Provider,
     { value: {
         animals, setAnimals,

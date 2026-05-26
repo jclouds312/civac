@@ -1,8 +1,8 @@
-// CIVAC PRO — Service Worker v7
+// CIVAC PRO — Service Worker v8
 // Estrategia: Cache-first assets · Stale-while-revalidate nav · Network-first API
 // Memoria expandida: 50 MB quota + persistent storage · Offline shell completo
 
-const CACHE_VER    = 'v7';
+const CACHE_VER    = 'v8';
 const CACHE_MAIN   = `civac-main-${CACHE_VER}`;
 const CACHE_STATIC = `civac-static-${CACHE_VER}`;
 const CACHE_API    = `civac-api-${CACHE_VER}`;
@@ -73,6 +73,19 @@ self.addEventListener('fetch', (e) => {
 
   // Ignorar extensiones de Chrome y similares
   if (!url.protocol.startsWith('http')) return;
+
+  // ── Pasar-through: Vite dev-server internals (NUNCA cachear módulos de dev) ─
+  if (
+    url.pathname.startsWith('/@') ||
+    url.pathname.includes('/node_modules/.vite/') ||
+    url.pathname.startsWith('/src/') ||
+    url.search.includes('?v=') ||
+    url.search.includes('t=') ||
+    url.pathname.includes('__vite') ||
+    url.pathname.includes('@react-refresh')
+  ) {
+    return; // dejar que el navegador lo maneje directamente
+  }
 
   // ── API interna: network-first, fallback a caché ───────────────────────────
   if (url.pathname.startsWith('/api/')) {

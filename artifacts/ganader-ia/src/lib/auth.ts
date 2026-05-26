@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, createElement } from "react";
 
 export type PlanId = 'basico' | 'pro' | 'premium' | 'platino';
 
@@ -364,7 +364,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  return React.createElement(AuthContext.Provider, {
+  return createElement(AuthContext.Provider, {
     value: {
       user, accounts, wompiPayments,
       login, loginAs, logout,

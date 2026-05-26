@@ -6,7 +6,7 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles, Satellite, Shield,
+  Sparkles, Satellite, Shield, Tag,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
@@ -65,6 +65,8 @@ const MODULES: Record<string, ModuleDef> = {
   '/drive':         { icon: Cloud,           from:'#00c8ff', to:'#0070cc', glow:'0,200,255',    emoji:'☁️', label:'Google Drive',          shortLabel:'Drive'     },
   '/asesora':       { icon: Sparkles,        from:'#a855f7', to:'#7c3aed', glow:'168,85,247',   emoji:'🤖', label:'Asesora IA',            shortLabel:'Asesora'   },
   '/gps-chips':     { icon: Satellite,       from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',    emoji:'📡', label:'GPS Chips',             shortLabel:'Chips'     },
+  '/sanidad':       { icon: Activity,        from:'#00f5d4', to:'#00a896', glow:'0,245,212',    emoji:'🩺', label:'Sanidad Animal',        shortLabel:'Sanidad'   },
+  '/trazabilidad':  { icon: Tag,             from:'#a855f7', to:'#7c3aed', glow:'168,85,247',   emoji:'🏷️', label:'Trazabilidad ICA',      shortLabel:'Traza'     },
   '/acerca':        { icon: Shield,          from:'#00f5d4', to:'#0891b2', glow:'0,245,212',    emoji:'ℹ️', label:'Acerca · Licencia',     shortLabel:'Acerca'    },
 };
 
@@ -74,16 +76,17 @@ const PLAN_ROUTES: Record<string, string[]> = {
   pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
-            '/ventas', '/asesora'],
+            '/ventas', '/asesora', '/sanidad', '/trazabilidad'],
   premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
-            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive', '/asesora'],
+            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive', '/asesora', '/sanidad', '/trazabilidad'],
   platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
-            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas', '/drive', '/asesora'],
+            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas', '/drive', '/asesora',
+            '/sanidad', '/trazabilidad'],
 };
 
 const PLAN_REQUIRED: Record<string, string> = {
@@ -93,8 +96,10 @@ const PLAN_REQUIRED: Record<string, string> = {
   '/pesaje-manual': 'PREMIUM', '/co2': 'PREMIUM', '/lotes': 'PREMIUM', '/datos': 'PREMIUM', '/drive': 'PREMIUM',
   '/usuarios': 'PLATINO', '/configuracion': 'PLATINO', '/documentacion': 'PLATINO',
   '/manual': 'PLATINO', '/planes': 'PLATINO',
-  '/asesora':   'PRO',
-  '/gps-chips': 'PRO',
+  '/asesora':       'PRO',
+  '/gps-chips':     'PRO',
+  '/sanidad':       'PRO',
+  '/trazabilidad':  'PRO',
 };
 
 const ROLE_COLORS: Record<string, string> = {

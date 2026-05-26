@@ -51,6 +51,8 @@ import GpsChips from "./pages/gps-chips";
 import Ventas from "./pages/ventas";
 import VentasDashboard from "./pages/ventas-dashboard";
 import Drive from "./pages/drive";
+import Sanidad from "./pages/sanidad";
+import Trazabilidad from "./pages/trazabilidad";
 
 const queryClient = new QueryClient();
 
@@ -358,6 +360,8 @@ function AuthGate() {
         <Route path="/drive" component={Drive} />
         <Route path="/asesora" component={Asesora} />
         <Route path="/gps-chips" component={GpsChips} />
+        <Route path="/sanidad" component={Sanidad} />
+        <Route path="/trazabilidad" component={Trazabilidad} />
         <Route path="/acerca" component={Acerca} />
         <Route component={NotFound} />
       </Switch>

@@ -59,6 +59,8 @@ const MODULOS = [
   { emoji:'📋', title:'Ficha Individual', desc:'Historia clínica por animal',       href:'/ficha',         from:'#00f5d4', to:'#00a8cc', glow:'0,245,212',   badge:null,  lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
   { emoji:'👥', title:'Usuarios',         desc:'Accesos · Permisos por rol',        href:'/usuarios',      from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:null,  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
   { emoji:'📐', title:'Pesaje Manual',    desc:'CC · GMD · Recibo PDF',            href:'/pesaje-manual', from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:'CC',  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
+  { emoji:'🩺', title:'Sanidad Animal',   desc:'Protocolos · Tratamientos · ICA',  href:'/sanidad',       from:'#00f5d4', to:'#00a896', glow:'0,245,212',   badge:'NEW', lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
+  { emoji:'🏷️', title:'Trazabilidad ICA', desc:'Guías · QR · Movimientos',         href:'/trazabilidad',  from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:'NEW', lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
 ];
 
 function StatTicker() {
@@ -66,6 +68,8 @@ function StatTicker() {
     '🐄 13 Animales activos','🥛 84 L/día producción','💰 $40.2M utilidad mes',
     '⚠ 4 alertas insumos','🌿 6 potreros gestionados','📡 GPS activo · 13 collares',
     '🤖 IA predictiva ON','🧬 DEP Score: 94.2','🌱 -18% huella CO₂',
+    '🩺 Sanidad v7 · 10 registros','🏷️ Trazabilidad ICA · activa','⚖️ 3 básculas BT vinculadas',
+    '☁️ Analytics Server ONLINE','🔒 CIVAC PRO v7.0 · Licencia activa',
   ];
   const doubled = [...items, ...items];
   return (
@@ -233,7 +237,7 @@ export default function Dashboard() {
                 {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                 &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
               </p>
-              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v5.0</p>
+              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v7.0</p>
             </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[

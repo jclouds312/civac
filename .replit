@@ -1,4 +1,4 @@
-modules = ["nodejs-24", "python-3.11"]
+modules = ["nodejs-20", "python-3.12", "web"]
 
 [deployment]
 router = "application"
@@ -81,3 +81,6 @@ externalPort = 3001
 [[ports]]
 localPort = 19538
 externalPort = 3000
+
+[nix]
+channel = "stable-25_05"

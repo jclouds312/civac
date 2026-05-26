@@ -44,6 +44,7 @@ import Gps from "./pages/gps";
 import Planes from "./pages/planes";
 import Lotes from "./pages/lotes";
 import Datos from "./pages/datos";
+import Asesora from "./pages/asesora";
 import Ventas from "./pages/ventas";
 import VentasDashboard from "./pages/ventas-dashboard";
 import Drive from "./pages/drive";
@@ -309,6 +310,7 @@ function AuthGate() {
           <Route path="/lotes" component={Lotes} />
           <Route path="/datos" component={Datos} />
           <Route path="/ventas" component={Ventas} />
+          <Route path="/asesora" component={Asesora} />
           <Route component={NotFound} />
         </Switch>
       </Layout>
@@ -347,6 +349,7 @@ function AuthGate() {
         <Route path="/datos" component={Datos} />
         <Route path="/ventas" component={Ventas} />
         <Route path="/drive" component={Drive} />
+        <Route path="/asesora" component={Asesora} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

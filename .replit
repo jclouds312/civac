@@ -26,6 +26,10 @@ args = "API Server"
 task = "workflow.run"
 args = "GanaderIA Frontend"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Analytics Server"
+
 [[workflows.workflow]]
 name = "API Server"
 author = "agent"
@@ -49,6 +53,18 @@ outputType = "webview"
 task = "shell.exec"
 args = "PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ganader-ia run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Analytics Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8099 .pythonlibs/bin/python3 artifacts/analytics-server/app.py"
+waitForPort = 8099
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
@@ -79,8 +95,17 @@ localPort = 8083
 externalPort = 3001
 
 [[ports]]
+localPort = 8090
+externalPort = 3003
+
+[[ports]]
 localPort = 19538
 externalPort = 3000
 
+[[ports]]
+localPort = 8099
+externalPort = 8099
+
 [nix]
 channel = "stable-25_05"
+packages = ["glibcLocales"]

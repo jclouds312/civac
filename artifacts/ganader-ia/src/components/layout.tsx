@@ -6,6 +6,7 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
+  Sparkles,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
@@ -62,6 +63,7 @@ const MODULES: Record<string, ModuleDef> = {
   '/datos':         { icon: Database,        from:'#818cf8', to:'#4f46e5', glow:'129,140,248',  emoji:'🗄️', label:'Data Warehouse',       shortLabel:'Datos'     },
   '/ventas':        { icon: ShoppingBag,     from:'#e879f9', to:'#a855f7', glow:'232,121,249',  emoji:'💼', label:'Asesora de Ventas',    shortLabel:'CRM'       },
   '/drive':         { icon: Cloud,           from:'#00c8ff', to:'#0070cc', glow:'0,200,255',    emoji:'☁️', label:'Google Drive',          shortLabel:'Drive'     },
+  '/asesora':       { icon: Sparkles,        from:'#a855f7', to:'#7c3aed', glow:'168,85,247',   emoji:'🤖', label:'Asesora IA',            shortLabel:'Asesora'   },
 };
 
 /* ── Plan-based route access ───────────────────────────────────────────────── */
@@ -70,16 +72,16 @@ const PLAN_ROUTES: Record<string, string[]> = {
   pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
-            '/ventas'],
+            '/ventas', '/asesora'],
   premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
-            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive'],
+            '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive', '/asesora'],
   platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
-            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas', '/drive'],
+            '/usuarios', '/configuracion', '/documentacion', '/manual', '/planes', '/ventas', '/drive', '/asesora'],
 };
 
 const PLAN_REQUIRED: Record<string, string> = {
@@ -89,6 +91,7 @@ const PLAN_REQUIRED: Record<string, string> = {
   '/pesaje-manual': 'PREMIUM', '/co2': 'PREMIUM', '/lotes': 'PREMIUM', '/datos': 'PREMIUM', '/drive': 'PREMIUM',
   '/usuarios': 'PLATINO', '/configuracion': 'PLATINO', '/documentacion': 'PLATINO',
   '/manual': 'PLATINO', '/planes': 'PLATINO',
+  '/asesora': 'PRO',
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -746,7 +749,8 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/personal" />
           </Section>
           <Section title="IA & Analytics">
-            <NavItem href="/prediccion" accent="IA" accentColor="bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25" />
+            <NavItem href="/asesora" accent="IA" accentColor="bg-purple-500/15 text-purple-400 border-purple-500/25" />
+            <NavItem href="/prediccion" accent="SIM" accentColor="bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25" />
             <NavItem href="/co2" />
             <NavItem href="/multifinca" />
           </Section>

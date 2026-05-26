@@ -82,8 +82,9 @@ export function applyWatermark(): void {
 export function applyContextMenuProtection(): void {
   // Allow right-click on general areas, only protect specific elements
   document.addEventListener('contextmenu', (e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-protected]')) {
+    const target = e.target as Node;
+    const el = target instanceof Element ? target : null;
+    if (el?.closest('[data-protected]')) {
       e.preventDefault();
       return false;
     }
@@ -91,8 +92,9 @@ export function applyContextMenuProtection(): void {
 
   // Disable text selection on license elements
   document.addEventListener('selectstart', (e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-protected]')) {
+    const target = e.target as Node;
+    const el = target instanceof Element ? target : null;
+    if (el?.closest('[data-protected]')) {
       e.preventDefault();
     }
   });

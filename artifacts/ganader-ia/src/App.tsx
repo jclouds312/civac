@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "./components/layout";
-import CivacBot from "./components/civac-bot";
 import CivacAgent from "./components/civac-agent";
 import Acerca from "./pages/acerca";
 import PlanLanding from "./pages/plan-landing";
@@ -285,8 +284,8 @@ function AdminGate() {
         </div>
       </main>
 
-      {/* CIVAC Bot — disponible en sesiones admin/superadmin */}
-      <CivacBot />
+      {/* ── CIVAC Agent IA (Principal - único botón) ────── */}
+      <CivacAgent />
     </div>
   );
 }
@@ -334,7 +333,6 @@ function AuthGate() {
           <Route component={NotFound} />
         </Switch>
       </Layout>
-      <CivacBot />
       <CivacAgent />
     </>
   );

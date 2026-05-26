@@ -1,4 +1,4 @@
-# GanaderIA — CIVAC PRO v5.0
+# GanaderIA — CIVAC PRO v5.1
 
 **Control Inteligente de Valor Agropecuario · Colombia**
 
@@ -6,45 +6,112 @@ PWA ganadero integral para Colombia. 28 módulos, multirol con 6 cuentas, dark/l
 
 ---
 
-## Inicio rápido
+## 🚀 Inicio rápido
+
+### Requisitos previos
+
+- **Node.js** 24+ (verificar: `node --version`)
+- **pnpm** 9+ (instalar: `npm install -g pnpm`)
+- **Python** 3.10+ (para backend analytics con Flask)
+- **PostgreSQL** 15+ (Replit DB configurado automáticamente)
+
+### Instalación
 
 ```bash
-# Instalar dependencias
+# Clonar repositorio
+git clone https://github.com/jclouds312/Civac.git
+cd Civac
+
+# Instalar dependencias (solo pnpm)
 pnpm install
 
-# Arrancar frontend PWA (puerto 5000)
+# Verificar instalación
+pnpm run typecheck
+```
+
+### Ejecutar en desarrollo
+
+```bash
+# Terminal 1: Frontend PWA (puerto 5000)
 pnpm --filter @workspace/ganader-ia run dev
 
-# Arrancar API server (puerto 8080)
+# Terminal 2: Backend API (puerto 8080)
 PORT=8080 pnpm --filter @workspace/api-server run dev
 
-# Typecheck completo del workspace
-pnpm run typecheck
+# Terminal 3 (opcional): Flask Analytics Backend
+cd backend-analytics
+python3 -m venv venv
+source venv/bin/activate  # En Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py  # puerto 5001
+```
+
+### Compilar para producción
+
+```bash
+# Build completo con typechecking
+pnpm run build
+
+# Servir frontend localmente (preview)
+pnpm --filter @workspace/ganader-ia run serve
 ```
 
 ---
 
 ## Stack tecnológico
 
-| Capa | Tecnología |
-|------|-----------|
-| Runtime | Node.js 24 · pnpm workspaces |
-| Frontend | React 18 · Vite · TypeScript 5.9 |
-| Routing | wouter (SPA ligero) |
-| UI | shadcn/ui · Tailwind CSS v4 |
-| Gráficos | Recharts (BarChart · AreaChart · PieChart) |
-| Iconos | lucide-react |
-| Estado | React Context + localStorage (offline-first) |
-| Backend | Express · Node.js 24 |
-| Base de datos | PostgreSQL (Drizzle ORM) |
-| PWA | Service Worker v6 · Web App Manifest · Background Sync |
+| Capa | Tecnología | Versión |
+|------|-----------|----------|
+| **Runtime** | Node.js · pnpm workspaces | 24 · 9+ |
+| **Frontend** | React · Vite · TypeScript | 18 · 6 · 5.9 |
+| **Routing** | wouter (SPA ligero) | 3.3.5 |
+| **UI** | shadcn/ui · Tailwind CSS · Radix UI | v4 · 1.x |
+| **Gráficos** | Recharts | 2.15+ |
+| **Iconos** | lucide-react | latest |
+| **Estado** | React Context + localStorage | — |
+| **Async** | @tanstack/react-query | latest |
+| **Backend** | Express · Node.js | 5.x · 24 |
+| **Analytics** | Flask · Python | 3.10+ |
+| **Base de datos** | PostgreSQL · Drizzle ORM | 15+ · latest |
+| **PWA** | Service Worker v6 · Web App Manifest | — |
+| **Forms** | React Hook Form · Zod | 7.55+ · latest |
+
+---
+
+## Lenguajes y dependencias complementarias
+
+### TypeScript (92%)
+- **tsconfig.json**: `strict: true` · `target: ES2020` · `module: ESNext`
+- **Validación**: Zod para schemas de runtime
+- **Herramientas**: `tsx` para scripts, `esbuild` para builds
+
+### Python (5.1%)
+- **Flask** 3.0+ — Backend de analytics IA
+- **Requirements**:
+  ```bash
+  flask==3.0.0
+  flask-cors==4.0.0
+  python-dotenv==1.0.0
+  psycopg2-binary==2.9.0  # PostgreSQL driver
+  ```
+- **Ubicación**: `backend-analytics/` (CIVAC IA conversacional)
+
+### CSS & Tailwind (1.8%)
+- **Tailwind CSS v4** — Atomic styling
+- **PostCSS** — Transformación de estilos
+- **Plugins**: `@tailwindcss/typography`, `@tailwindcss/vite`
+
+### Otros (1.1%)
+- **Bash scripts** (`build.mjs`) — Bundling con esbuild
+- **JSON** — Configuración de proyectos y manifests
+- **SQL** — Migrations de Drizzle ORM
 
 ---
 
 ## Estructura del monorepo
 
 ```
-/
+Civac/
 ├── artifacts/
 │   ├── ganader-ia/          ← Frontend PWA (Vite + React, puerto 5000)
 │   │   ├── public/
@@ -57,19 +124,26 @@ pnpm run typecheck
 │   │       │   ├── auth.ts  ← AuthProvider + 6 cuentas predefinidas
 │   │       │   └── theme.ts ← ThemeProvider dark/light
 │   │       ├── components/
-│   │       │   └── layout.tsx
+│   │       │   ├── layout.tsx
+│   │       │   ├── civac-agent.tsx     ← IA Agent (PRINCIPAL - mantener)
+│   │       │   └── civac-bot.tsx       ← Knowledge Base Bot (DEPRECADO)
 │   │       ├── pages/       ← 28 módulos
 │   │       └── App.tsx      ← 28 rutas + providers
-│   └── api-server/          ← Backend Express (puerto 8080)
-│       └── src/
-│           ├── index.ts
-│           └── routes/
-│               ├── animals.ts, potreros.ts, insumos.ts
-│               ├── personal.ts, usuarios.ts, finca.ts
-│               ├── seed.ts, health.ts
-└── lib/
-    └── db/                  ← Drizzle ORM schema + migrations
-        └── src/schema/index.ts
+│   ├── api-server/          ← Backend Express (puerto 8080)
+│   │   └── src/
+│   │       ├── index.ts
+│   │       └── routes/
+│   │           ├── animals.ts, potreros.ts, insumos.ts
+│   │           ├── personal.ts, usuarios.ts, finca.ts
+│   │           └── seed.ts, health.ts
+├── backend-analytics/       ← Flask Analytics Backend (puerto 5001) [NUEVO]
+│   ├── app.py
+│   ├── requirements.txt
+│   └── venv/                ← Python virtual environment
+├── lib/
+│   └── db/                  ← Drizzle ORM schema + migrations
+│       └── src/schema/index.ts
+└── README.md
 ```
 
 ---
@@ -90,7 +164,7 @@ pnpm run typecheck
 ## Panel de Administrador — 11 tabs
 
 | Tab | Función |
-|-----|---------|
+|-----|----------|
 | 📊 Resumen | KPIs MRR, clientes, planes, conversión |
 | 👥 Cuentas | CRUD completo de usuarios CIVAC |
 | ⭐ Planes | Gestión de planes y precios |
@@ -108,7 +182,7 @@ pnpm run typecheck
 ## Consola de Desarrollador — 9 tabs
 
 | Tab | Función |
-|-----|---------|
+|-----|----------|
 | 📊 Resumen | Web Vitals, flags activos, stack info |
 | 🌿 Versiones | Historial releases, create release, changelog |
 | 🚩 Feature Flags | Toggle flags por env/plan, persiste en localStorage |
@@ -137,6 +211,37 @@ pnpm run typecheck
 | GET/POST | `/api/alertas` | Centro de alertas |
 | GET/POST | `/api/pesajes` | Historial de pesajes |
 | GET/POST | `/api/gps` | Collares GPS |
+| **POST** | **`/api/analytics/chat`** | **CIVAC IA conversacional (Flask)** |
+
+---
+
+## CIVAC IA — Arquitectura de componentes
+
+### CivacAgent (Principal) ✅
+- **Componente**: `civac-agent.tsx`
+- **Botón flotante**: Gradiente teal/rojo dinámico
+- **Conexión backend**: POST `/api/analytics/chat` → Flask
+- **Funcionalidades**:
+  - Conversación contextual con historial
+  - Acciones rápidas (Producción, Inventario, GPS, etc)
+  - Offline fallback inteligente
+  - Online/offline status indicator
+  - Unread message badge
+- **Disponibilidad**: Todos los roles (excepto login)
+- **Puerto backend**: 5001 (Flask)
+
+### CivacBot (Deprecado) ⚠️
+- **Componente**: `civac-bot.tsx`
+- **Tipo**: Knowledge Base estática (65 keywords)
+- **Limitación**: Solo responde pre-escritas, sin IA real
+- **Estado**: REMOVIDO de App.tsx (líneas 289, 337)
+- **Alternativa**: Usar CivacAgent + Flask backend
+
+### Consolidación realizada:
+- ✅ Removidas importaciones de `CivacBot` en `App.tsx`
+- ✅ Solo `CivacAgent` render activo en todas las rutas
+- ✅ Un solo botón flotante IA (sin duplicados)
+- ✅ Conocimiento base integrado en Flask `/api/analytics/chat`
 
 ---
 
@@ -159,8 +264,16 @@ El seed carga: 30 animales, 8 potreros, 18 insumos, 9 empleados, 9 registros rep
 ## Variables de entorno
 
 ```bash
+# Backend Express (puerto 8080)
 DATABASE_URL=postgresql://...   # PostgreSQL (Replit DB — configurado automáticamente)
 PORT=8080                        # API server port
+NODE_ENV=development             # development | production
+
+# Flask Backend (puerto 5001)
+FLASK_ENV=development
+FLASK_APP=app.py
+DATABASE_URL=postgresql://...   # Compartida con Express
+API_SECRET_KEY=your-secret-key  # Para validar requests desde frontend
 ```
 
 ---
@@ -178,6 +291,44 @@ Service Worker v6 con cache-first para assets, stale-while-revalidate para naveg
 - Todas las rutas deben usar `import.meta.env.BASE_URL`.
 - Dark mode: clase `.dark` en `document.documentElement`.
 - NO importar `@workspace/api-client-react` en el frontend.
+- **IA**: Usar solo `CivacAgent` — removido `CivacBot`.
+- **Backend IA**: Implementar en Flask `/api/analytics/chat` (no hardcoded).
+- **Validación**: Todos los schemas deben usar Zod en `@workspace/api-zod`.
+
+---
+
+## Troubleshooting
+
+### Error: "pnpm not found"
+```bash
+npm install -g pnpm@latest
+```
+
+### Error: "Port 5000 already in use"
+```bash
+# Cambiar puerto en vite.config.ts:
+pnpm --filter @workspace/ganader-ia run dev -- --port 3000
+```
+
+### Error: "Cannot find module @workspace/..."
+```bash
+# Reinstalar dependencias del workspace:
+pnpm install
+pnpm run typecheck
+```
+
+### Error: "Flask port 5001 conflict"
+```bash
+# Cambiar puerto en backend-analytics/app.py:
+app.run(debug=True, port=5002)
+```
+
+### PostgreSQL connection failed
+```bash
+# Verificar DATABASE_URL en .env
+# En Replit: configurado automáticamente
+# Local: postgresql://localhost/civac_dev
+```
 
 ---
 
@@ -185,9 +336,22 @@ Service Worker v6 con cache-first para assets, stale-while-revalidate para naveg
 
 | Versión | Cambios principales |
 |---------|---------------------|
+| **v5.1** | ✅ Consolidar botones IA (CivacBot→CivacAgent) · Flask Analytics backend · Actualizar README · Agregar lenguajes complementarios |
 | v5.0 | Admin dashboard 11 tabs · Dev Console 9 tabs · API Explorer real · Seed/reset BD · Finca config · Reportes MRR · BD tab · PWA tab · README |
 | v4.3 | GPS real watchPosition · 6 cuentas · Admin/Developer dashboards · Pesaje PRO IA · Login planes + Wompi |
 | v4.0 | Visual overhaul dark/light · Logo Holstein teal |
 | v3.x | PWA Service Worker v6 · manifest · offline shell |
 | v2.x | 16 módulos base · multicuentas · localStorage |
 | v1.x | MVP inicial React + Vite |
+
+---
+
+## Licencia
+
+MIT © 2024 GanaderIA · CIVAC PRO · Johnatan Vallejo Marulanda · SoftGan Colombia
+
+## Contacto
+
+📧 **Email**: soporte@civac.co  
+📱 **WhatsApp**: +57 318 248 2261  
+🌐 **Web**: https://ganaderia-colombia--aplicacioneswe3.replit.app

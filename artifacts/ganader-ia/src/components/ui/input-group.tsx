@@ -67,7 +67,8 @@ function InputGroupAddon({
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
       onClick={(e) => {
-        if ((e.target as HTMLElement).closest("button")) {
+        const el = e.target instanceof Element ? e.target : null;
+        if (el?.closest("button")) {
           return
         }
         e.currentTarget.parentElement?.querySelector("input")?.focus()

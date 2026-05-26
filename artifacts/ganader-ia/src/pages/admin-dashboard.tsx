@@ -791,7 +791,7 @@ export default function AdminDashboard({
         {[
           { label:"Total cuentas",   val:accounts.length, sub:"sistemas CIVAC",        icon:<Users size={16}/>,       from:"#00f5d4",to:"#00a896",glow:"0,245,212"   },
           { label:"Activos ahora",   val:sessionsList.filter(s=>s.activa).length, sub:"sesiones en línea",   icon:<Activity size={16}/>,    from:"#39ff7e",to:"#00c850",glow:"57,255,126"  },
-          { label:"Planes pagos",    val:proCount,        sub:"PRO / Premium / Platino", icon:<CreditCard size={16}/>,  from:"#a78bfa",to:"#7c3aed",glow:"167,139,250" },
+          { label:"Planes pagos",    val:proCount,        sub:"PRO / Premium / Platino", icon:<CreditCard size={16}/>,  from:"#fbbf24",to:"#f97316",glow:"251,191,36"  },
           { label:"MRR Colombia",    val:fmt(mrrTotal),   sub:"mes actual pagos",        icon:<DollarSign size={16}/>,  from:"#fbbf24",to:"#ea580c",glow:"251,191,36"  },
         ].map(k => (
           <div key={k.label} className="relative rounded-2xl p-4 overflow-hidden"

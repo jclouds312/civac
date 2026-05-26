@@ -552,25 +552,25 @@ export function Layout({ children }: LayoutProps) {
           lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
         style={{
           background: 'linear-gradient(180deg,#0d2247 0%,#122a58 40%,#0f2550 70%,#0d2247 100%)',
-          borderColor: `rgba(60,140,255,0.18)`,
-          boxShadow: mobileOpen ? `6px 0 40px rgba(0,0,0,0.7), 2px 0 0 rgba(60,140,255,0.1)` : `2px 0 0 rgba(60,140,255,0.06)`,
+          borderColor: `rgba(${pt.glow},0.28)`,
+          boxShadow: mobileOpen ? `6px 0 40px rgba(0,0,0,0.7), 2px 0 0 rgba(${pt.glow},0.18)` : `2px 0 0 rgba(${pt.glow},0.10)`,
         }}
       >
-        {/* Piña glow texture */}
+        {/* Plan-tinted glow texture */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0" style={{
             backgroundImage: `
-              radial-gradient(circle at 20% 15%, rgba(60,140,255,0.10) 0%, transparent 50%),
-              radial-gradient(circle at 80% 85%, rgba(30,80,200,0.08) 0%, transparent 45%),
+              radial-gradient(circle at 20% 15%, rgba(${pt.glow},0.09) 0%, transparent 50%),
+              radial-gradient(circle at 80% 85%, rgba(${pt.glow},0.05) 0%, transparent 45%),
               radial-gradient(circle at 50% 50%, rgba(20,60,160,0.04) 0%, transparent 70%),
-              repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(60,140,255,0.025) 44px,rgba(60,140,255,0.025) 45px)
+              repeating-linear-gradient(0deg,transparent,transparent 44px,rgba(${pt.glow},0.018) 44px,rgba(${pt.glow},0.018) 45px)
             `
           }} />
         </div>
 
         {/* ── Logo header ── */}
         <div className="h-[68px] flex items-center justify-between px-3 border-b flex-shrink-0 relative"
-          style={{ borderColor: `rgba(60,140,255,0.15)` }}>
+          style={{ borderColor: `rgba(${pt.glow},0.20)` }}>
           {!collapsed ? (
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative flex-shrink-0">

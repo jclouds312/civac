@@ -113,8 +113,17 @@ export default function Dashboard() {
     admin:      { bg:'linear-gradient(135deg,#1a0800 0%,#2a1000 35%,#240e00 70%,#180800 100%)', accent1:'#ff9500', accent2:'#ff6b00', glow:'255,149,0' },
     superadmin: { bg:'linear-gradient(135deg,#1a0800 0%,#2a1000 35%,#240e00 70%,#180800 100%)', accent1:'#ff9500', accent2:'#ff6b00', glow:'255,149,0' },
   };
+  const roleTooltips: Record<string, { label: string; icon: string; desc: string }> = {
+    vet:        { label:'Veterinario',      icon:'🩺', desc:'Sanidad · Reproducción · Genética' },
+    field:      { label:'Operario Campo',   icon:'🌾', desc:'Pesaje · GPS · Potreros' },
+    viewer:     { label:'Visor / Inversor', icon:'👁', desc:'Solo lectura · KPIs' },
+    developer:  { label:'Desarrollador',   icon:'💻', desc:'Consola CIVAC · APIs' },
+    admin:      { label:'Administrador',   icon:'👑', desc:'Panel Admin · Facturación' },
+    superadmin: { label:'Super Admin',     icon:'⚡', desc:'Acceso total · CIVAC' },
+  };
   const defaultBanner = { bg:'linear-gradient(135deg,#002e20 0%,#003d2e 35%,#003358 70%,#002050 100%)', accent1:'#00f5d4', accent2:'#00c8ff', glow:'0,245,212' };
   const rb = roleBanners[user?.role ?? ''] ?? defaultBanner;
+  const rt = roleTooltips[user?.role ?? ''];
 
   const kpiCards = [
     {
@@ -209,6 +218,13 @@ export default function Dashboard() {
                   <span className="text-[9px] font-black px-2 py-0.5 rounded-full hidden sm:flex items-center gap-1"
                     style={{background:`rgba(${PLAN_GLOW[plan]},0.15)`,color:PLAN_COLOR[plan],border:`1px solid rgba(${PLAN_GLOW[plan]},0.35)`}}>
                     {PLAN_ICON[plan]} {PLAN_LABEL[plan]}
+                  </span>
+                )}
+                {rt && (
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full hidden sm:flex items-center gap-1"
+                    title={rt.desc}
+                    style={{background:`rgba(${rb.glow},0.12)`,color:`rgba(${rb.glow},0.9)`,border:`1px solid rgba(${rb.glow},0.25)`}}>
+                    {rt.icon} {rt.label}
                   </span>
                 )}
               </div>

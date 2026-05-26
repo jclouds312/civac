@@ -545,6 +545,27 @@ html { font-size: 15.5px; }
   0%, 100% { transform: rotate(-1deg); }
   50%       { transform: rotate(1deg); }
 }
+@keyframes slow-drift {
+  0%   { transform: scale(1.05) translate(0px, 0px); }
+  50%  { transform: scale(1.08) translate(-8px, -4px); }
+  100% { transform: scale(1.05) translate(4px, 2px); }
+}
+@keyframes logo-pulse {
+  0%,100% { filter: drop-shadow(0 0 28px rgba(0,245,212,0.45)) drop-shadow(0 0 60px rgba(0,200,255,0.2)); }
+  50%     { filter: drop-shadow(0 0 42px rgba(0,245,212,0.70)) drop-shadow(0 0 90px rgba(0,200,255,0.35)); }
+}
+@keyframes ticker-run {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes ping-dot {
+  0%,100% { opacity:1; transform:scale(1); box-shadow:none; }
+  50%     { opacity:0.6; transform:scale(1.4); }
+}
+@keyframes pulse-vert {
+  0%,100% { opacity:0.15; }
+  50%     { opacity:0.4; }
+}
 
 .civac-slide-up    { animation: slide-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
 .civac-slide-right { animation: slide-right 0.35s cubic-bezier(0.22,1,0.36,1) both; }

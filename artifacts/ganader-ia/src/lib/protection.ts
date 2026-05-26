@@ -7,7 +7,7 @@
 
 export const CIVAC_LICENSE = {
   producto:    'CIVAC PRO — Control Inteligente de Valor Agropecuario',
-  version:     'v7.0',
+  version:     'v1.0',
   propietario: 'Johnatan Vallejo Marulanda',
   empresa:     'Universal Business Technology',
   licenciante: 'SoftGan Colombia',

@@ -15,6 +15,7 @@ import {
   Users, Crown, Activity, Server, LogOut, Menu, X,
   ChevronLeft, Shield, Globe, LayoutDashboard, Bell,
   Settings, CreditCard, Download, RefreshCw,
+  Layers, BarChart3, Building2,
 } from "lucide-react";
 
 import Login from "./pages/login";
@@ -65,10 +66,20 @@ function HomeRoute() {
 }
 
 const ADMIN_SECTIONS = [
-  { id: "cuentas",  icon: Users,           label: "Gestión Clientes",  sub: "Cuentas y accesos",    emoji: "👥", from: "#00f5d4", to: "#00a896", glow: "0,245,212"   },
-  { id: "planes",   icon: Crown,           label: "Planes & Precios",  sub: "Suscripciones",        emoji: "⭐", from: "#fbbf24", to: "#ea580c", glow: "251,191,36"  },
-  { id: "sesiones", icon: Activity,        label: "Sesiones Activas",  sub: "Monitoreo en vivo",    emoji: "📡", from: "#00c8ff", to: "#0ea5e9", glow: "0,200,255"   },
-  { id: "sistema",  icon: Server,          label: "Sistema",           sub: "Métricas del servidor",emoji: "⚙️", from: "#9ca3af", to: "#6b7280", glow: "156,163,175" },
+  { id: "resumen",   icon: LayoutDashboard, label: "Resumen General",   sub: "KPIs y métricas",       emoji: "📊", from: "#00f5d4", to: "#00a896", glow: "0,245,212"   },
+  { id: "cuentas",   icon: Users,           label: "Gestión Clientes",  sub: "Cuentas y accesos",     emoji: "👥", from: "#39ff7e", to: "#16a34a", glow: "57,255,126"  },
+  { id: "planes",    icon: Crown,           label: "Planes & Precios",  sub: "Suscripciones",         emoji: "⭐", from: "#a78bfa", to: "#7c3aed", glow: "167,139,250" },
+  { id: "pagos",     icon: CreditCard,      label: "Facturación",       sub: "Pagos y cobros",        emoji: "💳", from: "#fbbf24", to: "#ea580c", glow: "251,191,36"  },
+  { id: "sesiones",  icon: Activity,        label: "Sesiones Activas",  sub: "Monitoreo en vivo",     emoji: "📡", from: "#00c8ff", to: "#0ea5e9", glow: "0,200,255"   },
+  { id: "modulos",   icon: Layers,          label: "Módulos",           sub: "Control de accesos",    emoji: "🧩", from: "#e879f9", to: "#a855f7", glow: "232,121,249" },
+  { id: "apis",      icon: Globe,           label: "Integraciones API", sub: "Conexiones externas",   emoji: "🔌", from: "#f97316", to: "#ea580c", glow: "249,115,22"  },
+  { id: "basculas",  icon: Server,          label: "Básculas & Pesaje", sub: "Dispositivos BT/COM",   emoji: "⚖️", from: "#fb923c", to: "#f97316", glow: "251,146,60"  },
+  { id: "reportes",  icon: BarChart3,       label: "Reportes",          sub: "Analíticas plataforma", emoji: "📈", from: "#facc15", to: "#eab308", glow: "250,204,21"  },
+  { id: "finca",     icon: Building2,       label: "Datos Finca",       sub: "Configuración base",    emoji: "🏡", from: "#4ade80", to: "#22c55e", glow: "74,222,128"  },
+  { id: "logs",      icon: Download,        label: "Logs & Auditoría",  sub: "Registro de eventos",   emoji: "📋", from: "#60a5fa", to: "#3b82f6", glow: "96,165,250"  },
+  { id: "soporte",   icon: Bell,            label: "Soporte",           sub: "Tickets y ayuda",       emoji: "🎧", from: "#f472b6", to: "#ec4899", glow: "244,114,182" },
+  { id: "seguridad", icon: Shield,          label: "Seguridad",         sub: "Permisos y accesos",    emoji: "🔒", from: "#34d399", to: "#10b981", glow: "52,211,153"  },
+  { id: "sistema",   icon: RefreshCw,       label: "Sistema & Config",  sub: "Estado del servidor",   emoji: "⚙️", from: "#9ca3af", to: "#6b7280", glow: "156,163,175" },
 ];
 
 function AdminGate() {
@@ -210,7 +221,7 @@ function AdminGate() {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: "rgba(255,149,0,0.08)" }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: "rgba(255,149,0,0.25)" }}>
-              <Shield size={9}/> <span>CIVAC Platform v4.2 · Admin</span>
+              <Shield size={9}/> <span>CIVAC Platform v1.0 · Admin</span>
             </div>
           )}
           <button onClick={logout}

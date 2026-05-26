@@ -592,13 +592,13 @@ export default function Login() {
           <div className="flex items-center justify-center gap-3 mb-1">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ fontFamily:"'Sora',sans-serif", letterSpacing:"-0.03em" }}>
               <span className="text-white">CIVAC </span>
-              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", filter:"drop-shadow(0 0 12px rgba(0,245,212,0.5))" }}>v7</span>
+              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", filter:"drop-shadow(0 0 12px rgba(0,245,212,0.5))" }}>v1</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
               <span className="text-[10px] font-black px-2.5 py-1 rounded-lg leading-none"
                 style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black", letterSpacing:"0.05em", boxShadow:"0 0 14px rgba(0,245,212,0.45)" }}>GanaderIA</span>
               <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none"
-                style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO · 2026</span>
+                style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO Colombia</span>
             </div>
           </div>
 
@@ -992,7 +992,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center mt-6 text-[9px]" style={{ color:"rgba(255,255,255,0.12)" }}>
-          GanaderIA CIVAC PRO v7.0 · Control Inteligente de Valor Agropecuario · Colombia {new Date().getFullYear()} · Sistema privado · Universal Business Technology
+          GanaderIA CIVAC PRO v1.0 · Control Inteligente de Valor Agropecuario · Colombia {new Date().getFullYear()} · Sistema privado · Universal Business Technology
         </p>
       </div>
 

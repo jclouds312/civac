@@ -656,7 +656,7 @@ export default function AdminDashboard({
       .filter(m => (a.permisos || []).includes(m.id))
       .map(m => ({ id: m.id, label: m.label, plan: m.plan }));
     const licencia = {
-      civac_version: "4.2",
+      civac_version: "1.0",
       tipo: "licencia_plan",
       generada: new Date().toISOString(),
       licencia_id: `LIC-${Date.now()}`,
@@ -697,18 +697,21 @@ export default function AdminDashboard({
 
   /* ── Tab items ── */
   const TABS = [
-    { id:"resumen",  icon:"📊", label:"Resumen",   color:"#00f5d4" },
-    { id:"cuentas",  icon:"👥", label:"Cuentas",   color:"#39ff7e" },
-    { id:"planes",   icon:"⭐", label:"Planes",    color:"#a78bfa" },
-    { id:"pagos",    icon:"💳", label:"Pagos",     color:"#fbbf24" },
-    { id:"sesiones", icon:"📡", label:"Sesiones",  color:"#00c8ff" },
-    { id:"apis",     icon:"🔌", label:"APIs",      color:"#f97316" },
-    { id:"modulos",  icon:"🧩", label:"Módulos",   color:"#e879f9" },
-    { id:"basculas", icon:"⚖️", label:"Básculas",  color:"#fb923c" },
-    { id:"sistema",  icon:"⚙️", label:"Sistema",   color:"#94a3b8" },
-    { id:"finca",    icon:"🏡", label:"Finca",     color:"#4ade80" },
-    { id:"datos",    icon:"🗄️", label:"Datos",     color:"#c084fc" },
-    { id:"reportes", icon:"📈", label:"Reportes",  color:"#facc15" },
+    { id:"resumen",    icon:"📊", label:"Resumen",      color:"#00f5d4" },
+    { id:"cuentas",    icon:"👥", label:"Cuentas",      color:"#39ff7e" },
+    { id:"planes",     icon:"⭐", label:"Planes",       color:"#a78bfa" },
+    { id:"pagos",      icon:"💳", label:"Pagos",        color:"#fbbf24" },
+    { id:"sesiones",   icon:"📡", label:"Sesiones",     color:"#00c8ff" },
+    { id:"apis",       icon:"🔌", label:"APIs",         color:"#f97316" },
+    { id:"modulos",    icon:"🧩", label:"Módulos",      color:"#e879f9" },
+    { id:"basculas",   icon:"⚖️", label:"Básculas",     color:"#fb923c" },
+    { id:"sistema",    icon:"⚙️", label:"Sistema",      color:"#94a3b8" },
+    { id:"finca",      icon:"🏡", label:"Finca",        color:"#4ade80" },
+    { id:"datos",      icon:"🗄️", label:"Datos",        color:"#c084fc" },
+    { id:"reportes",   icon:"📈", label:"Reportes",     color:"#facc15" },
+    { id:"logs",       icon:"📋", label:"Logs",         color:"#60a5fa" },
+    { id:"soporte",    icon:"🎧", label:"Soporte",      color:"#f472b6" },
+    { id:"seguridad",  icon:"🔒", label:"Seguridad",    color:"#34d399" },
   ];
 
   return (
@@ -753,7 +756,7 @@ export default function AdminDashboard({
                 </span>
                 <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
                   style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"black", boxShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
-                  v7.0
+                  v1.0
                 </span>
               </div>
               <p className="text-xs" style={{ color:"rgba(255,149,0,0.65)" }}>
@@ -953,16 +956,20 @@ export default function AdminDashboard({
             </div>
             <div className="p-3 grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-2">
               {[
-                { id:"cuentas",  icon:"👥", label:"Cuentas",   color:"#39ff7e", desc:"Gestión de usuarios" },
-                { id:"planes",   icon:"⭐", label:"Planes",    color:"#a78bfa", desc:"Editar planes" },
-                { id:"pagos",    icon:"💳", label:"Pagos",     color:"#fbbf24", desc:"Transacciones" },
-                { id:"sesiones", icon:"📡", label:"Sesiones",  color:"#00c8ff", desc:"Sesiones activas" },
-                { id:"apis",     icon:"🔌", label:"APIs",      color:"#f97316", desc:"Integraciones" },
-                { id:"modulos",  icon:"🧩", label:"Módulos",   color:"#e879f9", desc:"Módulos del sistema" },
-                { id:"sistema",  icon:"⚙️", label:"Sistema",   color:"#94a3b8", desc:"Estado servidor" },
-                { id:"finca",    icon:"🏡", label:"Finca",     color:"#4ade80", desc:"Config. finca" },
-                { id:"datos",    icon:"🗄️", label:"Datos",     color:"#c084fc", desc:"BD y backups" },
-                { id:"reportes", icon:"📈", label:"Reportes",  color:"#facc15", desc:"Métricas" },
+                { id:"cuentas",   icon:"👥", label:"Cuentas",    color:"#39ff7e", desc:"Gestión de usuarios" },
+                { id:"planes",    icon:"⭐", label:"Planes",     color:"#a78bfa", desc:"Editar planes" },
+                { id:"pagos",     icon:"💳", label:"Pagos",      color:"#fbbf24", desc:"Transacciones" },
+                { id:"sesiones",  icon:"📡", label:"Sesiones",   color:"#00c8ff", desc:"Sesiones activas" },
+                { id:"apis",      icon:"🔌", label:"APIs",       color:"#f97316", desc:"Integraciones" },
+                { id:"modulos",   icon:"🧩", label:"Módulos",    color:"#e879f9", desc:"Módulos sistema" },
+                { id:"basculas",  icon:"⚖️", label:"Básculas",   color:"#fb923c", desc:"Pesaje BT/COM" },
+                { id:"sistema",   icon:"⚙️", label:"Sistema",    color:"#94a3b8", desc:"Estado servidor" },
+                { id:"finca",     icon:"🏡", label:"Finca",      color:"#4ade80", desc:"Config. finca" },
+                { id:"datos",     icon:"🗄️", label:"Datos",      color:"#c084fc", desc:"BD y backups" },
+                { id:"reportes",  icon:"📈", label:"Reportes",   color:"#facc15", desc:"Métricas" },
+                { id:"logs",      icon:"📋", label:"Logs",       color:"#60a5fa", desc:"Auditoría" },
+                { id:"soporte",   icon:"🎧", label:"Soporte",    color:"#f472b6", desc:"Tickets" },
+                { id:"seguridad", icon:"🔒", label:"Seguridad",  color:"#34d399", desc:"Permisos" },
               ].map(m=>(
                 <button key={m.id} onClick={()=>setTab(m.id)}
                   className="flex flex-col items-center gap-1.5 p-3 rounded-2xl transition-all hover:scale-[1.03] active:scale-100"
@@ -1890,7 +1897,7 @@ export default function AdminDashboard({
                     <button key={p}
                       onClick={()=>{
                         const config = {
-                          civac_version: "4.2",
+                          civac_version: "1.0",
                           tipo: "config_plan",
                           plan: { id:p, label:PLAN_LABEL[p], precio_mes:PLAN_PRECIOS[p] },
                           modulos: planMods.map(m=>({ id:m.id, label:m.label, plan:m.plan })),

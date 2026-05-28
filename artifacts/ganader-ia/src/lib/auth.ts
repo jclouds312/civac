@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 
-export type PlanId = 'basico' | 'pro' | 'premium' | 'platino';
+export type PlanId = 'Basic' | 'Professional' | 'Enterprise' | 'Developer';
 
 export interface WompiPayment {
   id: string;
@@ -31,128 +31,192 @@ export interface Account {
   role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales';
   permisos: string[];
   activo?: boolean;
-  /* ── Plan Wompi ── */
-  plan?: PlanId;
+  /* ── Plan CIVAC 2026 ── */
+  plan: PlanId;
   planExpiry?: string;       // ISO date string
   wompiRef?: string;         // última referencia de pago
   planActivadoEn?: string;   // ISO date
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   DEFINICIÓN DE PLANES Y MÓDULOS PERMITIDOS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 export const PLAN_PRECIOS: Record<PlanId, number> = {
-  basico:  0,
-  pro:     89000,
-  premium: 189000,
-  platino: 399000,
+  Basic:        0,
+  Professional: 89000,
+  Enterprise:   189000,
+  Developer:    0,  // Para desarrolladores (sin costo)
 };
 
 export const PLAN_LABEL: Record<PlanId, string> = {
-  basico:  'Básico',
-  pro:     'PRO',
-  premium: 'Premium',
-  platino: 'Platino',
+  Basic:        'Básico',
+  Professional: 'Professional',
+  Enterprise:   'Enterprise',
+  Developer:    'Developer',
 };
 
 export const PLAN_COLOR: Record<PlanId, string> = {
-  basico:  '#b8c4d4',
-  pro:     '#00f5d4',
-  premium: '#fbbf24',
-  platino: '#cd7f32',
+  Basic:        '#b8c4d4',
+  Professional: '#00f5d4',
+  Enterprise:   '#fbbf24',
+  Developer:    '#a78bfa',
 };
 
 export const PLAN_COLOR2: Record<PlanId, string> = {
-  basico:  '#94a3b8',
-  pro:     '#00c8ff',
-  premium: '#f59e0b',
-  platino: '#e07b54',
+  Basic:        '#94a3b8',
+  Professional: '#00c8ff',
+  Enterprise:   '#f59e0b',
+  Developer:    '#8b5cf6',
 };
 
 export const PLAN_GLOW: Record<PlanId, string> = {
-  basico:  '184,196,212',
-  pro:     '0,245,212',
-  premium: '251,191,36',
-  platino: '205,127,50',
+  Basic:        '184,196,212',
+  Professional: '0,245,212',
+  Enterprise:   '251,191,36',
+  Developer:    '167,139,250',
 };
 
 export const PLAN_GRADIENT: Record<PlanId, [string, string]> = {
-  basico:  ['#b8c4d4', '#94a3b8'],
-  pro:     ['#00f5d4', '#00c8ff'],
-  premium: ['#fbbf24', '#f59e0b'],
-  platino: ['#cd7f32', '#e07b54'],
-};
-
-export const PLAN_LABEL_METAL: Record<PlanId, string> = {
-  basico:  'Cromo',
-  pro:     'Teal Neón',
-  premium: 'Oro',
-  platino: 'Cobre',
+  Basic:        ['#b8c4d4', '#94a3b8'],
+  Professional: ['#00f5d4', '#00c8ff'],
+  Enterprise:   ['#fbbf24', '#f59e0b'],
+  Developer:    ['#a78bfa', '#8b5cf6'],
 };
 
 export const PLAN_ICON: Record<PlanId, string> = {
-  basico:  '🥈',
-  pro:     '⚡',
-  premium: '🥇',
-  platino: '🔶',
+  Basic:        '📦',
+  Professional: '⚡',
+  Enterprise:   '🏆',
+  Developer:    '👨‍💻',
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MÓDULOS DISPONIBLES POR PLAN (28 módulos total)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export const PLAN_MODULES: Record<PlanId, string[]> = {
+  Basic: [
+    'inventario',           // 1. Inventario de animales (lectura)
+    'produccion',           // 2. Registro de producción
+    'pesaje',               // 3. Pesaje de animales
+    'alertas',              // 4. Centro de alertas
+    'potreros',             // 5. Gestión de potreros
+    'gps',                  // 6. Rastreo GPS básico
+  ],
+  Professional: [
+    'inventario',           // 1. Inventario completo
+    'produccion',           // 2. Producción avanzada
+    'reproduccion',         // 3. Gestión reproductiva
+    'genetica',             // 4. Análisis genético
+    'potreros',             // 5. Manejo de potreros
+    'alimentacion',         // 6. Plan alimenticio
+    'insumos',              // 7. Control de insumos
+    'semen',                // 8. Banco de semen
+    'costos',               // 9. Análisis de costos
+    'pesaje',               // 10. Pesaje PRO
+    'prediccion',           // 11. Predicciones ML
+    'alertas',              // 12. Alertas avanzadas
+    'gps',                  // 13. GPS en tiempo real
+    'ficha',                // 14. Ficha técnica de animal
+    'documentacion',        // 15. Documentación
+  ],
+  Enterprise: [
+    'inventario',           // 1
+    'produccion',           // 2
+    'reproduccion',         // 3
+    'genetica',             // 4
+    'potreros',             // 5
+    'alimentacion',         // 6
+    'insumos',              // 7
+    'semen',                // 8
+    'costos',               // 9
+    'pesaje',               // 10
+    'prediccion',           // 11
+    'alertas',              // 12
+    'gps',                  // 13
+    'ficha',                // 14
+    'documentacion',        // 15
+    'personal',             // 16. Gestión de personal
+    'multifinca',           // 17. Múltiples fincas
+    'api',                  // 18. API keys
+    'reportes',             // 19. Reportes avanzados
+    'usuarios',             // 20. Gestión de usuarios
+    'integraciones',        // 21. Integraciones externas
+    'configuracion',        // 22. Configuración avanzada
+    'auditoria',            // 23. Log de auditoría
+    'datos',                // 24. Exportar datos
+    'lotes',                // 25. Manejo de lotes
+    'mercado',              // 26. Análisis de mercado
+    'sostenibilidad',       // 27. Indicadores de sostenibilidad
+    'soporte-prioritario',  // 28. Soporte 24/7
+  ],
+  Developer: [
+    '*',  // Acceso a todos los módulos
+  ],
 };
 
 export const DEFAULT_ACCOUNTS: Account[] = [
+  // Cuentas existentes del repositorio
   {
     id: 'admin',
     nombre: 'Administrador General',
     cargo: 'Propietario / Admin',
     finca: 'Finca El Rancho Verde',
-    email: 'admin@ganader.ia',
+    email: 'admin@civac.co',
     password: 'admin',
     avatar: '👑',
     gradient: 'from-[#0d2137] to-[#1a4a2e]',
     role: 'admin',
     activo: true,
-    plan: 'platino',
+    plan: 'Enterprise',
     planExpiry: '2027-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','pesaje','gps','planes','admin_pagos'],
+    permisos: ['*'],
   },
   {
     id: 'vet',
     nombre: 'Dr. Carlos Ramírez',
     cargo: 'Médico Veterinario',
     finca: 'Finca El Rancho Verde',
-    email: 'vet@ganader.ia',
+    email: 'vet@civac.co',
     password: 'vet2026',
     avatar: '🩺',
     gradient: 'from-[#0d2137] to-[#1565c0]',
     role: 'vet',
     activo: true,
-    plan: 'premium',
+    plan: 'Professional',
     planExpiry: '2026-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','prediccion','alertas','documentacion','pesaje','gps','co2','lotes','datos','pesaje-manual'],
+    permisos: PLAN_MODULES.Professional,
   },
   {
     id: 'campo',
     nombre: 'Luis Patiño',
     cargo: 'Vaquero / Ordeñador',
     finca: 'Finca El Rancho Verde',
-    email: 'luis@ganader.ia',
+    email: 'luis@civac.co',
     password: 'campo2026',
     avatar: '🐄',
     gradient: 'from-[#e65100] to-[#f57c00]',
     role: 'field',
     activo: true,
-    plan: 'basico',
-    permisos: ['inventario','produccion','potreros','alertas'],
+    plan: 'Professional',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Professional,
   },
   {
     id: 'visor',
     nombre: 'Propietario / Inversor',
     cargo: 'Solo Lectura',
     finca: 'Finca El Rancho Verde',
-    email: 'visor@ganader.ia',
+    email: 'visor@civac.co',
     password: 'visor',
     avatar: '💼',
     gradient: 'from-[#4a148c] to-[#6a1b9a]',
     role: 'viewer',
     activo: true,
-    plan: 'pro',
+    plan: 'Basic',
     planExpiry: '2026-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','ficha','potreros','alimentacion','insumos','semen','costos','personal','multifinca','prediccion','alertas','gps'],
+    permisos: PLAN_MODULES.Basic,
   },
   {
     id: 'developer',
@@ -165,7 +229,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     gradient: 'from-[#0a0f1e] to-[#0d1a2e]',
     role: 'developer',
     activo: true,
-    plan: 'platino',
+    plan: 'Developer',
     planExpiry: '2099-12-31',
     permisos: ['*'],
   },
@@ -180,47 +244,194 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     gradient: 'from-[#1a0500] to-[#2d0e00]',
     role: 'superadmin',
     activo: true,
-    plan: 'platino',
+    plan: 'Enterprise',
     planExpiry: '2099-12-31',
     permisos: ['*'],
   },
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     CUENTAS DE PRUEBA ADICIONALES POR PLAN
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  // PLAN: BASIC (3 cuentas de prueba)
   {
-    id: 'ventas',
-    nombre: 'María Salazar — Asesora CIVAC',
-    cargo: 'Asesora Comercial Senior',
-    finca: 'CIVAC Sales Colombia · Bogotá',
-    email: 'ventas@civac.co',
-    password: 'ventas2026',
-    avatar: '💼',
-    gradient: 'from-[#1a0540] to-[#2d0a60]',
-    role: 'sales',
+    id: 'test-basic-1',
+    nombre: 'Juan Acosta — Plan Basic',
+    cargo: 'Ganadero Pequeño',
+    finca: 'Finca Las Marías',
+    email: 'juanacosta@test.civac.co',
+    password: 'test123456',
+    avatar: '👨‍🌾',
+    gradient: 'from-[#b8c4d4] to-[#94a3b8]',
+    role: 'field',
     activo: true,
-    plan: 'pro',
+    plan: 'Basic',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Basic,
+  },
+  {
+    id: 'test-basic-2',
+    nombre: 'Patricia López — Plan Basic',
+    cargo: 'Supervisora Finca',
+    finca: 'Hacienda El Espino',
+    email: 'patricialopez@test.civac.co',
+    password: 'test123456',
+    avatar: '👩‍💼',
+    gradient: 'from-[#b8c4d4] to-[#94a3b8]',
+    role: 'viewer',
+    activo: true,
+    plan: 'Basic',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Basic,
+  },
+  {
+    id: 'test-basic-3',
+    nombre: 'Carlos Martínez — Plan Basic',
+    cargo: 'Operador Pesaje',
+    finca: 'Finca Santa Rosa',
+    email: 'carlosmartinez@test.civac.co',
+    password: 'test123456',
+    avatar: '⚙️',
+    gradient: 'from-[#b8c4d4] to-[#94a3b8]',
+    role: 'field',
+    activo: true,
+    plan: 'Basic',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Basic,
+  },
+
+  // PLAN: PROFESSIONAL (3 cuentas de prueba)
+  {
+    id: 'test-professional-1',
+    nombre: 'Dra. Sandra González — Plan Professional',
+    cargo: 'Médica Veterinaria',
+    finca: 'Clínica Veterinaria San José',
+    email: 'sandragónzalez@test.civac.co',
+    password: 'test123456',
+    avatar: '👩‍⚕️',
+    gradient: 'from-[#00f5d4] to-[#00c8ff]',
+    role: 'vet',
+    activo: true,
+    plan: 'Professional',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Professional,
+  },
+  {
+    id: 'test-professional-2',
+    nombre: 'Roberto Fernández — Plan Professional',
+    cargo: 'Gerente de Producción',
+    finca: 'Granja Integral Boyacá',
+    email: 'robertofernandez@test.civac.co',
+    password: 'test123456',
+    avatar: '👨‍💻',
+    gradient: 'from-[#00f5d4] to-[#00c8ff]',
+    role: 'admin',
+    activo: true,
+    plan: 'Professional',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Professional,
+  },
+  {
+    id: 'test-professional-3',
+    nombre: 'Mónica Ruiz — Plan Professional',
+    cargo: 'Especialista en Nutrición',
+    finca: 'Centro de Asesoría Pecuaria',
+    email: 'monicaruiz@test.civac.co',
+    password: 'test123456',
+    avatar: '🔬',
+    gradient: 'from-[#00f5d4] to-[#00c8ff]',
+    role: 'viewer',
+    activo: true,
+    plan: 'Professional',
+    planExpiry: '2026-12-31',
+    permisos: PLAN_MODULES.Professional,
+  },
+
+  // PLAN: ENTERPRISE (3 cuentas de prueba)
+  {
+    id: 'test-enterprise-1',
+    nombre: 'Francisco Díaz — Plan Enterprise',
+    cargo: 'Director de Operaciones',
+    finca: 'Corporación Agraria Ltda.',
+    email: 'franciscodiaz@test.civac.co',
+    password: 'test123456',
+    avatar: '👔',
+    gradient: 'from-[#fbbf24] to-[#f59e0b]',
+    role: 'admin',
+    activo: true,
+    plan: 'Enterprise',
     planExpiry: '2027-12-31',
-    permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual'],
+    permisos: PLAN_MODULES.Enterprise,
+  },
+  {
+    id: 'test-enterprise-2',
+    nombre: 'Lucía Morales — Plan Enterprise',
+    cargo: 'Analista de Datos',
+    finca: 'Big Data Ganadería SA',
+    email: 'luciamorales@test.civac.co',
+    password: 'test123456',
+    avatar: '📊',
+    gradient: 'from-[#fbbf24] to-[#f59e0b]',
+    role: 'developer',
+    activo: true,
+    plan: 'Enterprise',
+    planExpiry: '2027-12-31',
+    permisos: PLAN_MODULES.Enterprise,
+  },
+  {
+    id: 'test-enterprise-3',
+    nombre: 'Andrés Castillo — Plan Enterprise',
+    cargo: 'Superintendente General',
+    finca: 'Grupo Ganadero del Cauca',
+    email: 'andrescastillo@test.civac.co',
+    password: 'test123456',
+    avatar: '🎖️',
+    gradient: 'from-[#fbbf24] to-[#f59e0b]',
+    role: 'admin',
+    activo: true,
+    plan: 'Enterprise',
+    planExpiry: '2027-12-31',
+    permisos: PLAN_MODULES.Enterprise,
+  },
+
+  // PLAN: DEVELOPER (1 cuenta de prueba)
+  {
+    id: 'test-developer-1',
+    nombre: 'Miguel Gómez — Plan Developer',
+    cargo: 'Desarrollador Backend',
+    finca: 'Universal Business Technology',
+    email: 'miguelgomez@test.civac.co',
+    password: 'test123456',
+    avatar: '💻',
+    gradient: 'from-[#a78bfa] to-[#8b5cf6]',
+    role: 'developer',
+    activo: true,
+    plan: 'Developer',
+    planExpiry: '2099-12-31',
+    permisos: ['*'],
   },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '5.0.0';
+const ACCOUNTS_VERSION = '6.0.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {
   try {
-    const s = localStorage.getItem('ganader_wompi_payments');
+    const s = localStorage.getItem('civac_wompi_payments');
     return s ? JSON.parse(s) : [];
   } catch { return []; }
 }
 function savePayments(payments: WompiPayment[]) {
-  try { localStorage.setItem('ganader_wompi_payments', JSON.stringify(payments)); } catch {}
+  try { localStorage.setItem('civac_wompi_payments', JSON.stringify(payments)); } catch {}
 }
 
 function loadAccounts(): Account[] {
   try {
-    const version = localStorage.getItem('ganader_accounts_version');
+    const version = localStorage.getItem('civac_accounts_version');
     if (version !== ACCOUNTS_VERSION) {
       /* Version changed — reset default accounts but keep user-created ones */
-      const stored = localStorage.getItem('ganader_accounts');
+      const stored = localStorage.getItem('civac_accounts');
       const defaultIds = new Set(DEFAULT_ACCOUNTS.map(a => a.id));
       let extra: Account[] = [];
       if (stored) {
@@ -228,13 +439,13 @@ function loadAccounts(): Account[] {
         extra = parsed.filter(a => !defaultIds.has(a.id));
       }
       const merged = [...DEFAULT_ACCOUNTS, ...extra];
-      localStorage.setItem('ganader_accounts', JSON.stringify(merged));
-      localStorage.setItem('ganader_accounts_version', ACCOUNTS_VERSION);
+      localStorage.setItem('civac_accounts', JSON.stringify(merged));
+      localStorage.setItem('civac_accounts_version', ACCOUNTS_VERSION);
       /* Clear cached user so they re-login with fresh plan */
-      localStorage.removeItem('ganader_user');
+      localStorage.removeItem('civac_user');
       return merged;
     }
-    const stored = localStorage.getItem('ganader_accounts');
+    const stored = localStorage.getItem('civac_accounts');
     if (stored) {
       const parsed: Account[] = JSON.parse(stored);
       if (parsed.length > 0) return parsed;
@@ -244,12 +455,12 @@ function loadAccounts(): Account[] {
 }
 function saveAccounts(accounts: Account[]) {
   try {
-    localStorage.setItem('ganader_accounts', JSON.stringify(accounts));
-    localStorage.setItem('ganader_accounts_version', ACCOUNTS_VERSION);
+    localStorage.setItem('civac_accounts', JSON.stringify(accounts));
+    localStorage.setItem('civac_accounts_version', ACCOUNTS_VERSION);
   } catch {}
 }
 
-/* ─── Contexto Auth ───────────────────────────────────────────────────────── */
+/* ─── Contexto Auth ────────────────────────────────────────────────────────── */
 interface AuthContextType {
   user: Account | null;
   accounts: Account[];
@@ -262,6 +473,7 @@ interface AuthContextType {
   deleteUser: (id: string) => void;
   activatePlan: (userId: string, plan: PlanId, payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => void;
   addWompiPayment: (payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => WompiPayment;
+  canAccessModule: (moduleName: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -269,7 +481,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Account | null>(() => {
     try {
-      const s = localStorage.getItem('ganader_user');
+      const s = localStorage.getItem('civac_user');
       return s ? JSON.parse(s) : null;
     } catch { return null; }
   });
@@ -296,7 +508,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginAs = (account: Account) => {
     setUser(account);
-    try { localStorage.setItem('ganader_user', JSON.stringify(account)); } catch {}
+    try { localStorage.setItem('civac_user', JSON.stringify(account)); } catch {}
     // Background: also get a real server session token for API access
     fetch('/api/auth/login', {
       method: 'POST',
@@ -311,7 +523,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    try { localStorage.removeItem('ganader_user'); } catch {}
+    try { localStorage.removeItem('civac_user'); } catch {}
   };
 
   const registerUser = (data: Omit<Account, 'id'>): Account => {
@@ -327,7 +539,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user?.id === id) {
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
-      try { localStorage.setItem('ganader_user', JSON.stringify(updatedUser)); } catch {}
+      try { localStorage.setItem('civac_user', JSON.stringify(updatedUser)); } catch {}
     }
   };
 
@@ -361,7 +573,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       planExpiry: expiry.toISOString().slice(0,10),
       wompiRef: pmt.id,
       planActivadoEn: new Date().toISOString().slice(0,10),
+      permisos: PLAN_MODULES[plan],
     });
+  };
+
+  const canAccessModule = (moduleName: string): boolean => {
+    if (!user) return false;
+    if (user.permisos.includes('*')) return true;
+    return user.permisos.includes(moduleName);
   };
 
   return React.createElement(AuthContext.Provider, {
@@ -370,6 +589,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login, loginAs, logout,
       registerUser, updateUser, deleteUser,
       activatePlan, addWompiPayment,
+      canAccessModule,
     }
   }, children);
 }

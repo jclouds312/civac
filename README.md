@@ -1,8 +1,8 @@
-# GanaderIA — CIVAC PRO v5.1
+# CIVAC PRO v5.1 — 2026
 
 **Control Inteligente de Valor Agropecuario · Colombia**
 
-PWA ganadero integral para Colombia. 28 módulos, multirol con 6 cuentas, dark/light mode, persistencia offline y rastreo GPS bovino en tiempo real.
+PWA ganadero integral para Colombia. 28 módulos completados, multirol con 6 cuentas, dark/light mode, persistencia offline y rastreo GPS bovino en tiempo real.
 
 ---
 
@@ -127,7 +127,7 @@ Civac/
 │   │       │   ├── layout.tsx
 │   │       │   ├── civac-agent.tsx     ← IA Agent (PRINCIPAL - mantener)
 │   │       │   └── civac-bot.tsx       ← Knowledge Base Bot (DEPRECADO)
-│   │       ├── pages/       ← 28 módulos
+│   │       ├── pages/       ← 28 módulos completados
 │   │       └── App.tsx      ← 28 rutas + providers
 │   ├── api-server/          ← Backend Express (puerto 8080)
 │   │   └── src/
@@ -136,7 +136,7 @@ Civac/
 │   │           ├── animals.ts, potreros.ts, insumos.ts
 │   │           ├── personal.ts, usuarios.ts, finca.ts
 │   │           └── seed.ts, health.ts
-├── backend-analytics/       ← Flask Analytics Backend (puerto 5001) [NUEVO]
+├── backend-analytics/       ← Flask Analytics Backend (puerto 5001)
 │   ├── app.py
 │   ├── requirements.txt
 │   └── venv/                ← Python virtual environment
@@ -148,16 +148,27 @@ Civac/
 
 ---
 
-## Sistema de autenticación — 6 cuentas
+## Sistema de autenticación — 6 cuentas con planes aplicados
 
-| Nombre | Email | Password | Rol | Acceso |
-|--------|-------|----------|-----|--------|
-| Administrador General | admin@ganader.ia | admin | admin | Panel Admin completo (11 tabs) |
-| Dr. Carlos Ramírez | vet@ganader.ia | vet2026 | vet | Módulos clínicos + lectura |
-| Luis Patiño | luis@ganader.ia | campo2026 | field | Campo: pesaje, GPS, potreros |
-| Propietario / Inversor | visor@ganader.ia | visor | viewer | Solo lectura / dashboards |
-| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola desarrollo (9 tabs) |
-| Super Administrador | super@civac.co | super2026 | superadmin | Acceso total plataforma |
+| Nombre | Email | Password | Rol | Acceso | Plan |
+|--------|-------|----------|-----|--------|------|
+| Administrador General | admin@civac.co | admin | admin | Panel Admin completo (11 tabs) | Enterprise |
+| Dr. Carlos Ramírez | vet@civac.co | vet2026 | vet | Módulos clínicos + lectura | Professional |
+| Luis Patiño | luis@civac.co | campo2026 | field | Campo: pesaje, GPS, potreros | Professional |
+| Propietario / Inversor | visor@civac.co | visor | viewer | Solo lectura / dashboards | Basic |
+| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola desarrollo (9 tabs) | Developer |
+| Super Administrador | super@civac.co | super2026 | superadmin | Acceso total plataforma | Enterprise |
+
+---
+
+## Planes disponibles
+
+| Plan | Descripción | Módulos | Máx. Usuarios | Soporte |
+|------|-------------|---------|---------------|---------|
+| **Basic** | Lectura y monitoreo | 15 | 3 | Email |
+| **Professional** | Gestión operativa completa | 28 | 10 | Email + Chat |
+| **Enterprise** | Full acceso + APIs + Soporte dedicado | 28 | Ilimitado | 24/7 dedicado |
+| **Developer** | Desarrollo e integración | 28 | Equipo | 24/7 + Beta features |
 
 ---
 
@@ -257,7 +268,7 @@ curl -X POST http://localhost:8080/api/seed \
   -H "Content-Type: application/json" -d '{"force":true}'
 ```
 
-El seed carga: 30 animales, 8 potreros, 18 insumos, 9 empleados, 9 registros reproductivos, 8 alertas, 8 collares GPS, 10 pesajes, 6 usuarios, 4 planes.
+El seed carga: 30 animales, 8 potreros, 18 insumos, 9 empleados, 9 registros reproductivos, 8 alertas, 8 collares GPS, 10 pesajes, 6 usuarios con planes aplicados, 4 planes.
 
 ---
 
@@ -334,24 +345,33 @@ app.run(debug=True, port=5002)
 
 ## Historial de versiones
 
-| Versión | Cambios principales |
-|---------|---------------------|
-| **v5.1** | ✅ Consolidar botones IA (CivacBot→CivacAgent) · Flask Analytics backend · Actualizar README · Agregar lenguajes complementarios |
-| v5.0 | Admin dashboard 11 tabs · Dev Console 9 tabs · API Explorer real · Seed/reset BD · Finca config · Reportes MRR · BD tab · PWA tab · README |
-| v4.3 | GPS real watchPosition · 6 cuentas · Admin/Developer dashboards · Pesaje PRO IA · Login planes + Wompi |
-| v4.0 | Visual overhaul dark/light · Logo Holstein teal |
-| v3.x | PWA Service Worker v6 · manifest · offline shell |
-| v2.x | 16 módulos base · multicuentas · localStorage |
-| v1.x | MVP inicial React + Vite |
+| Versión | Año | Cambios principales |
+|---------|-----|---------------------|
+| **v5.1** | 2026 | ✅ 28 módulos completados · Consolidar botones IA (CivacBot→CivacAgent) · Flask Analytics backend · Todos los planes aplicados a cuentas de prueba · Actualizar README con datos 2026 · Agregar lenguajes complementarios |
+| v5.0 | 2025 | Admin dashboard 11 tabs · Dev Console 9 tabs · API Explorer real · Seed/reset BD · Finca config · Reportes MRR · BD tab · PWA tab · README |
+| v4.3 | 2024 | GPS real watchPosition · 6 cuentas · Admin/Developer dashboards · Pesaje PRO IA · Login planes + Wompi |
+| v4.0 | 2024 | Visual overhaul dark/light · Logo Holstein teal |
+| v3.x | 2023 | PWA Service Worker v6 · manifest · offline shell |
+| v2.x | 2023 | 16 módulos base · multicuentas · localStorage |
+| v1.x | 2022 | MVP inicial React + Vite |
 
 ---
 
-## Licencia
+## Licencia y Propiedad
 
-MIT © 2024 GanaderIA · CIVAC PRO · Johnatan Vallejo Marulanda · SoftGan Colombia
+**CIVAC PRO** © 2026
+
+- **Propietario exclusivo y distribuidor de licencias**: SoftGan Colombia
+- **Desarrollador y proveedor técnico**: Universal Business Technology
+- **Soporte técnico**: Universal Business Technology
+
+Todos los derechos reservados. Prohibida la redistribución, modificación o uso comercial sin autorización expresa de SoftGan Colombia.
+
+---
 
 ## Contacto
 
-📧 **Email**: soporte@civac.co  
+📧 **Email (SoftGan)**: contacto@softgan.com  
+📧 **Email (Soporte técnico)**: soporte@civac.co  
 📱 **WhatsApp**: +57 318 248 2261  
-🌐 **Web**: https://ganaderia-colombia--aplicacioneswe3.replit.app
+🌐 **Web**: https://civac--aaplicativo676.replit.app

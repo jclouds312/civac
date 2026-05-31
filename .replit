@@ -1,10 +1,11 @@
-modules = ["nodejs-20", "python-3.12", "web"]
+modules = ["nodejs-20", "web", "python-3.11"]
 
 [deployment]
 router = "application"
-deploymentTarget = "static"
+deploymentTarget = "autoscale"
 build = ["bash", "-c", "NODE_ENV=production pnpm --filter @workspace/ganader-ia run build"]
 publicDir = "artifacts/ganader-ia/dist/public"
+run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]
@@ -83,7 +84,7 @@ args = "cd artifacts/gps-server && python3 manage.py migrate --run-syncdb --no-i
 waitForPort = 8000
 
 [agent]
-stack = "BEST_EFFORT_FALLBACK"
+stack = "FLASK_VANILLA_JS"
 expertMode = true
 
 [postMerge]
@@ -128,4 +129,4 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
-packages = ["glibcLocales"]
+packages = ["glibcLocales", "openssl", "postgresql"]

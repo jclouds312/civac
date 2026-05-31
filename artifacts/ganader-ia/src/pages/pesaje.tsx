@@ -9,7 +9,7 @@ import {
   X as XIcon, Usb, Cable, Brain, Sparkles, ChevronDown, ChevronUp,
   Filter, Camera, Image, Hash, Layers, HeartPulse, Weight, Thermometer,
   Info, ChevronRight, BookOpen, Leaf, Shield, RefreshCw, Check, Edit3,
-  ArrowUpRight, ArrowDownRight, Download,
+  ArrowUpRight, ArrowDownRight, Download, Database, Globe, Wifi,
 } from "lucide-react";
 import { saveLastBtDevice, loadLastBtDevice, saveBtSession, loadBtSessions } from "../lib/offline-storage";
 import {
@@ -25,6 +25,73 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SISTEMA CONFIG — Configuración del sistema de báscula
+─────────────────────────────────────────────────────────────────────────────── */
+interface SistemaConfig {
+  puerto: string;
+  intervalo: number;
+  baudios: number;
+  paridad: string;
+  dataBits: number;
+  stopBits: number;
+  nPlanilla: number;
+  nTiquete: number;
+  impVertical: number;
+  impHorizontal: number;
+  empresa: string;
+  nit: string;
+  direccion: string;
+  telefono: string;
+  ciudad: string;
+  pais: string;
+  idProducto: string;
+}
+const SISTEMA_CFG_KEY = "ganader_sistema_cfg";
+const SISTEMA_CFG_DEFAULT: SistemaConfig = {
+  puerto: "COM1", intervalo: 100, baudios: 9600, paridad: "N", dataBits: 8, stopBits: 1,
+  nPlanilla: 1, nTiquete: 1, impVertical: 0, impHorizontal: 0,
+  empresa: "Finca El Rancho Verde", nit: "900.123.456-7",
+  direccion: "Vía Principal km 5", telefono: "310 000 0000",
+  ciudad: "Bogotá", pais: "Colombia", idProducto: "CIVAC-PRO-001",
+};
+function loadSistemaCfgFromStorage(): SistemaConfig {
+  try {
+    const s = localStorage.getItem(SISTEMA_CFG_KEY);
+    return s ? { ...SISTEMA_CFG_DEFAULT, ...JSON.parse(s) } : { ...SISTEMA_CFG_DEFAULT };
+  } catch { return { ...SISTEMA_CFG_DEFAULT }; }
+}
+function saveSistemaCfgToStorage(cfg: SistemaConfig) {
+  try { localStorage.setItem(SISTEMA_CFG_KEY, JSON.stringify(cfg)); } catch {}
+}
+
+const WINDOWS_COM_DRIVERS = [
+  {
+    id: "ch340", nombre: "CH340 / CH341", icon: "🇨🇳",
+    desc: "El más común en básculas chinas y conversores económicos. Reconocible por el chip marcado 'CH340' o 'CH341' en la PCB.",
+    url: "https://www.wch-ic.com/downloads/CH341SER_EXE.html",
+    sistId: "VID_1A86&PID_7523", color: "#fbbf24", glow: "251,191,36",
+  },
+  {
+    id: "prolific", nombre: "Prolific PL2303", icon: "🔌",
+    desc: "Frecuente en cables USB-RS232 económicos. Si Windows muestra 'Código 10', instale el driver oficial desde Prolific.",
+    url: "http://www.prolific.com.tw/US/ShowProduct.aspx?p_id=225&pcid=41",
+    sistId: "VID_067B&PID_2303", color: "#00c8ff", glow: "0,200,255",
+  },
+  {
+    id: "ftdi", nombre: "FTDI FT232 / FT2232", icon: "🏭",
+    desc: "Alta calidad industrial. Usado en Tru-Test y Gallagher. Drivers incluidos automáticamente en Windows 10+.",
+    url: "https://ftdichip.com/drivers/vcp-drivers/",
+    sistId: "VID_0403&PID_6001", color: "#39ff7e", glow: "57,255,126",
+  },
+  {
+    id: "cp210x", nombre: "Silicon Labs CP210x", icon: "💎",
+    desc: "Muy estable. Común en adaptadores de calidad media-alta. Necesita driver manual en Windows 7/8.",
+    url: "https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers",
+    sistId: "VID_10C4&PID_EA60", color: "#a78bfa", glow: "167,139,250",
+  },
+];
 
 /* ─────────────────────────────────────────────────────────────────────────────
    BLUETOOTH CONTROLLERS
@@ -924,6 +991,14 @@ export default function Pesaje() {
   const [btTramaId, setBtTramaId]     = useState("civac_9b");
   const [configSaved, setConfigSaved] = useState(false);
 
+  /* ── Sistema Config ── */
+  const [sistemaCfg, setSistemaCfgState]   = useState<SistemaConfig>(loadSistemaCfgFromStorage);
+  const [sistemaCfgEdit, setSistemaCfgEdit] = useState<SistemaConfig>(loadSistemaCfgFromStorage);
+  const [sistemaCfgOpen, setSistemaCfgOpen] = useState(false);
+  const [sistemaSaved, setSistemaSaved]     = useState(false);
+  const [tramaDbStats, setTramaDbStats]     = useState<{total:number;capturadas:number;avgPeso:number}|null>(null);
+  const [showWinDrivers, setShowWinDrivers] = useState(false);
+
   /* ── Stats ── */
   const hoy = pesajes.filter(p => p.fecha === fmtDate()).length;
 
@@ -1146,6 +1221,9 @@ export default function Pesaje() {
 
   useEffect(() => () => { if (simRef.current) clearInterval(simRef.current); }, []);
 
+  /* Load trama stats when config tab is shown */
+  useEffect(() => { if (mainTab === "config") { loadTramaStats(); } }, [mainTab, loadTramaStats]);
+
   /* Keep trama/regex refs in sync for readLoop closures */
   useEffect(() => { selTramaRef.current = selTrama; }, [selTrama]);
   useEffect(() => { customRegexRef.current = customRegex; }, [customRegex]);
@@ -1195,6 +1273,9 @@ export default function Pesaje() {
       iaScore: iaVal.scoreDesarrollo,
     };
     setPesajes([newP, ...pesajes] as any);
+    postTrama(newP, lastRawFrame, true);
+    const updCfgB = { ...sistemaCfg, nTiquete: sistemaCfg.nTiquete + 1, nPlanilla: sistemaCfg.nPlanilla + 1 };
+    setSistemaCfgState(updCfgB); saveSistemaCfgToStorage(updCfgB);
     setStable(false); setStability(0); weightSamplesRef.current=[];
     /* Auto-advance queue */
     if (queueMode && animalQueue.length > 0) {
@@ -1247,6 +1328,9 @@ export default function Pesaje() {
       iaScore: iaVal.scoreDesarrollo,
     };
     setPesajes([newP, ...pesajes] as any);
+    postTrama(newP, lastRawFrame, true);
+    const updCfgA = { ...sistemaCfg, nTiquete: sistemaCfg.nTiquete + 1, nPlanilla: sistemaCfg.nPlanilla + 1 };
+    setSistemaCfgState(updCfgA); saveSistemaCfgToStorage(updCfgA);
     setCaptureDialogOpen(false);
     setStable(false); setStability(0); weightSamplesRef.current=[];
     if (queueMode && animalQueue.length > 0) {
@@ -1296,6 +1380,46 @@ export default function Pesaje() {
     reader.onload = ev => setNewAFoto(ev.target?.result as string);
     reader.readAsDataURL(file);
   };
+  /* ── Save sistema config ── */
+  const guardarSistemaCfg = useCallback(() => {
+    setSistemaCfgState({...sistemaCfgEdit});
+    saveSistemaCfgToStorage({...sistemaCfgEdit});
+    setSistemaCfgOpen(false);
+    setSistemaSaved(true);
+    setTimeout(()=>setSistemaSaved(false), 2500);
+  }, [sistemaCfgEdit]);
+
+  /* ── Load trama DB stats on config tab open ── */
+  const loadTramaStats = useCallback(async () => {
+    try {
+      const r = await fetch("/api/tramas/stats");
+      if (r.ok) { const d = await r.json(); setTramaDbStats(d.totals); }
+    } catch {}
+  }, []);
+
+  /* ── Post trama to DB (fire & forget) ── */
+  const postTrama = useCallback(async (newP: PesajeRec, rawTrama: string, captured: boolean) => {
+    const activeStatus = btStatus==="connected"?"bluetooth":btStatus==="simulating"?"simulated":serialStatus==="connected"?"serial":"manual";
+    try {
+      await fetch("/api/tramas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          animalId: newP.animalId, animalNombre: newP.animalNombre,
+          peso: newP.peso, rawTrama: rawTrama || "",
+          tramaType: selTrama.id, metodo: activeStatus,
+          dispositivo: newP.dispositivo,
+          puerto: sistemaCfg.puerto,
+          baudRate: comCustomBaud ? parseInt(comCustomBaud) : selCom.baudRate,
+          stable: captured, operador: newP.operador,
+          userId: user?.id || "", planCode: user?.plan || "basico",
+          deviceId: `${user?.id || "anon"}_${navigator.userAgent.slice(0,20)}`,
+          capturado: captured, pesajeId: newP.id,
+        }),
+      });
+    } catch {}
+  }, [btStatus, serialStatus, selTrama, sistemaCfg, selCom, comCustomBaud, user]);
+
   const handleRegNewAnimal = () => {
     const tid = newAId.trim(); const tnombre = newANombre.trim();
     if (!tid||!tnombre||animals.find(a=>a.id===tid)) return;
@@ -2331,6 +2455,333 @@ export default function Pesaje() {
             );
           })()}
 
+          {/* ── CONFIG TAB ── */}
+          {mainTab === "config" && (
+            <div className="space-y-4">
+
+              {/* ── Configuración del Sistema ── */}
+              <div className="rounded-2xl overflow-hidden" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(251,191,36,0.22)"}}>
+                <div className="h-0.5" style={{background:"linear-gradient(90deg,#fbbf24,#f59e0b,transparent)"}}/>
+                <div className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.3)"}}>
+                        <Settings2 size={13} style={{color:"#fbbf24"}}/>
+                      </div>
+                      <span className="font-black text-sm text-white">Configuración del Sistema</span>
+                      <span className="text-[9px] text-white/25">· Báscula + Empresa</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {sistemaSaved && <span className="text-[9px] text-green-400 font-bold animate-pulse">✓ Guardado</span>}
+                      <button
+                        onClick={()=>{ setSistemaCfgEdit({...sistemaCfg}); setSistemaCfgOpen(true); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold"
+                        style={{background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.35)",color:"#fbbf24"}}>
+                        <Settings2 size={10}/>Editar sistema
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Comunicación */}
+                    <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.15)"}}>
+                      <div className="text-[9px] uppercase tracking-wider font-bold" style={{color:"#fbbf24"}}>Parámetros del Indicador Digital de Peso</div>
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+                        {([
+                          ["Puerto COM",   sistemaCfg.puerto],
+                          ["Intervalo",    `${sistemaCfg.intervalo} ms`],
+                          ["Baudios",      String(sistemaCfg.baudios)],
+                          ["Paridad",      sistemaCfg.paridad==="N"?"Ninguna (N)":sistemaCfg.paridad==="E"?"Par (E)":"Impar (O)"],
+                          ["Bits datos",   String(sistemaCfg.dataBits)],
+                          ["Bits parada",  String(sistemaCfg.stopBits)],
+                        ] as [string,string][]).map(([k,v])=>(
+                          <div key={k} className="flex flex-col">
+                            <span className="text-white/25 text-[9px]">{k}</span>
+                            <span className="font-bold text-white">{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-1 px-2 py-1.5 rounded-lg text-[9px] font-mono text-center"
+                        style={{background:"rgba(0,0,0,0.3)",color:"rgba(251,191,36,0.7)",border:"1px solid rgba(251,191,36,0.1)"}}>
+                        {sistemaCfg.baudios},{sistemaCfg.paridad},{sistemaCfg.dataBits},{sistemaCfg.stopBits}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      {/* Consecutivos */}
+                      <div className="rounded-xl p-3" style={{background:"rgba(0,245,212,0.05)",border:"1px solid rgba(0,245,212,0.15)"}}>
+                        <div className="text-[9px] uppercase tracking-wider font-bold mb-2" style={{color:"#00f5d4"}}>Numeración de Consecutivos</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="text-center">
+                            <div className="text-[9px] text-white/25 mb-1">N° Planilla</div>
+                            <div className="text-xl font-black" style={{color:"#00f5d4"}}>{sistemaCfg.nPlanilla.toString().padStart(4,"0")}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-[9px] text-white/25 mb-1">N° Tiquete</div>
+                            <div className="text-xl font-black" style={{color:"#39ff7e"}}>{sistemaCfg.nTiquete.toString().padStart(4,"0")}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Impresión */}
+                      <div className="rounded-xl p-3" style={{background:"rgba(192,132,252,0.05)",border:"1px solid rgba(192,132,252,0.15)"}}>
+                        <div className="text-[9px] uppercase tracking-wider font-bold mb-2" style={{color:"#c084fc"}}>Ajuste Impresión Tiquete de Pesa</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="text-center">
+                            <div className="text-[9px] text-white/25 mb-1">Vertical (mm)</div>
+                            <div className="text-base font-black" style={{color:"#c084fc"}}>{sistemaCfg.impVertical}</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-[9px] text-white/25 mb-1">Horizontal (mm)</div>
+                            <div className="text-base font-black" style={{color:"#c084fc"}}>{sistemaCfg.impHorizontal}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Empresa */}
+                  <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(57,255,126,0.05)",border:"1px solid rgba(57,255,126,0.15)"}}>
+                    <div className="text-[9px] uppercase tracking-wider font-bold" style={{color:"#39ff7e"}}>Datos de la Empresa</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5 text-[10px]">
+                      {([
+                        ["Empresa",     sistemaCfg.empresa],
+                        ["NIT",         sistemaCfg.nit],
+                        ["Teléfono",    sistemaCfg.telefono],
+                        ["Dirección",   sistemaCfg.direccion],
+                        ["Ciudad",      sistemaCfg.ciudad],
+                        ["País",        sistemaCfg.pais],
+                        ["ID Producto", sistemaCfg.idProducto],
+                      ] as [string,string][]).map(([k,v])=>(
+                        <div key={k}>
+                          <span className="text-white/25 text-[9px]">{k}: </span>
+                          <span className="text-white font-semibold">{v||"—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Drivers COM Windows ── */}
+              <div className="rounded-2xl overflow-hidden" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(0,200,255,0.18)"}}>
+                <div className="h-0.5" style={{background:"linear-gradient(90deg,#00c8ff,#818cf8,transparent)"}}/>
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{background:"rgba(0,200,255,0.12)",border:"1px solid rgba(0,200,255,0.3)"}}>
+                        <Usb size={13} style={{color:"#00c8ff"}}/>
+                      </div>
+                      <span className="font-black text-sm text-white">Drivers COM · Windows</span>
+                      <span className="text-[9px] text-white/25">· USB-Serial</span>
+                    </div>
+                    <button onClick={()=>setShowWinDrivers(v=>!v)}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold"
+                      style={{background:"rgba(0,200,255,0.08)",border:"1px solid rgba(0,200,255,0.2)",color:"#00c8ff"}}>
+                      {showWinDrivers ? <ChevronUp size={10}/> : <ChevronDown size={10}/>}
+                      {showWinDrivers ? "Ocultar" : "Ver drivers"}
+                    </button>
+                  </div>
+
+                  <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{background:"rgba(0,200,255,0.05)",border:"1px solid rgba(0,200,255,0.12)"}}>
+                    <Info size={12} className="mt-0.5 flex-shrink-0" style={{color:"#00c8ff"}}/>
+                    <p className="text-[10px]" style={{color:"rgba(0,200,255,0.75)"}}>
+                      Para conectar su báscula por puerto COM/USB en Windows, instale el driver del chip del cable convertidor.
+                      Identifique el chip en el <strong>Administrador de dispositivos</strong> (Win+X) → Puertos COM y LPT.
+                    </p>
+                  </div>
+
+                  {showWinDrivers && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {WINDOWS_COM_DRIVERS.map(d=>(
+                          <div key={d.id} className="rounded-xl p-3 space-y-2"
+                            style={{background:`rgba(${d.glow},0.05)`,border:`1px solid rgba(${d.glow},0.2)`}}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{d.icon}</span>
+                              <div>
+                                <div className="font-bold text-xs" style={{color:`rgba(${d.glow},0.9)`}}>{d.nombre}</div>
+                                <div className="text-[8px] font-mono text-white/20">{d.sistId}</div>
+                              </div>
+                            </div>
+                            <p className="text-[9px] leading-relaxed" style={{color:"rgba(255,255,255,0.4)"}}>{d.desc}</p>
+                            <a href={d.url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 text-[10px] font-bold"
+                              style={{color:`rgba(${d.glow},0.8)`}}>
+                              <Download size={10}/>Descargar driver oficial
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)"}}>
+                        <div className="text-[9px] font-bold text-white/50">Pasos para instalar driver COM en Windows</div>
+                        <ol className="text-[9px] space-y-1 list-decimal list-inside" style={{color:"rgba(255,255,255,0.35)"}}>
+                          <li>Conecte el cable o adaptador USB-Serial a su PC Windows</li>
+                          <li>Abra <strong className="text-white/55">Administrador de dispositivos</strong> (Win+X → Administrador de dispositivos)</li>
+                          <li>Busque en <strong className="text-white/55">"Puertos (COM y LPT)"</strong> o <strong className="text-white/55">"Otros dispositivos"</strong></li>
+                          <li>Haga clic derecho → <strong className="text-white/55">Actualizar controlador</strong></li>
+                          <li>Si no funciona, descargue e instale el driver manual desde el enlace de arriba</li>
+                          <li>Reinicie el PC si se solicita, reconecte la báscula y tome nota del puerto asignado (COM X)</li>
+                          <li>Ingrese ese puerto en la Configuración del Sistema → Puerto COM</li>
+                        </ol>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Trama DB Stats ── */}
+              {tramaDbStats && (
+                <div className="rounded-2xl p-4" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(57,255,126,0.12)"}}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Database size={13} style={{color:"#39ff7e"}}/>
+                    <span className="font-black text-sm text-white">Registro de Tramas · Base de Datos</span>
+                    <button onClick={loadTramaStats} className="ml-auto p-1 rounded-lg" style={{background:"rgba(57,255,126,0.08)",border:"1px solid rgba(57,255,126,0.15)",color:"#39ff7e"}}>
+                      <RefreshCw size={10}/>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {([
+                      {label:"Total tramas",  val:tramaDbStats.total,             c:"#00f5d4"},
+                      {label:"Capturadas",    val:tramaDbStats.capturadas,        c:"#39ff7e"},
+                      {label:"Peso promedio", val:`${tramaDbStats.avgPeso||0} kg`,c:"#fbbf24"},
+                    ] as {label:string;val:number|string;c:string}[]).map(k=>(
+                      <div key={k.label} className="rounded-xl p-3 text-center" style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${k.c}20`}}>
+                        <div className="font-black text-white text-lg">{k.val}</div>
+                        <div className="text-[9px] mt-0.5" style={{color:`${k.c}80`}}>{k.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Custom Tramas ── */}
+              <div className="rounded-2xl overflow-hidden" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(139,92,246,0.18)"}}>
+                <div className="h-0.5" style={{background:"linear-gradient(90deg,#a855f7,#818cf8,transparent)"}}/>
+                <div className="p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Radio size={13} style={{color:"#c084fc"}}/>
+                      <span className="font-black text-sm text-white">Tramas Personalizadas</span>
+                      <span className="text-[9px] text-white/25">({customTramas.length})</span>
+                    </div>
+                    <button onClick={()=>setShowNewTramaForm(v=>!v)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold"
+                      style={{background:"rgba(139,92,246,0.12)",border:"1px solid rgba(139,92,246,0.3)",color:"#c084fc"}}>
+                      <Plus size={10}/>{showNewTramaForm?"Cancelar":"Nueva trama"}
+                    </button>
+                  </div>
+
+                  {showNewTramaForm && (
+                    <div className="rounded-xl p-3 space-y-3" style={{background:"rgba(139,92,246,0.06)",border:"1px solid rgba(139,92,246,0.2)"}}>
+                      <div className="text-[9px] font-bold" style={{color:"#c084fc"}}>Definir trama personalizada</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          {label:"Nombre",     key:"nombre"  as const,placeholder:"Mi Báscula"},
+                          {label:"Regex",      key:"regex"   as const,placeholder:"([0-9]{3,4})"},
+                          {label:"Ejemplo",    key:"ejemplo" as const,placeholder:"STW, 450.3kg"},
+                        ].map(f=>(
+                          <div key={f.key}>
+                            <label className="text-[9px] text-white/30 block mb-1">{f.label}</label>
+                            <input value={newTramaForm[f.key]} onChange={e=>setNewTramaForm(x=>({...x,[f.key]:e.target.value}))}
+                              placeholder={f.placeholder}
+                              className="w-full px-2 py-1.5 rounded-lg text-xs text-white font-mono"
+                              style={{background:"rgba(139,92,246,0.08)",border:"1px solid rgba(139,92,246,0.25)",outline:"none"}}/>
+                          </div>
+                        ))}
+                        <div>
+                          <label className="text-[9px] text-white/30 block mb-1">Probar extracción</label>
+                          <input value={newTramaTest} onChange={e=>setNewTramaTest(e.target.value)}
+                            placeholder="Pega una trama real"
+                            className="w-full px-2 py-1.5 rounded-lg text-xs text-white font-mono"
+                            style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.08)",outline:"none"}}/>
+                        </div>
+                      </div>
+                      {newTramaTest && (()=>{
+                        const r=testCustomTrama(newTramaForm.regex,newTramaTest);
+                        return <div className={`rounded-lg px-2 py-1 text-[9px] font-bold ${r.ok?"text-green-400":"text-red-400"}`}
+                          style={{background:r.ok?"rgba(57,255,126,0.06)":"rgba(248,113,113,0.06)"}}>
+                          {r.ok?`✓ Extraído: ${r.peso} kg`:`✗ ${r.error||"Sin coincidencia"}`}
+                        </div>;
+                      })()}
+                      <button
+                        disabled={!newTramaForm.nombre.trim()||!newTramaForm.regex.trim()}
+                        onClick={()=>{
+                          if(!newTramaForm.nombre.trim()||!newTramaForm.regex.trim()) return;
+                          const t:CustomTrama={id:`ct_${Date.now()}`,nombre:newTramaForm.nombre,regex:newTramaForm.regex,icon:newTramaForm.icon,color:newTramaForm.color,ejemplo:newTramaForm.ejemplo};
+                          const next=[...customTramas,t]; setCustomTramas(next); saveCustomTramas(next);
+                          setShowNewTramaForm(false); setNewTramaForm({nombre:"",regex:"([0-9]{3,4})",icon:"🔧",color:"#94a3b8",ejemplo:""});
+                        }}
+                        className="px-3 py-1.5 rounded-xl text-[10px] font-bold"
+                        style={{background:"rgba(139,92,246,0.15)",border:"1px solid rgba(139,92,246,0.4)",color:"#c084fc"}}>
+                        Guardar trama
+                      </button>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    {customTramas.map((ct,i)=>(
+                      <div key={ct.id} className="rounded-xl p-3 flex items-center gap-3" style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                        <span className="text-base">{ct.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-white">{ct.nombre}</div>
+                          <div className="font-mono text-[9px] text-white/30 mt-0.5 truncate">{ct.regex}</div>
+                          {ct.ejemplo&&<div className="text-[9px] text-white/20 italic truncate">{ct.ejemplo}</div>}
+                        </div>
+                        <button onClick={()=>{ const n=customTramas.filter((_,j)=>j!==i); setCustomTramas(n); saveCustomTramas(n); }}
+                          className="text-[9px] text-red-400/50 hover:text-red-400 px-2 py-1">✕</button>
+                      </div>
+                    ))}
+                    {customTramas.length===0&&<div className="text-[9px] text-white/20 py-2 text-center">Sin tramas personalizadas definidas</div>}
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Print Template ── */}
+              <div className="rounded-2xl overflow-hidden" style={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(57,255,126,0.12)"}}>
+                <div className="h-0.5" style={{background:"linear-gradient(90deg,#39ff7e,transparent)"}}/>
+                <div className="p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Printer size={13} style={{color:"#39ff7e"}}/>
+                    <span className="font-black text-sm text-white">Plantilla de Impresión Tiquete</span>
+                  </div>
+                  <div className="space-y-3">
+                    {[
+                      {label:"Encabezado",  key:"header" as const, placeholder:"Ganadería El Rancho · Tiquete de Báscula"},
+                      {label:"Pie de página",key:"footer"as const, placeholder:"Gracias por su confianza · CIVAC PRO"},
+                    ].map(f=>(
+                      <div key={f.key}>
+                        <label className="text-[9px] text-white/30 uppercase tracking-wider block mb-1">{f.label}</label>
+                        <input value={(printTmpl as any)[f.key]||""} onChange={e=>{ const t={...printTmpl,[f.key]:e.target.value}; setPrintTmpl(t); savePrintTemplate(t); }}
+                          placeholder={f.placeholder}
+                          className="w-full px-3 py-2 rounded-xl text-white text-xs"
+                          style={{background:"rgba(57,255,126,0.04)",border:"1px solid rgba(57,255,126,0.15)",outline:"none"}}/>
+                      </div>
+                    ))}
+                    <div className="grid grid-cols-2 gap-2">
+                      {([
+                        {k:"showLogo"      as const, label:"Mostrar logo"},
+                        {k:"showBarcode"   as const, label:"Código de barras"},
+                        {k:"showQR"        as const, label:"Código QR"},
+                        {k:"showSignature" as const, label:"Línea de firma"},
+                      ]).map(({k,label})=>(
+                        <label key={k} className="flex items-center gap-2 cursor-pointer">
+                          <button type="button" onClick={()=>{ const t={...printTmpl,[k]:!(printTmpl as any)[k]}; setPrintTmpl(t); savePrintTemplate(t); }}
+                            className="w-9 h-5 rounded-full relative flex-shrink-0"
+                            style={{background:(printTmpl as any)[k]?"rgba(57,255,126,0.4)":"rgba(255,255,255,0.1)"}}>
+                            <div className="absolute w-4 h-4 rounded-full top-0.5 transition-all"
+                              style={{background:"white",left:(printTmpl as any)[k]?"calc(100% - 1.15rem)":"0.125rem"}}/>
+                          </button>
+                          <span className="text-[10px] text-white/50">{label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {configSaved&&<div className="text-[10px] text-green-400 font-bold animate-pulse">✓ Plantilla guardada</div>}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
+
         </div>
 
         {/* ═══ COL 3: IA Panel ═══ */}
@@ -2585,6 +3036,185 @@ export default function Pesaje() {
             <Button onClick={handleRegNewAnimal} disabled={!newAId.trim()||!newANombre.trim()||!!animals.find(a=>a.id===newAId.trim())}
               style={{background:"rgba(57,255,126,0.9)",color:"black"}} className="gap-2 font-bold">
               <UserPlus size={13}/>{newAFoto?"📸 ":""}Registrar animal
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── SISTEMA CONFIG DIALOG ── */}
+      <Dialog open={sistemaCfgOpen} onOpenChange={setSistemaCfgOpen}>
+        <DialogContent className="sm:max-w-[620px] max-h-[92vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings2 size={16} style={{color:"#fbbf24"}}/>
+              Configuración del Sistema de Báscula
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+
+            {/* 1. Parámetros de Comunicación */}
+            <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(251,191,36,0.05)",border:"1px solid rgba(251,191,36,0.2)"}}>
+              <div className="text-[10px] uppercase tracking-wider font-bold" style={{color:"#fbbf24"}}>
+                Parámetros de Comunicación del Indicador Digital de Peso
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Puerto COM</Label>
+                  <Select value={sistemaCfgEdit.puerto} onValueChange={v=>setSistemaCfgEdit(c=>({...c,puerto:v}))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      {["COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM10","USB","Auto"].map(p=>(
+                        <SelectItem key={p} value={p}>{p}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Intervalo (ms)</Label>
+                  <Select value={String(sistemaCfgEdit.intervalo)} onValueChange={v=>setSistemaCfgEdit(c=>({...c,intervalo:Number(v)}))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      {[50,100,200,300,500,1000].map(n=>(
+                        <SelectItem key={n} value={String(n)}>{n} ms</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Baudios</Label>
+                  <Select value={String(sistemaCfgEdit.baudios)} onValueChange={v=>setSistemaCfgEdit(c=>({...c,baudios:Number(v)}))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      {[1200,2400,4800,9600,19200,38400,57600,115200].map(n=>(
+                        <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Paridad</Label>
+                  <Select value={sistemaCfgEdit.paridad} onValueChange={v=>setSistemaCfgEdit(c=>({...c,paridad:v}))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="N">Ninguna (N)</SelectItem>
+                      <SelectItem value="E">Par (E)</SelectItem>
+                      <SelectItem value="O">Impar (O)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Bits de datos</Label>
+                  <Select value={String(sistemaCfgEdit.dataBits)} onValueChange={v=>setSistemaCfgEdit(c=>({...c,dataBits:Number(v)}))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">7 bits</SelectItem>
+                      <SelectItem value="8">8 bits</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Bits de parada</Label>
+                  <Select value={String(sistemaCfgEdit.stopBits)} onValueChange={v=>setSistemaCfgEdit(c=>({...c,stopBits:Number(v)}))}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1</SelectItem>
+                      <SelectItem value="1.5">1.5</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="px-3 py-2 rounded-xl text-center font-mono text-sm font-bold" style={{background:"rgba(0,0,0,0.4)",color:"#fbbf24",border:"1px solid rgba(251,191,36,0.15)"}}>
+                Parámetros: {sistemaCfgEdit.baudios},{sistemaCfgEdit.paridad},{sistemaCfgEdit.dataBits},{sistemaCfgEdit.stopBits}
+              </div>
+            </div>
+
+            {/* 2. Consecutivos */}
+            <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(0,245,212,0.05)",border:"1px solid rgba(0,245,212,0.18)"}}>
+              <div className="text-[10px] uppercase tracking-wider font-bold" style={{color:"#00f5d4"}}>
+                Numeración de Consecutivos
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">N° Planilla</Label>
+                  <Input type="number" min={1} value={sistemaCfgEdit.nPlanilla}
+                    onChange={e=>setSistemaCfgEdit(c=>({...c,nPlanilla:Math.max(1,Number(e.target.value))}))}
+                    className="h-9 text-center font-black text-base"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">N° Tiquete</Label>
+                  <Input type="number" min={1} value={sistemaCfgEdit.nTiquete}
+                    onChange={e=>setSistemaCfgEdit(c=>({...c,nTiquete:Math.max(1,Number(e.target.value))}))}
+                    className="h-9 text-center font-black text-base"/>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Ajuste Impresión */}
+            <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(192,132,252,0.05)",border:"1px solid rgba(192,132,252,0.18)"}}>
+              <div className="text-[10px] uppercase tracking-wider font-bold" style={{color:"#c084fc"}}>
+                Ajuste Impresión Tiquete de Pesa
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Vertical (mm)</Label>
+                  <Input type="number" step={0.5} value={sistemaCfgEdit.impVertical}
+                    onChange={e=>setSistemaCfgEdit(c=>({...c,impVertical:Number(e.target.value)}))}
+                    className="h-9"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Horizontal (mm)</Label>
+                  <Input type="number" step={0.5} value={sistemaCfgEdit.impHorizontal}
+                    onChange={e=>setSistemaCfgEdit(c=>({...c,impHorizontal:Number(e.target.value)}))}
+                    className="h-9"/>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Datos Empresa */}
+            <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(57,255,126,0.05)",border:"1px solid rgba(57,255,126,0.18)"}}>
+              <div className="text-[10px] uppercase tracking-wider font-bold" style={{color:"#39ff7e"}}>
+                Datos de la Empresa
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[10px]">Nombre de la empresa</Label>
+                  <Input value={sistemaCfgEdit.empresa} onChange={e=>setSistemaCfgEdit(c=>({...c,empresa:e.target.value}))} placeholder="Ganadería El Rancho Verde"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">NIT</Label>
+                  <Input value={sistemaCfgEdit.nit} onChange={e=>setSistemaCfgEdit(c=>({...c,nit:e.target.value}))} placeholder="900.123.456-7"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Teléfono</Label>
+                  <Input value={sistemaCfgEdit.telefono} onChange={e=>setSistemaCfgEdit(c=>({...c,telefono:e.target.value}))} placeholder="310 000 0000"/>
+                </div>
+                <div className="sm:col-span-2 space-y-1">
+                  <Label className="text-[10px]">Dirección</Label>
+                  <Input value={sistemaCfgEdit.direccion} onChange={e=>setSistemaCfgEdit(c=>({...c,direccion:e.target.value}))} placeholder="Vía Principal km 5"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">Ciudad</Label>
+                  <Input value={sistemaCfgEdit.ciudad} onChange={e=>setSistemaCfgEdit(c=>({...c,ciudad:e.target.value}))} placeholder="Bogotá"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">País</Label>
+                  <Input value={sistemaCfgEdit.pais} onChange={e=>setSistemaCfgEdit(c=>({...c,pais:e.target.value}))} placeholder="Colombia"/>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px]">ID Producto</Label>
+                  <Input value={sistemaCfgEdit.idProducto} onChange={e=>setSistemaCfgEdit(c=>({...c,idProducto:e.target.value}))} placeholder="CIVAC-PRO-001"/>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={()=>setSistemaCfgOpen(false)}>Cancelar</Button>
+            <Button onClick={guardarSistemaCfg}
+              style={{background:"linear-gradient(135deg,#fbbf24,#f59e0b)",color:"black"}}
+              className="gap-2 font-bold">
+              <Check size={14}/>Guardar configuración
             </Button>
           </DialogFooter>
         </DialogContent>

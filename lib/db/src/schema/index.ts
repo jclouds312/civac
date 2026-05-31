@@ -283,6 +283,51 @@ export const insertUserSessionSchema = createInsertSchema(userSessionsTable).omi
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type UserSession = typeof userSessionsTable.$inferSelect;
 
+// ── Trama Logs (Scale trama records) ─────────────────────────────────────────
+export const tramaLogsTable = pgTable("trama_logs", {
+  id:           serial("id").primaryKey(),
+  animalId:     text("animal_id").notNull().default(""),
+  animalNombre: text("animal_nombre").notNull().default(""),
+  peso:         real("peso").notNull().default(0),
+  rawTrama:     text("raw_trama").notNull().default(""),
+  tramaType:    text("trama_type").notNull().default("unknown"),
+  metodo:       text("metodo").notNull().default("serial"),  // serial | bluetooth | manual
+  dispositivo:  text("dispositivo").notNull().default(""),
+  puerto:       text("puerto").notNull().default(""),
+  baudRate:     integer("baud_rate").notNull().default(9600),
+  stable:       boolean("stable").notNull().default(false),
+  operador:     text("operador").notNull().default(""),
+  userId:       text("user_id").notNull().default(""),
+  planCode:     text("plan_code").notNull().default("basico"),
+  deviceId:     text("device_id").notNull().default(""),
+  capturado:    boolean("capturado").notNull().default(false),  // true if weight was saved
+  pesajeId:     integer("pesaje_id"),                          // linked pesaje record
+  createdAt:    timestamp("created_at").defaultNow(),
+});
+export const insertTramaLogSchema = createInsertSchema(tramaLogsTable).omit({ id: true, createdAt: true });
+export type InsertTramaLog = z.infer<typeof insertTramaLogSchema>;
+export type TramaLog = typeof tramaLogsTable.$inferSelect;
+
+// ── App Versions ──────────────────────────────────────────────────────────────
+export const appVersionsTable = pgTable("app_versions", {
+  id:           serial("id").primaryKey(),
+  version:      text("version").notNull().unique(),   // e.g. "1.0.0"
+  nombre:       text("nombre").notNull().default(""), // e.g. "GanaderIA PRO v1.0"
+  descripcion:  text("descripcion").notNull().default(""),
+  changelog:    text("changelog").notNull().default(""),
+  planReq:      text("plan_req").notNull().default("basico"),  // minimum plan to download
+  downloadUrl:  text("download_url").notNull().default(""),
+  fileName:     text("file_name").notNull().default(""),
+  fileSizeKb:   integer("file_size_kb").notNull().default(0),
+  buildDate:    text("build_date").notNull().default(""),
+  active:       boolean("active").notNull().default(true),
+  downloads:    integer("downloads").notNull().default(0),
+  createdAt:    timestamp("created_at").defaultNow(),
+});
+export const insertAppVersionSchema = createInsertSchema(appVersionsTable).omit({ id: true, createdAt: true });
+export type InsertAppVersion = z.infer<typeof insertAppVersionSchema>;
+export type AppVersion = typeof appVersionsTable.$inferSelect;
+
 // ── Sync Log ─────────────────────────────────────────────────────────────────
 export const syncLogTable = pgTable("sync_log", {
   id:             serial("id").primaryKey(),

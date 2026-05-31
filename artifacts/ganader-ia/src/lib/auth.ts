@@ -199,10 +199,71 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planExpiry: '2027-12-31',
     permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual'],
   },
+
+  /* ── CUENTAS DEMO — una por cada nivel de plan ── */
+  {
+    id: 'demo_basico',
+    nombre: 'Demo Básico · Finca Pequeña',
+    cargo: 'Propietario',
+    finca: 'Finca Demo Básico',
+    email: 'demo_basico@ganaderia.co',
+    password: 'demo2026',
+    avatar: '🥈',
+    gradient: 'from-[#1a2a3a] to-[#243040]',
+    role: 'admin',
+    activo: true,
+    plan: 'basico',
+    permisos: ['inventario','produccion','potreros','alertas','documentacion','manual','pesaje','pesaje-manual'],
+  },
+  {
+    id: 'demo_pro',
+    nombre: 'Demo PRO · Finca Mediana',
+    cargo: 'Gerente de Finca',
+    finca: 'Agropecuaria Demo PRO',
+    email: 'demo_pro@ganaderia.co',
+    password: 'demo2026',
+    avatar: '⚡',
+    gradient: 'from-[#001a1a] to-[#003030]',
+    role: 'admin',
+    activo: true,
+    plan: 'pro',
+    planExpiry: '2027-06-30',
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','alertas','pesaje','gps','pesaje-manual','ficha','lotes','datos','documentacion','manual'],
+  },
+  {
+    id: 'demo_premium',
+    nombre: 'Demo Premium · Ganadería Grande',
+    cargo: 'Director de Producción',
+    finca: 'Ganadería Premium S.A.S.',
+    email: 'demo_premium@ganaderia.co',
+    password: 'demo2026',
+    avatar: '🥇',
+    gradient: 'from-[#2a1a00] to-[#3d2800]',
+    role: 'admin',
+    activo: true,
+    plan: 'premium',
+    planExpiry: '2027-06-30',
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','pesaje','gps','pesaje-manual','ficha','lotes','datos','usuarios','configuracion','documentacion','manual'],
+  },
+  {
+    id: 'demo_platino',
+    nombre: 'Demo Platino · Corporativo',
+    cargo: 'CEO Corporativo',
+    finca: 'Grupo Ganadero Platino Corp.',
+    email: 'demo_platino@ganaderia.co',
+    password: 'demo2026',
+    avatar: '🔶',
+    gradient: 'from-[#1a0a00] to-[#2d1500]',
+    role: 'admin',
+    activo: true,
+    plan: 'platino',
+    planExpiry: '2027-12-31',
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','manual','pesaje','gps','pesaje-manual','ficha','lotes','datos','planes','admin_pagos'],
+  },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '5.0.0';
+const ACCOUNTS_VERSION = '6.0.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {

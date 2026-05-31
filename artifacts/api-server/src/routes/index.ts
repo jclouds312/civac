@@ -18,6 +18,7 @@ import plansRouter from "./plans";
 import syncRouter from "./sync";
 import crmRouter from "./crm";
 import adminRouter from "./admin";
+import tramasRouter from "./tramas";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(lotesRouter);
 router.use(syncRouter);
 router.use(crmRouter);
 router.use(adminRouter);
+router.use(tramasRouter);
 
 export default router;

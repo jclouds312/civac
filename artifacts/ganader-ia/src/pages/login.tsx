@@ -535,7 +535,7 @@ export default function Login() {
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [loadingId, setLoadingId] = useState<string|null>(null);
-  const [tab, setTab]             = useState<"clientes"|"planes">("clientes");
+  const [tab, setTab]             = useState<"login"|"cuentas"|"planes">("login");
   const [entered, setEntered]     = useState(false);
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -669,14 +669,15 @@ export default function Login() {
             ))}
           </div>
 
-          {/* Tabs */}
+          {/* Tabs — 3 botones */}
           <div className="flex items-center justify-center gap-2">
             {[
-              { id:"clientes" as const, label:"Acceso Clientes", emoji:"🔐" },
-              { id:"planes"   as const, label:"Planes y Precios", emoji:"💰" },
+              { id:"login"   as const, label:"Iniciar Sesión", emoji:"🔐" },
+              { id:"cuentas" as const, label:"Cuentas Demo",   emoji:"👥" },
+              { id:"planes"  as const, label:"Planes",         emoji:"💰" },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-250 hover:scale-[1.03] active:scale-[0.98]"
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-250 hover:scale-[1.03] active:scale-[0.98]"
                 style={tab===t.id
                   ? { background:"linear-gradient(135deg,#00f5d4,#00c896)", color:"black", boxShadow:"0 0 24px #00f5d455", transform:"scale(1.04)" }
                   : { background:"rgba(255,255,255,0.07)", color:"rgba(255,255,255,0.55)", border:"1px solid rgba(255,255,255,0.1)" }}>
@@ -688,6 +689,163 @@ export default function Login() {
 
         {/* ── Live Stats Widgets ── */}
         <StatsWidgets />
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB: LOGIN (principal)
+        ═══════════════════════════════════════════════════════════════════ */}
+        {tab === "login" && (
+          <div className="flex gap-5 items-start justify-center">
+
+            {/* Left decorative widgets */}
+            <FarmImageWidgets />
+
+            {/* Center — main login card */}
+            <div className="w-full max-w-md">
+              <div className="rounded-3xl overflow-hidden"
+                style={{
+                  background:"linear-gradient(145deg,rgba(4,13,26,0.98),rgba(7,20,38,0.96))",
+                  border:"1px solid rgba(0,245,212,0.22)",
+                  boxShadow:"0 0 70px rgba(0,245,212,0.10), 0 30px 70px rgba(0,0,0,0.6)",
+                  backdropFilter:"blur(28px)",
+                }}>
+                <div className="h-1" style={{ background:"linear-gradient(90deg,#00f5d4,#00c8ff,rgba(168,85,247,0.6),transparent)" }}/>
+                <div className="p-7 sm:p-8">
+
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ background:"rgba(0,245,212,0.10)", border:"1px solid rgba(0,245,212,0.28)", boxShadow:"0 0 20px rgba(0,245,212,0.18)" }}>
+                      <Lock className="w-5 h-5" style={{ color:"#00f5d4" }}/>
+                    </div>
+                    <div>
+                      <h2 className="font-black text-xl text-white leading-none mb-1">Bienvenido a CIVAC</h2>
+                      <p className="text-xs" style={{ color:"rgba(0,245,212,0.55)" }}>Ingresa con tu cuenta o crea una nueva</p>
+                    </div>
+                  </div>
+
+                  {/* Form */}
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Correo o usuario</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(0,245,212,0.45)" }}/>
+                        <input type="text" value={email} autoComplete="username"
+                          onChange={e=>{setEmail(e.target.value);setError("");}}
+                          placeholder="correo@ganaderia.co"
+                          className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm text-white placeholder:text-white/20 transition-all"
+                          style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.15)", outline:"none" }}
+                          onFocus={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.5)";(e.target as HTMLInputElement).style.boxShadow="0 0 20px rgba(0,245,212,0.13)";}}
+                          onBlur={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.15)";(e.target as HTMLInputElement).style.boxShadow="none";}}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Contraseña</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(0,245,212,0.45)" }}/>
+                        <input type={showPass?"text":"password"} value={password} autoComplete="current-password"
+                          onChange={e=>{setPassword(e.target.value);setError("");}}
+                          placeholder="••••••••"
+                          className="w-full pl-11 pr-12 py-3.5 rounded-2xl text-sm text-white placeholder:text-white/20 transition-all"
+                          style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.15)", outline:"none" }}
+                          onFocus={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.5)";(e.target as HTMLInputElement).style.boxShadow="0 0 20px rgba(0,245,212,0.13)";}}
+                          onBlur={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.15)";(e.target as HTMLInputElement).style.boxShadow="none";}}
+                        />
+                        <button type="button" onClick={()=>setShowPass(!showPass)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 w-7 h-7 rounded-xl flex items-center justify-center text-white/30 hover:text-white/70 transition-colors">
+                          {showPass?<EyeOff className="w-4 h-4"/>:<Eye className="w-4 h-4"/>}
+                        </button>
+                      </div>
+                    </div>
+
+                    {error && (
+                      <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl text-xs"
+                        style={{ background:"rgba(255,77,109,0.08)", border:"1px solid rgba(255,77,109,0.25)", color:"#ff6b8a" }}>
+                        <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0"/>{error}
+                      </div>
+                    )}
+
+                    <button type="submit" disabled={loading || !email}
+                      className="w-full py-4 rounded-2xl font-black text-base text-black transition-all hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-1"
+                      style={{ background:"linear-gradient(135deg,#00f5d4,#00c896)", boxShadow:"0 0 32px rgba(0,245,212,0.45)" }}>
+                      {loading
+                        ? <span className="flex items-center justify-center gap-2"><div className="w-4 h-4 border-2 border-black/20 border-t-black/80 rounded-full animate-spin"/>Verificando…</span>
+                        : <span className="flex items-center justify-center gap-2">Ingresar al sistema <ArrowRight className="w-5 h-5"/></span>}
+                    </button>
+                  </form>
+
+                  {/* Divider */}
+                  <div className="relative flex items-center gap-3 my-5">
+                    <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
+                    <span className="text-[10px] font-bold text-white/25 uppercase tracking-wider flex-shrink-0">o continúa con</span>
+                    <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
+                  </div>
+
+                  <GoogleSignInButton />
+
+                  {/* Bottom links */}
+                  <div className="mt-6 pt-5 flex items-center justify-between" style={{ borderTop:"1px solid rgba(0,245,212,0.08)" }}>
+                    <button onClick={() => setTab("planes")}
+                      className="text-[11px] font-semibold transition-colors hover:opacity-80"
+                      style={{ color:"rgba(0,245,212,0.5)" }}>
+                      ¿Nuevo? Ver planes →
+                    </button>
+                    <button onClick={() => setTab("cuentas")}
+                      className="text-[11px] font-semibold transition-colors hover:opacity-80"
+                      style={{ color:"rgba(255,255,255,0.2)" }}>
+                      Demo / Admin →
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Below-card trust badges */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-2xl p-3" style={{ background:"rgba(57,255,126,0.04)", border:"1px solid rgba(57,255,126,0.12)" }}>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { icon:"🔒", label:"SSL 256-bit",   sub:"Cifrado total" },
+                      { icon:"📱", label:"PWA Offline",   sub:"Sin internet"  },
+                      { icon:"🧬", label:"IndexedDB v1",  sub:"50k registros" },
+                      { icon:"🛡️", label:"DIAN Cert.",    sub:"Factura elect." },
+                    ].map(s => (
+                      <div key={s.label} className="flex items-center gap-1.5">
+                        <span className="text-sm">{s.icon}</span>
+                        <div>
+                          <div className="text-[9px] font-bold text-white/55">{s.label}</div>
+                          <div className="text-[8px] text-white/25">{s.sub}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-2xl p-3 relative overflow-hidden"
+                  style={{ background:"linear-gradient(135deg,rgba(252,209,22,0.07),rgba(0,56,168,0.06))", border:"1px solid rgba(252,209,22,0.15)" }}>
+                  <div className="absolute top-0 left-0 right-0 h-0.5 flex">
+                    <div className="flex-1" style={{ background:"#FCD116" }}/>
+                    <div className="flex-1" style={{ background:"#003087" }}/>
+                    <div className="flex-1" style={{ background:"#CE1126" }}/>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-lg">🇨🇴</span>
+                    <div>
+                      <div className="text-[10px] font-black text-white">100% Colombia</div>
+                      <div className="text-[8px]" style={{ color:"rgba(252,209,22,0.55)" }}>Universal Business Technology</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 mt-1.5 flex-wrap">
+                    {["🐄","🤖","🏆"].map(t=>(
+                      <span key={t} className="text-[11px]">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right widgets */}
+            <RightWidgets />
+          </div>
+        )}
 
         {/* ═══════════════════════════════════════════════════════════════════
             TAB: PLANES
@@ -738,7 +896,7 @@ export default function Login() {
                         {feats.length > 6 && <li className="text-[10px] text-white/30">+{feats.length-6} más…</li>}
                       </ul>
                       {pid === "basico" ? (
-                        <button onClick={() => setTab("clientes")}
+                        <button onClick={() => setTab("login")}
                           className="w-full py-2.5 rounded-2xl font-black text-xs transition-all hover:bg-white/10 hover:scale-[1.02]"
                           style={{ background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.6)", border:"1px solid rgba(255,255,255,0.1)" }}>
                           Empezar gratis →
@@ -766,19 +924,17 @@ export default function Login() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════════
-            TAB: CLIENTES
+            TAB: CUENTAS DEMO
         ═══════════════════════════════════════════════════════════════════ */}
-        {tab === "clientes" && (
+        {tab === "cuentas" && (
           <div className="flex gap-4 items-start">
 
             {/* Left farm widgets */}
             <FarmImageWidgets />
 
-            {/* Main center content */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-4 min-w-0">
-
-              {/* Account cards — 3 cols */}
-              <div className="lg:col-span-3 space-y-2.5">
+            {/* Main center content — full width (no login form column) */}
+            <div className="flex-1 min-w-0">
+              <div className="space-y-2.5">
                 <p className="text-center text-[10px] font-black uppercase tracking-[0.2em]" style={{ color:"rgba(0,245,212,0.4)" }}>
                   — Seleccione su cuenta —
                 </p>
@@ -891,140 +1047,13 @@ export default function Login() {
                   style={{ background:"rgba(57,255,126,0.04)", border:"1px solid rgba(57,255,126,0.12)", color:"rgba(57,255,126,0.5)" }}>
                   <Shield size={11}/> Autenticación segura · Sesión cifrada · Sin contraseña en servidor
                 </div>
-              </div>
 
-              {/* Login form — 2 cols */}
-              <div className="lg:col-span-2 space-y-3">
-                {/* Login card */}
-                <div className="rounded-3xl overflow-hidden"
-                  style={{
-                    background:"linear-gradient(145deg,rgba(4,13,26,0.97),rgba(7,20,38,0.95))",
-                    border:"1px solid rgba(0,245,212,0.20)",
-                    boxShadow:"0 0 50px rgba(0,245,212,0.09), 0 24px 60px rgba(0,0,0,0.55)",
-                    backdropFilter:"blur(24px)",
-                  }}>
-                  <div className="h-1" style={{ background:"linear-gradient(90deg,#00f5d4,#00c8ff,rgba(168,85,247,0.5),transparent)" }} />
-                  <div className="p-5 sm:p-6">
-                    <h2 className="font-black text-base text-white mb-1 flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-xl flex items-center justify-center"
-                        style={{ background:"rgba(0,245,212,0.12)", border:"1px solid rgba(0,245,212,0.3)", boxShadow:"0 0 10px rgba(0,245,212,0.2)" }}>
-                        <Lock className="w-3.5 h-3.5" style={{ color:"#00f5d4" }} />
-                      </div>
-                      Iniciar sesión
-                    </h2>
-                    <p className="text-[10px] mb-4" style={{ color:"rgba(255,255,255,0.3)" }}>Con email y contraseña de tu cuenta CIVAC</p>
-
-                    <form onSubmit={handleSubmit} className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Correo o usuario</label>
-                        <div className="relative group">
-                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors" style={{ color:"rgba(0,245,212,0.45)" }} />
-                          <input type="text" value={email} autoComplete="off"
-                            onChange={e=>{setEmail(e.target.value);setError("");}}
-                            placeholder="correo@ganaderia.co"
-                            className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white placeholder:text-white/20 transition-all"
-                            style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.15)", outline:"none" }}
-                            onFocus={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.5)"; (e.target as HTMLInputElement).style.boxShadow="0 0 16px rgba(0,245,212,0.12)";}}
-                            onBlur={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.15)"; (e.target as HTMLInputElement).style.boxShadow="none";}}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Contraseña</label>
-                        <div className="relative">
-                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(0,245,212,0.45)" }} />
-                          <input type={showPass?"text":"password"} value={password} autoComplete="current-password"
-                            onChange={e=>{setPassword(e.target.value);setError("");}}
-                            placeholder="••••••••"
-                            className="w-full pl-10 pr-11 py-3 rounded-2xl text-sm text-white placeholder:text-white/20 transition-all"
-                            style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.15)", outline:"none" }}
-                            onFocus={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.5)"; (e.target as HTMLInputElement).style.boxShadow="0 0 16px rgba(0,245,212,0.12)";}}
-                            onBlur={e=>{(e.target as HTMLInputElement).style.borderColor="rgba(0,245,212,0.15)"; (e.target as HTMLInputElement).style.boxShadow="none";}}
-                          />
-                          <button type="button" onClick={()=>setShowPass(!showPass)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-xl flex items-center justify-center text-white/30 hover:text-white/70 transition-colors">
-                            {showPass?<EyeOff className="w-4 h-4"/>:<Eye className="w-4 h-4"/>}
-                          </button>
-                        </div>
-                      </div>
-
-                      {error && (
-                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl text-xs"
-                          style={{ background:"rgba(255,77,109,0.08)", border:"1px solid rgba(255,77,109,0.25)", color:"#ff6b8a" }}>
-                          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0"/>{error}
-                        </div>
-                      )}
-
-                      <button type="submit" disabled={loading || !email}
-                        className="w-full py-3.5 rounded-2xl font-black text-sm text-black transition-all hover:opacity-90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-                        style={{ background:"linear-gradient(135deg,#00f5d4,#00c896)", boxShadow:"0 0 28px rgba(0,245,212,0.45)" }}>
-                        {loading
-                          ? <span className="flex items-center justify-center gap-2"><div className="w-4 h-4 border-2 border-black/20 border-t-black/80 rounded-full animate-spin"/>Verificando…</span>
-                          : <span className="flex items-center justify-center gap-2">Ingresar al sistema <ArrowRight className="w-4 h-4"/></span>}
-                      </button>
-                    </form>
-
-                    <div className="relative flex items-center gap-3 my-4">
-                      <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
-                      <span className="text-[10px] font-bold text-white/25 uppercase tracking-wider flex-shrink-0">o continúa con</span>
-                      <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
-                    </div>
-
-                    <GoogleSignInButton />
-
-                    <div className="mt-4 pt-4 border-t text-center text-[9px] text-white/15"
-                      style={{ borderColor:"rgba(0,245,212,0.08)" }}>
-                      Sistema privado GanaderIA PRO · Solo acceso autorizado · © 2026 Universal Business Technology
-                    </div>
-                  </div>
-                </div>
-
-                {/* Colombian brand mini-widget */}
-                <div className="rounded-2xl p-3 relative overflow-hidden"
-                  style={{ background:"linear-gradient(135deg,rgba(252,209,22,0.07),rgba(0,56,168,0.07),rgba(206,17,38,0.05))", border:"1px solid rgba(252,209,22,0.15)" }}>
-                  {/* Colombian flag top bar */}
-                  <div className="absolute top-0 left-0 right-0 h-0.5 flex">
-                    <div className="flex-1" style={{ background:"#FCD116" }}/>
-                    <div className="flex-1" style={{ background:"#003087" }}/>
-                    <div className="flex-1" style={{ background:"#CE1126" }}/>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-lg">🇨🇴</span>
-                    <div>
-                      <div className="text-[10px] font-black text-white">Hecho 100% en Colombia</div>
-                      <div className="text-[9px]" style={{ color:"rgba(252,209,22,0.6)" }}>GanaderIA PRO · Universal Business Technology · SoftGan</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {["🐄 Ganadería","🌿 Agro","📡 Tech","🤖 IA","🏆 v1.0"].map(t=>(
-                      <span key={t} className="text-[8px] px-1.5 py-0.5 rounded-full font-bold"
-                        style={{ background:"rgba(252,209,22,0.1)", color:"rgba(252,209,22,0.7)", border:"1px solid rgba(252,209,22,0.2)" }}>
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Security widget */}
-                <div className="rounded-2xl p-3"
-                  style={{ background:"rgba(57,255,126,0.04)", border:"1px solid rgba(57,255,126,0.12)" }}>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { icon:"🔒", label:"SSL 256-bit",       sub:"Cifrado total" },
-                      { icon:"📱", label:"PWA Offline",       sub:"Sin internet" },
-                      { icon:"🧬", label:"IndexedDB v1",      sub:"50k registros" },
-                      { icon:"🛡️",  label:"DIAN Certificado", sub:"Factura elect." },
-                    ].map(s => (
-                      <div key={s.label} className="flex items-center gap-1.5">
-                        <span className="text-sm">{s.icon}</span>
-                        <div>
-                          <div className="text-[9px] font-bold text-white/60">{s.label}</div>
-                          <div className="text-[8px] text-white/25">{s.sub}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* CTA — login principal */}
+                <button onClick={() => setTab("login")}
+                  className="w-full py-3 rounded-2xl font-black text-sm text-black transition-all hover:opacity-90 active:scale-[0.99]"
+                  style={{ background:"linear-gradient(135deg,#00f5d4,#00c896)", boxShadow:"0 0 24px rgba(0,245,212,0.35)" }}>
+                  🔐 Ir al Login →
+                </button>
               </div>
             </div>
 

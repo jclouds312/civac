@@ -1,50 +1,166 @@
-import { Router } from "express";
-import { eq } from "drizzle-orm";
-import { db, gpsUbicacionesTable } from "@workspace/db";
+import { Router } from 'express';
+import { db } from '@/lib/db';
+import { dispositivosGpsTable, gpsTracksTable, geofenceAlertsTable } from '@/lib/db/src/schema/gps';
 
 const router = Router();
 
-router.get("/gps", async (_req, res) => {
+/**
+ * GET /api/gps/dispositivos
+ * List all GPS devices for a user
+ */
+router.get('/dispositivos', async (req, res) => {
   try {
-    const rows = await db.select().from(gpsUbicacionesTable).orderBy(gpsUbicacionesTable.nombre);
-    res.json(rows.map(({ createdAt: _c, updatedAt: _u, ...r }) => r));
-  } catch (e) { res.status(500).json({ error: String(e) }); }
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const devices = await db
+      .select()
+      .from(dispositivosGpsTable)
+      .where((t) => t.userId.eq(userId));
+
+    res.json({ devices });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
-router.post("/gps", async (req, res) => {
+/**
+ * POST /api/gps/dispositivos
+ * Create a new GPS device
+ */
+router.post('/dispositivos', async (req, res) => {
   try {
-    const [row] = await db.insert(gpsUbicacionesTable).values(req.body).returning();
-    const { createdAt: _c, updatedAt: _u, ...gps } = row;
-    res.status(201).json(gps);
-  } catch (e) { res.status(500).json({ error: String(e) }); }
-});
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-router.post("/gps/bulk", async (req, res) => {
-  try {
-    const { ubicaciones } = req.body as { ubicaciones: typeof gpsUbicacionesTable.$inferInsert[] };
-    await db.delete(gpsUbicacionesTable);
-    if (ubicaciones && ubicaciones.length > 0) await db.insert(gpsUbicacionesTable).values(ubicaciones);
-    res.json({ ok: true, count: ubicaciones?.length ?? 0 });
-  } catch (e) { res.status(500).json({ error: String(e) }); }
-});
+    const { imei, tipo, fabricante, modelo, protocolo, potreroId } = req.body;
+    if (!imei || !tipo || !fabricante || !modelo) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
 
-router.put("/gps/:id", async (req, res) => {
-  try {
-    const [row] = await db.update(gpsUbicacionesTable)
-      .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(gpsUbicacionesTable.id, Number(req.params.id)))
+    const device = await db
+      .insert(dispositivosGpsTable)
+      .values({
+        userId,
+        imei,
+        tipo,
+        fabricante,
+        modelo,
+        protocolo: protocolo || null,
+        potreroId: potreroId || null,
+        estado: 'activo',
+      })
       .returning();
-    if (!row) return res.status(404).json({ error: "Not found" });
-    const { createdAt: _c, updatedAt: _u, ...gps } = row;
-    res.json(gps);
-  } catch (e) { res.status(500).json({ error: String(e) }); }
+
+    res.status(201).json({ device: device[0] });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
-router.delete("/gps/:id", async (req, res) => {
+/**
+ * PATCH /api/gps/dispositivos/:id
+ * Update a GPS device
+ */
+router.patch('/dispositivos/:id', async (req, res) => {
   try {
-    await db.delete(gpsUbicacionesTable).where(eq(gpsUbicacionesTable.id, Number(req.params.id)));
-    res.json({ ok: true });
-  } catch (e) { res.status(500).json({ error: String(e) }); }
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    const { animalId, potreroId, estado, bateria } = req.body;
+
+    const updated = await db
+      .update(dispositivosGpsTable)
+      .set({ animalId, potreroId, estado, bateria, updatedAt: new Date() })
+      .where((t) => t.id.eq(parseInt(id)).and(t.userId.eq(userId)))
+      .returning();
+
+    res.json({ device: updated[0] });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+/**
+ * DELETE /api/gps/dispositivos/:id
+ * Delete a GPS device
+ */
+router.delete('/dispositivos/:id', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { id } = req.params;
+    await db
+      .delete(dispositivosGpsTable)
+      .where((t) => t.id.eq(parseInt(id)).and(t.userId.eq(userId)));
+
+    res.json({ message: 'Device deleted' });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+/**
+ * POST /api/gps/tracks
+ * Create GPS track breadcrumbs
+ */
+router.post('/tracks', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { dispositivoId, lat, lng, speed, altitude, precision, potreroId, rawData } = req.body;
+    if (!dispositivoId || !lat || !lng) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const track = await db
+      .insert(gpsTracksTable)
+      .values({
+        dispositivoId,
+        lat,
+        lng,
+        speed: speed || null,
+        altitude: altitude || null,
+        precision: precision || null,
+        potreroId: potreroId || null,
+        rawData: rawData || null,
+      })
+      .returning();
+
+    res.status(201).json({ track: track[0] });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+/**
+ * GET /api/gps/tracks/:deviceId
+ * Get paginated track history for a device
+ */
+router.get('/tracks/:deviceId', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { deviceId } = req.params;
+    const limit = Math.min(parseInt(req.query.limit as string) || 100, 1000);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const tracks = await db
+      .select()
+      .from(gpsTracksTable)
+      .where((t) => t.dispositivoId.eq(parseInt(deviceId)))
+      .orderBy((t) => ({ timestamp: t.timestamp }))
+      .limit(limit)
+      .offset(offset);
+
+    res.json({ tracks, count: tracks.length });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 export default router;

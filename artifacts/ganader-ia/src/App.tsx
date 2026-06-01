@@ -301,46 +301,8 @@ function AuthGate() {
   if (!user) return <Login />;
 
   if (user.role === "admin" || user.role === "superadmin") return <AdminGate />;
-  if (user.role === "developer") return (
-    <>
-      <Layout>
-        <Switch>
-          <Route path="/" component={HomeRoute} />
-          <Route path="/alertas" component={Alertas} />
-          <Route path="/inventario" component={Inventario} />
-          <Route path="/ficha" component={Ficha} />
-          <Route path="/reproduccion" component={Reproduccion} />
-          <Route path="/produccion" component={Produccion} />
-          <Route path="/genetica" component={Genetica} />
-          <Route path="/potreros" component={Potreros} />
-          <Route path="/alimentacion" component={Alimentacion} />
-          <Route path="/insumos" component={Insumos} />
-          <Route path="/semen" component={Semen} />
-          <Route path="/costos" component={Costos} />
-          <Route path="/personal" component={Personal} />
-          <Route path="/prediccion" component={Prediccion} />
-          <Route path="/co2" component={Co2} />
-          <Route path="/multifinca" component={Multifinca} />
-          <Route path="/usuarios" component={Usuarios} />
-          <Route path="/configuracion" component={Configuracion} />
-          <Route path="/documentacion" component={Documentacion} />
-          <Route path="/manual" component={Manual} />
-          <Route path="/pesaje" component={Pesaje} />
-          <Route path="/pesaje-manual" component={PesajeManual} />
-          <Route path="/gps" component={Gps} />
-          <Route path="/gps-chips" component={GpsChips} />
-          <Route path="/planes" component={Planes} />
-          <Route path="/lotes" component={Lotes} />
-          <Route path="/datos" component={Datos} />
-          <Route path="/ventas" component={Ventas} />
-          <Route path="/asesora" component={Asesora} />
-          <Route path="/acerca" component={Acerca} />
-          <Route component={NotFound} />
-        </Switch>
-      </Layout>
-      <CivacAgent />
-    </>
-  );
+  if (user.role === "developer") return <DevGate />;
+  if (user.role === "sales") return <SalesGate />;
 
   return (
     <>
@@ -404,6 +366,7 @@ function App() {
                 </Switch>
               </WouterRouter>
               <Toaster />
+              <NetworkSync />
             </AppStateProvider>
           </AuthProvider>
         </ThemeProvider>

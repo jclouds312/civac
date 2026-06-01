@@ -1171,3 +1171,350 @@ html {
   50%       { box-shadow: 0 0 32px rgba(255,149,0,0.80), 0 0 14px rgba(255,149,0,0.50); }
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CIVAC PRO v8 — ULTRA-IMPROVED STYLES
+   Glassmorphism · Advanced animations · Staff gates · Network sync
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Glassmorphism card utility ── */
+.glass-card {
+  background: rgba(255,255,255,0.04) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,0.09) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+:root:not(.dark) .glass-card {
+  background: rgba(255,255,255,0.62) !important;
+  border: 1px solid rgba(255,255,255,0.68) !important;
+  box-shadow: 0 8px 32px rgba(80,60,20,0.10), inset 0 1px 0 rgba(255,255,255,0.85) !important;
+}
+
+/* ── Glassmorphism panel (heavier) ── */
+.glass-panel {
+  background: rgba(12,24,50,0.72);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+  border-radius: 20px;
+}
+
+/* ── Neon glow card ── */
+.neon-card {
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.22s ease;
+}
+.neon-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg,rgba(0,245,212,0.14),transparent 60%,rgba(0,200,255,0.08));
+  opacity: 0;
+  transition: opacity 0.22s;
+  pointer-events: none;
+  z-index: 0;
+}
+.neon-card:hover::before { opacity: 1; }
+.neon-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,245,212,0.12), 0 4px 16px rgba(0,0,0,0.3) !important;
+}
+
+/* ── Ultra KPI card ── */
+.kpi-ultra {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.2s ease;
+  border-radius: 18px;
+}
+.kpi-ultra::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+}
+.kpi-ultra:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+/* ── Shimmer loading effect ── */
+@keyframes shimmer-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer-loading {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.07) 50%,transparent 100%);
+  animation: shimmer-sweep 1.8s ease-in-out infinite;
+}
+
+/* ── Floating action glow button ── */
+.fab-glow {
+  box-shadow: 0 0 0 0 rgba(0,245,212,0.5);
+  animation: fab-pulse 2.5s cubic-bezier(0.5,0,0.5,1) infinite;
+}
+@keyframes fab-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(0,245,212,0.45); }
+  60%  { box-shadow: 0 0 0 14px rgba(0,245,212,0);   }
+  100% { box-shadow: 0 0 0 0   rgba(0,245,212,0);    }
+}
+
+/* ── Staff gate background overrides ── */
+.dev-gate-content {
+  background: transparent;
+}
+.dev-gate-content main,
+.dev-gate-content .dark main {
+  background: transparent !important;
+}
+
+.sales-gate-content {
+  background: transparent;
+}
+.sales-gate-content main,
+.sales-gate-content .dark main {
+  background: transparent !important;
+}
+
+/* ── Improved scrollbar (dev gate) ── */
+.dev-gate-content ::-webkit-scrollbar-thumb {
+  background: rgba(0,255,136,0.2);
+}
+.dev-gate-content ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,255,136,0.4);
+}
+.sales-gate-content ::-webkit-scrollbar-thumb {
+  background: rgba(232,121,249,0.2);
+}
+.sales-gate-content ::-webkit-scrollbar-thumb:hover {
+  background: rgba(232,121,249,0.4);
+}
+
+/* ── Network sync indicator entrance ── */
+@keyframes sync-float-in {
+  from { opacity: 0; transform: translateX(24px) scale(0.9); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.sync-indicator-enter {
+  animation: sync-float-in 0.3s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+
+/* ── Card border top highlight ── */
+.card-top-highlight {
+  position: relative;
+}
+.card-top-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 16px; right: 16px;
+  height: 1px;
+  background: linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+  border-radius: 1px;
+}
+
+/* ── Improved dark mode cards ── */
+.dark .card {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.dark .card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+}
+
+/* ── Status dot with pulse ── */
+.status-online  { background: #39ff7e; box-shadow: 0 0 8px rgba(57,255,126,0.7); }
+.status-offline { background: #ff5050; box-shadow: 0 0 8px rgba(255,80,80,0.7); }
+.status-warning { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.7); }
+.status-sync    { background: #00c8ff; box-shadow: 0 0 8px rgba(0,200,255,0.7); }
+
+/* ── Text gradient utility ── */
+.text-gradient-teal {
+  background: linear-gradient(90deg,#00f5d4,#00c8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-dev {
+  background: linear-gradient(90deg,#00ff88,#00d4ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-sales {
+  background: linear-gradient(90deg,#e879f9,#a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.text-gradient-gold {
+  background: linear-gradient(90deg,#fbbf24,#f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Neon border animation ── */
+@keyframes neon-border-rotate {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.neon-border-animated {
+  position: relative;
+  border-radius: 18px;
+}
+.neon-border-animated::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 19px;
+  background: linear-gradient(90deg,#00f5d4,#00c8ff,#e879f9,#a855f7,#00f5d4);
+  background-size: 300% 300%;
+  animation: neon-border-rotate 4s linear infinite;
+  z-index: -1;
+  opacity: 0.6;
+}
+
+/* ── Table improvements (dark) ── */
+.dark table thead th {
+  background: rgba(0,212,184,0.07) !important;
+  color: rgba(0,245,212,0.9) !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(0,245,212,0.14) !important;
+}
+.dark table tbody tr:hover td {
+  background: rgba(255,255,255,0.025) !important;
+}
+
+/* ── Badge improvements ── */
+.civac-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.18s;
+}
+.civac-badge-green {
+  background: rgba(57,255,126,0.12);
+  color: #39ff7e;
+  border: 1px solid rgba(57,255,126,0.28);
+}
+.civac-badge-teal {
+  background: rgba(0,245,212,0.12);
+  color: #00f5d4;
+  border: 1px solid rgba(0,245,212,0.28);
+}
+.civac-badge-blue {
+  background: rgba(0,200,255,0.12);
+  color: #00c8ff;
+  border: 1px solid rgba(0,200,255,0.28);
+}
+.civac-badge-purple {
+  background: rgba(232,121,249,0.12);
+  color: #e879f9;
+  border: 1px solid rgba(232,121,249,0.28);
+}
+.civac-badge-gold {
+  background: rgba(251,191,36,0.12);
+  color: #fbbf24;
+  border: 1px solid rgba(251,191,36,0.28);
+}
+.civac-badge-red {
+  background: rgba(255,80,80,0.12);
+  color: #ff7070;
+  border: 1px solid rgba(255,80,80,0.28);
+}
+
+/* ── Section divider ── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg,transparent,rgba(0,245,212,0.2),transparent);
+  margin: 1.5rem 0;
+}
+
+/* ── Recharts chart title ── */
+.recharts-text.recharts-label {
+  fill: rgba(255,255,255,0.5) !important;
+  font-size: 10px !important;
+}
+
+/* ── Progress ring ── */
+@keyframes progress-ring {
+  from { stroke-dashoffset: 283; }
+}
+.progress-ring-circle {
+  animation: progress-ring 1.2s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+
+/* ── Hover lift card ── */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+/* ── Improved input glow (light mode) ── */
+:root:not(.dark) input:focus,
+:root:not(.dark) textarea:focus,
+:root:not(.dark) select:focus {
+  outline: none !important;
+  border-color: rgba(45,122,79,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(45,122,79,0.10), 0 0 12px rgba(45,122,79,0.12) !important;
+}
+
+/* ── Topbar blur improvement ── */
+.topbar-glass {
+  background: rgba(10,18,40,0.94);
+  backdrop-filter: blur(32px) saturate(1.5);
+  -webkit-backdrop-filter: blur(32px) saturate(1.5);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  box-shadow: 0 1px 28px rgba(0,0,0,0.4);
+}
+:root:not(.dark) .topbar-glass {
+  background: rgba(245,240,228,0.92);
+  border-bottom: 1px solid rgba(120,100,60,0.18);
+  box-shadow: 0 1px 20px rgba(80,60,20,0.12);
+}
+
+/* ── Sidebar active glow line ── */
+.sidebar-glow-line {
+  position: relative;
+}
+.sidebar-glow-line::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 70%;
+  border-radius: 0 3px 3px 0;
+  background: var(--civac-teal);
+  box-shadow: 0 0 10px rgba(0,245,212,0.8);
+}
+
+/* ── PWA install button pulse ── */
+@keyframes install-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,245,212,0.4); }
+  50%       { box-shadow: 0 0 0 8px rgba(0,245,212,0); }
+}
+.pwa-install-btn {
+  animation: install-pulse 3s ease-in-out infinite;
+}

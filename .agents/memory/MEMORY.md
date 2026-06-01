@@ -1,0 +1,1 @@
+- [CIVAC Server Panel](civac-server-panel.md) — separate /server login + /server-dashboard for CIVAC staff; CIVAC_STAFF_IDS in auth.ts controls access; client demos stay on main login

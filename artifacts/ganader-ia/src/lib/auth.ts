@@ -94,6 +94,9 @@ export const PLAN_ICON: Record<PlanId, string> = {
   platino: '🔶',
 };
 
+/* ─── CIVAC Staff IDs — these have access to the Server Panel ─────────────── */
+export const CIVAC_STAFF_IDS: string[] = ['superadmin', 'developer', 'admin', 'ventas'];
+
 export const DEFAULT_ACCOUNTS: Account[] = [
   {
     id: 'admin',

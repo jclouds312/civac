@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 
 import Login from "./pages/login";
+import ServerLogin from "./pages/server-login";
+import ServerDashboard from "./pages/server-dashboard";
 import Dashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin-dashboard";
 import DeveloperDashboard from "./pages/developer-dashboard";
@@ -393,6 +395,8 @@ function App() {
                 <Switch>
                   <Route path="/plan/:planId" component={PlanLanding} />
                   <Route path="/invite/:token" component={InvitePage} />
+                  <Route path="/server" component={ServerLogin} />
+                  <Route path="/server-dashboard" component={ServerDashboard} />
                   <Route component={AuthGate} />
                 </Switch>
               </WouterRouter>

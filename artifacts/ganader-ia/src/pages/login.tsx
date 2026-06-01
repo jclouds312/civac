@@ -1037,6 +1037,11 @@ export default function Login() {
         <p className="text-center mt-6 text-[9px]" style={{ color:"rgba(255,255,255,0.12)" }}>
           GanaderIA CIVAC PRO v1.0 · Control Inteligente de Valor Agropecuario · Colombia {new Date().getFullYear()} · Sistema privado · Universal Business Technology
         </p>
+        <p className="text-center mt-2">
+          <a href="/server" className="text-[9px] font-mono transition-colors hover:opacity-60" style={{ color:"rgba(0,245,212,0.18)", letterSpacing:"0.1em" }}>
+            ⬡ CIVAC SERVER ACCESS
+          </a>
+        </p>
       </div>
 
       {/* ── ADMIN ACCESS MODAL ── */}

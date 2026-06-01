@@ -1,7 +1,7 @@
 {
   "name": "CIVAC PRO — Gestión Ganadera Colombia",
   "short_name": "CIVAC PRO",
-  "description": "Sistema PRO de gestión ganadera para Colombia. Pesaje BT, GPS bovino, reproducción, genética, finanzas y 20+ módulos. Funciona 100% sin internet.",
+  "description": "Sistema PRO integral de gestión ganadera para Colombia. Pesaje BT, GPS bovino en tiempo real, reproducción, genética, sanidad, trazabilidad ICA, finanzas y 30+ módulos. Funciona 100% sin internet.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -12,21 +12,71 @@
   "categories": ["business", "productivity", "agriculture", "utilities"],
   "lang": "es-CO",
   "dir": "ltr",
-  "id": "civac-pro-colombia",
+  "id": "civac-pro-colombia-v7",
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" },
-    { "src": "/favicon.svg", "sizes": "192x192", "type": "image/svg+xml" },
-    { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml" }
+    { "src": "/favicon.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "any"      },
+    { "src": "/favicon.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "maskable" },
+    { "src": "/favicon.svg", "sizes": "192x192", "type": "image/svg+xml"                        },
+    { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml"                        }
   ],
   "shortcuts": [
-    { "name": "Dashboard PRO",    "short_name": "Dashboard", "url": "/",           "description": "Tablero principal CIVAC PRO" },
-    { "name": "Inventario Bovino","short_name": "Inventario","url": "/inventario",  "description": "Inventario y pesaje de animales" },
-    { "name": "Pesaje Bluetooth", "short_name": "Pesaje BT", "url": "/pesaje",      "description": "Báscula Bluetooth — Tru-Test · Gallagher" },
-    { "name": "GPS Ganado",       "short_name": "GPS",        "url": "/gps",         "description": "Rastreo GPS bovino en tiempo real" },
-    { "name": "Reproducción",     "short_name": "Repro",      "url": "/reproduccion","description": "Partos · IEP · Inseminaciones" },
-    { "name": "Centro de Respaldo","short_name": "Backup",    "url": "/datos",       "description": "Exportar y restaurar datos" }
+    {
+      "name": "Dashboard CIVAC PRO",
+      "short_name": "Dashboard",
+      "url": "/",
+      "description": "Tablero principal con KPIs, gráficas y accesos rápidos",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Inventario Bovino",
+      "short_name": "Inventario",
+      "url": "/inventario",
+      "description": "Registro y gestión de bovinos con RFID",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Pesaje Bluetooth",
+      "short_name": "Pesaje BT",
+      "url": "/pesaje",
+      "description": "Báscula Bluetooth con IA — BCS, GMD, 9 razas",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "GPS Bovino",
+      "short_name": "GPS",
+      "url": "/gps",
+      "description": "Rastreo GPS en tiempo real con geovallado",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Reproducción",
+      "short_name": "Reproducción",
+      "url": "/reproduccion",
+      "description": "Partos, IEP, celos e inseminaciones",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Sanidad Animal",
+      "short_name": "Sanidad",
+      "url": "/sanidad",
+      "description": "Vacunación, tratamientos y control sanitario",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Trazabilidad ICA",
+      "short_name": "Trazabilidad",
+      "url": "/trazabilidad",
+      "description": "Trazabilidad bovina ICA — cumplimiento normativo Colombia",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Centro de Respaldo",
+      "short_name": "Backup",
+      "url": "/datos",
+      "description": "Exportar, importar y restaurar datos",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    }
   ],
   "screenshots": [
     {
@@ -38,5 +88,13 @@
     }
   ],
   "protocol_handlers": [],
-  "edge_side_panel": { "preferred_width": 400 }
+  "edge_side_panel": { "preferred_width": 420 },
+  "share_target": {
+    "action": "/datos",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [{ "name": "backup", "accept": ["application/json", ".json"] }]
+    }
+  }
 }

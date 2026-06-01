@@ -1,46 +1,60 @@
 import { useState } from "react";
 import {
-  BookOpen, Download, Smartphone, WifiOff, Bluetooth, Navigation, BarChart3, Users,
-  Monitor, Globe, Cloud, FileDown, Database, Apple, CheckCircle, Scale,
+  BookOpen, Smartphone, WifiOff, Bluetooth, Navigation, BarChart3, Users,
+  Globe, Cloud, FileDown, Database, CheckCircle, Scale,
   Shield, Beef, Baby, Droplets, Dna, Wheat, Package, DollarSign,
-  MapPin, Bell, Zap, CreditCard, Settings, RefreshCw, Printer,
-  Tag, Grid3x3, Heart, Activity, FlaskConical, TreePine, ChevronRight, Award
+  MapPin, Bell, Zap, CreditCard, Settings, Printer,
+  Tag, Grid3x3, Heart, Activity, FlaskConical, TreePine, ChevronRight,
+  Award, Cpu, Layers, Server, Code, Lock, RefreshCw, Star,
+  ChevronDown, ChevronUp, Copy, ExternalLink, Map, FileText, Radio,
 } from "lucide-react";
-import { exportToDrive, getDriveFiles, downloadLocalBackup, downloadCSV } from "@/lib/drive";
-import { useAppState } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 
+/* ══════════════════════════════════════════════════════════════
+   NAVIGATION SECTIONS
+══════════════════════════════════════════════════════════════ */
 const SECTIONS = [
-  { id: "inicio",       label: "Primeros pasos",      icon: BookOpen },
-  { id: "modulos",      label: "Módulos del sistema",  icon: Grid3x3 },
-  { id: "inventario",   label: "Inventario Animal",    icon: Beef },
-  { id: "pesaje",       label: "Pesaje Bluetooth",     icon: Scale },
-  { id: "lotes",        label: "Movimiento de Lotes",  icon: Tag },
-  { id: "reproduccion", label: "Reproducción",         icon: Heart },
-  { id: "produccion",   label: "Producción Leche",     icon: Droplets },
-  { id: "pwa",          label: "Instalar PWA",         icon: Smartphone },
-  { id: "offline",      label: "Modo Offline",         icon: WifiOff },
-  { id: "gps",          label: "GPS Ganado",           icon: Navigation },
-  { id: "drive",        label: "Sync & Backups",       icon: Cloud },
-  { id: "usuarios",     label: "Usuarios y Roles",     icon: Users },
-  { id: "descarga",     label: "Exportar datos",       icon: FileDown },
-  { id: "sanidad",      label: "Sanidad Animal",       icon: Activity },
-  { id: "trazabilidad", label: "Trazabilidad ICA",     icon: Tag },
-  { id: "ventas",       label: "🇨🇴 Agente de Ventas", icon: DollarSign },
+  { id:"inicio",        label:"Primeros pasos",         icon:BookOpen,     color:"#00f5d4" },
+  { id:"modulos",       label:"Mapa de módulos",        icon:Grid3x3,      color:"#39ff7e" },
+  { id:"pwa",           label:"Instalar PWA",           icon:Smartphone,   color:"#00c8ff" },
+  { id:"offline",       label:"Modo Offline",           icon:WifiOff,      color:"#a78bfa" },
+  { id:"login",         label:"Login & Cuentas",        icon:Lock,         color:"#fbbf24" },
+  { id:"inventario",    label:"Inventario Animal",      icon:Beef,         color:"#39ff7e" },
+  { id:"pesaje",        label:"Pesaje Bluetooth",       icon:Scale,        color:"#ff9a3c" },
+  { id:"reproduccion",  label:"Reproducción",           icon:Heart,        color:"#ff6fd8" },
+  { id:"genetica",      label:"Genética & DEP",         icon:Dna,          color:"#a855f7" },
+  { id:"produccion",    label:"Producción Leche",       icon:Droplets,     color:"#00c8ff" },
+  { id:"campo",         label:"Campo & Potreros",       icon:Map,          color:"#4ade80" },
+  { id:"gps",           label:"GPS Bovino",             icon:Navigation,   color:"#0ea5e9" },
+  { id:"sanidad",       label:"Sanidad Animal",         icon:Activity,     color:"#22c55e" },
+  { id:"trazabilidad",  label:"Trazabilidad ICA",       icon:Tag,          color:"#f97316" },
+  { id:"finanzas",      label:"Costos & Finanzas",      icon:DollarSign,   color:"#fbbf24" },
+  { id:"personal",      label:"Personal & Nómina",      icon:Users,        color:"#60a5fa" },
+  { id:"prediccion",    label:"Predicción IA",          icon:Cpu,          color:"#e879f9" },
+  { id:"co2",           label:"Huella CO₂",             icon:TreePine,     color:"#86efac" },
+  { id:"alertas",       label:"Centro Alertas",         icon:Bell,         color:"#ff6b35" },
+  { id:"multifinca",    label:"Multi-Finca",            icon:Layers,       color:"#00c8ff" },
+  { id:"backup",        label:"Backup & Datos",         icon:Cloud,        color:"#94a3b8" },
+  { id:"usuarios",      label:"Usuarios & Roles",       icon:Shield,       color:"#00f5d4" },
+  { id:"asesora",       label:"Asesora IA",             icon:Star,         color:"#e879f9" },
+  { id:"server",        label:"Server Panel",           icon:Server,       color:"#00ff88" },
 ];
 
-function SectionBanner({ emoji, title, subtitle, c1, c2, border }: {
-  emoji: string; title: string; subtitle: string; c1: string; c2: string; border: string;
+/* ══════════════════════════════════════════════════════════════
+   SHARED COMPONENTS
+══════════════════════════════════════════════════════════════ */
+function SectionBanner({ emoji, title, subtitle, c1, c2 }: {
+  emoji: string; title: string; subtitle: string; c1: string; c2: string;
 }) {
   return (
-    <div className="rounded-2xl p-5 mb-5 relative overflow-hidden"
-      style={{background:`linear-gradient(135deg,${c1},${c2})`, border:`1px solid ${border}`}}>
+    <div className="rounded-2xl p-5 mb-6 relative overflow-hidden"
+      style={{ background:`linear-gradient(135deg,${c1},${c2})`, border:`1px solid ${c1}40` }}>
       <div className="absolute right-0 top-0 w-32 h-full opacity-10 pointer-events-none"
-        style={{background:'radial-gradient(ellipse at right, white, transparent 70%)'}}/>
+        style={{ background:'radial-gradient(ellipse at right, white, transparent 70%)' }}/>
       <div className="relative flex items-center gap-4">
         <div className="text-4xl">{emoji}</div>
         <div>
-          <h2 className="text-2xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>{title}</h2>
+          <h2 className="text-2xl font-black text-white" style={{ fontFamily:'Sora,sans-serif' }}>{title}</h2>
           <p className="text-sm mt-1 text-white/70">{subtitle}</p>
         </div>
       </div>
@@ -48,15 +62,10 @@ function SectionBanner({ emoji, title, subtitle, c1, c2, border }: {
   );
 }
 
-function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode; title: string; desc: string; color: string }) {
+function InfoCard({ icon, title, desc, color }: { icon: React.ReactNode; title: string; desc: string; color: string }) {
   return (
-    <div className="rounded-xl p-4 space-y-2"
-      style={{
-        background: `linear-gradient(135deg, color-mix(in srgb, ${color} 8%, transparent), color-mix(in srgb, ${color} 4%, transparent))`,
-        border: `1px solid ${color}40`,
-        boxShadow: `0 0 18px ${color}08`,
-      }}>
-      <div className="flex items-center gap-2 mb-1" style={{color}}>
+    <div className="rounded-xl p-4" style={{ background:`${color}0d`, border:`1px solid ${color}30` }}>
+      <div className="flex items-center gap-2 mb-2" style={{ color }}>
         {icon}
         <span className="font-bold text-sm text-foreground">{title}</span>
       </div>
@@ -68,1040 +77,857 @@ function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode; titl
 function Step({ n, text, color }: { n: number; text: string; color: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 text-black flex-shrink-0"
-        style={{background:color, boxShadow: `0 0 10px ${color}80`}}>{n}</div>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 text-black"
+        style={{ background:color, boxShadow:`0 0 10px ${color}80` }}>{n}</div>
       <p className="text-sm text-foreground/70 pt-0.5">{text}</p>
     </div>
   );
 }
 
-function CredTable() {
+function Tip({ text, color = "#00f5d4" }: { text: string; color?: string }) {
   return (
-    <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
-      <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{background:'rgba(0,245,212,0.08)',color:'#00f5d4'}}>
-        Credenciales de acceso demo
-      </div>
-      <table className="w-full text-xs">
-        <thead>
-          <tr style={{borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
-            {['Perfil','Email','Contraseña','Acceso'].map(h=>(
-              <th key={h} className="text-left py-2.5 px-4 text-white/30 font-semibold uppercase text-[10px] tracking-wide">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {[
-            {p:'👑 Admin',      e:'admin@ganader.ia',  pw:'admin',     a:'Total — todos los módulos'},
-            {p:'🩺 Veterinario', e:'vet@ganader.ia',    pw:'vet2026',   a:'Clínico + GPS + Reproducción'},
-            {p:'🐄 Campo',       e:'luis@ganader.ia',   pw:'campo2026', a:'Inventario + Pesaje BT'},
-            {p:'💼 Visor',       e:'visor@ganader.ia',  pw:'visor',     a:'Solo lectura'},
-          ].map(r=>(
-            <tr key={r.p} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-              <td className="py-2.5 px-4 font-bold text-white">{r.p}</td>
-              <td className="py-2.5 px-4 font-mono" style={{color:'#00c8ff'}}>{r.e}</td>
-              <td className="py-2.5 px-4 font-mono font-bold" style={{color:'#fbbf24'}}>{r.pw}</td>
-              <td className="py-2.5 px-4 text-white/40">{r.a}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="flex items-start gap-2 rounded-xl p-3" style={{ background:`${color}0a`, border:`1px solid ${color}25` }}>
+      <Zap size={14} style={{ color, flexShrink:0, marginTop:2 }}/>
+      <p className="text-xs leading-relaxed" style={{ color:`${color}cc` }}>{text}</p>
     </div>
   );
 }
 
-export default function Documentacion() {
-  const [activeSection, setActiveSection] = useState("inicio");
-  const { animals, pesajes, gpsUbicaciones } = useAppState();
+function CodeBlock({ code, label }: { code: string; label?: string }) {
   const { toast } = useToast();
-  const [driveFiles, setDriveFiles] = useState(getDriveFiles);
-  const [exportLoading, setExportLoading] = useState(false);
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.08)" }}>
+      {label && (
+        <div className="px-3 py-1.5 flex items-center justify-between" style={{ background:"rgba(255,255,255,0.04)" }}>
+          <span className="text-[10px] font-mono text-muted-foreground">{label}</span>
+          <button onClick={() => { navigator.clipboard.writeText(code).catch(()=>{}); toast({ title:"Copiado ✓", duration:1500 }); }}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+            <Copy size={10}/> Copiar
+          </button>
+        </div>
+      )}
+      <pre className="p-3 text-xs font-mono overflow-x-auto" style={{ background:"rgba(0,0,0,0.35)", color:"#00f5d4" }}>{code}</pre>
+    </div>
+  );
+}
 
-  const handleExportDrive = async (label: string, data: object) => {
-    setExportLoading(true);
-    try {
-      const file = await exportToDrive(data, `GanaderIA_${label}_${new Date().toISOString().slice(0,10)}.json`);
-      setDriveFiles(prev => [file, ...prev]);
-      toast({ title: "✓ Guardado en Drive", description: `${file.name} subido correctamente` });
-    } catch {
-      toast({ title: "Error", description: "No se pudo subir", variant: "destructive" });
-    } finally { setExportLoading(false); }
+function Badge({ text, color }: { text: string; color: string }) {
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+      style={{ background:`${color}18`, color, border:`1px solid ${color}30` }}>{text}</span>
+  );
+}
+
+function Faq({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.07)" }}>
+      <button onClick={() => setOpen(v => !v)} className="w-full flex items-center justify-between p-4 text-left hover:bg-white/[0.01] transition-colors">
+        <span className="text-sm font-semibold text-foreground">{q}</span>
+        {open ? <ChevronUp size={16} className="text-muted-foreground flex-shrink-0 ml-2"/> : <ChevronDown size={16} className="text-muted-foreground flex-shrink-0 ml-2"/>}
+      </button>
+      {open && <div className="px-4 pb-4 text-sm text-muted-foreground leading-relaxed">{a}</div>}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SECTION CONTENT
+══════════════════════════════════════════════════════════════ */
+
+function SecInicio() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🚀" title="Primeros pasos" subtitle="Configura tu finca y empieza en menos de 5 minutos" c1="#020d1a" c2="#0a2745"/>
+      <div className="space-y-3">
+        <Step n={1} text="Inicia sesión — usa una de las 6 cuentas disponibles o ingresa con tu correo y contraseña." color="#00f5d4"/>
+        <Step n={2} text='Ve a Configuración (⚙️ en el sidebar) y completa los datos de tu finca: nombre, NIT, municipio, departamento y tipo de producción.' color="#39ff7e"/>
+        <Step n={3} text="Registra tus bovinos en Inventario — usa la importación CSV o crea cada animal manualmente con su aretado y categoría." color="#a78bfa"/>
+        <Step n={4} text="Instala la PWA en tu celular para acceso rápido sin internet (ver sección Instalar PWA)." color="#fbbf24"/>
+        <Step n={5} text="Configura tus potreros en el módulo Potreros para activar el plan de rotación y el GPS." color="#ff9a3c"/>
+        <Step n={6} text="Activa las alertas para recibir notificaciones de vacunación, partos próximos, stock mínimo e insumos." color="#ff6fd8"/>
+      </div>
+      <Tip text="💡 CIVAC PRO funciona 100% offline. Todos tus datos se guardan en el dispositivo y se sincronizan cuando hay internet." />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
+        {[
+          { icon:"📱", t:"PWA instalable", d:"Como app nativa en Android e iOS" },
+          { icon:"🌐", t:"Sin internet", d:"Funciona offline con IndexedDB" },
+          { icon:"🔒", t:"Datos seguros", d:"Todo en tu dispositivo" },
+          { icon:"🤖", t:"IA integrada", d:"Predicciones y análisis automáticos" },
+          { icon:"📡", t:"GPS real", d:"Tracking bovino en tiempo real" },
+          { icon:"🔵", t:"Bluetooth", d:"Báscula BT — Tru-Test · Gallagher" },
+        ].map(i => (
+          <div key={i.t} className="rounded-xl p-3 text-center" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
+            <div className="text-2xl mb-1">{i.icon}</div>
+            <p className="text-xs font-bold text-foreground">{i.t}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{i.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SecModulos() {
+  const mods = [
+    { emoji:"📊", name:"Dashboard",       ruta:"/",             cat:"Core",          desc:"6 KPIs, gráficas históricas, ticker live, 20 accesos rápidos" },
+    { emoji:"🐄", name:"Inventario",      ruta:"/inventario",   cat:"Animal",        desc:"Registro bovinos, RFID, categorías, CRUD completo" },
+    { emoji:"🥛", name:"Producción",      ruta:"/produccion",   cat:"Animal",        desc:"Ordeños diarios, ranking top-vacas, BarChart 7 meses" },
+    { emoji:"❤️", name:"Reproducción",    ruta:"/reproduccion", cat:"Animal",        desc:"IEP, celos, inseminaciones, próximos partos, anestros" },
+    { emoji:"🧬", name:"Genética",        ruta:"/genetica",     cat:"Animal",        desc:"DEP ranking con score bars, pedigrí, selección genética" },
+    { emoji:"⚖️", name:"Pesaje BT",       ruta:"/pesaje",       cat:"Animal",        desc:"Báscula Bluetooth — BCS, GMD, 9 razas, IA engine" },
+    { emoji:"📝", name:"Pesaje Manual",   ruta:"/pesaje-manual",cat:"Animal",        desc:"Pesaje con CC, GMD, recibo PDF imprimible" },
+    { emoji:"🏷️", name:"Lotes",           ruta:"/lotes",        cat:"Animal",        desc:"Gestión y movimiento de lotes ganaderos" },
+    { emoji:"🧪", name:"Ficha Animal",    ruta:"/ficha",        cat:"Animal",        desc:"Historia clínica por animal: vacunas, pesos, partos, eventos" },
+    { emoji:"🧊", name:"Semen",           ruta:"/semen",        cat:"Animal",        desc:"Inventario criogénico, embriones TE, toros" },
+    { emoji:"🌿", name:"Potreros",        ruta:"/potreros",     cat:"Campo",         desc:"6 lotes, rotación activa, semáforo estado, mapa CSS" },
+    { emoji:"📡", name:"GPS Bovino",      ruta:"/gps",          cat:"Campo",         desc:"watchPosition real, mapa SVG animado, geovallado, BT scan" },
+    { emoji:"🔵", name:"GPS Chips",       ruta:"/gps-chips",    cat:"Campo",         desc:"Gestión dispositivos GPS y collares inteligentes" },
+    { emoji:"🌾", name:"Alimentación",    ruta:"/alimentacion", cat:"Nutrición",     desc:"Raciones TMR, minerales, suplementos, formulación" },
+    { emoji:"📦", name:"Insumos",         ruta:"/insumos",      cat:"Nutrición",     desc:"Kardex, stock mínimo, botones +/-, alertas rojas" },
+    { emoji:"💉", name:"Sanidad",         ruta:"/sanidad",      cat:"Salud",         desc:"Vacunación, tratamientos, diagnósticos, control sanitario" },
+    { emoji:"📋", name:"Trazabilidad",    ruta:"/trazabilidad", cat:"Salud",         desc:"Trazabilidad bovina ICA — normativa Colombia" },
+    { emoji:"💰", name:"Costos P&G",      ruta:"/costos",       cat:"Finanzas",      desc:"Ingresos/egresos, costo/litro, margen 35%, 5 KPIs" },
+    { emoji:"👥", name:"Personal",        ruta:"/personal",     cat:"Finanzas",      desc:"6 empleados, cargos, nómina, EPS/ARL, horas extras" },
+    { emoji:"🔮", name:"Predicción IA",   ruta:"/prediccion",   cat:"Finanzas",      desc:"Simulador financiero IA con sliders de proyección" },
+    { emoji:"🌱", name:"Huella CO₂",      ruta:"/co2",          cat:"Finanzas",      desc:"IPCC 2019, benchmarking Colombia, bonos de carbono" },
+    { emoji:"🏢", name:"Multi-Finca",     ruta:"/multifinca",   cat:"Admin",         desc:"3 fincas, cards detalladas, tabla comparativa" },
+    { emoji:"🔔", name:"Alertas",         ruta:"/alertas",      cat:"Admin",         desc:"Centro notificaciones, severidad, resolver, filtros" },
+    { emoji:"👤", name:"Usuarios",        ruta:"/usuarios",     cat:"Admin",         desc:"Gestión cuentas, permisos por módulo y rol" },
+    { emoji:"⚙️", name:"Configuración",   ruta:"/configuracion",cat:"Admin",         desc:"Finca · Apariencia · Notificaciones · Seguridad · Datos" },
+    { emoji:"🤖", name:"Asesora IA",      ruta:"/asesora",      cat:"IA",            desc:"Asistente IA especializado en ganadería colombiana" },
+    { emoji:"💼", name:"Ventas CRM",      ruta:"/ventas",       cat:"IA",            desc:"Pipeline comercial, prospectos, seguimiento" },
+    { emoji:"💾", name:"Drive / Backup",  ruta:"/drive",        cat:"Sistema",       desc:"Backup en la nube, historial de versiones, restaurar" },
+    { emoji:"📤", name:"Centro Datos",    ruta:"/datos",        cat:"Sistema",       desc:"Exportar/importar JSON, reset datos, migración" },
+    { emoji:"💳", name:"Planes",          ruta:"/planes",       cat:"Sistema",       desc:"Básico / PRO / Premium / Platino + pasarela Wompi" },
+    { emoji:"📖", name:"Manual",          ruta:"/manual",       cat:"Ayuda",         desc:"Manual de usuario completo descargable" },
+    { emoji:"ℹ️", name:"Acerca de",       ruta:"/acerca",       cat:"Ayuda",         desc:"Información del sistema, versión, créditos" },
+  ];
+  const cats = [...new Set(mods.map(m => m.cat))];
+  const catColors: Record<string,string> = {
+    Core:"#00f5d4", Animal:"#39ff7e", Campo:"#4ade80", Nutrición:"#fbbf24",
+    Salud:"#22c55e", Finanzas:"#f97316", Admin:"#00c8ff", IA:"#e879f9",
+    Sistema:"#94a3b8", Ayuda:"#a78bfa"
   };
-
-  const handleDownload = async (label: string, data: object) => {
-    await downloadLocalBackup(data, `GanaderIA_${label}_${new Date().toISOString().slice(0,10)}.json`);
-    toast({ title: "✓ Descarga iniciada", description: `${label}.json descargado` });
-  };
-
-  const handleCSV = async (label: string, rows: object[]) => {
-    await downloadCSV(rows, `GanaderIA_${label}_${new Date().toISOString().slice(0,10)}.csv`);
-    toast({ title: "✓ CSV exportado", description: `${label}.csv descargado` });
-  };
-
-  const sections: Record<string, React.ReactNode> = {
-    inicio: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🚀" title="GanaderIA CIVAC PRO" c1="rgba(0,30,20,0.9)" c2="rgba(0,50,30,0.9)"
-          border="rgba(0,245,212,0.35)" subtitle="Sistema integral de gestión ganadera · Colombia · v1.0 · 22 módulos · IndexedDB offline"/>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            { emoji:'🐄', title:'Inventario Completo',    desc:'30+ animales con fichas individuales, categorías, etiquetas, estadísticas y pesaje integrado.', c:'#00f5d4' },
-            { emoji:'⚖️', title:'Pesaje Bluetooth',        desc:'Báscula Tru-Test / Gallagher vía BT. Auto-cálculo por raza, recibos PDF por animal.', c:'#ff9500' },
-            { emoji:'📡', title:'GPS Ganado en vivo',      desc:'Rastreo, geocercas, alertas de escape y batería de collares GPS.', c:'#00c8ff' },
-            { emoji:'🤖', title:'Predicciones IA',         desc:'Alertas inteligentes, riesgo sanitario, partos estimados y peso futuro.', c:'#a78bfa' },
-            { emoji:'📱', title:'PWA Offline 100%',        desc:'Instale en cualquier dispositivo. Funciona sin internet. Se sincroniza al reconectar.', c:'#4ade80' },
-            { emoji:'🐂', title:'Movimiento de Lotes',     desc:'Ingreso, venta y compra de lotes con recibos automáticos y cálculo de valores.', c:'#00c8ff' },
-            { emoji:'🥛', title:'Producción Lechera',      desc:'Ordeños diarios, ranking de vacas, tendencias mensuales e ingresos.', c:'#60a5fa' },
-            { emoji:'🔁', title:'Reproducción',            desc:'Celos, inseminaciones, partos esperados, ecografías y manejo reproductivo.', c:'#f472b6' },
-            { emoji:'☁',  title:'Backup Google Drive',    desc:'Exporta JSON/CSV a Drive. Respaldo automático. Descarga local también disponible.', c:'#fbbf24' },
-          ].map(c => (
-            <div key={c.title} className="rounded-xl p-4 transition-all hover:scale-[1.02]"
-              style={{
-                background:`linear-gradient(135deg,color-mix(in srgb,${c.c} 10%,transparent),color-mix(in srgb,${c.c} 5%,transparent))`,
-                border:`1px solid ${c.c}45`,
-                boxShadow:`0 0 20px ${c.c}10`,
-              }}>
-              <div className="text-2xl mb-2">{c.emoji}</div>
-              <div className="font-bold text-sm text-foreground mb-1" style={{color:c.c}}>{c.title}</div>
-              <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
-            </div>
-          ))}
-        </div>
-
-        <CredTable/>
-
-        <div className="rounded-xl p-4" style={{background:'rgba(0,245,212,0.05)',border:'1px solid rgba(0,245,212,0.2)'}}>
-          <div className="font-bold text-sm mb-3 flex items-center gap-2" style={{color:'#00f5d4'}}>
-            <Database size={14}/> Base de datos actual
-          </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            {[
-              {label:'Animales',   val:animals.length,        c:'#00f5d4', emoji:'🐄'},
-              {label:'Pesajes',    val:pesajes.length,        c:'#ff9500', emoji:'⚖️'},
-              {label:'GPS activos',val:gpsUbicaciones.filter(g=>g.activo).length, c:'#00c8ff', emoji:'📡'},
-            ].map(s => (
-              <div key={s.label} className="rounded-lg p-3"
-                style={{background:`color-mix(in srgb,${s.c} 8%,transparent)`, border:`1px solid ${s.c}35`}}>
-                <div className="text-xl mb-1">{s.emoji}</div>
-                <div className="font-black text-xl" style={{color:s.c}}>{s.val}</div>
-                <div className="text-[10px] text-muted-foreground">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-
-    modulos: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🗂" title="Módulos del Sistema" subtitle="CIVAC PRO incluye 20+ módulos integrados. Todos sincronizados offline."
-          c1="rgba(5,5,20,0.9)" c2="rgba(10,10,35,0.9)" border="rgba(167,139,250,0.35)"/>
-
-        <div className="space-y-3">
-          {[
-            { emoji:'📊', label:'Dashboard PRO',      ruta:'/',              desc:'KPIs en tiempo real, alertas, producción, GPS live, pesajes recientes, valor del hato.', c:'#00f5d4' },
-            { emoji:'🔔', label:'Alertas',            ruta:'/alertas',       desc:'Alertas sanitarias, de inventario, reproductivas y de GPS. Clasificadas por urgencia.', c:'#f87171' },
-            { emoji:'🐄', label:'Inventario Animal',  ruta:'/inventario',    desc:'5 tabs: Tabla, Fichas, Etiquetas, Pesaje Rápido, Estadísticas. 30+ animales con todos los campos.', c:'#39ff7e' },
-            { emoji:'📋', label:'Ficha Individual',   ruta:'/ficha',         desc:'Ficha completa por animal con historial médico, reproductivo y de pesajes.', c:'#00f5d4' },
-            { emoji:'🔁', label:'Reproducción',       ruta:'/reproduccion',  desc:'Partos esperados, días restantes, celos, inseminaciones, ecografías y servicios.', c:'#f472b6' },
-            { emoji:'🥛', label:'Producción Leche',   ruta:'/produccion',    desc:'Registro de ordeños, litros/día por vaca, tendencias mensuales, ingresos.', c:'#60a5fa' },
-            { emoji:'🧬', label:'Genética y Pedigrí', ruta:'/genetica',      desc:'Árbol genealógico, MEP, índice genético, toros disponibles, cruzamiento.', c:'#a78bfa' },
-            { emoji:'🌿', label:'Potreros',           ruta:'/potreros',      desc:'Mapa de potreros, estado (ocupado/descanso/rotar), días de ocupación, rotación.', c:'#84ef34' },
-            { emoji:'🌾', label:'Alimentación',       ruta:'/alimentacion',  desc:'Raciones por categoría, consumo diario, costo de alimentación, análisis.', c:'#ffd166' },
-            { emoji:'⚖️', label:'Pesaje Bluetooth',   ruta:'/pesaje',        desc:'Módulo dedicado: conexión BT, historial completo, facturas por pesaje, análisis GMD.', c:'#ff9500' },
-            { emoji:'💊', label:'Insumos',            ruta:'/insumos',       desc:'Stock de medicamentos, alertas de mínimos, consumo y registro de aplicaciones.', c:'#fbbf24' },
-            { emoji:'🧪', label:'Semen y Embriones',  ruta:'/semen',         desc:'Inventario de pajillas, toros, dosis disponibles y registro de uso.', c:'#818cf8' },
-            { emoji:'💰', label:'Costos y P&G',       ruta:'/costos',        desc:'Ingresos vs egresos, utilidad neta, costo por litro, análisis mensual.', c:'#34d399' },
-            { emoji:'👥', label:'Personal',           ruta:'/personal',      desc:'Empleados, contratos, horas extra, EPS, ARL, pagos y novedades.', c:'#94a3b8' },
-            { emoji:'🤖', label:'Predicciones IA',    ruta:'/prediccion',    desc:'Predicción de peso a 30/60/90 días, riesgo de mastitis, detección de celo, partos.', c:'#e879f9' },
-            { emoji:'🌱', label:'Huella de Carbono',  ruta:'/co2',           desc:'Emisiones por animal, compensación, biogás, indicadores de sostenibilidad.', c:'#4ade80' },
-            { emoji:'🗺️', label:'Multi-Finca',        ruta:'/multifinca',    desc:'Gestión de múltiples fincas en un solo panel. Comparativa entre unidades.', c:'#22d3ee' },
-            { emoji:'📡', label:'Rastreo GPS',        ruta:'/gps',           desc:'Mapa en tiempo real, 12 collares, geocercas, historial de movimiento, alertas de batería.', c:'#00c8ff' },
-            { emoji:'🐂', label:'Movimiento Lotes',   ruta:'/lotes',         desc:'Ingreso, venta y compra de lotes con recibos, cálculo automático de valores.', c:'#00c8ff' },
-            { emoji:'👤', label:'Usuarios',           ruta:'/usuarios',      desc:'Gestión de usuarios, roles, permisos, actividad y control de acceso.', c:'#c084fc' },
-            { emoji:'⚙️', label:'Configuración',      ruta:'/configuracion', desc:'Datos de la finca, alertas automáticas, idioma, unidades, temas y preferencias.', c:'#9ca3af' },
-            { emoji:'📚', label:'Documentación',      ruta:'/documentacion', desc:'Guía completa de uso, tutoriales, credenciales demo, exportación de datos.', c:'#38bdf8' },
-            { emoji:'👑', label:'Planes · Wompi',     ruta:'/planes',        desc:'Suscripción PRO, Premium y Platino vía Wompi. Pagos seguros en COP.', c:'#fbbf24' },
-          ].map(m => (
-            <div key={m.ruta} className="rounded-xl px-4 py-3 flex items-center gap-4 transition-all hover:scale-[1.008]"
-              style={{
-                background:`linear-gradient(135deg,color-mix(in srgb,${m.c} 6%,transparent),color-mix(in srgb,${m.c} 3%,transparent))`,
-                border:`1px solid ${m.c}35`,
-              }}>
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-lg flex-shrink-0"
-                style={{background:`${m.c}18`, border:`1px solid ${m.c}40`, boxShadow:`0 0 10px ${m.c}15`}}>
-                {m.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-foreground" style={{color:m.c}}>{m.label}</span>
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-black/20 dark:bg-black/40"
-                    style={{color:m.c}}>{m.ruta}</span>
-                </div>
-                <p className="text-xs text-muted-foreground truncate">{m.desc}</p>
-              </div>
-              <ChevronRight size={14} style={{color:`${m.c}60`, flexShrink:0}}/>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-
-    inventario: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🐄" title="Inventario Animal" subtitle="Registro RFID · Fichas · Etiquetas · Pesaje Rápido · Estadísticas"
-          c1="rgba(0,20,10,0.9)" c2="rgba(0,35,15,0.9)" border="rgba(57,255,126,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Grid3x3 size={14}/>} color="#39ff7e" title="Tab: Tabla"
-            desc="Tabla completa con todos los campos: Arete, Nombre, Raza, Categoría, Fecha nacimiento/Edad auto-calculada, Peso, Valor total, Litros/día, Lote, Estado, Registro. Filtros por categoría + estado + lote + búsqueda."/>
-          <FeatureCard icon={<Beef size={14}/>} color="#a78bfa" title="Tab: Fichas"
-            desc="Tarjetas visuales con degradado por categoría, barra de condición corporal vs. raza, todos los datos del animal, botones de editar/eliminar/ver ficha, y valor económico."/>
-          <FeatureCard icon={<Tag size={14}/>} color="#39ff7e" title="Tab: Etiquetas"
-            desc="Etiquetas imprimibles por animal con: Arete, Nombre, Raza, Categoría, Peso, Edad, Estado, Registro N°, código QR (RFID), valor estimado. Botón 'Imprimir Todas'."/>
-          <FeatureCard icon={<Scale size={14}/>} color="#ff9500" title="Tab: Pesaje Rápido"
-            desc="Por cada animal: botón 'Raza' → auto-completa peso estándar de la raza/categoría, botón 'BT' → simula báscula Bluetooth, campo valor/kg, calcular valor total, Registrar y Imprimir PDF."/>
-          <FeatureCard icon={<BarChart3 size={14}/>} color="#f472b6" title="Tab: Estadísticas"
-            desc="Gráficas: Animales por Raza (barras), Estado Sanitario (dona multicolor), Distribución por Categoría (barras horizontales), Valor por Lote (con total COP + leche/día)."/>
-          <FeatureCard icon={<Zap size={14}/>} color="#ff9500" title="Auto-cálculos"
-            desc="Al seleccionar raza + categoría: edad calculada desde fecha nacimiento, peso sugerido por raza, valor total = peso × $/kg. Todo en tiempo real, un solo clic."/>
-        </div>
-
-        <div className="rounded-xl p-4" style={{background:'rgba(57,255,126,0.05)',border:'1px solid rgba(57,255,126,0.15)'}}>
-          <div className="font-bold text-sm mb-3" style={{color:'#39ff7e'}}>Campos por animal</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {['Arete RFID','Nombre','Raza','Categoría','Estado','Lote','Peso (kg)','F. Nacimiento','Edad auto','Registro N°','Litros/día','N° Partos','$/kg','Valor total'].map(f => (
-              <div key={f} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CheckCircle size={10} style={{color:'#39ff7e', flexShrink:0}}/>
-                {f}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-
-    pesaje: (
-      <div className="space-y-6">
-        <SectionBanner emoji="⚖️" title="Pesaje Bluetooth" subtitle="Básculas Tru-Test · Gallagher · Auto-cálculo por raza · Recibos PDF"
-          c1="rgba(15,8,0,0.9)" c2="rgba(30,15,0,0.9)" border="rgba(255,149,0,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Bluetooth size={14}/>} color="#00c8ff" title="Conexión Bluetooth"
-            desc="Compatible con básculas Tru-Test XR3000, Gallagher W210 y similares. Activa el BT en tu celular, enciende la báscula y toca 'Conectar BT'. El peso llega en tiempo real."/>
-          <FeatureCard icon={<Zap size={14}/>} color="#ff9500" title="Auto-cálculo por raza"
-            desc="6 razas × 5 categorías = 30 combinaciones. Al hacer clic en '⚡ Raza', el sistema calcula el peso estándar para esa raza y categoría. Ajusta si es necesario."/>
-          <FeatureCard icon={<Scale size={14}/>} color="#ff9500" title="Pesaje Rápido (en Inventario)"
-            desc="Desde el módulo Inventario → tab ⚖️ Pesaje Rápido: tabla de todos los animales con botones 'Raza', 'BT' y 'Registrar' por fila. Actualiza el peso y guarda el historial."/>
-          <FeatureCard icon={<Printer size={14}/>} color="#a78bfa" title="Recibo PDF imprimible"
-            desc="Cada pesaje genera un recibo con: animal, arete, raza, peso nuevo/anterior, variación, peso estándar de raza (%), valor estimado, operador, fecha y hora."/>
-          <FeatureCard icon={<Activity size={14}/>} color="#4ade80" title="GMD — Ganancia Media Diaria"
-            desc="El módulo /pesaje calcula automáticamente la GMD (kg/día ganados desde el pesaje anterior). Ideal para seguimiento de terneros y novillas."/>
-          <FeatureCard icon={<BarChart3 size={14}/>} color="#f472b6" title="Historial y análisis"
-            desc="Historial completo de pesajes con fecha, hora, método (BT/manual), dispositivo, operador, y observaciones. Filtrable por animal, lote o fecha."/>
-        </div>
-
-        <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(255,149,0,0.2)'}}>
-          <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{background:'rgba(255,149,0,0.08)',color:'#ff9500'}}>
-            Tabla de pesos estándar por raza (kg)
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr style={{borderBottom:'1px solid rgba(255,149,0,0.1)'}}>
-                  {['Raza','Vaca adulta','Novilla','Ternero','Ternera','Toro'].map(h => (
-                    <th key={h} className="text-left py-2.5 px-4 font-bold" style={{color:'rgba(255,149,0,0.6)'}}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  {r:'Holstein',  va:560, no:330, te:80, ta:75, to:820},
-                  {r:'Simmental', va:600, no:360, te:90, ta:85, to:870},
-                  {r:'Brahman',   va:490, no:300, te:65, ta:60, to:780},
-                  {r:'Gyr X',     va:470, no:290, te:62, ta:58, to:730},
-                  {r:'Gyr',       va:460, no:285, te:60, ta:56, to:720},
-                  {r:'Jersey',    va:400, no:245, te:52, ta:49, to:600},
-                ].map(r => (
-                  <tr key={r.r} style={{borderBottom:'1px solid rgba(255,255,255,0.04)'}}>
-                    <td className="py-2.5 px-4 font-bold text-white">{r.r}</td>
-                    {[r.va,r.no,r.te,r.ta,r.to].map((v,i) => (
-                      <td key={i} className="py-2.5 px-4 font-mono" style={{color:'#ff9500'}}>{v} kg</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="rounded-xl p-4 space-y-3" style={{background:'rgba(255,149,0,0.05)',border:'1px solid rgba(255,149,0,0.15)'}}>
-          <div className="font-bold text-sm" style={{color:'#ff9500'}}>Pasos para pesaje con báscula BT</div>
-          {[
-            'Active el Bluetooth en su celular o tablet',
-            'Encienda la báscula Tru-Test XR3000 o Gallagher W210',
-            'Vaya a módulo Pesaje (/pesaje) o Inventario → tab Pesaje Rápido',
-            'Haga clic en "Conectar BT" — el peso aparece en tiempo real',
-            'Seleccione el animal o confírmelo desde la lista',
-            'Haga clic en "Guardar Pesaje" para registrar en el historial',
-            'Opcional: Imprimir recibo PDF con botón 🖨',
-          ].map((s,i) => <Step key={i} n={i+1} text={s} color="#ff9500"/>)}
-        </div>
-      </div>
-    ),
-
-    lotes: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🐂" title="Movimiento de Lotes" subtitle="Ingreso · Venta · Compra · Recibos automáticos · Cálculo de valores"
-          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,30,0.9)" border="rgba(0,200,255,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FeatureCard icon={<Package size={14}/>} color="#39ff7e" title="Ingresar Lote"
-            desc="Registra la entrada de animales: nombre del lote, cantidad, peso total, costo por kilo, valor total calculado automáticamente, fecha, proveedor y notas."/>
-          <FeatureCard icon={<DollarSign size={14}/>} color="#f87171" title="Vender Lote"
-            desc="Registra la venta de animales: lote, cantidad, precio por kilo, total a recibir, fecha, destino (nombre del comprador) y notas de la operación."/>
-          <FeatureCard icon={<Beef size={14}/>} color="#00c8ff" title="Comprar Lote"
-            desc="Registra compra de nuevos animales: cantidad, peso promedio, precio por kilo, valor total pagado, proveedor y fecha de ingreso a la finca."/>
-        </div>
-
-        <div className="rounded-xl p-4 space-y-3" style={{background:'rgba(0,200,255,0.05)',border:'1px solid rgba(0,200,255,0.15)'}}>
-          <div className="font-bold text-sm" style={{color:'#00c8ff'}}>Auto-cálculos en movimiento de lote</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-white/60">
-            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Valor total = cantidad × peso promedio × $ por kilo</span></div>
-            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Peso promedio por animal = peso total ÷ cantidad</span></div>
-            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Recibo generado automáticamente al confirmar</span></div>
-            <div className="flex items-start gap-2"><CheckCircle size={13} className="text-teal-400 flex-shrink-0 mt-0.5"/><span>Historial de movimientos con fecha y tipo</span></div>
-          </div>
-        </div>
-      </div>
-    ),
-
-    reproduccion: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🔁" title="Reproducción" subtitle="Partos · Inseminaciones · Celos · Ecografías · Manejo reproductivo"
-          c1="rgba(20,0,20,0.9)" c2="rgba(35,0,35,0.9)" border="rgba(244,114,182,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Heart size={14}/>} color="#f472b6" title="Control de partos"
-            desc="Lista de vacas gestantes con días restantes al parto, servicio utilizado (IA o monta natural), número de partos previos y estado (Normal / Vigilar / Primípara)."/>
-          <FeatureCard icon={<Baby size={14}/>} color="#c084fc" title="Inseminación Artificial"
-            desc="Registro de servicios con toro / pajilla, fecha, técnico inseminador y resultado (confirmado / pendiente / fallido)."/>
-          <FeatureCard icon={<Activity size={14}/>} color="#f472b6" title="Detección de celos"
-            desc="Alertas automáticas por IA cuando se detecta patrón de celo basado en producción de leche y comportamiento GPS."/>
-          <FeatureCard icon={<Shield size={14}/>} color="#a78bfa" title="Ecografías"
-            desc="Registro de ecografías con fecha, resultado y diagnóstico de preñez. Seguimiento de cada gestación."/>
-        </div>
-      </div>
-    ),
-
-    produccion: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🥛" title="Producción Lechera" subtitle="Ordeños · Ranking de vacas · Tendencias · Ingresos diarios"
-          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,35,0.9)" border="rgba(96,165,250,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Droplets size={14}/>} color="#60a5fa" title="Registro de ordeños"
-            desc="Registro diario de litros, precio por litro e ingreso. Historial completo con notas por ordeño (vacuna, lluvia, eventos especiales)."/>
-          <FeatureCard icon={<BarChart3 size={14}/>} color="#4ade80" title="Tendencias mensuales"
-            desc="Gráfica de barras con producción mensual en litros. Comparativa entre meses, identificación de picos y valles."/>
-          <FeatureCard icon={<Award size={14}/>} color="#fbbf24" title="Ranking de vacas"
-            desc="Top vacas productoras con litros/día y clasificación por posición. Identifica las mejores productoras del hato."/>
-          <FeatureCard icon={<DollarSign size={14}/>} color="#39ff7e" title="Ingresos diarios"
-            desc="Cálculo automático: litros × precio = ingreso. Acumulado mensual y anual visible en el dashboard."/>
-        </div>
-      </div>
-    ),
-
-    pwa: (
-      <div className="space-y-6">
-        <SectionBanner emoji="📱" title="Instalar como App (PWA)" subtitle="Sin tienda de apps · Funciona offline · Actualización automática"
-          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,35,0.9)" border="rgba(56,189,248,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { platform:'Android', icon:'🤖', color:'#4ade80',
-              steps:['Abra Chrome en su celular','Banner automático aparece','Toque "Instalar"','Icono aparece en pantalla de inicio'] },
-            { platform:'iPhone / iPad', icon:'🍎', color:'#94a3b8',
-              steps:['Abra Safari (no Chrome)','Toque ícono compartir ↑','«Agregar a pantalla de inicio»','Confirme el nombre y listo'] },
-            { platform:'Windows', icon:'🪟', color:'#60a5fa',
-              steps:['Abra Chrome o Edge','Menú ⋮ → «Instalar CIVAC»','Confirmar instalación','Acceso desde escritorio'] },
-            { platform:'Mac / Linux', icon:'💻', color:'#a78bfa',
-              steps:['Chrome o Edge','Ícono instalar (✚) en barra URL','Instalar y confirmar','Acceso desde Launchpad / Apps'] },
-          ].map(p => (
-            <div key={p.platform} className="rounded-xl overflow-hidden" style={{border:`1px solid ${p.color}25`}}>
-              <div className="p-3 flex items-center gap-2" style={{background:`${p.color}15`}}>
-                <span className="text-2xl">{p.icon}</span>
-                <span className="font-bold text-sm text-white">{p.platform}</span>
-              </div>
-              <div className="p-3 space-y-2">
-                {p.steps.map((s,i) => <Step key={i} n={i+1} text={s} color={p.color}/>)}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { emoji:'⚡', title:'Sin espacio en memoria', desc:'La PWA no ocupa espacio como las apps normales. Vive en el navegador.' },
-            { emoji:'🔄', title:'Actualización automática', desc:'Cada vez que hay una mejora, la app se actualiza sola al abrir con internet.' },
-            { emoji:'🔒', title:'Segura y privada', desc:'HTTPS siempre activo. Datos locales en su dispositivo. Sin acceso de terceros.' },
-          ].map(f => (
-            <div key={f.title} className="rounded-xl p-4 text-center" style={{background:'rgba(56,189,248,0.05)',border:'1px solid rgba(56,189,248,0.15)'}}>
-              <div className="text-3xl mb-2">{f.emoji}</div>
-              <div className="font-bold text-sm text-white mb-1">{f.title}</div>
-              <p className="text-xs text-white/45">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-
-    offline: (
-      <div className="space-y-6">
-        <SectionBanner emoji="📵" title="Modo Offline Completo" subtitle="100% funcional sin internet · Sincroniza al reconectar · IndexedDB + localStorage"
-          c1="rgba(20,0,0,0.9)" c2="rgba(30,5,5,0.9)" border="rgba(248,113,113,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<WifiOff size={14}/>} color="#f87171" title="¿Cómo funciona offline?"
-            desc="CIVAC guarda todos los datos en localStorage del navegador. Al abrir la app sin internet, carga los datos locales. Todo funciona: inventario, pesaje, alertas, GPS (si hay collar BT activo)."/>
-          <FeatureCard icon={<RefreshCw size={14}/>} color="#4ade80" title="Sincronización al reconectar"
-            desc="Al volver a tener internet, la app detecta la conexión y sincroniza automáticamente todos los cambios realizados offline hacia el servidor PostgreSQL."/>
-          <FeatureCard icon={<Database size={14}/>} color="#00c8ff" title="Base de datos interna"
-            desc="Backend Express + PostgreSQL + Drizzle ORM. Todos los datos persisten en BD real. Si hay servidor local en red local (LAN), funciona también sin internet global."/>
-          <FeatureCard icon={<Shield size={14}/>} color="#a78bfa" title="Sin pérdida de datos"
-            desc="Todos los cambios se guardan primero en localStorage (instantáneo) y luego se sincronizan con el servidor (fire-and-forget). Si falla la red, los datos locales están seguros."/>
-        </div>
-
-        <div className="rounded-xl p-4" style={{background:'rgba(248,113,113,0.05)',border:'1px solid rgba(248,113,113,0.15)'}}>
-          <div className="font-bold text-sm mb-3" style={{color:'#f87171'}}>Módulos disponibles 100% offline</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {['Inventario Animal','Pesaje (manual)','Alertas','Reproducción','Producción Leche','Insumos','Personal','Costos','Potreros','Alimentación','Genética','Semen','Dashboard (cached)','GPS (si BT activo)'].map(m => (
-              <div key={m} className="flex items-center gap-1.5 text-xs text-white/60">
-                <CheckCircle size={10} style={{color:'#4ade80',flexShrink:0}}/>
-                {m}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-
-    gps: (
-      <div className="space-y-6">
-        <SectionBanner emoji="📡" title="Rastreo GPS Ganado" subtitle="12 collares en tiempo real · Geocercas · Alertas · Batería · Mapa"
-          c1="rgba(0,8,20,0.9)" c2="rgba(0,15,30,0.9)" border="rgba(0,200,255,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Navigation size={14}/>} color="#00c8ff" title="Mapa en tiempo real"
-            desc="Mapa interactivo con Leaflet y OpenStreetMap. Cada animal aparece como punto de color con su nombre. Actualización cada 2 minutos."/>
-          <FeatureCard icon={<MapPin size={14}/>} color="#f87171" title="Geocercas"
-            desc="Defina zonas virtuales (potreros). Si un animal sale de su geocerca, se genera una alerta inmediata con el nombre del animal y la zona de escape."/>
-          <FeatureCard icon={<Bell size={14}/>} color="#fbbf24" title="Alertas automáticas"
-            desc="Alertas de: batería baja (< 20%), animal fuera de zona, sin señal por más de 30 min, y collar desactivado."/>
-          <FeatureCard icon={<Activity size={14}/>} color="#4ade80" title="Historial de movimiento"
-            desc="Rastree dónde estuvo cada animal en las últimas 24h/7 días. Identifica patrones de comportamiento y movimientos inusuales."/>
-        </div>
-
-        <div className="rounded-xl p-4" style={{background:'rgba(0,200,255,0.05)',border:'1px solid rgba(0,200,255,0.15)'}}>
-          <div className="font-bold text-sm mb-3" style={{color:'#00c8ff'}}>Collares GPS compatibles</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-white/60">
-            {['Nedap Smarttag · Collar','HerdDogg · BT + GPS','Moocall · Sensor de parto','Afimilk · Podómetro + GPS','SmaXtec · Bolus ruminal','Collar LTE / NB-IoT genérico'].map(c => (
-              <div key={c} className="flex items-center gap-1.5">
-                <span className="text-green-400">●</span>{c}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-
-    drive: (
-      <div className="space-y-6">
-        <SectionBanner emoji="☁" title="Sync & Backups" subtitle="Google Drive · Descarga local · JSON · CSV · Respaldo automático"
-          c1="rgba(5,10,0,0.9)" c2="rgba(10,20,0,0.9)" border="rgba(251,191,36,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <FeatureCard icon={<Cloud size={14}/>} color="#fbbf24" title="Google Drive"
-            desc="Exporte cualquier módulo de datos directamente a su Google Drive. El archivo JSON queda guardado en la nube con fecha y hora."/>
-          <FeatureCard icon={<Download size={14}/>} color="#4ade80" title="Descarga local"
-            desc="Descargue un backup JSON completo de todos sus datos directamente al dispositivo. Sin internet necesario."/>
-          <FeatureCard icon={<FileDown size={14}/>} color="#60a5fa" title="Exportar CSV"
-            desc="Exporte el inventario de animales en formato CSV compatible con Excel y Google Sheets para análisis externo."/>
-        </div>
-
-        <div className="rounded-xl p-4" style={{background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.15)'}}>
-          <div className="font-bold text-sm mb-4" style={{color:'#fbbf24'}}>Exportar datos ahora</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <button disabled={exportLoading} onClick={() => handleExportDrive('Animales', animals)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90 disabled:opacity-50"
-              style={{background:'rgba(251,191,36,0.12)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24'}}>
-              <Cloud size={14}/> Drive — Animales
-            </button>
-            <button onClick={() => handleDownload('TodosLosDatos', { animals, pesajes, gpsUbicaciones })}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90"
-              style={{background:'rgba(74,222,128,0.12)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80'}}>
-              <Download size={14}/> Backup completo .json
-            </button>
-            <button onClick={() => handleCSV('Inventario', animals)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all hover:opacity-90"
-              style={{background:'rgba(96,165,250,0.12)',border:'1px solid rgba(96,165,250,0.3)',color:'#60a5fa'}}>
-              <FileDown size={14}/> Inventario .csv
-            </button>
-          </div>
-        </div>
-
-        {driveFiles.length > 0 && (
-          <div className="rounded-xl overflow-hidden" style={{border:'1px solid rgba(251,191,36,0.15)'}}>
-            <div className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider" style={{background:'rgba(251,191,36,0.07)',color:'rgba(251,191,36,0.7)'}}>
-              Archivos en Drive ({driveFiles.length})
-            </div>
-            <div className="divide-y" style={{borderColor:'rgba(255,255,255,0.04)'}}>
-              {driveFiles.map((f, i) => (
-                <div key={i} className="px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Cloud size={12} style={{color:'#fbbf24'}}/>
-                    <span className="text-sm font-mono text-white/70">{f.name}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-white/30">
-                    <span>{f.size}</span>
-                    <span>{f.date}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    ),
-
-    usuarios: (
-      <div className="space-y-6">
-        <SectionBanner emoji="👤" title="Usuarios y Roles" subtitle="Control de acceso por rol · Admin · Veterinario · Campo · Visor"
-          c1="rgba(10,0,20,0.9)" c2="rgba(18,0,35,0.9)" border="rgba(192,132,252,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {[
-            { rol:'👑 Administrador',  color:'#00f5d4', acceso:'Acceso total a todos los módulos. Puede crear/editar/eliminar usuarios, configurar la finca y ver reportes financieros.', permisos:['Todos los módulos','Gestión de usuarios','Configuración','Reportes financieros','Exportar datos','Planes y facturación'] },
-            { rol:'🩺 Veterinario',    color:'#00c8ff', acceso:'Acceso a módulos clínicos. Puede ver y editar reproducción, tratamientos, alertas sanitarias y GPS de animales.', permisos:['Inventario (lectura/escritura)','Reproducción','Alertas sanitarias','GPS ganado','Insumos y medicamentos','Predicciones IA'] },
-            { rol:'🐄 Operario de Campo', color:'#39ff7e', acceso:'Acceso a operación diaria. Puede registrar pesajes, alimentación, producción y reportar novedades.', permisos:['Inventario (escritura)','Pesaje Bluetooth','Producción leche','Alimentación','Potreros','Alertas (ver)'] },
-            { rol:'💼 Visor',          color:'#c084fc', acceso:'Solo lectura. Ideal para propietarios que quieren ver el estado de la finca sin poder hacer cambios.', permisos:['Dashboard (lectura)','Inventario (lectura)','GPS (lectura)','Reportes (lectura)','Sin edición','Sin exportación'] },
-          ].map(r => (
-            <div key={r.rol} className="rounded-xl overflow-hidden" style={{border:`1px solid ${r.color}25`}}>
-              <div className="px-4 py-3 flex items-center gap-2" style={{background:`${r.color}10`}}>
-                <div className="font-bold text-base text-white">{r.rol}</div>
-              </div>
-              <div className="p-4 space-y-3">
-                <p className="text-xs text-muted-foreground leading-relaxed">{r.acceso}</p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {r.permisos.map(p => (
-                    <div key={p} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                      <CheckCircle size={9} style={{color:r.color,flexShrink:0}}/>
-                      {p}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <CredTable/>
-      </div>
-    ),
-
-    descarga: (
-      <div className="space-y-6">
-        <SectionBanner emoji="💾" title="Descargar y Exportar" subtitle="JSON · CSV · PDF · Google Drive · Backup completo"
-          c1="rgba(0,10,15,0.9)" c2="rgba(0,18,25,0.9)" border="rgba(56,189,248,0.35)"/>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<FileDown size={14}/>} color="#60a5fa" title="Exportar a CSV"
-            desc="Compatible con Excel y Google Sheets. Incluye todos los campos del inventario: Arete, Nombre, Raza, Categoría, Peso, Lote, Estado, Registro, Valor, etc."/>
-          <FeatureCard icon={<Download size={14}/>} color="#4ade80" title="Backup JSON completo"
-            desc="Descarga local de todos los datos: animales, pesajes, reproducción, GPS, insumos, personal. Ideal para respaldo antes de migrar."/>
-          <FeatureCard icon={<Printer size={14}/>} color="#a78bfa" title="PDF / Imprimir"
-            desc="Fichas de animales, etiquetas con QR, recibos de pesaje y movimientos de lotes son imprimibles desde el navegador (Ctrl+P o botón 🖨)."/>
-          <FeatureCard icon={<Cloud size={14}/>} color="#fbbf24" title="Google Drive Sync"
-            desc="Envíe cualquier módulo directamente a su Google Drive. Los archivos quedan organizados con nombre y fecha para fácil búsqueda."/>
-        </div>
-
-        <div className="rounded-xl p-4 space-y-3" style={{background:'rgba(56,189,248,0.05)',border:'1px solid rgba(56,189,248,0.15)'}}>
-          <div className="font-bold text-sm" style={{color:'#38bdf8'}}>Exportar ahora</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button onClick={() => handleCSV('Animales', animals)}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all"
-              style={{background:'rgba(96,165,250,0.1)',border:'1px solid rgba(96,165,250,0.3)',color:'#60a5fa'}}>
-              <FileDown size={14}/> Inventario completo .csv
-            </button>
-            <button onClick={() => handleDownload('TodosLosDatos', { animals, pesajes, gpsUbicaciones })}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all"
-              style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80'}}>
-              <Download size={14}/> Backup completo .json
-            </button>
-            <button disabled={exportLoading} onClick={() => handleExportDrive('Animales', animals)}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all disabled:opacity-50"
-              style={{background:'rgba(251,191,36,0.1)',border:'1px solid rgba(251,191,36,0.3)',color:'#fbbf24'}}>
-              <Cloud size={14}/> Subir animales a Drive
-            </button>
-            <button onClick={() => window.print()}
-              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-bold hover:opacity-90 transition-all"
-              style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
-              <Printer size={14}/> Imprimir esta página
-            </button>
-          </div>
-        </div>
-      </div>
-    ),
-    sanidad: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🩺" title="Sanidad Animal v1" subtitle="Protocolos · Vacunas · Tratamientos · Alertas ICA · Historial clínico"
-          c1="rgba(0,20,15,0.9)" c2="rgba(0,40,30,0.9)" border="rgba(0,245,212,0.35)"/>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Activity size={14}/>} color="#00f5d4" title="Protocolos Sanitarios"
-            desc="Registre vacunaciones (aftosa, brucela, IBR, BVD), desparasitaciones y vitaminas. Alertas automáticas 7 días antes del vencimiento." />
-          <FeatureCard icon={<FlaskConical size={14}/>} color="#38bdf8" title="Tratamientos y Diagnósticos"
-            desc="Historial clínico por animal. Registro de medicamentos, dosis, vía de administración, veterinario responsable y tiempo de retiro." />
-          <FeatureCard icon={<Bell size={14}/>} color="#f59e0b" title="Alertas de Revacunación"
-            desc="El sistema calcula automáticamente las fechas de refuerzo y genera alertas en el centro de notificaciones para no perder ninguna vacuna." />
-          <FeatureCard icon={<Shield size={14}/>} color="#a855f7" title="Certificados ICA"
-            desc="Genera reportes de vacunación en formato compatible con los requerimientos del ICA Colombia para movilización de ganado." />
-        </div>
-        <div className="rounded-xl p-4 space-y-2" style={{background:'rgba(0,245,212,0.05)',border:'1px solid rgba(0,245,212,0.15)'}}>
-          <div className="font-bold text-sm" style={{color:'#00f5d4'}}>📋 Enfermedades más registradas en Colombia</div>
-          {[
-            { e:'🦠', name:'Fiebre Aftosa', freq:'Vacunación obligatoria · ICA · Cada 4 meses', c:'#f87171' },
-            { e:'🔬', name:'Brucelosis',    freq:'Hembras de 3–8 meses · Cepa RB51 · Una sola vez', c:'#fb923c' },
-            { e:'🌡️', name:'Mastitis',      desc:'Higiene de ordeño · CMT mensual · Tratamiento temprano', c:'#fbbf24' },
-            { e:'🐛', name:'Parásitos',     freq:'Desparasitación cada 60–90 días según carga parasitaria', c:'#4ade80' },
-          ].map(r=>(
-            <div key={r.name} className="flex items-start gap-2 text-xs" style={{color:'rgba(255,255,255,0.6)'}}>
-              <span>{r.e}</span>
-              <strong className="text-white">{r.name}</strong>
-              <span>— {r.freq ?? r.desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
-    trazabilidad: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🏷️" title="Trazabilidad ICA v1" subtitle="Guías de movilización · Códigos QR · Registro SINIGAN · Movimientos"
-          c1="rgba(20,0,40,0.9)" c2="rgba(40,0,80,0.9)" border="rgba(168,85,247,0.35)"/>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FeatureCard icon={<Tag size={14}/>} color="#a855f7" title="Guías de Movilización ICA"
-            desc="Registre todos los movimientos de animales entre predios. Genera guías en formato requerido por el ICA con número, origen, destino y animales." />
-          <FeatureCard icon={<QrCode size={14}/>} color="#e879f9" title="Código QR por Animal"
-            desc="Cada animal tiene su QR único. Escanéelo para ver su historial completo: vacunas, pesajes, partos, movimientos y certificados." />
-          <FeatureCard icon={<Globe size={14}/>} color="#38bdf8" title="Registro SINIGAN"
-            desc="Exporta los datos en formato compatible con el Sistema de Información de Ganadería Nacional (SINIGAN) para reportes al ICA." />
-          <FeatureCard icon={<CheckCircle size={14}/>} color="#4ade80" title="Historial de Movimientos"
-            desc="Trazabilidad completa del ciclo de vida: nacimiento, compra, traslados, exposiciones, ferias y venta. Todo auditado y con fecha." />
-        </div>
-        <div className="rounded-xl p-4 space-y-2" style={{background:'rgba(168,85,247,0.05)',border:'1px solid rgba(168,85,247,0.15)'}}>
-          <div className="font-bold text-sm" style={{color:'#a855f7'}}>📌 Tipos de movimiento registrados</div>
-          <div className="grid grid-cols-2 gap-2">
-            {['🏡 Traslado entre potreros','🚛 Movilización entre predios','🏪 Ingreso por compra','💰 Salida por venta',
-              '🏆 Exposición / Feria','🔬 Traslado veterinario','🐣 Nacimiento en finca','🌍 Exportación'].map(t=>(
-              <div key={t} className="text-xs rounded-lg px-2.5 py-1.5" style={{background:'rgba(168,85,247,0.08)',color:'rgba(255,255,255,0.65)'}}>
-                {t}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-    ventas: (
-      <div className="space-y-6">
-        <SectionBanner emoji="🇨🇴" title="Kit del Agente de Ventas CIVAC PRO"
-          c1="rgba(0,40,0,0.95)" c2="rgba(0,80,20,0.95)" border="rgba(57,255,126,0.45)"
-          subtitle="Todo lo que necesitas para vender CIVAC PRO en Colombia · Pitch · Demo · Objeciones · Precios" />
-
-        {/* ── Elevator Pitch ── */}
-        <div className="rounded-2xl p-5" style={{background:'linear-gradient(135deg,#001a08,#002a10)',border:'1px solid rgba(57,255,126,0.2)'}}>
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos activos · CIVAC PRO v7.0`} c1="#071325" c2="#0a1f3c"/>
+      {cats.map(cat => (
+        <div key={cat}>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-xl">⚡</span>
-            <span className="font-black text-white text-base">Pitch de 30 Segundos</span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full ml-auto" style={{background:'rgba(57,255,126,0.12)',color:'#39ff7e',border:'1px solid rgba(57,255,126,0.3)'}}>Memorizar</span>
+            <div className="h-px flex-1" style={{ background:"rgba(255,255,255,0.06)" }}/>
+            <span className="text-[10px] font-black tracking-widest uppercase px-2" style={{ color:catColors[cat] || "#94a3b8" }}>{cat}</span>
+            <div className="h-px flex-1" style={{ background:"rgba(255,255,255,0.06)" }}/>
           </div>
-          <div className="rounded-xl p-4 text-sm leading-relaxed italic" style={{background:'rgba(57,255,126,0.05)',border:'1px solid rgba(57,255,126,0.15)',color:'rgba(255,255,255,0.75)'}}>
-            "¿Lleva sus registros ganaderos en cuadernos o Excel? CIVAC PRO es la única app colombiana que funciona <strong className="text-white">sin internet en el campo</strong>, se conecta a su báscula Bluetooth, registra pesajes, reproducción, GPS del ganado, finanzas y 20 módulos más — todo desde el celular. Desde <strong className="text-white">$89.000 pesos al mes</strong>. Se instala en 2 minutos sin App Store. ¿Le hago una demo de 10 minutos?"
-          </div>
-        </div>
-
-        {/* ── Propuesta de valor ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🎯</span> Propuesta de Valor — Los 5 puntos que cierran ventas</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {[
-              { n:'1', title:'Funciona SIN Internet', desc:'En zonas rurales sin señal, CIVAC PRO sigue funcionando. Guarda todo en el celular y sincroniza cuando haya wifi. Sus competidores se caen en el campo.', c:'#39ff7e', glow:'57,255,126', emoji:'🌐' },
-              { n:'2', title:'Se instala en 2 minutos', desc:'No hay App Store, no hay Play Store. El cliente abre civac.pro desde Chrome, toca "Instalar" y listo. Sin IT, sin configuración. Funciona en cualquier celular o tablet.', c:'#00f5d4', glow:'0,245,212', emoji:'⚡' },
-              { n:'3', title:'Pesaje Bluetooth integrado', desc:'Compatible con básculas Tru-Test, Gallagher y Agreto. Pesa el animal y el sistema auto-calcula GMD, valor comercial y condición corporal. Elimina errores manuales.', c:'#3b82f6', glow:'59,130,246', emoji:'⚖️' },
-              { n:'4', title:'20+ módulos, un solo precio', desc:'Inventario, reproducción, genética, GPS, potreros, insumos, personal, finanzas, P&G, alertas, multi-finca y más. No paga por módulo como la competencia.', c:'#a78bfa', glow:'167,139,250', emoji:'🗂️' },
-              { n:'5', title:'Diseñado para Colombia', desc:'Razas criollas (Brahman, Cebú, GyrXHolstein), normativa ICA/FEDEGAN, precios en COP, pago con Nequi/PSE/Daviplata. No es un software extranjero adaptado.', c:'#f59e0b', glow:'245,158,11', emoji:'🇨🇴' },
-              { n:'6', title:'ROI demostrable', desc:'Un ganadero que detecta a tiempo una vaca con pérdida de peso o preñez fallida ahorra millones. El costo del software es mínimo vs. el valor de un animal bien manejado.', c:'#f43f5e', glow:'244,63,94', emoji:'💰' },
-            ].map(p=>(
-              <div key={p.n} className="rounded-xl p-4" style={{background:`rgba(${p.glow},0.05)`,border:`1px solid rgba(${p.glow},0.18)`}}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{p.emoji}</span>
-                  <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black flex-shrink-0" style={{background:`rgba(${p.glow},0.2)`,color:p.c}}>{p.n}</div>
-                  <span className="font-bold text-sm text-white">{p.title}</span>
-                </div>
-                <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.45)'}}>{p.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Precios ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>💳</span> Planes y Precios (pesos colombianos)</h3>
-          <div className="grid sm:grid-cols-3 gap-3">
-            {[
-              {
-                nombre:'PRO', precio:'$89.000', periodo:'/mes', color:'#00f5d4', glow:'0,245,212',
-                bg:'linear-gradient(135deg,#001a14,#002a20)', border:'rgba(0,245,212,0.3)',
-                badge:'Más vendido',
-                features:['Inventario bovino completo','Pesaje manual + BT básico','Reproducción y partos','Insumos y Kardex','Alertas y notificaciones','Exportar CSV y JSON','Soporte por WhatsApp'],
-              },
-              {
-                nombre:'PREMIUM', precio:'$189.000', periodo:'/mes', color:'#a78bfa', glow:'167,139,250',
-                bg:'linear-gradient(135deg,#0f0020,#1a0035)', border:'rgba(167,139,250,0.35)',
-                badge:'Recomendado',
-                features:['Todo lo de PRO','GPS bovino en tiempo real','Genética y DEP','Multi-finca (3 fincas)','Módulo financiero P&G','Predicciones IA','Huella de carbono','Soporte prioritario'],
-              },
-              {
-                nombre:'PLATINO', precio:'$399.000', periodo:'/mes', color:'#f59e0b', glow:'245,158,11',
-                bg:'linear-gradient(135deg,#1a0c00,#2a1400)', border:'rgba(245,158,11,0.35)',
-                badge:'Para grandes fincas',
-                features:['Todo lo de Premium','Fincas ilimitadas','Usuarios ilimitados','Personalización de marca','Capacitación presencial','SLA 4 horas','API acceso a datos','Consultoría mensual'],
-              },
-            ].map(plan=>(
-              <div key={plan.nombre} className="rounded-2xl overflow-hidden" style={{background:plan.bg,border:`1px solid ${plan.border}`}}>
-                <div className="p-4 border-b" style={{borderColor:plan.border}}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-black text-white text-base">{plan.nombre}</span>
-                    <span className="text-[9px] px-2 py-0.5 rounded-full font-bold" style={{background:`rgba(${plan.glow},0.15)`,color:plan.color,border:`1px solid rgba(${plan.glow},0.3)`}}>{plan.badge}</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {mods.filter(m => m.cat === cat).map(m => (
+              <div key={m.ruta} className="flex items-start gap-3 p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)" }}>
+                <span className="text-xl mt-0.5">{m.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-[13px] font-bold text-foreground">{m.name}</p>
+                    <code className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background:"rgba(255,255,255,0.05)", color:"rgba(148,163,184,0.5)" }}>{m.ruta}</code>
                   </div>
-                  <div className="font-black text-3xl" style={{color:plan.color,fontFamily:'Sora,sans-serif'}}>{plan.precio}<span className="text-sm font-normal opacity-50">{plan.periodo}</span></div>
-                  <div className="text-[10px] mt-1" style={{color:`rgba(${plan.glow},0.5)`}}>Pago con Wompi · PSE · Nequi · Daviplata</div>
-                </div>
-                <div className="p-4 space-y-1.5">
-                  {plan.features.map(f=>(
-                    <div key={f} className="flex items-start gap-2 text-xs" style={{color:'rgba(255,255,255,0.6)'}}>
-                      <CheckCircle size={11} className="flex-shrink-0 mt-0.5" style={{color:plan.color}}/>
-                      {f}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 rounded-xl p-3 text-center text-xs" style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.35)'}}>
-            Todos los planes incluyen 30 días de prueba gratis · Sin contrato mínimo · Cancela cuando quieras
-          </div>
-        </div>
-
-        {/* ── Perfil del cliente ideal ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🎯</span> ¿A quién le vendo?</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {[
-              { emoji:'🐄', title:'Ganadero mediano/grande', desc:'50–500+ cabezas. Tiene báscula, usa cuadernos o Excel. Pierde dinero por desorganización. Busca reducir costos y mejorar control.', ideal:true, nivel:'Alto potencial' },
-              { emoji:'🏥', title:'Veterinario de campo', desc:'Visita fincas, lleva registros de sus clientes. CIVAC le permite ofrecer servicios de gestión digital. Multiplicador de ventas.', ideal:true, nivel:'Alto potencial' },
-              { emoji:'🌿', title:'Ganadero pequeño (20–50 cab.)', desc:'Quiere profesionalizarse. Precio más sensible. Entrar con plan PRO y hacer upsell a Premium cuando vea el valor.', ideal:false, nivel:'Potencial medio' },
-              { emoji:'🏢', title:'Cooperativas / Asoc. ganaderas', desc:'Una licencia Platino para toda la asociación. Múltiples usuarios, múltiples fincas. Ticket alto, requiere más gestión.', ideal:false, nivel:'Alto ticket' },
-            ].map(c=>(
-              <div key={c.title} className="rounded-xl p-4 flex gap-3" style={{background:c.ideal?'rgba(57,255,126,0.05)':'rgba(255,255,255,0.03)',border:c.ideal?'1px solid rgba(57,255,126,0.2)':'1px solid rgba(255,255,255,0.07)'}}>
-                <span className="text-3xl flex-shrink-0">{c.emoji}</span>
-                <div>
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="font-bold text-sm text-white">{c.title}</span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold" style={{background:c.ideal?'rgba(57,255,126,0.1)':'rgba(255,255,255,0.05)',color:c.ideal?'#39ff7e':'rgba(255,255,255,0.35)'}}>{c.nivel}</span>
-                  </div>
-                  <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.45)'}}>{c.desc}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{m.desc}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
+      ))}
+    </div>
+  );
+}
 
-        {/* ── Manejo de objeciones ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🛡️</span> Manejo de Objeciones — Las más comunes</h3>
-          <div className="space-y-3">
-            {[
-              {
-                obj:'"Tengo Excel y me funciona bien"',
-                resp:'Excel no le avisa cuando una vaca lleva más de 90 días sin parir. No se conecta con su báscula. No funciona en el campo sin internet. CIVAC hace todo eso automáticamente — y más rápido que Excel.',
-                c:'#f59e0b', glow:'245,158,11',
-              },
-              {
-                obj:'"Es muy caro para mi finca"',
-                resp:'$89.000 al mes son menos de $3.000 al día. Si CIVAC le ayuda a detectar a tiempo una sola vaca que no quedó preñada o una con pérdida de peso, ya pagó el año entero. ¿Cuánto vale un ternero perdido?',
-                c:'#f43f5e', glow:'244,63,94',
-              },
-              {
-                obj:'"No soy bueno con la tecnología"',
-                resp:'CIVAC fue diseñado para ganaderos, no para ingenieros. La pantalla de pesaje tiene botones grandes. Hacemos una capacitación de 30 minutos por WhatsApp y lo dejamos listo. Además tiene soporte incluido.',
-                c:'#3b82f6', glow:'59,130,246',
-              },
-              {
-                obj:'"¿Y si se daña el celular y pierdo todo?"',
-                resp:'CIVAC exporta backup completo en JSON que puede guardar en WhatsApp, Google Drive o USB. En otro celular instala CIVAC, importa el backup y en 2 minutos tiene todo de vuelta.',
-                c:'#a78bfa', glow:'167,139,250',
-              },
-              {
-                obj:'"Ya probé una app y no me funcionó"',
-                resp:'La mayoría requieren internet todo el tiempo. CIVAC funciona 100% offline en campo — esa es la diferencia clave. Además fue diseñado para Colombia: razas criollas, precios en COP, normativa ICA.',
-                c:'#14b8a6', glow:'20,184,166',
-              },
-              {
-                obj:'"¿Tiene integración con ICA / FEDEGAN?"',
-                resp:'CIVAC lleva el registro de todos los movimientos en el formato que exige el ICA (arete, fecha, tipo de movimiento). Puede exportar CSV para sus reportes oficiales con un solo clic.',
-                c:'#22c55e', glow:'34,197,94',
-              },
-            ].map(ob=>(
-              <div key={ob.obj} className="rounded-xl overflow-hidden">
-                <div className="px-4 py-2.5 flex items-start gap-2" style={{background:`rgba(${ob.glow},0.08)`,borderLeft:`3px solid rgba(${ob.glow},0.7)`}}>
-                  <span className="text-sm flex-shrink-0 mt-0.5">❓</span>
-                  <span className="font-semibold text-sm italic" style={{color:ob.c}}>{ob.obj}</span>
-                </div>
-                <div className="px-4 py-2.5 flex items-start gap-2" style={{background:'rgba(255,255,255,0.02)',borderLeft:`3px solid rgba(${ob.glow},0.25)`}}>
-                  <span className="text-sm flex-shrink-0 mt-0.5">💬</span>
-                  <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.6)'}}>{ob.resp}</p>
-                </div>
-              </div>
-            ))}
+function SecPwa() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="📱" title="Instalar PWA" subtitle="Instala CIVAC PRO como app nativa en tu dispositivo" c1="#0a1f3c" c2="#0e3050"/>
+      <div className="space-y-4">
+        {/* Android Chrome */}
+        <div className="rounded-2xl p-5" style={{ background:"rgba(57,255,126,0.05)", border:"1px solid rgba(57,255,126,0.15)" }}>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🤖</span>
+            <h3 className="font-black text-foreground">Android — Chrome</h3>
+            <Badge text="Recomendado" color="#39ff7e"/>
+          </div>
+          <div className="space-y-2.5">
+            <Step n={1} text='Abre CIVAC PRO en Chrome. Aparece el banner "Agregar a pantalla de inicio" en la parte inferior.' color="#39ff7e"/>
+            <Step n={2} text='Si no aparece el banner: toca los 3 puntos ⋮ → "Agregar a pantalla de inicio".' color="#39ff7e"/>
+            <Step n={3} text='Confirma en el diálogo. La app se instala como ícono en tu pantalla principal.' color="#39ff7e"/>
+            <Step n={4} text='Abre CIVAC PRO desde el ícono — funciona como app nativa, sin barra del navegador.' color="#39ff7e"/>
           </div>
         </div>
-
-        {/* ── Comparativa vs competencia ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>📊</span> Comparativa vs. Competencia</h3>
-          <div className="rounded-2xl overflow-hidden" style={{border:'1px solid rgba(0,245,212,0.15)'}}>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-xs">
-                <thead>
-                  <tr style={{background:'rgba(0,245,212,0.06)',borderBottom:'1px solid rgba(0,245,212,0.12)'}}>
-                    {['Característica','CIVAC PRO 🇨🇴','SisGan','Agrosoft','Software externo'].map((h,i)=>(
-                      <th key={h} className="text-left px-4 py-3 font-bold"
-                        style={{color:i===1?'#00f5d4':'rgba(255,255,255,0.4)',minWidth:120}}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ['Funciona offline (campo)','✅ Sí, 100%','⚠️ Parcial','❌ No','❌ No'],
-                    ['PWA — sin App Store','✅ Sí','❌ No','❌ No','⚠️ Algunos'],
-                    ['Pesaje Bluetooth','✅ Tru-Test, Gallagher','⚠️ Solo Tru-Test','❌ No','✅ Depende'],
-                    ['GPS bovino','✅ Incluido','❌ Módulo extra','❌ No','✅ Caro'],
-                    ['Genética / DEP','✅ Incluido','⚠️ Básico','❌ No','✅ Caro'],
-                    ['Razas criollas Colombia','✅ Brahman, Cebú, Gyr','✅ Sí','⚠️ Limitado','❌ No'],
-                    ['Pago en COP (Nequi/PSE)','✅ Sí','✅ Sí','✅ Sí','❌ USD/EUR'],
-                    ['Precio mensual','✅ $89K–$399K','⚠️ $150K–$600K','⚠️ Licencia anual','❌ +$500K'],
-                    ['Soporte en español','✅ WhatsApp Colombia','⚠️ Solo email','⚠️ Lento','❌ Inglés'],
-                    ['Multi-finca','✅ Incluido','⚠️ Costo extra','❌ No','✅ Caro'],
-                    ['Módulos financieros IA','✅ P&G + Predicción','❌ Básico','❌ No','⚠️ Limitado'],
-                  ].map(row=>(
-                    <tr key={row[0]} className="border-t hover:bg-white/[0.012] transition-colors"
-                      style={{borderColor:'rgba(255,255,255,0.04)'}}>
-                      {row.map((cell,i)=>(
-                        <td key={i} className="px-4 py-2.5"
-                          style={{color:i===0?'rgba(255,255,255,0.6)':i===1?'rgba(255,255,255,0.85)':'rgba(255,255,255,0.35)',
-                            fontWeight:i===1?700:400,
-                            background:i===1?'rgba(0,245,212,0.02)':'transparent'}}>
-                          {cell}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {/* iOS Safari */}
+        <div className="rounded-2xl p-5" style={{ background:"rgba(0,200,255,0.05)", border:"1px solid rgba(0,200,255,0.15)" }}>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🍎</span>
+            <h3 className="font-black text-foreground">iPhone / iPad — Safari</h3>
+          </div>
+          <div className="space-y-2.5">
+            <Step n={1} text="Abre CIVAC PRO en Safari (NO Chrome ni otro navegador)." color="#00c8ff"/>
+            <Step n={2} text='Toca el botón Compartir 📤 en la barra inferior de Safari.' color="#00c8ff"/>
+            <Step n={3} text='Selecciona "Agregar a pantalla de inicio" en el menú.' color="#00c8ff"/>
+            <Step n={4} text='Confirma el nombre y toca "Agregar". La app aparece en tu pantalla.' color="#00c8ff"/>
           </div>
         </div>
-
-        {/* ── Script de demo ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>🎬</span> Guión de Demo — 10 minutos</h3>
-          <div className="space-y-2">
-            {[
-              { min:'00:00', paso:'Abrir civac.pro en Chrome del cliente y mostrar el login', tip:'Deje que el cliente toque las 4 tarjetas de perfil — eso ya impresiona', c:'#00f5d4' },
-              { min:'01:30', paso:'Entrar como Admin y mostrar el Dashboard con los KPIs', tip:'Señale los 6 KPIs de arriba: "Todo su negocio en una pantalla"', c:'#3b82f6' },
-              { min:'03:00', paso:'Ir a Inventario → abrir una ficha de animal', tip:'Muestre el historial de pesajes, vacunas y partos — diga "esto es lo que el ICA pide"', c:'#a78bfa' },
-              { min:'04:30', paso:'Demostrar Pesaje Manual: widget de báscula digital', tip:'Seleccione un animal, ajuste el peso con los botones ±5 y ±1, muestre el recibo que se genera', c:'#f59e0b' },
-              { min:'06:00', paso:'Ir a GPS → mostrar el mapa con los collares', tip:'"Sus vacas en tiempo real — si salen de la geocerca, le llega una alerta"', c:'#22c55e' },
-              { min:'07:30', paso:'Mostrar Centro de Respaldo → exportar backup JSON', tip:'"Sus datos están en su celular. Aquí los exporta a WhatsApp o Google Drive"', c:'#f43f5e' },
-              { min:'09:00', paso:'Ir a Configuración → instalar como PWA', tip:'Haga que el CLIENTE toque "Instalar" — el momento de magia cuando aparece el ícono en su pantalla', c:'#c084fc' },
-              { min:'10:00', paso:'Cierre: mostrar los planes y precio', tip:'"¿Con cuál plan empieza?" — no pregunte si quiere, asuma que quiere y pregunta cuál', c:'#39ff7e' },
-            ].map(s=>(
-              <div key={s.min} className="flex gap-3 items-start">
-                <div className="w-10 flex-shrink-0 text-center">
-                  <div className="font-mono font-bold text-xs px-1 py-0.5 rounded" style={{background:`rgba(${s.c==='#00f5d4'?'0,245,212':s.c==='#3b82f6'?'59,130,246':s.c==='#a78bfa'?'167,139,250':s.c==='#f59e0b'?'245,158,11':s.c==='#22c55e'?'34,197,94':s.c==='#f43f5e'?'244,63,94':s.c==='#c084fc'?'192,132,252':'57,255,126'},0.15)`,color:s.c}}>{s.min}</div>
-                </div>
-                <div className="flex-1 rounded-xl px-3 py-2.5" style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                  <div className="font-semibold text-xs text-white mb-0.5">{s.paso}</div>
-                  <div className="text-[10px]" style={{color:'rgba(255,255,255,0.35)'}}>💡 {s.tip}</div>
-                </div>
-              </div>
-            ))}
+        {/* Desktop */}
+        <div className="rounded-2xl p-5" style={{ background:"rgba(167,139,250,0.05)", border:"1px solid rgba(167,139,250,0.15)" }}>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🖥️</span>
+            <h3 className="font-black text-foreground">PC — Chrome / Edge</h3>
           </div>
-        </div>
-
-        {/* ── Comisiones y contacto ── */}
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="rounded-2xl p-5" style={{background:'linear-gradient(135deg,#1a0800,#2a1200)',border:'1px solid rgba(245,158,11,0.25)'}}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl">💰</span>
-              <span className="font-black text-white text-sm">Comisiones para Agentes</span>
-            </div>
-            <div className="space-y-2">
-              {[
-                {plan:'Plan PRO', comision:'20%', val:'$17.800/mes', glow:'245,158,11'},
-                {plan:'Plan Premium', comision:'20%', val:'$37.800/mes', glow:'167,139,250'},
-                {plan:'Plan Platino', comision:'20%', val:'$79.800/mes', glow:'244,63,94'},
-                {plan:'Bono por 5+ clientes/mes', comision:'25%', val:'Comisión aumentada', glow:'57,255,126'},
-              ].map(c=>(
-                <div key={c.plan} className="flex items-center justify-between py-1.5 border-b" style={{borderColor:'rgba(255,255,255,0.06)'}}>
-                  <span className="text-xs text-white/60">{c.plan}</span>
-                  <div className="text-right">
-                    <span className="font-black text-sm" style={{color:`rgb(${c.glow})`}}>{c.comision}</span>
-                    <div className="text-[9px]" style={{color:`rgba(${c.glow},0.5)`}}>{c.val}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-[10px] mt-3" style={{color:'rgba(255,255,255,0.3)'}}>Comisión recurrente mientras el cliente pague · Pago mensual por Nequi o transferencia</p>
-          </div>
-
-          <div className="rounded-2xl p-5" style={{background:'linear-gradient(135deg,#001428,#001e3c)',border:'1px solid rgba(59,130,246,0.25)'}}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-xl">📞</span>
-              <span className="font-black text-white text-sm">Contacto y Recursos</span>
-            </div>
-            <div className="space-y-3">
-              {[
-                { icon:'💬', label:'WhatsApp ventas', val:'+57 300 000 0000', c:'#25D366' },
-                { icon:'📧', label:'Email comercial', val:'ventas@civac.pro', c:'#3b82f6' },
-                { icon:'🌐', label:'Demo pública', val:'civac.pro', c:'#00f5d4' },
-                { icon:'📹', label:'Video de demo', val:'civac.pro/demo', c:'#f43f5e' },
-                { icon:'📋', label:'Brochure PDF', val:'civac.pro/brochure', c:'#a78bfa' },
-              ].map(c=>(
-                <div key={c.label} className="flex items-center gap-2.5">
-                  <span className="text-lg flex-shrink-0">{c.icon}</span>
-                  <div>
-                    <div className="text-[9px] text-white/30">{c.label}</div>
-                    <div className="font-bold text-sm" style={{color:c.c}}>{c.val}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── FAQ del cliente ── */}
-        <div>
-          <h3 className="font-black text-white text-sm mb-3 flex items-center gap-2"><span>❓</span> FAQ — Preguntas que hacen los clientes</h3>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {[
-              { q:'¿Necesito internet en el campo?', a:'No. CIVAC funciona 100% offline. Guarda todo en el celular y puede sincronizar cuando llegue a casa o a la oficina.' },
-              { q:'¿Cuántas vacas puedo registrar?', a:'Sin límite. Puede registrar desde 5 hasta 50.000 animales. El sistema maneja cualquier tamaño de hato.' },
-              { q:'¿Puedo usar CIVAC en varios celulares?', a:'Sí. La misma finca puede tener varios usuarios con roles distintos: admin, veterinario, vaquero, solo lectura.' },
-              { q:'¿Qué pasa si cancelo la suscripción?', a:'Todos sus datos siguen en el celular. Puede exportar backup completo y llevarlo a cualquier lugar. Sus datos son suyos.' },
-              { q:'¿Funciona con mi báscula de la finca?', a:'CIVAC se conecta con las principales básculas Bluetooth del mercado colombiano (Tru-Test, Gallagher). Para báscula sin BT, ingresa el peso manualmente.' },
-              { q:'¿Hay soporte en español?', a:'Sí. Soporte por WhatsApp en horario colombiano (7am–7pm). También hay guías de video y documentación completa en español.' },
-            ].map(fq=>(
-              <div key={fq.q} className="rounded-xl p-3.5" style={{background:'rgba(255,255,255,0.025)',border:'1px solid rgba(255,255,255,0.07)'}}>
-                <div className="font-semibold text-xs text-white mb-1.5">❓ {fq.q}</div>
-                <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.5)'}}>{fq.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Cierre ── */}
-        <div className="rounded-2xl p-5 text-center relative overflow-hidden"
-          style={{background:'linear-gradient(135deg,#001a08,#002a10,#001a08)',border:'1px solid rgba(57,255,126,0.3)'}}>
-          <div className="absolute inset-0 pointer-events-none" style={{background:'radial-gradient(ellipse at 50% 0%,rgba(57,255,126,0.06),transparent 60%)'}}/>
-          <div className="relative">
-            <div className="text-4xl mb-2">🇨🇴</div>
-            <h3 className="font-black text-white text-lg mb-2" style={{fontFamily:'Sora,sans-serif'}}>¡Usted puede vender el mejor software ganadero de Colombia!</h3>
-            <p className="text-sm mb-4 max-w-xl mx-auto" style={{color:'rgba(57,255,126,0.6)'}}>
-              CIVAC PRO está probado, funciona en campo, tiene soporte y un precio justo para el mercado colombiano. Su trabajo es mostrarlo y cerrar. El software se vende solo.
-            </p>
-            <div className="flex gap-2 justify-center flex-wrap">
-              <button onClick={()=>window.print()}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm"
-                style={{background:'rgba(57,255,126,0.12)',border:'1px solid rgba(57,255,126,0.3)',color:'#39ff7e'}}>
-                <Printer size={14}/> Imprimir esta guía
-              </button>
-              <a href="https://wa.me/573000000000?text=Hola, quiero ser agente CIVAC PRO" target="_blank" rel="noreferrer"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm"
-                style={{background:'rgba(37,211,102,0.12)',border:'1px solid rgba(37,211,102,0.3)',color:'#25D366'}}>
-                💬 Contactar por WhatsApp
-              </a>
-            </div>
+          <div className="space-y-2.5">
+            <Step n={1} text="Busca el ícono de instalación ⊕ en la barra de direcciones (extremo derecho)." color="#a78bfa"/>
+            <Step n={2} text='Haz clic y selecciona "Instalar CIVAC PRO".' color="#a78bfa"/>
+            <Step n={3} text="La app abre como ventana independiente sin pestañas del navegador." color="#a78bfa"/>
           </div>
         </div>
       </div>
-    ),
-  };
 
-  const activeConf = SECTIONS.find(s => s.id === activeSection);
+      {/* PWA Features */}
+      <div>
+        <p className="text-[11px] font-mono font-bold tracking-widest mb-3" style={{ color:"rgba(0,245,212,0.4)" }}>CARACTERÍSTICAS PWA — SERVICE WORKER v8</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {[
+            { icon:"⚡", t:"Cache-first assets",      d:"JS, CSS, imágenes servidas desde caché instantáneamente" },
+            { icon:"🔄", t:"Stale-while-revalidate",  d:"Navegación HTML siempre disponible, actualiza en fondo" },
+            { icon:"📡", t:"Network-first API",       d:"Datos siempre frescos con fallback a caché offline" },
+            { icon:"🔵", t:"Background sync",         d:"Acciones offline se envían al recuperar conexión" },
+            { icon:"⏰", t:"Periodic sync",           d:"Pre-calienta datos cada 6 horas automáticamente" },
+            { icon:"🔔", t:"Push notifications",      d:"Alertas de partos, vacunación y stock desde el servidor" },
+            { icon:"💾", t:"33 rutas pre-cacheadas",  d:"Toda la app disponible offline desde la instalación" },
+            { icon:"📤", t:"Share target",            d:"Comparte archivos .json directamente al módulo Datos" },
+          ].map(f => (
+            <div key={f.t} className="flex items-start gap-3 p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)" }}>
+              <span className="text-base mt-0.5">{f.icon}</span>
+              <div>
+                <p className="text-[12px] font-bold text-foreground">{f.t}</p>
+                <p className="text-[11px] text-muted-foreground">{f.d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <Tip text="El Service Worker v8 pre-cachea las 33 rutas de la app en la instalación. Verifica el estado en Configuración → Datos → Info caché." color="#00f5d4"/>
+    </div>
+  );
+}
+
+function SecOffline() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="📶" title="Modo Offline" subtitle="CIVAC PRO funciona 100% sin internet" c1="#0f0a2a" c2="#1a0a3c"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[
+          { icon:"💾", t:"IndexedDB", d:"Base de datos local del navegador. Almacena todos los registros ganaderos sin límite práctico.", color:"#a78bfa" },
+          { icon:"⚡", t:"Service Worker v8", d:"Intercepta todas las peticiones. Sirve desde caché cuando no hay conexión.", color:"#00f5d4" },
+          { icon:"🔄", t:"Background Sync", d:"Las acciones realizadas offline se envían automáticamente al recuperar internet.", color:"#39ff7e" },
+          { icon:"🔔", t:"Push Offline", d:"Las alertas críticas se muestran aunque la app esté en segundo plano.", color:"#fbbf24" },
+        ].map(c => (
+          <InfoCard key={c.t} icon={<span>{c.icon}</span>} title={c.t} desc={c.d} color={c.color}/>
+        ))}
+      </div>
+
+      <div className="rounded-xl p-4" style={{ background:"rgba(0,245,212,0.05)", border:"1px solid rgba(0,245,212,0.15)" }}>
+        <p className="text-sm font-bold text-foreground mb-3">¿Qué funciona offline?</p>
+        <div className="space-y-2">
+          {[
+            ["✅","Todos los módulos de producción animal (inventario, pesaje, reproducción, genética)"],
+            ["✅","Registrar pesajes, partos, inseminaciones y eventos de salud"],
+            ["✅","Ver y editar potreros, raciones y costos"],
+            ["✅","Consultar fichas de animales e historial"],
+            ["✅","Reportes y gráficas (datos locales)"],
+            ["✅","Pesaje Bluetooth (Bluetooth no depende de internet)"],
+            ["⚠️","GPS bovino funciona offline pero el mapa de tiles puede requerir internet la primera vez"],
+            ["❌","Sincronización Google Drive (requiere conexión)"],
+          ].map(([status, text], i) => (
+            <div key={i} className="flex items-start gap-2 text-sm">
+              <span>{status}</span>
+              <span className="text-muted-foreground">{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <Tip text="Activa el almacenamiento persistente en tu navegador: te protege contra la limpieza automática de caché cuando el disco está lleno." color="#a78bfa"/>
+    </div>
+  );
+}
+
+function SecLogin() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🔐" title="Login & Cuentas" subtitle="3 formas de acceso · 6 cuentas predefinidas · 6 roles" c1="#1a0a1a" c2="#2a0a2a"/>
+
+      <div className="space-y-3">
+        {[
+          { tab:"🔑 Iniciar Sesión", desc:"Formulario principal con correo + contraseña. También permite acceso rápido con Google (próximamente)." },
+          { tab:"👤 Cuentas Demo", desc:"Acceso directo a las 6 cuentas predefinidas del sistema. Solo visible para cuentas CIVAC Staff." },
+          { tab:"💳 Planes", desc:"Información de los 4 planes (Básico · PRO · Premium · Platino) con precios y pasarela de pago Wompi." },
+        ].map(t => (
+          <div key={t.tab} className="flex items-start gap-3 p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
+            <span className="text-sm font-bold text-foreground mt-0.5">{t.tab}</span>
+            <p className="text-xs text-muted-foreground">{t.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[11px] font-mono font-bold tracking-widest" style={{ color:"rgba(0,245,212,0.4)" }}>CUENTAS DEL SISTEMA</p>
+      <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.07)" }}>
+        <table className="w-full text-xs">
+          <thead>
+            <tr style={{ background:"rgba(255,255,255,0.04)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+              {["Nombre","Email","Contraseña","Rol"].map(h => (
+                <th key={h} className="text-left px-3 py-2 font-bold text-muted-foreground">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { n:"Administrador",    e:"admin@ganader.ia",  p:"admin",    r:"admin",      rc:"#ff9500" },
+              { n:"Super Admin",      e:"super@civac.co",    p:"super2026",r:"superadmin", rc:"#ff6b35" },
+              { n:"Dev · Arquitecto", e:"dev@civac.co",      p:"dev2026",  r:"developer",  rc:"#00ff88" },
+              { n:"Dr. Carlos Ramírez",e:"vet@ganader.ia",   p:"vet2026",  r:"vet",        rc:"#39ff7e" },
+              { n:"Luis Patiño",      e:"luis@ganader.ia",   p:"campo2026",r:"field",      rc:"#fbbf24" },
+              { n:"Visor Inversor",   e:"visor@ganader.ia",  p:"visor",    r:"viewer",     rc:"#94a3b8" },
+            ].map((row, i) => (
+              <tr key={row.e} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)", background: i%2===0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                <td className="px-3 py-2 font-semibold text-foreground">{row.n}</td>
+                <td className="px-3 py-2 font-mono text-muted-foreground">{row.e}</td>
+                <td className="px-3 py-2 font-mono" style={{ color:"#a78bfa" }}>{row.p}</td>
+                <td className="px-3 py-2"><Badge text={row.r} color={row.rc}/></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {[
+          { role:"admin / superadmin", desc:"Panel Admin completo, sin sidebar de finca", color:"#ff9500" },
+          { role:"developer",          desc:"Consola dev + acceso completo todos los módulos", color:"#00ff88" },
+          { role:"vet",                desc:"Módulos clínicos — sanidad, ficha, reproducción", color:"#39ff7e" },
+          { role:"field",              desc:"Campo: pesaje, GPS, potreros, insumos", color:"#fbbf24" },
+          { role:"viewer",             desc:"Solo lectura — dashboard y reportes", color:"#94a3b8" },
+          { role:"sales",              desc:"CRM ventas, demos, pipeline comercial", color:"#e879f9" },
+        ].map(r => (
+          <div key={r.role} className="p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${r.color}20` }}>
+            <Badge text={r.role} color={r.color}/>
+            <p className="text-[11px] text-muted-foreground mt-1.5">{r.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SecInventario() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🐄" title="Inventario Animal" subtitle="Registro completo de tu hato bovino con RFID y filtros" c1="#062010" c2="#0b3820"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Beef size={16}/>} title="Registro bovinos" desc="Crea registros con aretado, nombre, categoría (toro/vaca/novillo/ternero), raza, peso inicial y potrero asignado." color="#39ff7e"/>
+        <InfoCard icon={<Tag size={16}/>} title="RFID CIVAC" desc="Vincula etiquetas RFID EPC96 para lectura automática con lectores UHF. Protocolo CIVAC-RFID integrado." color="#fbbf24"/>
+        <InfoCard icon={<Scale size={16}/>} title="Pesaje integrado" desc="Desde la ficha del animal puedes acceder directamente al módulo de pesaje BT o manual." color="#ff9a3c"/>
+        <InfoCard icon={<FileDown size={16}/>} title="Exportar / Importar" desc="Exporta el inventario a CSV o JSON. Importa desde plantilla Excel con validación automática." color="#a78bfa"/>
+      </div>
+      <div className="space-y-3">
+        <p className="text-sm font-bold text-foreground">Categorías disponibles</p>
+        <div className="flex flex-wrap gap-2">
+          {["Toro", "Vaca lechera", "Vaca cría", "Novillo", "Novilla", "Ternero", "Ternera", "Macho ceba", "Hembra ceba"].map(cat => (
+            <Badge key={cat} text={cat} color="#39ff7e"/>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Faq q="¿Puedo importar desde Excel?" a="Sí. Descarga la plantilla CSV en el módulo → Importar, llena los datos y sube el archivo. CIVAC valida el formato automáticamente."/>
+        <Faq q="¿Cómo funciona el RFID?" a="Necesitas un lector UHF compatible. El sistema lee las etiquetas EPC96 y las asocia al animal por ID. También puedes ingresar el número manualmente."/>
+        <Faq q="¿Puedo registrar fotos de los animales?" a="Sí, en la ficha individual puedes subir una foto de referencia del animal para identificación visual."/>
+      </div>
+    </div>
+  );
+}
+
+function SecPesaje() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="⚖️" title="Pesaje Bluetooth" subtitle="Báscula BT con motor IA — BCS, GMD, razas y diagnóstico" c1="#1a0c04" c2="#2d1a08"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Bluetooth size={16}/>} title="Web Bluetooth API" desc="Conecta báscula BT (Tru-Test · Gallagher · Arlyn). Parser 9-byte frame CIVAC. Lectura automática del peso." color="#3b82f6"/>
+        <InfoCard icon={<Cpu size={16}/>} title="IA Engine" desc="Calcula BCS (Body Condition Score 1-9), GMD, diagnóstico por raza. Compatible con 9 razas bovinas Colombia." color="#e879f9"/>
+        <InfoCard icon={<Scale size={16}/>} title="9 razas calibradas" desc="Holstein, Jersey, Brahman, Simmental, Angus, Cebuíno, BON, Normando, Criollo Colombiano." color="#fbbf24"/>
+        <InfoCard icon={<Printer size={16}/>} title="Recibo PDF" desc="Genera recibo imprimible con: peso, BCS, GMD, animal, fecha, operador y firma." color="#39ff7e"/>
+      </div>
+      <div className="space-y-3">
+        <p className="text-sm font-bold text-foreground">Flujo de pesaje BT</p>
+        <div className="space-y-2.5">
+          <Step n={1} text="Escanea dispositivos Bluetooth cercanos con el botón 'Escanear'." color="#3b82f6"/>
+          <Step n={2} text="Selecciona tu báscula en la lista. El estado cambia a CONECTADO." color="#3b82f6"/>
+          <Step n={3} text="Coloca el animal en la báscula. El peso se registra automáticamente (frame 9 bytes)." color="#3b82f6"/>
+          <Step n={4} text="Selecciona el animal del inventario y el sistema calcula BCS + GMD con IA." color="#3b82f6"/>
+          <Step n={5} text="Guarda el registro e imprime el recibo si lo necesitas." color="#3b82f6"/>
+        </div>
+      </div>
+      <Tip text="Si Bluetooth no está disponible en tu navegador, usa el modo Pesaje Manual (ruta /pesaje-manual) que también calcula BCS y GMD por fórmula." color="#3b82f6"/>
+    </div>
+  );
+}
+
+function SecReproduccion() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="❤️" title="Reproducción" subtitle="IEP, celos, inseminaciones, partos y anestros" c1="#1a0515" c2="#2d0a25"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Heart size={16}/>} title="Ciclos reproductivos" desc="Registra celos observados, detección por cambios de comportamiento o dispositivos de detección." color="#ff6fd8"/>
+        <InfoCard icon={<Baby size={16}/>} title="Inseminaciones" desc="IA bovina con seguimiento: toro, fecha, técnico, resultado. Protocolo IATF integrado." color="#f472b6"/>
+        <InfoCard icon={<Heart size={16}/>} title="Próximos partos" desc="Calendario predictivo basado en fecha de monta/IA. Alertas automáticas 30, 15 y 7 días antes." color="#ec4899"/>
+        <InfoCard icon={<Activity size={16}/>} title="IEP y anestros" desc="Calcula IEP (Intervalo Entre Partos) y detecta vacas en anestro para intervención." color="#ff6fd8"/>
+      </div>
+      <div className="space-y-2">
+        <Faq q="¿Qué es el IEP y cuál es el valor óptimo?" a="El Intervalo Entre Partos (IEP) mide días entre partos consecutivos. El óptimo es 365 días (parto anual). Valores >420 días indican problemas reproductivos."/>
+        <Faq q="¿Cómo registro un protocolo IATF?" a="En el módulo Reproducción → Nueva inseminación → selecciona el protocolo (Ovsynch · Presynch · Co-synch) y el sistema guía los pasos."/>
+        <Faq q="¿Las alertas de parto próximo llegan al celular?" a="Sí, si tienes la PWA instalada y las notificaciones push activadas, recibirás alertas 30, 15 y 7 días antes del parto estimado."/>
+      </div>
+    </div>
+  );
+}
+
+function SecGenetica() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🧬" title="Genética & DEP" subtitle="Diferencias Esperadas en Progenie para selección genética" c1="#0f0520" c2="#1a0a35"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Dna size={16}/>} title="DEP Ranking" desc="Lista de toros rankeados por DEP: leche, grasa, proteína, facilidad de parto, longevidad y características." color="#a855f7"/>
+        <InfoCard icon={<BarChart3 size={16}/>} title="Score Bars" desc="Barras horizontales de progreso para visualizar el DEP de cada característica de forma rápida." color="#8b5cf6"/>
+        <InfoCard icon={<Award size={16}/>} title="Pedigrí" desc="Árbol genealógico del animal: padre, madre, abuelos. Identificación de endogamia." color="#7c3aed"/>
+        <InfoCard icon={<Dna size={16}/>} title="Semen criogénico" desc="Módulo Semen registra el inventario de pajillas, dosis por toro y embriones TE disponibles." color="#a78bfa"/>
+      </div>
+      <Tip text="Usa el DEP de facilidad de parto (FP) para vaquillas primerizas. Un FP bajo reduce el riesgo de distocias y pérdidas al nacer." color="#a855f7"/>
+    </div>
+  );
+}
+
+function SecProduccion() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🥛" title="Producción de Leche" subtitle="Registro diario de ordeños y análisis de tendencias" c1="#040f1a" c2="#071c35"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Droplets size={16}/>} title="Ordeños diarios" desc="Registra hasta 3 ordeños por día por vaca. Sistema acumula litros, calcula promedios y detecta bajan." color="#00c8ff"/>
+        <InfoCard icon={<BarChart3 size={16}/>} title="BarChart 7 meses" desc="Gráfica de barras de producción mensual histórica. Comparar años y detectar estacionalidad." color="#0ea5e9"/>
+        <InfoCard icon={<Award size={16}/>} title="Ranking top-vacas" desc="Lista automática de las 5 vacas con mayor producción diaria y mensual del hato." color="#38bdf8"/>
+        <InfoCard icon={<Activity size={16}/>} title="Curva de lactancia" desc="Gráfica individual por animal de su curva de lactancia. Detecta descensos anormales." color="#00c8ff"/>
+      </div>
+      <Tip text="La producción promedio del hato demo es 84 L/día con 13 animales en ordeño. Para aumentar: verifica BCS, nutrición y estado reproductivo." color="#00c8ff"/>
+    </div>
+  );
+}
+
+function SecCampo() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🌿" title="Campo & Potreros" subtitle="Plan de rotación, semáforo de estado y lotes" c1="#051a0a" c2="#082d12"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<MapPin size={16}/>} title="Mapa CSS potreros" desc="Visualización de los 6 lotes con estado por color: verde (disponible), amarillo (descansando), rojo (agotado)." color="#4ade80"/>
+        <InfoCard icon={<RefreshCw size={16}/>} title="Rotación activa" desc="El sistema gestiona el plan de rotación: días de pastoreo, descanso y reposición de pasto por potrero." color="#22c55e"/>
+        <InfoCard icon={<Tag size={16}/>} title="Módulo Lotes" desc="Registra movimientos de animales entre lotes. Historial de entradas/salidas por potrero." color="#86efac"/>
+        <InfoCard icon={<Wheat size={16}/>} title="Carga animal" desc="Calcula la carga por ha según animales presentes. Alerta cuando supera la capacidad del potrero." color="#4ade80"/>
+      </div>
+      <div className="space-y-2">
+        <Faq q="¿Cuántos potreros puede manejar CIVAC PRO?" a="Actualmente 6 potreros en el mapa CSS. En la versión Premium se amplía a 12 con GPS overlay para cada uno."/>
+        <Faq q="¿Cómo funciona el plan de rotación?" a="Defines días de pastoreo (ej: 3 días) y días de descanso (ej: 21 días). El sistema calcula automáticamente cuándo mover los animales al siguiente potrero."/>
+      </div>
+    </div>
+  );
+}
+
+function SecGps() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="📡" title="GPS Bovino" subtitle="Rastreo en tiempo real con geovallado y Bluetooth" c1="#020d1a" c2="#0a2745"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Navigation size={16}/>} title="watchPosition real" desc="Usa navigator.geolocation.watchPosition del navegador para seguimiento continuo sin app nativa." color="#0ea5e9"/>
+        <InfoCard icon={<Map size={16}/>} title="Mapa SVG animado" desc="Potreros con colores, dots animados con pulso para animales online, historial de movimiento." color="#00c8ff"/>
+        <InfoCard icon={<Radio size={16}/>} title="13 collares activos" desc="Dispositivos CIVAC-GPS-v3 con MQTT broker en mqtt.civac.co:1883. Batería y señal en tiempo real." color="#38bdf8"/>
+        <InfoCard icon={<Shield size={16}/>} title="Geovallado" desc="Define zonas seguras por potrero. Alerta inmediata si un animal sale del área asignada." color="#0ea5e9"/>
+      </div>
+      <div className="space-y-3">
+        <p className="text-sm font-bold text-foreground">Vinculación de dispositivos</p>
+        <div className="space-y-2.5">
+          <Step n={1} text="Ve a GPS → Dispositivos → Nuevo dispositivo." color="#0ea5e9"/>
+          <Step n={2} text="Ingresa: nombre del collar, IMEI, tipo (GPS/BT) y animal asignado." color="#0ea5e9"/>
+          <Step n={3} text="Si el collar es Bluetooth, usa 'Escanear BT' para emparejar directamente." color="#0ea5e9"/>
+          <Step n={4} text="El collar aparece en el mapa como dot animado con su estado de batería." color="#0ea5e9"/>
+        </div>
+      </div>
+      <Tip text="El módulo GPS Chips (/gps-chips) es el gestor avanzado de todos los dispositivos, historial de movimiento y configuración del broker MQTT." color="#0ea5e9"/>
+    </div>
+  );
+}
+
+function SecSanidad() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="💉" title="Sanidad Animal" subtitle="Control sanitario, vacunación y tratamientos del hato" c1="#051a08" c2="#082d12"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Activity size={16}/>} title="Plan vacunacional" desc="Registro de vacunas por animal y por hato. Alertas automáticas de refuerzos y vencimientos del biológico." color="#22c55e"/>
+        <InfoCard icon={<FlaskConical size={16}/>} title="Tratamientos" desc="Registro de diagnósticos, medicamentos, dosis y duración del tratamiento. Control de periodos de retiro." color="#4ade80"/>
+        <InfoCard icon={<Shield size={16}/>} title="Enfermedades ICA" desc="Reporte de enfermedades de notificación obligatoria ante el ICA Colombia. Gestión de cuarentenas." color="#16a34a"/>
+        <InfoCard icon={<FileText size={16}/>} title="Historial sanitario" desc="Cada animal tiene su historial clínico completo accesible desde Ficha Animal o directamente desde Sanidad." color="#22c55e"/>
+      </div>
+      <div className="space-y-2">
+        <Faq q="¿Cómo registro una vacunación masiva del hato?" a="Sanidad → Vacunación → Vacunación masiva. Selecciona el biológico, lote, dosis y el sistema aplica a todos los animales del grupo seleccionado."/>
+        <Faq q="¿Qué es el periodo de retiro?" a="Es el tiempo mínimo que debe pasar entre la última dosis del medicamento y el sacrificio o la entrega de leche para consumo. CIVAC calcula y alerta automáticamente cuando termina el periodo."/>
+      </div>
+    </div>
+  );
+}
+
+function SecTrazabilidad() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="📋" title="Trazabilidad ICA" subtitle="Cumplimiento normativo bovino Colombia — Resolución ICA" c1="#1a0d04" c2="#2d1a08"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Tag size={16}/>} title="Registro ICA" desc="Genera el reporte de movilización bovina según el formato oficial ICA Colombia. SINIGAN compatible." color="#f97316"/>
+        <InfoCard icon={<FileText size={16}/>} title="Guías de movilización" desc="Crea guías de movilización electrónicas para traslado entre predios o hacia la planta de sacrificio." color="#fb923c"/>
+        <InfoCard icon={<Shield size={16}/>} title="Predios registrados" desc="Gestiona tus predios CIVAC con NUPEC (Número Único de Predio Pecuario). Vinculación a SINIGAN." color="#f97316"/>
+        <InfoCard icon={<Award size={16}/>} title="Cadena de custodia" desc="Trazabilidad completa: desde nacimiento → vacunaciones → movilizaciones → sacrificio o exportación." color="#ea580c"/>
+      </div>
+      <div className="rounded-xl p-4" style={{ background:"rgba(249,115,22,0.06)", border:"1px solid rgba(249,115,22,0.2)" }}>
+        <p className="text-sm font-bold text-foreground mb-2">📌 Marco legal Colombia</p>
+        <div className="space-y-1 text-xs text-muted-foreground">
+          <p>• Resolución ICA 970 de 2010 — Sistema Nacional de Identificación e Información del Ganado Bovino</p>
+          <p>• Decreto 1500 de 2007 — Reglamento técnico para la cadena de cárnicos</p>
+          <p>• Ley 914 de 2004 — Sistema Nacional de Identificación e Información del Ganado Bovino y Bufalino</p>
+        </div>
+      </div>
+      <Tip text="Para exportar bovinos o comercializarlos con plantas de sacrificio TIF, el sistema genera automáticamente los documentos exigidos por el ICA." color="#f97316"/>
+    </div>
+  );
+}
+
+function SecFinanzas() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="💰" title="Costos & Finanzas" subtitle="P&G, costo por litro, margen y análisis financiero" c1="#1a0f02" c2="#2d1e06"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<DollarSign size={16}/>} title="P&G detallado" desc="Estado de resultados con ingresos (leche, carne, pie de cría) y egresos (alimentación, sanidad, nómina, servicios)." color="#fbbf24"/>
+        <InfoCard icon={<Activity size={16}/>} title="Costo por litro" desc="Calcula el costo de producción por litro de leche en tiempo real. Compara contra precio de venta." color="#f59e0b"/>
+        <InfoCard icon={<BarChart3 size={16}/>} title="5 KPIs financieros" desc="Margen bruto, ROI, costo/vaca/mes, ingreso mensual y punto de equilibrio del hato." color="#fbbf24"/>
+        <InfoCard icon={<Cpu size={16}/>} title="Predicción IA" desc="Módulo /prediccion: simulador con sliders para proyectar escenarios financieros a 12 meses." color="#e879f9"/>
+      </div>
+      <div className="space-y-2">
+        <Faq q="¿Cómo registro los ingresos por venta de leche?" a="Costos → Ingresos → Nueva entrada. Selecciona 'Venta leche', ingresa litros y precio por litro. El sistema calcula automáticamente el total mensual."/>
+        <Faq q="¿El módulo CO₂ afecta las finanzas?" a="Sí, el módulo Huella CO₂ calcula tu huella de carbono según IPCC 2019 y te muestra el potencial de bonos de carbono que puedes vender en el mercado voluntario."/>
+      </div>
+    </div>
+  );
+}
+
+function SecPersonal() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="👥" title="Personal & Nómina" subtitle="Gestión de empleados, nómina y prestaciones sociales" c1="#040d1a" c2="#071932"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Users size={16}/>} title="6 empleados demo" desc="Cargos: ordeñador, vaquero, administrador, auxiliar, mayordomo, asesor veterinario. Con foto y datos completos." color="#60a5fa"/>
+        <InfoCard icon={<DollarSign size={16}/>} title="Nómina mensual" desc="Cálculo automático de salario, horas extras, subsidio de transporte y retenciones." color="#3b82f6"/>
+        <InfoCard icon={<Shield size={16}/>} title="EPS / ARL / AFP" desc="Registro de entidades de salud, riesgos laborales y fondos de pensión por empleado." color="#60a5fa"/>
+        <InfoCard icon={<Award size={16}/>} title="Prestaciones" desc="Calcula cesantías, prima de servicios, vacaciones e intereses sobre cesantías automáticamente." color="#2563eb"/>
+      </div>
+    </div>
+  );
+}
+
+function SecPrediccion() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🔮" title="Predicción IA" subtitle="Simulador financiero inteligente con proyecciones a 12 meses" c1="#0f0520" c2="#1c0835"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Cpu size={16}/>} title="Sliders de escenario" desc="Ajusta: precio leche, cantidad animales, eficiencia reproductiva, costos alimentación y más para simular escenarios." color="#e879f9"/>
+        <InfoCard icon={<BarChart3 size={16}/>} title="Proyección 12 meses" desc="Gráfica de proyección mensual con bandas de confianza. Muestra escenario base, optimista y pesimista." color="#c026d3"/>
+        <InfoCard icon={<Activity size={16}/>} title="Punto de equilibrio" desc="Calcula automáticamente el número mínimo de animales y litros necesarios para cubrir costos." color="#e879f9"/>
+        <InfoCard icon={<Award size={16}/>} title="Recomendaciones IA" desc="El motor analiza tus datos actuales y sugiere las 3 acciones con mayor impacto en rentabilidad." color="#a21caf"/>
+      </div>
+      <Tip text="Combina Predicción IA con el módulo CO₂ para proyectar ingresos por bonos de carbono y ver el impacto total en la rentabilidad de tu finca." color="#e879f9"/>
+    </div>
+  );
+}
+
+function SecCo2() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🌱" title="Huella CO₂" subtitle="Medición de emisiones según IPCC 2019 AR6 · Colombia" c1="#051a08" c2="#0a2e12"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<TreePine size={16}/>} title="Factor IPCC 2019" desc="Usa el factor oficial CH₄: 56 kg/cabeza/año para bovinos de doble propósito en clima tropical." color="#86efac"/>
+        <InfoCard icon={<BarChart3 size={16}/>} title="Benchmarking Colombia" desc="Compara tu huella con el promedio nacional (4.2 tCO₂e/vaca/año) y con fincas certificadas." color="#4ade80"/>
+        <InfoCard icon={<DollarSign size={16}/>} title="Bonos de carbono" desc="Calcula el potencial de ingresos por venta de bonos en el mercado voluntario (VCS/Gold Standard)." color="#22c55e"/>
+        <InfoCard icon={<Award size={16}/>} title="Reducción de emisiones" desc="Recomendaciones para reducir huella: mejora genética, ajuste de dietas, manejo de estiércol." color="#86efac"/>
+      </div>
+    </div>
+  );
+}
+
+function SecAlertas() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🔔" title="Centro de Alertas" subtitle="Notificaciones automáticas por severidad y módulo" c1="#1a0c04" c2="#2d1608"/>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+        {[
+          { s:"CRÍTICA", c:"#ef4444", d:"Acción inmediata requerida" },
+          { s:"ALTA",    c:"#f97316", d:"Atender en el día" },
+          { s:"MEDIA",   c:"#fbbf24", d:"Resolver en la semana" },
+          { s:"INFO",    c:"#60a5fa", d:"Informativa / seguimiento" },
+        ].map(a => (
+          <div key={a.s} className="p-3 rounded-xl text-center" style={{ background:`${a.c}10`, border:`1px solid ${a.c}25` }}>
+            <Badge text={a.s} color={a.c}/>
+            <p className="text-[10px] text-muted-foreground mt-1.5">{a.d}</p>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        {[
+          "Partos próximos (7, 15 y 30 días antes)",
+          "Stock mínimo de insumos y medicamentos",
+          "Vacunas próximas a vencer",
+          "Animales en anestro prolongado",
+          "Producción de leche por debajo del umbral",
+          "GPS bovino fuera de geovallado",
+          "Errores de conexión Bluetooth",
+          "Vencimiento de licencia y plan",
+        ].map((a, i) => (
+          <div key={i} className="flex items-center gap-2 text-sm">
+            <CheckCircle size={13} style={{ color:"#39ff7e", flexShrink:0 }}/>
+            <span className="text-muted-foreground">{a}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SecMultifinca() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🏢" title="Multi-Finca" subtitle="Gestiona múltiples predios desde una sola cuenta" c1="#040d1a" c2="#071932"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Layers size={16}/>} title="3 fincas incluidas" desc="En el plan PRO y superior puedes gestionar hasta 3 fincas distintas desde una misma cuenta." color="#00c8ff"/>
+        <InfoCard icon={<BarChart3 size={16}/>} title="Tabla comparativa" desc="Compara KPIs entre fincas: producción, costos, eficiencia reproductiva y número de animales." color="#0ea5e9"/>
+        <InfoCard icon={<Globe size={16}/>} title="Regiones Colombia" desc="Cada finca tiene su región, coordenadas, tipo de sistema (lechero/doble propósito/cría) y NIT." color="#00c8ff"/>
+        <InfoCard icon={<Users size={16}/>} title="Equipos por finca" desc="Asigna usuarios específicos a cada finca con permisos granulares por módulo." color="#38bdf8"/>
+      </div>
+    </div>
+  );
+}
+
+function SecBackup() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="💾" title="Backup & Datos" subtitle="Exportar, importar, Drive y migración de datos" c1="#0a0a12" c2="#14141e"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<FileDown size={16}/>} title="Exportar JSON" desc="Exporta todos tus datos en un archivo JSON completo. Incluye animales, producción, costos y configuración." color="#94a3b8"/>
+        <InfoCard icon={<Database size={16}/>} title="Exportar CSV" desc="Exporta módulos específicos (inventario, producción, costos) en formato CSV para Excel." color="#64748b"/>
+        <InfoCard icon={<Cloud size={16}/>} title="Google Drive" desc="Módulo /drive: sincronización automática con Google Drive. Historial de 30 versiones de backup." color="#4285f4"/>
+        <InfoCard icon={<RefreshCw size={16}/>} title="Restaurar datos" desc="Importa un JSON de backup para restaurar todos los datos. Compatible entre dispositivos." color="#94a3b8"/>
+      </div>
+      <div className="space-y-3">
+        <p className="text-sm font-bold text-foreground">Flujo de backup manual</p>
+        <div className="space-y-2.5">
+          <Step n={1} text="Ve a Centro Datos (/datos) o Drive (/drive)." color="#94a3b8"/>
+          <Step n={2} text="Toca 'Exportar JSON completo'. Se descarga un archivo civac-backup-YYYY-MM-DD.json." color="#94a3b8"/>
+          <Step n={3} text="Guarda el archivo en tu Drive, nube o PC." color="#94a3b8"/>
+          <Step n={4} text="Para restaurar: sube el archivo JSON al mismo módulo → Importar → Confirmar." color="#94a3b8"/>
+        </div>
+      </div>
+      <Tip text="Configura el backup automático semanal en Configuración → Datos → Auto-backup para no perder ningún registro." color="#64748b"/>
+    </div>
+  );
+}
+
+function SecUsuarios() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🔒" title="Usuarios & Roles" subtitle="Gestión de accesos, permisos y seguridad por módulo" c1="#020d0d" c2="#04191a"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Shield size={16}/>} title="6 roles disponibles" desc="admin, superadmin, developer, vet, field, viewer. Cada uno con acceso diferenciado por módulo." color="#00f5d4"/>
+        <InfoCard icon={<Lock size={16}/>} title="Permisos granulares" desc="Define para cada usuario qué módulos puede ver, editar o administrar." color="#0d9488"/>
+        <InfoCard icon={<Users size={16}/>} title="Invitar usuarios" desc="Genera un enlace de invitación (/invite/:token) con rol y plan predefinido." color="#00f5d4"/>
+        <InfoCard icon={<Globe size={16}/>} title="Sesiones activas" desc="Visualiza todos los dispositivos conectados y cierra sesión de forma remota." color="#14b8a6"/>
+      </div>
+      <Tip text="El Admin puede ver el módulo Usuarios completo. Los roles vet y field solo pueden ver los módulos asignados a su área de trabajo." color="#00f5d4"/>
+    </div>
+  );
+}
+
+function SecAsesora() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🤖" title="Asesora IA" subtitle="Asistente inteligente especializado en ganadería colombiana" c1="#1a0820" c2="#2d1038"/>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Star size={16}/>} title="Consultas especializadas" desc="Responde preguntas sobre reproducción, sanidad, nutrición, costos, leyes ICA y mejores prácticas ganaderas." color="#e879f9"/>
+        <InfoCard icon={<Cpu size={16}/>} title="Análisis de tus datos" desc="Accede a tus registros actuales y genera reportes narrativos, recomendaciones y diagnósticos automáticos." color="#c026d3"/>
+        <InfoCard icon={<Globe size={16}/>} title="Contexto Colombia" desc="Entrenado con datos específicos de Colombia: razas, clima, precios, normativa ICA, mercados regionales." color="#e879f9"/>
+        <InfoCard icon={<Zap size={16}/>} title="Acceso rápido" desc="También disponible como botón flotante IA en cualquier módulo de la app para consultas contextuales." color="#a21caf"/>
+      </div>
+      <div className="space-y-2">
+        <Faq q="¿La asesora IA tiene acceso a mis datos privados?" a="Solo los datos del contexto que tú le proporciones en la conversación. No hay transmisión automática a servidores externos sin tu consentimiento."/>
+        <Faq q="¿Qué tipo de preguntas puedo hacer?" a="Desde 'cuál es el mejor protocolo IATF para mi hato' hasta 'cómo calculo el costo de producción por litro'. También puede generar reportes de tus datos actuales."/>
+      </div>
+    </div>
+  );
+}
+
+function SecServer() {
+  return (
+    <div className="space-y-6">
+      <SectionBanner emoji="🖥️" title="Server Panel" subtitle="Panel de control CIVAC para cuentas Staff — /server" c1="#020810" c2="#040d1a"/>
+      <div className="p-4 rounded-xl flex items-start gap-3 mb-2" style={{ background:"rgba(0,245,212,0.06)", border:"1px solid rgba(0,245,212,0.18)" }}>
+        <Shield size={16} style={{ color:"#00f5d4", flexShrink:0, marginTop:1 }}/>
+        <p className="text-sm" style={{ color:"rgba(0,245,212,0.8)" }}>
+          Acceso exclusivo para cuentas CIVAC Staff (admin, superadmin, developer, ventas). El resto de usuarios no ve esta sección.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <InfoCard icon={<Server size={16}/>} title="11 secciones" desc="Hub · Servicios · Versiones PWA · Dependencias · Lenguajes · Integraciones · Instancias · Demos · Staff · Dev Console · Config." color="#00f5d4"/>
+        <InfoCard icon={<Code size={16}/>} title="Dev Console" desc="Terminal simulada con comandos: pnpm build, typecheck, db push, uv sync, restart all, git status." color="#00ff88"/>
+        <InfoCard icon={<Package size={16}/>} title="Versiones PWA" desc="Gestiona versiones de la app, descarga builds, genera links de instalación para clientes." color="#a78bfa"/>
+        <InfoCard icon={<Globe size={16}/>} title="Integraciones" desc="Panel de APIs activas: Wompi, GPS MQTT, Bluetooth, RFID, PWA SW, IndexedDB, IPCC, Drive." color="#f97316"/>
+      </div>
+      <CodeBlock label="Acceso al Server Panel" code={`URL:      /server\nUsuario:  super@civac.co\nPassword: super2026\n\nO acceder con botones rápidos en el login:\n  🔱 Super   →  super@civac.co / super2026\n  🛠️  Dev     →  dev@civac.co / dev2026\n  ⚙️  Admin   →  admin@ganader.ia / admin`}/>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════════ */
+const PANEL_MAP: Record<string, () => JSX.Element> = {
+  inicio:       SecInicio,
+  modulos:      SecModulos,
+  pwa:          SecPwa,
+  offline:      SecOffline,
+  login:        SecLogin,
+  inventario:   SecInventario,
+  pesaje:       SecPesaje,
+  reproduccion: SecReproduccion,
+  genetica:     SecGenetica,
+  produccion:   SecProduccion,
+  campo:        SecCampo,
+  gps:          SecGps,
+  sanidad:      SecSanidad,
+  trazabilidad: SecTrazabilidad,
+  finanzas:     SecFinanzas,
+  personal:     SecPersonal,
+  prediccion:   SecPrediccion,
+  co2:          SecCo2,
+  alertas:      SecAlertas,
+  multifinca:   SecMultifinca,
+  backup:       SecBackup,
+  usuarios:     SecUsuarios,
+  asesora:      SecAsesora,
+  server:       SecServer,
+};
+
+export default function Documentacion() {
+  const [active, setActive] = useState("inicio");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const Panel = PANEL_MAP[active] || SecInicio;
+  const current = SECTIONS.find(s => s.id === active);
 
   return (
-    <div className="space-y-5 pb-8">
-      {/* Banner */}
-      <div className="rounded-xl p-5 relative overflow-hidden"
-        style={{background:'linear-gradient(135deg,#000d1a 0%,#001a2e 100%)',
-          border:'1px solid rgba(56,189,248,0.35)',
-          boxShadow:'0 0 50px rgba(56,189,248,0.06)'}}>
+    <div className="max-w-6xl mx-auto px-2 sm:px-4 py-4">
+      {/* Header */}
+      <div className="rounded-2xl p-5 mb-5 relative overflow-hidden"
+        style={{ background:"linear-gradient(135deg,#020d1a,#0a2745)", border:"1px solid rgba(0,245,212,0.15)" }}>
         <div className="absolute right-0 top-0 w-48 h-full opacity-10 pointer-events-none"
-          style={{background:'radial-gradient(ellipse at right, #38bdf8, transparent 70%)'}}/>
-        <div className="relative flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-            style={{background:'rgba(56,189,248,0.1)',border:'1px solid rgba(56,189,248,0.4)'}}>📚</div>
-          <div>
-            <h1 className="text-2xl font-black text-white" style={{fontFamily:'Sora,sans-serif'}}>
-              Documentación CIVAC PRO
-            </h1>
-            <p className="text-sm" style={{color:'rgba(56,189,248,0.7)'}}>
-              Guía completa · {SECTIONS.length} secciones · Todos los módulos documentados
-            </p>
+          style={{ background:"radial-gradient(ellipse at right, #00f5d4, transparent 70%)" }}/>
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", boxShadow:"0 0 20px rgba(0,245,212,0.4)" }}>
+              <BookOpen size={22} style={{ color:"#040d1a" }}/>
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white" style={{ fontFamily:"Sora,sans-serif" }}>Documentación</h1>
+              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v7.0 · {SECTIONS.length} secciones · 30+ módulos</p>
+            </div>
           </div>
+          <button onClick={() => setMobileOpen(v => !v)} className="lg:hidden flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold"
+            style={{ background:"rgba(0,245,212,0.1)", color:"#00f5d4", border:"1px solid rgba(0,245,212,0.2)" }}>
+            <Grid3x3 size={14}/> Índice
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-5">
+      <div className="flex gap-4">
         {/* Sidebar nav */}
-        <div className="lg:w-56 flex-shrink-0">
-          <div className="rounded-xl overflow-hidden sticky top-4 bg-card border border-border">
-            {SECTIONS.map(s => {
-              const Icon = s.icon;
-              const isActive = activeSection === s.id;
-              return (
-                <button key={s.id} onClick={() => setActiveSection(s.id)}
-                  className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold transition-all text-left"
-                  style={isActive
-                    ? {background:'rgba(56,189,248,0.12)',color:'#38bdf8',borderLeft:'3px solid #38bdf8'}
-                    : {borderLeft:'3px solid transparent'}}>
-                  <Icon size={14} style={{flexShrink:0, color: isActive ? '#38bdf8' : undefined, opacity: isActive ? 1 : 0.5}}/>
-                  <span className={isActive ? 'text-[#38bdf8]' : 'text-muted-foreground'}>{s.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          {sections[activeSection] ?? (
-            <div className="text-center py-20 text-white/30">
-              <BookOpen size={48} className="mx-auto mb-3 opacity-20"/>
-              <p>Sección en construcción</p>
+        <aside className={`flex-shrink-0 w-52 space-y-0.5 ${mobileOpen ? "fixed inset-y-0 left-0 w-64 z-50 p-4 overflow-y-auto" : "hidden lg:block"}`}
+          style={mobileOpen ? { background:"rgba(4,13,26,0.99)", borderRight:"1px solid rgba(0,245,212,0.15)" } : {}}>
+          {mobileOpen && (
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-bold text-white">Índice</p>
+              <button onClick={() => setMobileOpen(false)} style={{ color:"rgba(148,163,184,0.5)" }}>✕</button>
             </div>
           )}
-        </div>
+          {SECTIONS.map(sec => {
+            const Icon = sec.icon;
+            const isActive = active === sec.id;
+            return (
+              <button key={sec.id}
+                onClick={() => { setActive(sec.id); setMobileOpen(false); window.scrollTo(0,0); }}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all hover:bg-white/[0.03]"
+                style={{
+                  background: isActive ? `${sec.color}14` : "transparent",
+                  border: isActive ? `1px solid ${sec.color}30` : "1px solid transparent",
+                  color: isActive ? sec.color : "rgba(148,163,184,0.7)",
+                }}>
+                <Icon size={14} style={{ flexShrink:0 }}/>
+                <span className="text-[12px] font-semibold truncate">{sec.label}</span>
+                {isActive && <ChevronRight size={11} style={{ marginLeft:"auto", flexShrink:0 }}/>}
+              </button>
+            );
+          })}
+        </aside>
+        {mobileOpen && <div className="fixed inset-0 bg-black/70 z-40 lg:hidden" onClick={() => setMobileOpen(false)}/>}
+
+        {/* Content */}
+        <main className="flex-1 min-w-0">
+          {/* Mobile breadcrumb */}
+          <div className="flex items-center gap-2 mb-4 lg:hidden">
+            <button onClick={() => setMobileOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold"
+              style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.6)", border:"1px solid rgba(255,255,255,0.08)" }}>
+              <Grid3x3 size={11}/>
+              {current?.label}
+            </button>
+          </div>
+          <Panel/>
+          {/* Section navigation footer */}
+          <div className="flex items-center justify-between mt-8 pt-4" style={{ borderTop:"1px solid rgba(255,255,255,0.06)" }}>
+            {(() => {
+              const idx = SECTIONS.findIndex(s => s.id === active);
+              const prev = SECTIONS[idx - 1];
+              const next = SECTIONS[idx + 1];
+              return (
+                <>
+                  <div>
+                    {prev && (
+                      <button onClick={() => { setActive(prev.id); window.scrollTo(0,0); }}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                        ← {prev.label}
+                      </button>
+                    )}
+                  </div>
+                  <div>
+                    {next && (
+                      <button onClick={() => { setActive(next.id); window.scrollTo(0,0); }}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                        {next.label} →
+                      </button>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { createElement, createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 
 type Theme = 'dark' | 'light';
 
@@ -10,7 +11,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({ theme: 'dark', toggleTheme: () => {}, setTheme: () => {} });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     try { return (localStorage.getItem('ganader_theme') as Theme) || 'dark'; }
     catch { return 'dark'; }
@@ -29,7 +30,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (t: Theme) => setThemeState(t);
   const toggleTheme = () => setThemeState(prev => prev === 'dark' ? 'light' : 'dark');
 
-  return React.createElement(ThemeContext.Provider, { value: { theme, toggleTheme, setTheme } }, children);
+  return createElement(ThemeContext.Provider, { value: { theme, toggleTheme, setTheme } }, children);
 }
 
 export const useTheme = () => useContext(ThemeContext);

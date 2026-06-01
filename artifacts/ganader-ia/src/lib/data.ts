@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { createElement, createContext, useContext, useState, useCallback, useEffect } from "react";
+import type { ReactNode, Dispatch, SetStateAction } from "react";
 import { syncEngine } from "./sync";
 
 // ─── Initial Seed Data — CIVAC PRO v3.0 ─────────────────────────────────────
@@ -182,7 +183,7 @@ async function apiPost(path: string, body: unknown): Promise<void> {
 
 // ─── localStorage Helper ──────────────────────────────────────────────────────
 
-function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+function useLocal<T>(key: string, initial: T): [T, Dispatch<SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     try {
       const stored = localStorage.getItem(`civac_${key}`);
@@ -190,7 +191,7 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
     } catch { return initial; }
   });
 
-  const setPersisted = useCallback((action: React.SetStateAction<T>) => {
+  const setPersisted = useCallback((action: SetStateAction<T>) => {
     setState(prev => {
       const next = typeof action === "function" ? (action as (p: T) => T)(prev) : action;
       try {
@@ -199,7 +200,7 @@ function useLocal<T>(key: string, initial: T): [T, React.Dispatch<React.SetState
       } catch { /* storage full */ }
       return next;
     });
-  }, [key]) as React.Dispatch<React.SetStateAction<T>>;
+  }, [key]) as Dispatch<SetStateAction<T>>;
 
   return [state, setPersisted];
 }
@@ -292,23 +293,23 @@ export interface MovimientoLote {
 // ─── App State Context ────────────────────────────────────────────────────────
 
 interface AppStateType {
-  animals: Animal[];                setAnimals: React.Dispatch<React.SetStateAction<Animal[]>>;
-  potreros: Potrero[];              setPotreros: React.Dispatch<React.SetStateAction<Potrero[]>>;
-  insumos: Insumo[];                setInsumos: React.Dispatch<React.SetStateAction<Insumo[]>>;
-  personal: Personal[];             setPersonal: React.Dispatch<React.SetStateAction<Personal[]>>;
-  reproduccion: Reproduccion[];     setReproduccion: React.Dispatch<React.SetStateAction<Reproduccion[]>>;
-  alertas: Alerta[];                setAlertas: React.Dispatch<React.SetStateAction<Alerta[]>>;
-  pesajes: Pesaje[];                setPesajes: React.Dispatch<React.SetStateAction<Pesaje[]>>;
-  gpsUbicaciones: GpsUbicacion[];   setGpsUbicaciones: React.Dispatch<React.SetStateAction<GpsUbicacion[]>>;
-  lotes: MovimientoLote[];          setLotes: React.Dispatch<React.SetStateAction<MovimientoLote[]>>;
-  semen: SemenRecord[];             setSemen: React.Dispatch<React.SetStateAction<SemenRecord[]>>;
-  embriones: EmbrionRecord[];       setEmbriones: React.Dispatch<React.SetStateAction<EmbrionRecord[]>>;
+  animals: Animal[];                setAnimals: Dispatch<SetStateAction<Animal[]>>;
+  potreros: Potrero[];              setPotreros: Dispatch<SetStateAction<Potrero[]>>;
+  insumos: Insumo[];                setInsumos: Dispatch<SetStateAction<Insumo[]>>;
+  personal: Personal[];             setPersonal: Dispatch<SetStateAction<Personal[]>>;
+  reproduccion: Reproduccion[];     setReproduccion: Dispatch<SetStateAction<Reproduccion[]>>;
+  alertas: Alerta[];                setAlertas: Dispatch<SetStateAction<Alerta[]>>;
+  pesajes: Pesaje[];                setPesajes: Dispatch<SetStateAction<Pesaje[]>>;
+  gpsUbicaciones: GpsUbicacion[];   setGpsUbicaciones: Dispatch<SetStateAction<GpsUbicacion[]>>;
+  lotes: MovimientoLote[];          setLotes: Dispatch<SetStateAction<MovimientoLote[]>>;
+  semen: SemenRecord[];             setSemen: Dispatch<SetStateAction<SemenRecord[]>>;
+  embriones: EmbrionRecord[];       setEmbriones: Dispatch<SetStateAction<EmbrionRecord[]>>;
   resetAll: () => void;
 }
 
 const AppStateContext = createContext<AppStateType | null>(null);
 
-export function AppStateProvider({ children }: { children: React.ReactNode }) {
+export function AppStateProvider({ children }: { children: ReactNode }) {
   const [animals,       _setAnimals]       = useLocal('animals',       initialAnimals);
   const [potreros,      _setPotreros]      = useLocal<Potrero[]>('potreros',      initialPotreros);
   const [insumos,       _setInsumos]       = useLocal('insumos',       initialInsumos);
@@ -358,7 +359,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setAnimals = useCallback((action: React.SetStateAction<Animal[]>) => {
+  const setAnimals = useCallback((action: SetStateAction<Animal[]>) => {
     _setAnimals(prev => {
       const next = typeof action === "function" ? (action as (p: Animal[]) => Animal[])(prev) : action;
       apiPost("/animals/bulk", { animals: next });
@@ -367,7 +368,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setAnimals]);
 
-  const setPotreros = useCallback((action: React.SetStateAction<Potrero[]>) => {
+  const setPotreros = useCallback((action: SetStateAction<Potrero[]>) => {
     _setPotreros(prev => {
       const next = typeof action === "function" ? (action as (p: Potrero[]) => Potrero[])(prev) : action;
       apiPost("/potreros/bulk", { potreros: next });
@@ -376,7 +377,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setPotreros]);
 
-  const setInsumos = useCallback((action: React.SetStateAction<Insumo[]>) => {
+  const setInsumos = useCallback((action: SetStateAction<Insumo[]>) => {
     _setInsumos(prev => {
       const next = typeof action === "function" ? (action as (p: Insumo[]) => Insumo[])(prev) : action;
       apiPost("/insumos/bulk", { insumos: next });
@@ -385,7 +386,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setInsumos]);
 
-  const setPersonal = useCallback((action: React.SetStateAction<Personal[]>) => {
+  const setPersonal = useCallback((action: SetStateAction<Personal[]>) => {
     _setPersonal(prev => {
       const next = typeof action === "function" ? (action as (p: Personal[]) => Personal[])(prev) : action;
       apiPost("/personal/bulk", { personal: next });
@@ -394,7 +395,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setPersonal]);
 
-  const setReproduccion = useCallback((action: React.SetStateAction<Reproduccion[]>) => {
+  const setReproduccion = useCallback((action: SetStateAction<Reproduccion[]>) => {
     _setReproduccion(prev => {
       const next = typeof action === "function" ? (action as (p: Reproduccion[]) => Reproduccion[])(prev) : action;
       apiPost("/reproduccion/bulk", { reproduccion: next });
@@ -403,7 +404,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setReproduccion]);
 
-  const setAlertas = useCallback((action: React.SetStateAction<Alerta[]>) => {
+  const setAlertas = useCallback((action: SetStateAction<Alerta[]>) => {
     _setAlertas(prev => {
       const next = typeof action === "function" ? (action as (p: Alerta[]) => Alerta[])(prev) : action;
       apiPost("/alertas/bulk", { alertas: next });
@@ -412,7 +413,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setAlertas]);
 
-  const setPesajes = useCallback((action: React.SetStateAction<Pesaje[]>) => {
+  const setPesajes = useCallback((action: SetStateAction<Pesaje[]>) => {
     _setPesajes(prev => {
       const next = typeof action === "function" ? (action as (p: Pesaje[]) => Pesaje[])(prev) : action;
       apiPost("/pesajes/bulk", { pesajes: next });
@@ -421,7 +422,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setPesajes]);
 
-  const setGpsUbicaciones = useCallback((action: React.SetStateAction<GpsUbicacion[]>) => {
+  const setGpsUbicaciones = useCallback((action: SetStateAction<GpsUbicacion[]>) => {
     _setGpsUbicaciones(prev => {
       const next = typeof action === "function" ? (action as (p: GpsUbicacion[]) => GpsUbicacion[])(prev) : action;
       apiPost("/gps/bulk", { ubicaciones: next });
@@ -430,7 +431,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setGpsUbicaciones]);
 
-  const setLotes = useCallback((action: React.SetStateAction<MovimientoLote[]>) => {
+  const setLotes = useCallback((action: SetStateAction<MovimientoLote[]>) => {
     _setLotes(prev => {
       const next = typeof action === "function" ? (action as (p: MovimientoLote[]) => MovimientoLote[])(prev) : action;
       apiPost("/lotes/bulk", { lotes: next });
@@ -439,14 +440,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   }, [_setLotes]);
 
-  const setSemen = useCallback((action: React.SetStateAction<SemenRecord[]>) => {
+  const setSemen = useCallback((action: SetStateAction<SemenRecord[]>) => {
     _setSemen(prev => {
       const next = typeof action === "function" ? (action as (p: SemenRecord[]) => SemenRecord[])(prev) : action;
       return next;
     });
   }, [_setSemen]);
 
-  const setEmbriones = useCallback((action: React.SetStateAction<EmbrionRecord[]>) => {
+  const setEmbriones = useCallback((action: SetStateAction<EmbrionRecord[]>) => {
     _setEmbriones(prev => {
       const next = typeof action === "function" ? (action as (p: EmbrionRecord[]) => EmbrionRecord[])(prev) : action;
       return next;
@@ -471,7 +472,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     apiPost("/seed", {});
   }, [_setAnimals, _setPotreros, _setInsumos, _setPersonal, _setReproduccion, _setAlertas, _setPesajes, _setGpsUbicaciones, _setLotes, _setSemen, _setEmbriones]);
 
-  return React.createElement(
+  return createElement(
     AppStateContext.Provider,
     { value: {
         animals, setAnimals,

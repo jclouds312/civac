@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import { createElement, createContext, useContext, useState, useCallback } from "react";
+import type { ReactNode } from "react";
 
 export type PlanId = 'basico' | 'pro' | 'premium' | 'platino';
 
@@ -330,7 +331,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Account | null>(() => {
     try {
       const s = localStorage.getItem('ganader_user');
@@ -428,7 +429,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  return React.createElement(AuthContext.Provider, {
+  return createElement(AuthContext.Provider, {
     value: {
       user, accounts, wompiPayments,
       login, loginAs, logout,

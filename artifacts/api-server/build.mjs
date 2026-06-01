@@ -9,6 +9,7 @@ import { rm } from "node:fs/promises";
 globalThis.require = createRequire(import.meta.url);
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = path.resolve(artifactDir, "../..");
 
 async function buildAll() {
   const distDir = path.resolve(artifactDir, "dist");
@@ -102,6 +103,15 @@ async function buildAll() {
       "electron",
     ],
     sourcemap: "linked",
+    alias: {
+      "@/lib/db": path.resolve(workspaceRoot, "lib/db/src/index.ts"),
+      "@/lib/db/src/schema/gps": path.resolve(workspaceRoot, "lib/db/src/schema/gps.ts"),
+      "@/lib/db/src/schema/marketplace": path.resolve(workspaceRoot, "lib/db/src/schema/marketplace.ts"),
+      "@/lib/db/src/schema/trama": path.resolve(workspaceRoot, "lib/db/src/schema/trama.ts"),
+      "@/lib/db/src/schema": path.resolve(workspaceRoot, "lib/db/src/schema/index.ts"),
+      "@workspace/db": path.resolve(workspaceRoot, "lib/db/src/index.ts"),
+      "@workspace/api-zod": path.resolve(workspaceRoot, "lib/api-zod/src/index.ts"),
+    },
     plugins: [
       // pino relies on workers to handle logging, instead of externalizing it we use a plugin to handle it
       esbuildPluginPino({ transports: ["pino-pretty"] })

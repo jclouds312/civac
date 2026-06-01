@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, type PlanId } from "@/lib/auth";
+import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, CIVAC_STAFF_IDS, type PlanId } from "@/lib/auth";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
@@ -989,7 +989,13 @@ export default function Login() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <span className="font-black text-white text-base leading-tight">{account.nombre.split(" ").slice(0,3).join(" ")}</span>
-                            <PlanBadge plan={plan} size="sm" />
+                            {CIVAC_STAFF_IDS.includes(account.id)
+                              ? <span className="inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide text-[9px] px-2 py-0.5"
+                                  style={{ background:"rgba(0,245,212,0.12)", border:"1.5px solid rgba(0,245,212,0.45)", color:"#00f5d4", boxShadow:"0 0 10px rgba(0,245,212,0.2)", letterSpacing:"0.08em" }}>
+                                  ⬡ CIVAC
+                                </span>
+                              : <PlanBadge plan={plan} size="sm" />
+                            }
                           </div>
                           <p className="text-xs mb-1.5" style={{ color:"rgba(255,255,255,0.45)" }}>{rc.sub}</p>
                           <div className="flex flex-wrap gap-x-3 gap-y-0.5">

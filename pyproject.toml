@@ -13,4 +13,7 @@ dependencies = [
     "djangorestframework>=3.14.0",
     "django-cors-headers>=4.0.0",
     "gunicorn>=21.2.0",
+    "flask-sqlalchemy>=3.1.1",
+    "psycopg2-binary>=2.9.12",
+    "email-validator>=2.3.0",
 ]

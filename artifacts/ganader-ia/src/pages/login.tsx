@@ -34,14 +34,14 @@ const PLAN_PRECIOS_LABEL: Record<PlanId, string> = {
   platino: "$399.000/mes",
 };
 
-const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; from:string; to:string; glow:string; color:string }> = {
-  admin:       { emoji:"👑",  label:"Administrador General",  sub:"Super Admin · Gestión total · Panel de plataforma",          from:"#fbbf24", to:"#ea580c", glow:"251,191,36",   color:"#fbbf24" },
-  vet:         { emoji:"🩺",  label:"Médico Veterinario",     sub:"Sanidad animal · Reproducción · Genética",                    from:"#00c8ff", to:"#0ea5e9", glow:"0,200,255",     color:"#00c8ff" },
-  field:       { emoji:"🌿",  label:"Operario de Campo",      sub:"Pesaje · Potreros · Insumos · Producción",                    from:"#39ff7e", to:"#16a34a", glow:"57,255,126",    color:"#39ff7e" },
-  viewer:      { emoji:"💼",  label:"Propietario / Inversor", sub:"Sólo lectura · Dashboard · Costos · IA",                      from:"#c084fc", to:"#7c3aed", glow:"192,132,252",   color:"#c084fc" },
-  developer:   { emoji:"🛠️", label:"Dev · Arquitecto CIVAC", sub:"Panel técnico · Versiones · APIs · Feature Flags · Deploy",   from:"#00ff88", to:"#00d4aa", glow:"0,255,136",     color:"#00ff88" },
-  superadmin:  { emoji:"🔱",  label:"Super Administrador",    sub:"Plataforma completa · Auditoría · Versiones · Config global", from:"#ff6b35", to:"#f7931e", glow:"255,107,53",    color:"#ff6b35" },
-  sales:       { emoji:"💼",  label:"Asesora de Ventas",      sub:"CRM · Pipeline · Reportes diarios · Contabilidad de ventas",  from:"#e879f9", to:"#a855f7", glow:"232,121,249",   color:"#e879f9" },
+const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; from:string; to:string; glow:string; color:string; accent:string }> = {
+  superadmin:  { emoji:"🔱",  label:"CEO · Co-Fundador CIVAC",    sub:"Dueño · Acceso total · Auditoría · Config global · Server Panel",   from:"#c0392b", to:"#e74c3c", glow:"192,57,43",     color:"#e74c3c", accent:"#ff4444" },
+  admin:       { emoji:"👑",  label:"Co-Fundadora · Dir. Ejecutiva", sub:"Dirección ejecutiva · Panel Admin · Plataforma completa",         from:"#d4a017", to:"#f0c040", glow:"212,160,23",    color:"#f0c040", accent:"#ffd700" },
+  developer:   { emoji:"🛠️", label:"Arquitecto · Soporte Dev",    sub:"Dev principal · Soporte PWA · APIs · Feature Flags · Deploy",      from:"#00c853", to:"#00e676", glow:"0,200,83",      color:"#00e676", accent:"#00ff88" },
+  sales:       { emoji:"📊",  label:"Asesora Comercial Senior",   sub:"CRM · Pipeline · Reportes diarios · Gestión de cuentas",           from:"#e879f9", to:"#a855f7", glow:"232,121,249",   color:"#e879f9", accent:"#f472b6" },
+  vet:         { emoji:"🩺",  label:"Médico Veterinario",          sub:"Sanidad animal · Reproducción · Genética · Historia clínica",      from:"#0288d1", to:"#29b6f6", glow:"2,136,209",     color:"#29b6f6", accent:"#00c8ff" },
+  field:       { emoji:"🌿",  label:"Jefe de Campo",               sub:"Pesaje · Potreros · GPS · Insumos · Producción diaria",            from:"#2e7d32", to:"#66bb6a", glow:"46,125,50",     color:"#66bb6a", accent:"#39ff7e" },
+  viewer:      { emoji:"📈",  label:"Propietario / Inversor",      sub:"Solo lectura · Dashboard · Costos · Predicción IA",               from:"#6a1b9a", to:"#ab47bc", glow:"106,27,154",    color:"#ab47bc", accent:"#c084fc" },
 };
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -563,7 +563,8 @@ export default function Login() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const clientAccounts = [...accounts.filter(a => a.role === "admin"), ...accounts.filter(a => a.role !== "admin")];
+  const ROLE_ORDER: Record<string,number> = { superadmin:0, admin:1, developer:2, sales:3, vet:4, field:5, viewer:6 };
+  const clientAccounts = [...accounts].sort((a,b) => (ROLE_ORDER[a.role]??9) - (ROLE_ORDER[b.role]??9));
 
   const handleQuick = (a: Account) => {
     setLoadingId(a.id); setLoading(true);
@@ -950,22 +951,26 @@ export default function Login() {
                       className="relative rounded-3xl overflow-hidden transition-all duration-300"
                       style={{
                         background: isHov
-                          ? `linear-gradient(145deg,rgba(${pg},0.14),rgba(${rc.glow},0.08),rgba(0,0,0,0.6))`
-                          : `linear-gradient(145deg,rgba(${pg},0.07),rgba(0,0,0,0.55))`,
-                        border:`1.5px solid rgba(${isHov ? pg : pg},${isHov ? "0.55" : "0.30"})`,
+                          ? `linear-gradient(145deg,rgba(${rc.glow},0.18),rgba(${rc.glow},0.06),rgba(0,0,0,0.65))`
+                          : `linear-gradient(145deg,rgba(${rc.glow},0.09),rgba(0,0,0,0.58))`,
+                        border:`1.5px solid rgba(${rc.glow},${isHov ? "0.65" : "0.32"})`,
                         backdropFilter:"blur(16px)",
                         boxShadow: isHov
-                          ? `0 0 40px rgba(${pg},0.25), 0 12px 36px rgba(0,0,0,0.5)`
-                          : `0 0 14px rgba(${pg},0.10)`,
+                          ? `0 0 44px rgba(${rc.glow},0.30), 0 12px 36px rgba(0,0,0,0.5)`
+                          : `0 0 16px rgba(${rc.glow},0.12)`,
                         transform: isHov ? "translateY(-2px)" : "none",
                       }}
                       onMouseEnter={() => setHoveredCard(account.id)}
                       onMouseLeave={() => setHoveredCard(null)}>
 
-                      {/* Plan top stripe */}
-                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${pp},${pp2},transparent)` }} />
-                      {/* Role color underline */}
-                      <div className="h-px w-2/3 opacity-40" style={{ background:`linear-gradient(90deg,${rc.from},transparent)` }} />
+                      {/* Role color top stripe — thick, primary identity */}
+                      <div className="h-1 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to},transparent)` }} />
+                      {/* Plan stripe below — thin, secondary info */}
+                      <div className="h-px w-1/2 opacity-50" style={{ background:`linear-gradient(90deg,${pp},transparent)` }} />
+
+                      {/* Left vertical accent bar */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-3xl"
+                        style={{ background:`linear-gradient(180deg,${rc.from},${rc.to})`, opacity: isHov ? 0.9 : 0.55 }} />
 
                       {/* Hover glow overlay */}
                       {isHov && (
@@ -986,22 +991,26 @@ export default function Login() {
                         </div>
 
                         {/* Info */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 pl-1">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <span className="font-black text-white text-base leading-tight">{account.nombre.split(" ").slice(0,3).join(" ")}</span>
-                            {CIVAC_STAFF_IDS.includes(account.id)
-                              ? <span className="inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide text-[9px] px-2 py-0.5"
-                                  style={{ background:"rgba(0,245,212,0.12)", border:"1.5px solid rgba(0,245,212,0.45)", color:"#00f5d4", boxShadow:"0 0 10px rgba(0,245,212,0.2)", letterSpacing:"0.08em" }}>
-                                  ⬡ CIVAC
-                                </span>
-                              : <PlanBadge plan={plan} size="sm" />
-                            }
+                            {/* Role badge — colored per type */}
+                            <span className="inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide text-[8px] px-2 py-0.5"
+                              style={{ background:`rgba(${rc.glow},0.14)`, border:`1.5px solid rgba(${rc.glow},0.50)`, color:rc.color, boxShadow:`0 0 8px rgba(${rc.glow},0.25)`, letterSpacing:"0.07em" }}>
+                              {rc.emoji} {rc.label}
+                            </span>
+                            {CIVAC_STAFF_IDS.includes(account.id) && (
+                              <span className="inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide text-[8px] px-2 py-0.5"
+                                style={{ background:"rgba(0,245,212,0.10)", border:"1.5px solid rgba(0,245,212,0.40)", color:"#00f5d4", letterSpacing:"0.07em" }}>
+                                ⬡ CIVAC
+                              </span>
+                            )}
                           </div>
-                          <p className="text-xs mb-1.5" style={{ color:"rgba(255,255,255,0.45)" }}>{rc.sub}</p>
+                          <p className="text-[10px] mb-1.5" style={{ color:`rgba(${rc.glow},0.55)` }}>{account.cargo}</p>
                           <div className="flex flex-wrap gap-x-3 gap-y-0.5">
                             {feats.slice(0,4).map(f=>(
-                              <span key={f} className="text-[9px] flex items-center gap-0.5" style={{ color:"rgba(255,255,255,0.32)" }}>
-                                <span style={{ color:"#39ff7e", fontSize:"7px" }}>✓</span>{f}
+                              <span key={f} className="text-[9px] flex items-center gap-0.5" style={{ color:"rgba(255,255,255,0.30)" }}>
+                                <span style={{ color:rc.color, fontSize:"7px" }}>✓</span>{f}
                               </span>
                             ))}
                           </div>
@@ -1013,8 +1022,8 @@ export default function Login() {
                             className="flex items-center gap-1.5 px-4 py-2 rounded-2xl font-black text-xs transition-all duration-200 hover:scale-105 active:scale-[0.96] disabled:opacity-50"
                             style={{
                               background:`linear-gradient(135deg,${rc.from},${rc.to})`,
-                              color:account.role==="viewer"?"white":"black",
-                              boxShadow: isHov ? `0 0 22px rgba(${rc.glow},0.55)` : `0 0 14px rgba(${rc.glow},0.30)`,
+                              color: ["viewer","vet","superadmin","sales"].includes(account.role) ? "white" : "black",
+                              boxShadow: isHov ? `0 0 24px rgba(${rc.glow},0.60)` : `0 0 14px rgba(${rc.glow},0.30)`,
                             }}>
                             {isLoading
                               ? <div className="w-3 h-3 border border-current/40 border-t-current rounded-full animate-spin"/>
@@ -1024,7 +1033,7 @@ export default function Login() {
                           {plan !== "platino" && (
                             <button onClick={() => setPayPlan(plan==="basico"?"pro":plan==="pro"?"premium":"platino")}
                               className="flex items-center gap-1 px-3 py-1 rounded-xl text-[9px] font-bold transition-all hover:opacity-80 hover:scale-[1.03]"
-                              style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.35)" }}>
+                              style={{ background:`rgba(${rc.glow},0.05)`, border:`1px solid rgba(${rc.glow},0.15)`, color:`rgba(${rc.glow},0.45)` }}>
                               ⬆ Mejorar plan
                             </button>
                           )}

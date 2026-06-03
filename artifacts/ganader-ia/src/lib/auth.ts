@@ -101,18 +101,18 @@ export const CIVAC_STAFF_IDS: string[] = ['superadmin', 'developer', 'admin', 'v
 export const DEFAULT_ACCOUNTS: Account[] = [
   {
     id: 'admin',
-    nombre: 'Administrador General',
-    cargo: 'Propietario / Admin',
-    finca: 'Finca El Rancho Verde',
-    email: 'admin@ganader.ia',
-    password: 'admin',
+    nombre: 'Lizeth Daza',
+    cargo: 'Co-Fundadora · Dirección Ejecutiva CIVAC',
+    finca: 'CIVAC HQ · Bogotá, Colombia',
+    email: 'Softganventas@gmail.com',
+    password: 'lizeth2026',
     avatar: '👑',
-    gradient: 'from-[#0d2137] to-[#1a4a2e]',
+    gradient: 'from-[#2d1b00] to-[#4a2e00]',
     role: 'admin',
     activo: true,
     plan: 'platino',
-    planExpiry: '2027-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','pesaje','gps','planes','admin_pagos'],
+    planExpiry: '2099-12-31',
+    permisos: ['*'],
   },
   {
     id: 'vet',
@@ -161,13 +161,13 @@ export const DEFAULT_ACCOUNTS: Account[] = [
   },
   {
     id: 'developer',
-    nombre: 'Dev · Arquitecto CIVAC',
-    cargo: 'Desarrollador Principal',
+    nombre: 'Johnatan Vallejo',
+    cargo: 'Arquitecto Principal · Soporte PWA & Dev',
     finca: 'CIVAC Labs · Colombia',
-    email: 'dev@civac.co',
+    email: 'johnatanvallejomarulanda@gmail.com',
     password: 'dev2026',
     avatar: '🛠️',
-    gradient: 'from-[#0a0f1e] to-[#0d1a2e]',
+    gradient: 'from-[#001a14] to-[#003d2e]',
     role: 'developer',
     activo: true,
     plan: 'platino',
@@ -176,13 +176,13 @@ export const DEFAULT_ACCOUNTS: Account[] = [
   },
   {
     id: 'superadmin',
-    nombre: 'Super Administrador',
-    cargo: 'Super Admin · CIVAC Platform',
-    finca: 'CIVAC HQ · Bogotá',
+    nombre: 'Javier · Dueño CIVAC',
+    cargo: 'Co-Fundador · CEO CIVAC Platform',
+    finca: 'CIVAC HQ · Bogotá, Colombia',
     email: 'super@civac.co',
     password: 'super2026',
     avatar: '🔱',
-    gradient: 'from-[#1a0500] to-[#2d0e00]',
+    gradient: 'from-[#1a0500] to-[#3d0f00]',
     role: 'superadmin',
     activo: true,
     plan: 'platino',
@@ -275,7 +275,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '7.0.0';
+const ACCOUNTS_VERSION = '7.1.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {

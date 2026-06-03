@@ -30,7 +30,7 @@ if (!isBuild) {
 export default defineConfig({
   base: basePath,
   plugins: [
-    react({ include: /\.(jsx|tsx|ts|js)$/ }),
+    react({ include: /\.(jsx|tsx)$/ }),
     tailwindcss(),
     runtimeErrorOverlay(),
     ...(process.env.NODE_ENV !== "production" &&
@@ -47,6 +47,15 @@ export default defineConfig({
         ]
       : []),
   ],
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-dom/client",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+    ],
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),

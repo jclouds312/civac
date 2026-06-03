@@ -1,9 +1,9 @@
-// CIVAC PRO — Service Worker v8
+// CIVAC PRO — Service Worker v9
 // Estrategia: Cache-first assets · Stale-while-revalidate nav · Network-first API
 // Memoria expandida: 50 MB quota + persistent storage · Offline shell completo
-// v8: rutas nuevas sanidad · trazabilidad · gps-chips · ventas · asesora · drive · acerca · server
+// v9: excluir deps de Vite del caché para evitar conflictos de módulos React
 
-const CACHE_VER    = 'v8';
+const CACHE_VER    = 'v9';
 const CACHE_MAIN   = `civac-main-${CACHE_VER}`;
 const CACHE_STATIC = `civac-static-${CACHE_VER}`;
 const CACHE_API    = `civac-api-${CACHE_VER}`;
@@ -156,6 +156,11 @@ self.addEventListener('fetch', (e) => {
         }).catch(() => new Response('', { status: 503 }));
       })
     );
+    return;
+  }
+
+  // ── Vite dev deps y HMR — NUNCA cachear (evitar conflictos de React) ─────
+  if (url.pathname.startsWith('/node_modules/') || url.pathname.startsWith('/@') || url.pathname.startsWith('/__')) {
     return;
   }
 

@@ -2,3 +2,4 @@
 - [React namespace in .ts files](react-namespace-ts-files.md) — `import * as React` becomes null during Vite HMR in .ts files; use named imports only.
 - [lucide-react missing icons](lucide-react-missing.md) — `Cow` does not exist in the installed lucide-react; use `Beef` instead. Always verify new icons with `node -e "const lr=require('./node_modules/lucide-react'); console.log('X' in lr)"` before using them.
 - [CustomTrama type and testCustomTrama](custom-trama-api.md) — CustomTrama requires 10 fields; testCustomTrama returns number[] not {ok,peso,error}. See topic file for details.
+- [SW must not cache Vite dep URLs](sw-vite-deps-no-cache.md) — Service Worker cache-first on .js causes stale Vite dep chunks across re-optimizations → two React instances → null dispatcher crash. Fix: exclude /node_modules/ and /@ paths from SW cache.

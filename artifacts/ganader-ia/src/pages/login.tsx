@@ -185,10 +185,10 @@ function ColombianTicker() {
   const items = [
     "🇨🇴 Hecho en Colombia · 100% Colombiano","🐄 13 Animales activos · Hato Certificado",
     "🥛 84 L/día · Producción récord","💰 $40.2M utilidad · Marzo 2026",
-    "📡 GPS Real-Time · 13 collares activos","🤖 IA Predictiva CIVAC v1.0",
+    "📡 GPS Real-Time · 13 collares activos","🤖 Asesora IA Colombia · GPT ganadero",
     "🩺 Sanidad ICA · Vacunas al día","🌿 -18% Huella CO₂ · Carbono neutro 2027",
     "⚖️ 3 Básculas Bluetooth vinculadas","☁️ Analytics Server ONLINE · 99.8% uptime",
-    "🔒 CIVAC PRO v1.0 · Licencia activa","🏆 #1 Software Ganadero Colombia",
+    "🔒 CIVAC PRO v7.0 · 32 módulos activos","🏆 #1 Software Ganadero Colombia",
   ];
   const doubled = [...items, ...items];
   return (
@@ -282,7 +282,7 @@ function RightWidgets() {
       <div className="rounded-2xl p-3"
         style={{ background:"rgba(0,0,0,0.5)", border:"1px solid rgba(168,85,247,0.2)", backdropFilter:"blur(12px)" }}>
         <div className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color:"rgba(168,85,247,0.55)" }}>
-          📦 Módulos v1
+          📦 Módulos v7.0 · 32 activos
         </div>
         {[
           { name:"Productivos", val:"20", c:"#00f5d4" },
@@ -635,7 +635,7 @@ export default function Login() {
           <div className="flex items-center justify-center gap-3 mb-1">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ fontFamily:"'Sora',sans-serif", letterSpacing:"-0.03em" }}>
               <span className="text-white">CIVAC </span>
-              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", filter:"drop-shadow(0 0 12px rgba(0,245,212,0.5))" }}>v1</span>
+              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", filter:"drop-shadow(0 0 12px rgba(0,245,212,0.5))" }}>v7</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
               <span className="text-[10px] font-black px-2.5 py-1 rounded-lg leading-none"
@@ -656,7 +656,7 @@ export default function Login() {
               { icon:<Zap size={11}/>,        label:"Bluetooth BT",   c:"255,149,0",   glow:"#ff9500" },
               { icon:<Smartphone size={11}/>, label:"GPS Real-Time",  c:"0,200,255",   glow:"#00c8ff" },
               { icon:<Star size={11}/>,       label:"IA Predictiva",  c:"232,121,249", glow:"#e879f9" },
-              { icon:<Globe size={11}/>,      label:"22 Módulos",     c:"57,255,126",  glow:"#39ff7e" },
+              { icon:<Globe size={11}/>,      label:"32 Módulos",     c:"57,255,126",  glow:"#39ff7e" },
               { icon:<Cpu size={11}/>,        label:"IndexedDB v1",   c:"168,85,247",  glow:"#a855f7" },
             ].map(p => (
               <span key={p.label}
@@ -673,7 +673,7 @@ export default function Login() {
           <div className="flex items-center justify-center gap-2">
             {[
               { id:"login"   as const, label:"Iniciar Sesión", emoji:"🔐" },
-              { id:"cuentas" as const, label:"Cuentas Demo",   emoji:"👥" },
+              { id:"cuentas" as const, label:"Cuentas",         emoji:"👥" },
               { id:"planes"  as const, label:"Planes",         emoji:"💰" },
             ].map(t => (
               <button key={t.id} onClick={() => setTab(t.id)}
@@ -1070,7 +1070,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className="text-center mt-6 text-[9px]" style={{ color:"rgba(255,255,255,0.12)" }}>
-          GanaderIA CIVAC PRO v1.0 · Control Inteligente de Valor Agropecuario · Colombia {new Date().getFullYear()} · Sistema privado · Universal Business Technology
+          GanaderIA CIVAC PRO v7.0 · 32 módulos · Control Inteligente de Valor Agropecuario · Colombia {new Date().getFullYear()} · Universal Business Technology
         </p>
         <p className="text-center mt-2">
           <a href="/server" className="text-[9px] font-mono transition-colors hover:opacity-60" style={{ color:"rgba(0,245,212,0.18)", letterSpacing:"0.1em" }}>

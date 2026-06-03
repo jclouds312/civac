@@ -18,9 +18,9 @@ import {
 /* ── Version history ────────────────────────────────────────────────────── */
 const CIVAC_VERSIONS = [
   { v:"1.0.0", date:"2026-05-26", status:"current", tag:"stable",
-    changes:["Panel Admin 14 tabs completo (Logs, Soporte, Seguridad)","Sidebar Admin expandido con todos los módulos","v1.0 branding unificado en toda la plataforma","Login redesign con widgets animados Colombia","Nuevos roles: Developer + SuperAdmin","Plan-based PWA install + popup","Generación de licencias JSON por usuario"],
+    changes:["Panel Admin 14 tabs completo (Logs, Soporte, Seguridad)","Sidebar expandido: Sanidad, Trazabilidad, 32 módulos","v7.0 branding unificado en toda la plataforma","Login redesign con cuentas reales colombianas","Nuevos roles: Developer + SuperAdmin + Sales","Plan-based PWA install + popup","Generación de licencias JSON por usuario"],
     plans:{ basico:"1.0.0", pro:"1.0.0", premium:"1.0.0", platino:"1.0.0" },
-    notes:"Release oficial v1.0 — plataforma CIVAC PRO Colombia.",
+    notes:"Release v7.0 — 32 módulos, cuentas reales colombianas, sidebar con Sanidad+Trazabilidad.",
   },
   { v:"0.9.5", date:"2026-05-21", status:"stable", tag:"lts",
     changes:["Nuevos roles: Developer + SuperAdmin","Version management panel","Módulos tab completo con matriz de permisos","Generación de licencias JSON por usuario","Fix: registerUser preserva plan asignado"],

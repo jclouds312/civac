@@ -57,7 +57,7 @@ export default function VentasDashboard() {
                   💼 Asesora Comercial Senior
                 </span>
               </div>
-              <p className="text-white/50 text-xs sm:text-sm">{new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · CIVAC v1</p>
+              <p className="text-white/50 text-xs sm:text-sm">{new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · CIVAC v7.0</p>
               <p className="text-[10px] mt-0.5" style={{color:'rgba(232,121,249,0.35)'}}>Panel comercial · Pipeline CRM · Reportes diarios · Gestión de cuentas</p>
             </div>
             <div className="flex gap-2 flex-wrap">

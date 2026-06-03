@@ -1010,7 +1010,7 @@ function SyncBD({ user, stateMap }: { user: ReturnType<typeof useAuth>['user']; 
 
       {/* Sync schema info */}
       <div className="rounded-2xl p-5" style={{ background:'linear-gradient(135deg,#001428,#001e3c)', border:'1px solid rgba(0,200,255,0.12)' }}>
-        <div className="flex items-center gap-2 mb-3"><Database size={14} style={{ color:'#00c8ff' }}/><span className="font-bold text-sm text-white">Esquema de Sync — CIVAC v1</span></div>
+        <div className="flex items-center gap-2 mb-3"><Database size={14} style={{ color:'#00c8ff' }}/><span className="font-bold text-sm text-white">Esquema de Sync — CIVAC v7.0</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {['accounts','animals','pesajes','sesiones','alertas','payments','contacts_crm','sales_crm'].map(s => (
             <div key={s} className="flex items-center gap-1.5 text-[10px]">

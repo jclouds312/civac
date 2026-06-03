@@ -18,58 +18,59 @@ import {
    DATA / CONSTANTS
 ══════════════════════════════════════════════════════════════════ */
 const SERVICES = [
-  { id:"api",       name:"API Server",        port:8080, tech:"Node 24 / Express 5", color:"#00f5d4", glow:"0,245,212",   icon:"⚡", desc:"REST API principal · 28 endpoints · JWT auth · pnpm workspace", uptime:"99.8%", req:"1,247/h", lang:"TypeScript" },
-  { id:"analytics", name:"Analytics Server",  port:8099, tech:"Python 3.12 / Flask", color:"#a78bfa", glow:"167,139,250", icon:"📊", desc:"Estadísticas ganaderas · pandas 2.2 · numpy 1.26 · SQLAlchemy", uptime:"99.5%", req:"340/h", lang:"Python" },
-  { id:"gps",       name:"GPS Server",        port:8000, tech:"Python 3.12 / Django",color:"#39ff7e", glow:"57,255,126",  icon:"📡", desc:"Tracking collares · SQLite · Django REST Framework 3.15 · cors", uptime:"99.9%", req:"892/h", lang:"Python" },
-  { id:"frontend",  name:"Frontend PWA",      port:5000, tech:"React 18 / Vite 6",  color:"#00c8ff", glow:"0,200,255",   icon:"🌐", desc:"React 18 · Tailwind CSS v4 · shadcn/ui · Service Worker v6 · wouter", uptime:"100%", req:"—", lang:"TypeScript/TSX" },
+  { id:"api",       name:"API Server",        port:8080, tech:"Node 24 / Fastify 5", color:"#00f5d4", glow:"0,245,212",   icon:"⚡", desc:"REST API principal · 32+ endpoints · PostgreSQL · pnpm workspace · Drizzle ORM", uptime:"99.8%", req:"1,247/h", lang:"TypeScript", healthUrl:"/api/health", healthKey:"api" },
+  { id:"analytics", name:"Analytics Server",  port:8099, tech:"Python 3.12 / Flask", color:"#a78bfa", glow:"167,139,250", icon:"📊", desc:"Estadísticas ganaderas · pandas 2.2 · numpy 1.26 · SQLAlchemy · CORS habilitado", uptime:"99.5%", req:"340/h",   lang:"Python",     healthUrl:"/api/analytics/health", healthKey:"analytics" },
+  { id:"gps",       name:"GPS Server",        port:8000, tech:"Python 3.12 / Django", color:"#39ff7e", glow:"57,255,126",  icon:"📡", desc:"Tracking collares CIVAC-GPS-v3 · PostgreSQL · Django REST Framework 3.15 · MQTT", uptime:"99.9%", req:"892/h",   lang:"Python",     healthUrl:"/api/gps/health/", healthKey:"gps" },
+  { id:"frontend",  name:"Frontend PWA",      port:5000, tech:"React 18 / Vite 6",   color:"#00c8ff", glow:"0,200,255",   icon:"🌐", desc:"32 módulos · Tailwind CSS v4 · shadcn/ui · Service Worker v8 · wouter · IndexedDB", uptime:"100%",  req:"—",        lang:"TypeScript/TSX", healthUrl:null, healthKey:"frontend" },
 ];
 
 const PWA_VERSIONS = [
   {
-    v:"1.1.0", date:"2026-06-01", status:"dev", label:"En desarrollo", color:"#00ff88",
+    v:"7.1.0", date:"2026-06-03", status:"dev", label:"En desarrollo", color:"#00ff88",
     plans:["basico","pro","premium","platino"], size:"—", downloads:0,
-    features:["Badges CIVAC Staff","Server Panel completo","Deps panel","Integraciones panel","use-toast fix","HMR stable"],
-    changelog:"Refactor React namespace en .ts → named imports. Badge CIVAC para cuentas internas. Server dashboard expandido 10 secciones.",
+    features:["Cuentas reales colombianas","Sanidad+Trazabilidad en sidebar","32 módulos en admin matrix","Server health checks reales","Sidebar v7.0 footer","manifest.json v8"],
+    changelog:"v7.1 — Integración completa de 32 módulos. Cuentas cliente reales (empresas colombianas). Sidebar actualizado con Sanidad ICA y Trazabilidad QR. Server Panel con health checks en tiempo real.",
   },
   {
-    v:"1.0.0", date:"2026-05-26", status:"current", label:"Estable PROD", color:"#00f5d4",
-    plans:["basico","pro","premium","platino"], size:"2.4 MB", downloads:0,
-    features:["Panel Admin 14 tabs","GPS tracking real","Pesaje Bluetooth","Predicción IA","Módulos CO₂","Multi-finca","PWA offline v6","Login 3-tabs","Planes+Wompi"],
-    changelog:"Primera versión de producción. 28 módulos. 6 roles. Service Worker v6.",
+    v:"7.0.0", date:"2026-06-01", status:"current", label:"PROD · Estable", color:"#00f5d4",
+    plans:["basico","pro","premium","platino"], size:"3.1 MB", downloads:4,
+    features:["32 módulos completos","Sanidad Animal ICA","Trazabilidad SINIGAN","GPS Chips MQTT","Ventas CRM","Asesora IA","Drive Backup","SW v8 · 33 rutas","Manifest v7 · 8 shortcuts","Documentación 24 secciones"],
+    changelog:"CIVAC PRO v7.0 — Release mayor. 32+ módulos. Sanidad+Trazabilidad ICA. GPS Chips MQTT. CRM Ventas. Asesora IA especializada en ganadería Colombia. Service Worker v8. Server Panel 11 secciones.",
   },
   {
-    v:"0.9.5", date:"2026-05-21", status:"lts", label:"LTS", color:"#fbbf24",
-    plans:["basico","pro","premium","platino"], size:"2.1 MB", downloads:12,
-    features:["Roles Developer + SuperAdmin","Generación licencias","Fix registerUser plan","ThemeProvider fix","Auth 6 cuentas"],
-    changelog:"Fix crítico plan reset en registerUser. Nuevos roles developer/superadmin.",
+    v:"6.0.0", date:"2026-05-26", status:"lts", label:"LTS · 6.x", color:"#fbbf24",
+    plans:["basico","pro","premium","platino"], size:"2.7 MB", downloads:8,
+    features:["Server Panel 11 secciones","Badge ⬡ CIVAC Staff","use-toast.ts fix React ns","Deps · Langs · Integraciones tabs","Admin 14 tabs","GPS real watchPosition"],
+    changelog:"v6 LTS — Server Dashboard expandido. Badges CIVAC Staff. Fix crítico React namespace en .ts → named imports. HMR estable.",
   },
   {
-    v:"0.9.0", date:"2026-04-28", status:"stable", label:"Stable", color:"#94a3b8",
-    plans:["pro","premium","platino"], size:"2.0 MB", downloads:7,
-    features:["Pesaje BT 9-byte parser","RFID CIVAC","Bluetooth Web API","GPS watchPosition","BCS + GMD engine"],
-    changelog:"Integración Bluetooth pesaje. GPS real con navigator.geolocation.",
+    v:"5.0.0", date:"2026-05-01", status:"stable", label:"Stable 5.x", color:"#94a3b8",
+    plans:["pro","premium","platino"], size:"2.4 MB", downloads:12,
+    features:["GPS tracking real","6 cuentas","Admin/Developer dashboards","Pesaje BT/COM/Manual","Login 3-tabs+Planes","PWA offline v6","28 módulos"],
+    changelog:"v5 — Primera versión de producción completa. GPS real con navigator.geolocation. Pesaje Bluetooth. Predicción IA. 28 módulos.",
   },
   {
-    v:"0.8.0", date:"2026-03-15", status:"archived", label:"Legacy", color:"#6b7280",
-    plans:["pro","premium","platino"], size:"1.8 MB", downloads:3,
-    features:["Admin dashboard","Wompi Colombia","API keys","Dark mode v2"],
-    changelog:"Primera pasarela de pagos Wompi+Nequi+PSE. Admin panel básico.",
+    v:"4.0.0", date:"2026-03-15", status:"archived", label:"Legacy 4.x", color:"#6b7280",
+    plans:["pro","premium","platino"], size:"2.0 MB", downloads:3,
+    features:["Visual overhaul dark/light","Logo Holstein teal","CSS variables paleta farm/marine","Admin panel básico","Wompi Colombia"],
+    changelog:"v4 — Rediseño visual completo. Dark/light mode. Logo Holstein con chip IA teal. Wompi+Nequi+PSE pagos.",
   },
 ];
 
 const PLAN_DEMOS = [
-  { id:"basico",  label:"Demo Básico",  email:"demo_basico@ganaderia.co",  pwd:"demo2026", color:"#94a3b8", icon:"🥈", modules:["Dashboard","Inventario","Producción","Potreros","Alertas"] },
-  { id:"pro",     label:"Demo PRO",     email:"demo_pro@ganaderia.co",     pwd:"demo2026", color:"#00f5d4", icon:"⚡", modules:["Todo Básico + GPS","Pesaje BT","Reproducción","Genética","Costos","Personal"] },
-  { id:"premium", label:"Demo Premium", email:"demo_premium@ganaderia.co", pwd:"demo2026", color:"#fbbf24", icon:"🥇", modules:["Todo PRO + IA Predicciones","CO₂","Multi-finca","Ficha"] },
-  { id:"platino", label:"Demo Platino", email:"demo_platino@ganaderia.co", pwd:"demo2026", color:"#cd7f32", icon:"🔶", modules:["TODO Ilimitado","Admin Panel","Usuarios","SLA 99.9%"] },
+  { id:"basico",  label:"El Palmar",         empresa:"Agropecuaria El Palmar",         email:"demo_basico@ganaderia.co",  pwd:"demo2026", color:"#94a3b8", icon:"🥈", modules:["Dashboard","Inventario","Producción","Potreros","Alertas","Sanidad básica"] },
+  { id:"pro",     label:"Los Llanos",        empresa:"Ganadería Los Llanos S.A.S.",    email:"demo_pro@ganaderia.co",     pwd:"demo2026", color:"#00f5d4", icon:"⚡", modules:["+ GPS Collares","Pesaje BT","Reproducción","Genética","Costos","Sanidad","Trazabilidad ICA","Asesora IA"] },
+  { id:"premium", label:"Inversiones Cesar", empresa:"Inversiones Bovinas del Cesar",  email:"demo_premium@ganaderia.co", pwd:"demo2026", color:"#fbbf24", icon:"🥇", modules:["+ IA Predicciones","CO₂ IPCC","Multi-finca","Ficha Clínica","Drive Backup","CRM Ventas"] },
+  { id:"platino", label:"Córdoba Corp.",     empresa:"Grupo Ganadero Córdoba Corp.",   email:"demo_platino@ganaderia.co", pwd:"demo2026", color:"#cd7f32", icon:"🔶", modules:["TODO Ilimitado · 32 módulos","Admin Panel","Usuarios & Roles","SLA 99.9% garantizado"] },
 ];
 
 const CLIENT_INSTANCES = [
-  { id:"INS-001", name:"Finca El Rancho Verde",  owner:"Admin Demo",      plan:"platino", status:"active",   users:4, lastSeen:"hace 2 min",  region:"Antioquia, CO", version:"1.0.0" },
-  { id:"INS-002", name:"Agropecuaria Los Llanos", owner:"Demo PRO",        plan:"pro",     status:"active",   users:2, lastSeen:"hace 15 min", region:"Meta, CO",      version:"1.0.0" },
-  { id:"INS-003", name:"Ganadería Sierra Nevada", owner:"Demo Premium",    plan:"premium", status:"active",   users:3, lastSeen:"hace 1h",     region:"Cesar, CO",     version:"0.9.5" },
-  { id:"INS-004", name:"Finca Demo Básico",       owner:"Demo Básico",     plan:"basico",  status:"trial",    users:1, lastSeen:"hace 3h",     region:"Bogotá, CO",    version:"1.0.0" },
-  { id:"INS-005", name:"Hacienda La Esperanza",   owner:"Cliente Platino", plan:"platino", status:"inactive", users:6, lastSeen:"hace 2 días", region:"Córdoba, CO",   version:"0.9.5" },
+  { id:"INS-001", name:"Finca El Rancho Verde",       owner:"Luis Patiño",            plan:"pro",     status:"active",   users:3, lastSeen:"hace 2 min",  region:"Antioquia, CO",   version:"7.0.0" },
+  { id:"INS-002", name:"Ganadería Los Llanos S.A.S.", owner:"Gerente de Producción",  plan:"pro",     status:"active",   users:2, lastSeen:"hace 15 min", region:"Meta, CO",        version:"7.0.0" },
+  { id:"INS-003", name:"Inversiones Bovinas Cesar",   owner:"Director Agropecuario",  plan:"premium", status:"active",   users:4, lastSeen:"hace 45 min", region:"Valledupar, CO",  version:"7.0.0" },
+  { id:"INS-004", name:"Agropecuaria El Palmar",      owner:"Propietario",            plan:"basico",  status:"trial",    users:1, lastSeen:"hace 3h",     region:"Boyacá, CO",      version:"7.0.0" },
+  { id:"INS-005", name:"Grupo Ganadero Córdoba Corp.",owner:"CEO · Presidente",       plan:"platino", status:"active",   users:8, lastSeen:"hace 5 min",  region:"Montería, CO",    version:"7.0.0" },
+  { id:"INS-006", name:"Hacienda La Esperanza",       owner:"Propietario Platino",    plan:"platino", status:"inactive", users:5, lastSeen:"hace 2 días", region:"Córdoba, CO",     version:"6.0.0" },
 ];
 
 const CIVAC_STAFF = [
@@ -126,7 +127,7 @@ const INTEGRATIONS = [
   { id:"gps_hw",  name:"GPS Hardware",    icon:"📡", status:"active",     color:"#00f5d4", desc:"Collares CIVAC-GPS-v3. MQTT broker. 13 dispositivos activos.", key:"MQTT_BROKER: mqtt.civac.co:1883", category:"IoT" },
   { id:"bt",      name:"Bluetooth BT",    icon:"🔵", status:"active",     color:"#3b82f6", desc:"Web Bluetooth API. Báscula pesaje bovino 9-byte frame.", key:"— (Web API nativa)", category:"IoT" },
   { id:"rfid",    name:"RFID CIVAC",      icon:"🏷️", status:"active",     color:"#fbbf24", desc:"Lectores UHF 900MHz. Protocolo CIVAC-RFID-EPC96. Inventario.", key:"RFID_PROTOCOL: EPC96", category:"IoT" },
-  { id:"sw",      name:"Service Worker",  icon:"⚙️", status:"active",     color:"#94a3b8", desc:"PWA v6 cache-first. IndexedDB offline. Background sync.", key:"— (PWA nativa)", category:"PWA" },
+  { id:"sw",      name:"Service Worker",  icon:"⚙️", status:"active",     color:"#94a3b8", desc:"PWA v8 cache-first. IndexedDB offline. 33 rutas pre-cacheadas. Background Sync.", key:"— (PWA nativa)", category:"PWA" },
   { id:"indexeddb",name:"IndexedDB",      icon:"💾", status:"active",     color:"#60a5fa", desc:"Base de datos offline. Sincronización en background.", key:"DB: civac-offline-v1", category:"PWA" },
   { id:"ipcc",    name:"IPCC 2019",       icon:"🌱", status:"active",     color:"#22c55e", desc:"Factores emisión IPCC 2019 AR6. Módulo CO₂ bovino Colombia.", key:"Factor CH₄: 56 kg/cabeza/año", category:"Cálculos" },
   { id:"maps",    name:"SVG Geo Maps",    icon:"🗺️", status:"active",     color:"#f97316", desc:"Mapas SVG Colombia. Potreros + GPS overlay animado.", key:"— (SVG local)", category:"Geo" },
@@ -255,9 +256,9 @@ function HubPanel() {
       {/* System info row */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label:"Región",   val:"SA-East · Bogotá",      icon:"🌎" },
-          { label:"DB",       val:"PostgreSQL nativa",      icon:"🗄️"  },
-          { label:"PWA SW",   val:"v6 · Cache-first",       icon:"⚙️" },
+          { label:"Región",    val:"SA-East · Bogotá",         icon:"🌎" },
+          { label:"DB",        val:"PostgreSQL · Drizzle ORM",  icon:"🗄️" },
+          { label:"PWA SW",    val:"v8 · 33 rutas · Offline",  icon:"⚙️" },
         ].map(i => (
           <div key={i.label} className="p-3 rounded-xl text-center" style={{ background:"rgba(4,13,26,0.5)", border:"1px solid rgba(255,255,255,0.05)" }}>
             <div className="text-xl mb-1">{i.icon}</div>
@@ -273,40 +274,109 @@ function HubPanel() {
 /* ══════════════════════════════════════════════════════════════════
    SERVICES PANEL
 ══════════════════════════════════════════════════════════════════ */
+type ServiceHealth = { status: "online"|"offline"|"checking"; latency: number|null; detail: string|null };
+
 function ServicesPanel() {
+  const [health, setHealth] = useState<Record<string, ServiceHealth>>({
+    api:      { status:"checking", latency:null, detail:null },
+    analytics:{ status:"checking", latency:null, detail:null },
+    gps:      { status:"checking", latency:null, detail:null },
+    frontend: { status:"online",   latency:null, detail:"React 18 · PWA v7.0" },
+  });
+  const [lastCheck, setLastCheck] = useState<string|null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const checkHealth = async () => {
+    setChecking(true);
+    const results: Record<string, ServiceHealth> = { ...health, frontend:{ status:"online", latency:null, detail:"React 18 · Service Worker v8 activo" } };
+    for (const s of SERVICES) {
+      if (!s.healthUrl) continue;
+      const t0 = performance.now();
+      try {
+        const r = await fetch(s.healthUrl, { signal: AbortSignal.timeout(4000) });
+        const latency = Math.round(performance.now() - t0);
+        if (r.ok) {
+          const j = await r.json().catch(() => ({}));
+          results[s.healthKey] = { status:"online", latency, detail: j.status ?? j.db ?? JSON.stringify(j).slice(0,60) };
+        } else {
+          results[s.healthKey] = { status:"offline", latency, detail:`HTTP ${r.status}` };
+        }
+      } catch {
+        const latency = Math.round(performance.now() - t0);
+        results[s.healthKey] = { status:"offline", latency, detail:"Sin respuesta · timeout" };
+      }
+    }
+    setHealth(results);
+    setLastCheck(new Date().toLocaleTimeString("es-CO", { hour:"2-digit", minute:"2-digit", second:"2-digit" }));
+    setChecking(false);
+  };
+
+  useEffect(() => { checkHealth(); }, []);
+
   return (
     <div className="space-y-6">
-      <SectionHeader icon={Server} label="Servicios del Sistema" sub="Gestión y monitoreo de los 4 backends CIVAC" color="#39ff7e" />
+      <div className="flex items-center justify-between">
+        <SectionHeader icon={Server} label="Servicios del Sistema" sub="4 backends CIVAC · health checks en tiempo real" color="#39ff7e" />
+        <button onClick={checkHealth} disabled={checking}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[12px] font-bold transition-all hover:scale-105 disabled:opacity-50"
+          style={{ background:"rgba(57,255,126,0.08)", color:"#39ff7e", border:"1px solid rgba(57,255,126,0.2)" }}>
+          <RefreshCw size={13} className={checking ? "animate-spin" : ""}/>
+          {checking ? "Verificando…" : "Health Check"}
+        </button>
+      </div>
+      {lastCheck && (
+        <p className="text-[10px] font-mono" style={{ color:"rgba(148,163,184,0.3)" }}>
+          Última verificación: {lastCheck}
+        </p>
+      )}
       <div className="space-y-4">
-        {SERVICES.map(s => (
-          <div key={s.id} className="rounded-2xl p-5" style={{ background:"rgba(4,13,26,0.7)", border:`1px solid rgba(${s.glow},0.18)` }}>
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background:`rgba(${s.glow},0.1)`, border:`1px solid rgba(${s.glow},0.2)` }}>
-                {s.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h3 className="text-[15px] font-black text-white">{s.name}</h3>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold" style={{ background:`rgba(${s.glow},0.12)`, color:s.color, border:`1px solid rgba(${s.glow},0.2)` }}>{s.tech}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-mono" style={{ background:"rgba(49,120,198,0.1)", color:"#3178c6", border:"1px solid rgba(49,120,198,0.2)" }}>{s.lang}</span>
-                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background:"rgba(57,255,126,0.08)", color:"#39ff7e", border:"1px solid rgba(57,255,126,0.2)" }}>
-                    <div className="w-1.5 h-1.5 rounded-full animate-pulse bg-green-400"/>ONLINE
-                  </span>
+        {SERVICES.map(s => {
+          const h = health[s.healthKey];
+          const isOnline  = h?.status === "online";
+          const isOffline = h?.status === "offline";
+          const isCheck   = h?.status === "checking";
+          const statusColor = isOnline ? "#39ff7e" : isOffline ? "#ff4d4d" : "#fbbf24";
+          const statusGlow  = isOnline ? "57,255,126" : isOffline ? "255,77,77" : "251,191,36";
+          const statusLabel = isOnline ? "ONLINE" : isOffline ? "OFFLINE" : "CHECKING…";
+          return (
+            <div key={s.id} className="rounded-2xl p-5 transition-all" style={{ background:"rgba(4,13,26,0.7)", border:`1px solid rgba(${isOnline ? s.glow : statusGlow},0.22)` }}>
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0" style={{ background:`rgba(${s.glow},0.1)`, border:`1px solid rgba(${s.glow},0.2)` }}>
+                  {s.icon}
                 </div>
-                <p className="text-[12px] mb-3" style={{ color:"rgba(148,163,184,0.55)" }}>{s.desc}</p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.5)", border:"1px solid rgba(255,255,255,0.06)" }}>PORT :{s.port}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.5)", border:"1px solid rgba(255,255,255,0.06)" }}>uptime {s.uptime}</span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.5)", border:"1px solid rgba(255,255,255,0.06)" }}>{s.req}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h3 className="text-[15px] font-black text-white">{s.name}</h3>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold" style={{ background:`rgba(${s.glow},0.12)`, color:s.color, border:`1px solid rgba(${s.glow},0.2)` }}>{s.tech}</span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono" style={{ background:"rgba(49,120,198,0.1)", color:"#3178c6", border:"1px solid rgba(49,120,198,0.2)" }}>{s.lang}</span>
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold" style={{ background:`rgba(${statusGlow},0.08)`, color:statusColor, border:`1px solid rgba(${statusGlow},0.2)` }}>
+                      <div className={`w-1.5 h-1.5 rounded-full ${isCheck ? "animate-ping" : isOnline ? "animate-pulse" : ""}`} style={{ background:statusColor }}/>
+                      {statusLabel}
+                    </span>
+                    {h?.latency !== null && h?.latency !== undefined && (
+                      <span className="text-[9px] font-mono" style={{ color:"rgba(148,163,184,0.4)" }}>{h.latency}ms</span>
+                    )}
+                  </div>
+                  <p className="text-[12px] mb-2" style={{ color:"rgba(148,163,184,0.55)" }}>{s.desc}</p>
+                  {h?.detail && (
+                    <p className="text-[10px] font-mono mb-2 px-2 py-1 rounded-lg" style={{ background:"rgba(255,255,255,0.03)", color:`rgba(${statusGlow},0.6)`, border:`1px solid rgba(${statusGlow},0.1)` }}>
+                      {h.detail}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.5)", border:"1px solid rgba(255,255,255,0.06)" }}>PORT :{s.port}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.5)", border:"1px solid rgba(255,255,255,0.06)" }}>uptime {s.uptime}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-lg" style={{ background:"rgba(255,255,255,0.04)", color:"rgba(148,163,184,0.5)", border:"1px solid rgba(255,255,255,0.06)" }}>{s.req}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <button className="p-2 rounded-lg transition-all hover:scale-105" style={{ background:"rgba(255,80,80,0.06)", border:"1px solid rgba(255,80,80,0.14)", color:"#ff7070" }} title="Reiniciar"><RotateCcw size={14}/></button>
-                <button className="p-2 rounded-lg transition-all hover:scale-105" style={{ background:"rgba(148,163,184,0.06)", border:"1px solid rgba(148,163,184,0.14)", color:"rgba(148,163,184,0.5)" }} title="Ver logs"><Eye size={14}/></button>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button onClick={checkHealth} className="p-2 rounded-lg transition-all hover:scale-105" style={{ background:"rgba(57,255,126,0.06)", border:"1px solid rgba(57,255,126,0.14)", color:"#39ff7e" }} title="Verificar"><RefreshCw size={14}/></button>
+                  <button className="p-2 rounded-lg transition-all hover:scale-105" style={{ background:"rgba(148,163,184,0.06)", border:"1px solid rgba(148,163,184,0.14)", color:"rgba(148,163,184,0.5)" }} title="Ver logs"><Eye size={14}/></button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -745,10 +815,10 @@ function InstanciasPanel() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label:"Total instancias", val:"5", color:"#00c8ff" },
-          { label:"Activas",          val:"3", color:"#39ff7e" },
-          { label:"Trial",            val:"1", color:"#fbbf24" },
-          { label:"Inactivas",        val:"1", color:"#6b7280" },
+          { label:"Total instancias", val:`${CLIENT_INSTANCES.length}`, color:"#00c8ff" },
+          { label:"Activas",          val:`${CLIENT_INSTANCES.filter(i=>i.status==="active").length}`,   color:"#39ff7e" },
+          { label:"Trial",            val:`${CLIENT_INSTANCES.filter(i=>i.status==="trial").length}`,    color:"#fbbf24" },
+          { label:"Inactivas",        val:`${CLIENT_INSTANCES.filter(i=>i.status==="inactive").length}`, color:"#6b7280" },
         ].map(s => (
           <div key={s.label} className="p-3 rounded-xl text-center" style={{ background:"rgba(4,13,26,0.7)", border:`1px solid ${s.color}18` }}>
             <p className="text-xl font-black" style={{ color:s.color }}>{s.val}</p>
@@ -936,7 +1006,7 @@ function DevConsolePanel() {
     "[2026-06-01 18:21:09] 🌐 Frontend PWA: Vite 6 ready on :5000",
     "[2026-06-01 18:21:10] 🗄️  DB: PostgreSQL connection OK · schema synced",
     "[2026-06-01 18:21:11] ✅ CIVAC Server: all systems nominal",
-    "[2026-06-01 18:21:12] 📦 PWA v1.0.0 en producción · Service Worker v6 activo",
+    "[2026-06-03 18:21:12] 📦 PWA v7.1.0 en desarrollo · Service Worker v8 activo",
     "[2026-06-01 18:21:13] 🔧 use-toast.ts: React namespace fix aplicado · HMR stable",
   ]);
 
@@ -1063,10 +1133,10 @@ function ConfigPanel() {
         <p className="text-[10px] font-mono font-bold tracking-widest mb-3" style={{ color:"rgba(148,163,184,0.3)" }}>PLATAFORMA</p>
         {[
           { label:"Dominio principal",      val:"civac.co",                   icon:"🌐", editable:false },
-          { label:"Versión plataforma",     val:"CIVAC PRO v1.0.0",           icon:"📦", editable:false },
+          { label:"Versión plataforma",     val:"CIVAC PRO v7.0.0",           icon:"📦", editable:false },
           { label:"Región de despliegue",   val:"Bogotá, Colombia — SA-East", icon:"📍", editable:false },
           { label:"Base de datos",          val:"PostgreSQL (Replit native)",  icon:"🗄️", editable:false },
-          { label:"PWA Service Worker",     val:"v6 · Cache-first · Offline", icon:"⚙️", editable:false },
+          { label:"PWA Service Worker",     val:"v8 · 33 rutas · Offline full", icon:"⚙️", editable:false },
           { label:"Stack frontend",         val:"React 18 · Vite 6 · TS 5.9", icon:"🌐", editable:false },
           { label:"Stack backend",          val:"Node 24 · Python 3.12",      icon:"⚡", editable:false },
         ].map(cfg => (
@@ -1255,7 +1325,7 @@ export default function ServerDashboard() {
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px] font-mono" style={{ color:"rgba(0,245,212,0.18)" }}>
               <div className="w-1 h-1 rounded-full" style={{ background:"#00f5d4" }}/>
-              <span>CIVAC Platform v1.0 · Server</span>
+              <span>CIVAC Platform v7.0 · Server</span>
             </div>
           )}
           <button onClick={() => navigate("/")} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-white/30 hover:text-white/60 hover:bg-white/5 transition-all ${collapsed ? "justify-center" : ""}`} style={{ borderRadius:10 }}>

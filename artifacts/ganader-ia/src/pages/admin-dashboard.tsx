@@ -44,10 +44,10 @@ const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
 const PLAN_COLORS_PIE = ["#b8c4d4", "#00f5d4", "#fbbf24", "#cd7f32"];
 
 const PLAN_MODULES: Record<PlanId, string[]> = {
-  basico:  ["Dashboard","Inventario","Producción","Potreros","Alertas"],
-  pro:     ["+ Reproducción","+ Genética","+ Pesaje BT","+ Insumos","+ Alimentación","+ Semen","+ Costos","+ Personal","+ GPS Collares"],
-  premium: ["+ Multi-Finca","+ Predicciones IA","+ Huella CO₂","+ Ficha Individual","+ Pesaje Manual/COM"],
-  platino: ["+ Usuarios & Roles","+ Configuración","+ Documentación","+ Lotes","+ Multi-Tenant","+ Admin Panel"],
+  basico:  ["Dashboard","Inventario","Producción","Potreros","Alertas","Sanidad básica","Pesaje Manual"],
+  pro:     ["+ Reproducción","+ Genética","+ Pesaje BT/COM","+ Insumos","+ Alimentación","+ Semen/TE","+ Costos P&G","+ Personal","+ GPS Collares","+ GPS Chips/MQTT","+ Lotes","+ Ficha Clínica","+ Trazabilidad ICA"],
+  premium: ["+ Asesora IA","+ Ventas CRM","+ Multi-Finca","+ Predicciones IA","+ Huella CO₂ IPCC","+ Drive Backup"],
+  platino: ["+ Usuarios & Roles","+ Configuración avanzada","+ Documentación","+ Manual completo","+ Centro Datos","+ Planes & Admin","+ SLA 99.9%"],
 };
 
 const ALL_MODULES = [
@@ -56,6 +56,8 @@ const ALL_MODULES = [
   { id:"produccion",     label:"Producción",        icon:"🥛", plan:"basico"  },
   { id:"potreros",       label:"Potreros",          icon:"🌿", plan:"basico"  },
   { id:"alertas",        label:"Alertas",           icon:"🔔", plan:"basico"  },
+  { id:"sanidad",        label:"Sanidad Animal",    icon:"🩺", plan:"basico"  },
+  { id:"pesaje-manual",  label:"Pesaje Manual",     icon:"✏️", plan:"basico"  },
   { id:"reproduccion",   label:"Reproducción",      icon:"🧬", plan:"pro"     },
   { id:"genetica",       label:"Genética",          icon:"🔬", plan:"pro"     },
   { id:"pesaje",         label:"Pesaje BT/COM",     icon:"⚖️", plan:"pro"     },
@@ -65,13 +67,22 @@ const ALL_MODULES = [
   { id:"costos",         label:"Costos P&G",        icon:"💰", plan:"pro"     },
   { id:"personal",       label:"Personal",          icon:"👷", plan:"pro"     },
   { id:"gps",            label:"GPS Collares",      icon:"📡", plan:"pro"     },
+  { id:"gps-chips",      label:"GPS Chips/MQTT",    icon:"📱", plan:"pro"     },
+  { id:"lotes",          label:"Lotes Ganaderos",   icon:"🔖", plan:"pro"     },
+  { id:"ficha",          label:"Ficha Individual",  icon:"📋", plan:"pro"     },
+  { id:"trazabilidad",   label:"Trazabilidad ICA",  icon:"🏷️", plan:"pro"     },
+  { id:"asesora",        label:"Asesora IA",        icon:"🤖", plan:"premium" },
+  { id:"ventas",         label:"Ventas CRM",        icon:"💼", plan:"premium" },
   { id:"multifinca",     label:"Multi-Finca",       icon:"🏘️", plan:"premium" },
-  { id:"prediccion",     label:"Predicciones IA",   icon:"🤖", plan:"premium" },
+  { id:"prediccion",     label:"Predicciones IA",   icon:"🎯", plan:"premium" },
   { id:"co2",            label:"Huella CO₂",        icon:"🌍", plan:"premium" },
-  { id:"ficha",          label:"Ficha Individual",  icon:"📋", plan:"premium" },
+  { id:"drive",          label:"Drive Backup",      icon:"☁️", plan:"premium" },
   { id:"usuarios",       label:"Usuarios & Roles",  icon:"👥", plan:"platino" },
   { id:"configuracion",  label:"Configuración",     icon:"⚙️", plan:"platino" },
   { id:"documentacion",  label:"Documentación",     icon:"📖", plan:"platino" },
+  { id:"manual",         label:"Manual Usuario",    icon:"📘", plan:"platino" },
+  { id:"planes",         label:"Planes & Pagos",    icon:"💳", plan:"platino" },
+  { id:"datos",          label:"Centro de Datos",   icon:"🗄️", plan:"platino" },
 ];
 
 /* ── Básculas: estadísticas de uso simuladas ── */
@@ -779,7 +790,7 @@ export default function AdminDashboard({
                 </span>
                 <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
                   style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"black", boxShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
-                  v1.0
+                  v7.0
                 </span>
               </div>
               <p className="text-xs" style={{ color:"rgba(255,149,0,0.65)" }}>
@@ -3224,7 +3235,7 @@ export default function AdminDashboard({
         <div className="space-y-4">
           <div className="rounded-2xl p-4" style={{background:"rgba(96,165,250,0.06)",border:"1px solid rgba(96,165,250,0.2)"}}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v1.0</h3>
+              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v7.0</h3>
               <div className="flex gap-2">
                 <button className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
                   style={{background:"rgba(96,165,250,0.12)",color:"#60a5fa",border:"1px solid rgba(96,165,250,0.25)"}}>

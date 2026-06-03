@@ -738,27 +738,29 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/reproduccion" />
             <NavItem href="/produccion" />
             <NavItem href="/genetica" />
+            <NavItem href="/sanidad" accent="ICA" accentColor="bg-[#00f5d4]/15 text-[#00f5d4] border-[#00f5d4]/25" />
+            <NavItem href="/trazabilidad" accent="QR" accentColor="bg-[#a855f7]/15 text-[#a855f7] border-[#a855f7]/25" />
             <NavItem href="/pesaje" accent="BT⚡" accentColor="bg-[#ff9500]/15 text-[#ff9500] border-[#ff9500]/25" />
             <NavItem href="/pesaje-manual" accent="CC" accentColor="bg-[#FFD60A]/15 text-[#FFD60A] border-[#FFD60A]/25" />
           </Section>
           <Section title="Campo">
             <NavItem href="/potreros" />
             <NavItem href="/alimentacion" />
+            <NavItem href="/insumos" badge={3} />
             <NavItem href="/gps" accent="GPS" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
             <NavItem href="/gps-chips" accent="Chips" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
           </Section>
           <Section title="Ventas CRM">
             <NavItem href="/ventas" accent="CRM" accentColor="bg-[#e879f9]/15 text-[#e879f9] border-[#e879f9]/25" />
+            <NavItem href="/asesora" accent="IA" accentColor="bg-purple-500/15 text-purple-400 border-purple-500/25" />
             <NavItem href="/drive" accent="NUBE" accentColor="bg-[#00c8ff]/15 text-[#00c8ff] border-[#00c8ff]/25" />
           </Section>
           <Section title="Gestión">
-            <NavItem href="/insumos" badge={3} />
             <NavItem href="/semen" />
             <NavItem href="/costos" />
             <NavItem href="/personal" />
           </Section>
           <Section title="IA & Analytics">
-            <NavItem href="/asesora" accent="IA" accentColor="bg-purple-500/15 text-purple-400 border-purple-500/25" />
             <NavItem href="/prediccion" accent="SIM" accentColor="bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25" />
             <NavItem href="/co2" />
             <NavItem href="/multifinca" />
@@ -768,8 +770,9 @@ export function Layout({ children }: LayoutProps) {
             <NavItem href="/usuarios" />
             <NavItem href="/configuracion" />
             <NavItem href="/documentacion" />
+            <NavItem href="/manual" accent="DOC" accentColor="bg-teal-500/15 text-teal-400 border-teal-500/25" />
             <NavItem href="/planes" accent="💳" accentColor="bg-amber-500/15 text-amber-400 border-amber-500/25" />
-            <NavItem href="/acerca" accent="©" accentColor="bg-[#00f5d4]/15 text-[#00f5d4] border-[#00f5d4]/25" />
+            <NavItem href="/acerca" accent="v7" accentColor="bg-[#00f5d4]/15 text-[#00f5d4] border-[#00f5d4]/25" />
           </Section>
         </div>
 
@@ -777,7 +780,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: `rgba(255,214,10,0.08)` }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: 'rgba(255,214,10,0.25)' }}>
-              <Wifi size={9} /><span>CIVAC PRO v1.0 · IndexedDB · Offline PWA · Colombia</span>
+              <Wifi size={9} /><span>CIVAC PRO v7.0 · 32 módulos · Offline PWA · Colombia</span>
             </div>
           )}
           {!collapsed && (

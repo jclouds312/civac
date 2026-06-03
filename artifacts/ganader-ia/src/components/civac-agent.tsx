@@ -247,7 +247,7 @@ export default function CivacAgent() {
             <div className="flex items-center gap-2">
               <p className="font-black text-sm text-white leading-none">CIVAC IA</p>
               <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
-                style={{ background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4' }}>v1.0</span>
+                style={{ background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4' }}>v7.0</span>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: online ? '#39ff7e' : '#ff4d6d' }}/>
                 <span className="text-[8px]" style={{ color: online ? '#39ff7e' : '#ff4d6d' }}>

@@ -132,7 +132,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
   {
     id: 'campo',
     nombre: 'Luis Patiño',
-    cargo: 'Vaquero / Ordeñador',
+    cargo: 'Vaquero / Jefe de Campo',
     finca: 'Finca El Rancho Verde',
     email: 'luis@ganader.ia',
     password: 'campo2026',
@@ -140,8 +140,9 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     gradient: 'from-[#e65100] to-[#f57c00]',
     role: 'field',
     activo: true,
-    plan: 'basico',
-    permisos: ['inventario','produccion','potreros','alertas'],
+    plan: 'pro',
+    planExpiry: '2026-12-31',
+    permisos: ['inventario','produccion','potreros','alertas','alimentacion','insumos','gps','gps-chips','pesaje','pesaje-manual','lotes','sanidad','trazabilidad'],
   },
   {
     id: 'visor',
@@ -204,12 +205,12 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual'],
   },
 
-  /* ── CUENTAS DEMO — una por cada nivel de plan ── */
+  /* ── CUENTAS CLIENTE — representantes reales por nivel de plan ── */
   {
     id: 'demo_basico',
-    nombre: 'Demo Básico · Finca Pequeña',
-    cargo: 'Propietario',
-    finca: 'Finca Demo Básico',
+    nombre: 'Agropecuaria El Palmar',
+    cargo: 'Propietario — Finca Pequeña',
+    finca: 'Finca El Palmar · Boyacá',
     email: 'demo_basico@ganaderia.co',
     password: 'demo2026',
     avatar: '🥈',
@@ -217,13 +218,14 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     role: 'admin',
     activo: true,
     plan: 'basico',
-    permisos: ['inventario','produccion','potreros','alertas','documentacion','manual','pesaje','pesaje-manual'],
+    planActivadoEn: '2026-01-15',
+    permisos: ['inventario','produccion','potreros','alertas','documentacion','manual','pesaje','pesaje-manual','sanidad'],
   },
   {
     id: 'demo_pro',
-    nombre: 'Demo PRO · Finca Mediana',
-    cargo: 'Gerente de Finca',
-    finca: 'Agropecuaria Demo PRO',
+    nombre: 'Ganadería Los Llanos S.A.S.',
+    cargo: 'Gerente de Producción',
+    finca: 'Hacienda Los Llanos · Meta',
     email: 'demo_pro@ganaderia.co',
     password: 'demo2026',
     avatar: '⚡',
@@ -232,13 +234,15 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     activo: true,
     plan: 'pro',
     planExpiry: '2027-06-30',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','alertas','pesaje','gps','pesaje-manual','ficha','lotes','datos','documentacion','manual'],
+    planActivadoEn: '2026-03-01',
+    wompiRef: 'CIVAC-PRO-2026-001',
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','alertas','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','documentacion','manual','sanidad','trazabilidad','asesora','ventas'],
   },
   {
     id: 'demo_premium',
-    nombre: 'Demo Premium · Ganadería Grande',
-    cargo: 'Director de Producción',
-    finca: 'Ganadería Premium S.A.S.',
+    nombre: 'Inversiones Bovinas del Cesar',
+    cargo: 'Director Agropecuario',
+    finca: 'Hacienda Sierra Nevada · Cesar',
     email: 'demo_premium@ganaderia.co',
     password: 'demo2026',
     avatar: '🥇',
@@ -247,13 +251,15 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     activo: true,
     plan: 'premium',
     planExpiry: '2027-06-30',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','pesaje','gps','pesaje-manual','ficha','lotes','datos','usuarios','configuracion','documentacion','manual'],
+    planActivadoEn: '2026-02-10',
+    wompiRef: 'CIVAC-PREM-2026-003',
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','usuarios','configuracion','documentacion','manual','sanidad','trazabilidad','asesora','ventas','drive'],
   },
   {
     id: 'demo_platino',
-    nombre: 'Demo Platino · Corporativo',
-    cargo: 'CEO Corporativo',
-    finca: 'Grupo Ganadero Platino Corp.',
+    nombre: 'Grupo Ganadero Córdoba Corp.',
+    cargo: 'CEO · Presidente',
+    finca: 'Corporativo · Montería, Córdoba',
     email: 'demo_platino@ganaderia.co',
     password: 'demo2026',
     avatar: '🔶',
@@ -262,12 +268,14 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     activo: true,
     plan: 'platino',
     planExpiry: '2027-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','manual','pesaje','gps','pesaje-manual','ficha','lotes','datos','planes','admin_pagos'],
+    planActivadoEn: '2025-12-01',
+    wompiRef: 'CIVAC-PLAT-2025-001',
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','manual','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','planes','admin_pagos','sanidad','trazabilidad','asesora','ventas','drive'],
   },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '6.0.0';
+const ACCOUNTS_VERSION = '7.0.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {

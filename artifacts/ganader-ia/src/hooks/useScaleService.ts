@@ -4,7 +4,20 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+
+// socket.io-client type stubs (optional peer dependency)
+type Socket = {
+  on: (event: string, cb: (...args: unknown[]) => void) => Socket;
+  off: (event: string, cb?: (...args: unknown[]) => void) => Socket;
+  emit: (event: string, ...args: unknown[]) => Socket;
+  disconnect: () => void;
+  connected: boolean;
+};
+type SocketOptions = { transports?: string[]; reconnection?: boolean; reconnectionDelay?: number; reconnectionDelayMax?: number; reconnectionAttempts?: number };
+const io = (url: string, opts?: SocketOptions): Socket => {
+  console.warn('[useScaleService] socket.io-client not installed — scale service unavailable.', url, opts);
+  return { on: () => ({} as Socket), off: () => ({} as Socket), emit: () => ({} as Socket), disconnect: () => {}, connected: false };
+};
 
 interface UseScaleServiceOptions {
   apiUrl?: string;

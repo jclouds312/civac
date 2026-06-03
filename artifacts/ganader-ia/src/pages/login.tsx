@@ -559,7 +559,7 @@ export default function Login() {
         if (login(inv.email, inv.password)) return;
       }, 1500);
       return () => clearTimeout(tid);
-    } catch { /* ignore */ }
+    } catch { return; }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

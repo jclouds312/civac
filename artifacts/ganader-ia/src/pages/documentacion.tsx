@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactElement } from "react";
 import {
   BookOpen, Smartphone, WifiOff, Bluetooth, Navigation, BarChart3, Users,
   Globe, Cloud, FileDown, Database, CheckCircle, Scale,
@@ -799,7 +800,7 @@ function SecServer() {
 /* ══════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════ */
-const PANEL_MAP: Record<string, () => JSX.Element> = {
+const PANEL_MAP: Record<string, () => ReactElement> = {
   inicio:       SecInicio,
   modulos:      SecModulos,
   pwa:          SecPwa,

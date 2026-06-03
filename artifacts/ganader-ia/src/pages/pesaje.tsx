@@ -1222,7 +1222,8 @@ export default function Pesaje() {
   useEffect(() => () => { if (simRef.current) clearInterval(simRef.current); }, []);
 
   /* Load trama stats when config tab is shown */
-  useEffect(() => { if (mainTab === "config") { loadTramaStats(); } }, [mainTab, loadTramaStats]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (mainTab === "config") { loadTramaStats?.(); } }, [mainTab]); // loadTramaStats defined below — safe forward ref via optional call
 
   /* Keep trama/regex refs in sync for readLoop closures */
   useEffect(() => { selTramaRef.current = selTrama; }, [selTrama]);
@@ -2697,17 +2698,18 @@ export default function Pesaje() {
                         </div>
                       </div>
                       {newTramaTest && (()=>{
-                        const r=testCustomTrama(newTramaForm.regex,newTramaTest);
-                        return <div className={`rounded-lg px-2 py-1 text-[9px] font-bold ${r.ok?"text-green-400":"text-red-400"}`}
-                          style={{background:r.ok?"rgba(57,255,126,0.06)":"rgba(248,113,113,0.06)"}}>
-                          {r.ok?`✓ Extraído: ${r.peso} kg`:`✗ ${r.error||"Sin coincidencia"}`}
+                        const r=testCustomTrama({id:'',nombre:'',descripcion:'',regex:newTramaForm.regex,icon:'',color:'',estabilidad_directa:false,ejemplo:'',createdAt:0,active:true},newTramaTest);
+                        const matched=r.length>0;
+                        return <div className={`rounded-lg px-2 py-1 text-[9px] font-bold ${matched?"text-green-400":"text-red-400"}`}
+                          style={{background:matched?"rgba(57,255,126,0.06)":"rgba(248,113,113,0.06)"}}>
+                          {matched?`✓ Extraído: ${r[0]} kg`:`✗ Sin coincidencia`}
                         </div>;
                       })()}
                       <button
                         disabled={!newTramaForm.nombre.trim()||!newTramaForm.regex.trim()}
                         onClick={()=>{
                           if(!newTramaForm.nombre.trim()||!newTramaForm.regex.trim()) return;
-                          const t:CustomTrama={id:`ct_${Date.now()}`,nombre:newTramaForm.nombre,regex:newTramaForm.regex,icon:newTramaForm.icon,color:newTramaForm.color,ejemplo:newTramaForm.ejemplo};
+                          const t:CustomTrama={id:`ct_${Date.now()}`,nombre:newTramaForm.nombre,descripcion:'',regex:newTramaForm.regex,icon:newTramaForm.icon,color:newTramaForm.color,estabilidad_directa:false,ejemplo:newTramaForm.ejemplo,createdAt:Date.now(),active:true};
                           const next=[...customTramas,t]; setCustomTramas(next); saveCustomTramas(next);
                           setShowNewTramaForm(false); setNewTramaForm({nombre:"",regex:"([0-9]{3,4})",icon:"🔧",color:"#94a3b8",ejemplo:""});
                         }}

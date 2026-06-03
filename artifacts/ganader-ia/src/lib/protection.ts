@@ -83,16 +83,15 @@ export function applyContextMenuProtection(): void {
   // Allow right-click on general areas, only protect specific elements
   document.addEventListener('contextmenu', (e) => {
     const target = e.target as HTMLElement;
-    if (target.closest('[data-protected]')) {
+    if (target && typeof target.closest === 'function' && target.closest('[data-protected]')) {
       e.preventDefault();
-      return false;
     }
   });
 
   // Disable text selection on license elements
   document.addEventListener('selectstart', (e) => {
     const target = e.target as HTMLElement;
-    if (target.closest('[data-protected]')) {
+    if (target && typeof target.closest === 'function' && target.closest('[data-protected]')) {
       e.preventDefault();
     }
   });

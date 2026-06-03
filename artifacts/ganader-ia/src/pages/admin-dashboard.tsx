@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import GoogleUsersPanel from "@/components/google-users-panel";
 import {
   useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
   PlanId, Account, WompiPayment,
@@ -1125,6 +1126,16 @@ export default function AdminDashboard({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* ── GOOGLE USERS PANEL ── */}
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-px flex-1" style={{ background:"rgba(0,245,212,0.1)" }}/>
+              <span className="text-[10px] font-black uppercase tracking-wider px-2" style={{ color:"rgba(0,245,212,0.35)" }}>Usuarios DB · Google OAuth</span>
+              <div className="h-px flex-1" style={{ background:"rgba(0,245,212,0.1)" }}/>
+            </div>
+            <GoogleUsersPanel />
           </div>
 
           {/* ── INVITE MODAL ── */}

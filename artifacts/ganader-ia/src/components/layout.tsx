@@ -4,7 +4,7 @@ import {
   Database, ChevronLeft, Wifi, Crown, LayoutDashboard, Beef,
   FileText, Heart, Droplets, Dna, Layers, Wheat, Zap, Scale,
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
-  Map, Navigation, UserCog, Settings, BookOpen, Truck, Activity,
+  Map, Navigation, UserCog, UserCircle, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
   Sparkles, Satellite, Shield, Tag,
 } from "lucide-react";
@@ -945,6 +945,7 @@ export function Layout({ children }: LayoutProps) {
                     </div>
                     <div className="p-1">
                       {[
+                        { href: '/mi-cuenta',     Icon: UserCircle, label: 'Mi Cuenta',           gold: false },
                         { href: '/configuracion', Icon: Settings,  label: 'Configuración',        gold: false },
                         { href: '/usuarios',      Icon: UserCog,   label: 'Gestión de usuarios',  gold: false },
                         { href: '/documentacion', Icon: BookOpen,  label: 'Documentación',        gold: false },

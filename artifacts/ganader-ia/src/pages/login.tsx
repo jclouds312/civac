@@ -453,62 +453,34 @@ function PaymentModal({ plan, onClose }: { plan: PlanId; onClose: () => void }) 
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   GOOGLE SIGN-IN
+   GOOGLE SIGN-IN — server-side redirect flow
 ═══════════════════════════════════════════════════════════════════════════════ */
-function GoogleSignInButton() {
-  const { loginAs, accounts } = useAuth();
-  const [gLoading, setGLoading] = useState(false);
-  const [gErr, setGErr]         = useState("");
-  const configured = !!(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+function GoogleSignInButton({ onError }: { onError?: (msg: string) => void }) {
+  const [checking, setChecking] = useState(false);
+  const [configured, setConfigured] = useState<boolean | null>(null);
 
-  const handleGoogle = () => {
-    if (!configured) { setGErr("Google OAuth no configurado en esta instancia."); return; }
-    if (!window.google?.accounts?.id) { setGErr("Cargando Google Identity Services…"); return; }
-    setGLoading(true); setGErr("");
-    window.google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: (response: { credential: string }) => {
-        try {
-          const parts = response.credential.split(".");
-          const payload = JSON.parse(atob(parts[1].replace(/-/g,"+").replace(/_/g,"/"))) as {
-            sub:string; email:string; name:string; picture?:string;
-          };
-          const existing = accounts.find(a => a.email === payload.email);
-          if (existing) {
-            loginAs(existing);
-          } else {
-            const newAcc = {
-              id:`google_${payload.sub}`, nombre:payload.name, email:payload.email, password:"",
-              role:"viewer" as const, plan:"basico" as const, cargo:"Usuario Google",
-              finca:"Nueva Finca", avatar:"🙂", gradient:"from-[#4a148c] to-[#6a1b9a]",
-              permisos:["inventario","produccion","alertas"],
-            };
-            const reg: typeof newAcc[] = JSON.parse(localStorage.getItem("civac_google_users") ?? "[]");
-            if (!reg.find(u => u.id === newAcc.id)) { reg.push(newAcc); localStorage.setItem("civac_google_users", JSON.stringify(reg)); }
-            loginAs(newAcc as Parameters<typeof loginAs>[0]);
-          }
-        } catch { setGErr("Error procesando credencial de Google."); }
-        setGLoading(false);
-      },
-    });
-    window.google.accounts.id.prompt((n: { isNotDisplayed:()=>boolean; isSkippedMoment:()=>boolean }) => {
-      if (n.isNotDisplayed() || n.isSkippedMoment()) {
-        const div = document.createElement("div");
-        div.style.cssText = "position:fixed;top:-999px;left:-999px;";
-        document.body.appendChild(div);
-        window.google.accounts.id.renderButton(div, { theme:"filled_black", size:"large" });
-        (div.querySelector("div[role=button]") as HTMLElement|null)?.click();
-        setTimeout(() => document.body.removeChild(div), 500);
-      }
-    });
+  useEffect(() => {
+    fetch("/api/auth/google/status")
+      .then(r => r.json() as Promise<{ configured: boolean }>)
+      .then(d => setConfigured(d.configured))
+      .catch(() => setConfigured(false));
+  }, []);
+
+  const handleClick = () => {
+    if (configured === false) {
+      onError?.("Google OAuth no configurado. El administrador debe agregar GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET.");
+      return;
+    }
+    setChecking(true);
+    window.location.href = "/api/auth/google";
   };
 
   return (
     <div>
-      <button onClick={handleGoogle} disabled={gLoading}
-        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl font-bold text-sm transition-all hover:bg-white/10 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+      <button onClick={handleClick} disabled={checking || configured === null}
+        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl font-bold text-sm transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
         style={{ background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", color:"white" }}>
-        {gLoading
+        {checking
           ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"/>
           : <svg width="16" height="16" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -517,9 +489,13 @@ function GoogleSignInButton() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
         }
-        {gLoading ? "Verificando con Google…" : "Continuar con Google"}
+        {checking ? "Redirigiendo a Google…" : configured === null ? "Verificando…" : "Continuar con Google"}
       </button>
-      {gErr && <p className="mt-2 text-center text-[10px]" style={{ color:"#ff6b8a" }}>{gErr}</p>}
+      {configured === false && (
+        <p className="mt-2 text-center text-[10px]" style={{ color:"rgba(255,200,0,0.7)" }}>
+          Google OAuth pendiente de configuración
+        </p>
+      )}
     </div>
   );
 }
@@ -541,8 +517,65 @@ export default function Login() {
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string|null>(null);
   const [inviteBanner, setInviteBanner] = useState<{nombre:string;plan:string}|null>(null);
+  const [pendingGoogleUser, setPendingGoogleUser] = useState<{nombre:string;email:string;googleFoto?:string}|null>(null);
 
   useEffect(() => { const t = setTimeout(() => setEntered(true), 80); return () => clearTimeout(t); }, []);
+
+  /* ── Handle Google OAuth callback: ?civac_token= or ?google_error= ── */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token  = params.get("civac_token");
+    const gError = params.get("google_error");
+
+    if (token || gError) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
+    if (gError) {
+      const msgs: Record<string,string> = {
+        cancelled:       "Inicio con Google cancelado.",
+        no_config:       "Google OAuth no está configurado. Contacta al administrador.",
+        token_failed:    "Error al verificar con Google. Intenta de nuevo.",
+        blocked:         "Tu cuenta ha sido bloqueada. Contacta al administrador.",
+        userinfo_failed: "No se pudo obtener información de tu cuenta Google.",
+        server_error:    "Error interno del servidor. Intenta más tarde.",
+      };
+      setError(msgs[gError] ?? "Error con Google. Intenta de nuevo.");
+      return;
+    }
+
+    if (!token) return;
+
+    setLoading(true);
+    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json() as Promise<{id:string;nombre:string;email:string;role:string;cargo:string;finca:string;planCode:string;estado:string;googleFoto?:string}>)
+      .then(u => {
+        if (u.estado === "pendiente") {
+          setPendingGoogleUser({ nombre: u.nombre, email: u.email, googleFoto: u.googleFoto });
+          setLoading(false);
+          return;
+        }
+        if (u.estado === "bloqueado") {
+          setError("Tu cuenta está bloqueada. Contacta al administrador CIVAC.");
+          setLoading(false);
+          return;
+        }
+        localStorage.setItem("civac_server_token", token);
+        loginAs({
+          id: u.id, nombre: u.nombre, email: u.email, password: "",
+          role: u.role as Account["role"], cargo: u.cargo, finca: u.finca,
+          avatar: "🙂", gradient: "from-[#4a148c] to-[#6a1b9a]",
+          plan: (u.planCode ?? "basico") as PlanId,
+          permisos: ["inventario","produccion","alertas","dashboard"],
+          activo: true,
+        });
+      })
+      .catch(() => {
+        setError("Error verificando sesión de Google. Intenta de nuevo.");
+        setLoading(false);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── Detect pending invite from /invite/:token ── */
   useEffect(() => {
@@ -554,7 +587,6 @@ export default function Login() {
       setEmail(inv.email);
       setPassword(inv.password);
       setInviteBanner({ nombre: inv.nombre, plan: inv.plan });
-      /* Auto-login after short delay so user sees the welcome banner */
       const tid = setTimeout(() => {
         if (login(inv.email, inv.password)) return;
       }, 1500);
@@ -588,6 +620,73 @@ export default function Login() {
       <Particles />
 
       {payPlan && <PaymentModal plan={payPlan} onClose={() => setPayPlan(null)} />}
+
+      {/* ── Pending Google account screen ── */}
+      {pendingGoogleUser && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background:"rgba(0,0,0,0.96)", backdropFilter:"blur(14px)" }}>
+          <FarmBackground />
+          <div className="relative z-10 w-full max-w-md">
+            <div className="rounded-3xl overflow-hidden"
+              style={{ background:"linear-gradient(145deg,#040d1a,#071325)", border:"1px solid rgba(251,191,36,0.25)", boxShadow:"0 0 80px rgba(251,191,36,0.08)" }}>
+              <div className="h-1" style={{ background:"linear-gradient(90deg,#fbbf24,#f59e0b,transparent)" }}/>
+              <div className="p-7 text-center">
+                {/* Avatar */}
+                <div className="flex justify-center mb-5">
+                  {pendingGoogleUser.googleFoto
+                    ? <img src={pendingGoogleUser.googleFoto} alt={pendingGoogleUser.nombre}
+                        className="w-20 h-20 rounded-2xl object-cover"
+                        style={{ border:"2.5px solid rgba(251,191,36,0.5)", boxShadow:"0 0 30px rgba(251,191,36,0.2)" }}/>
+                    : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl font-black"
+                        style={{ background:"rgba(251,191,36,0.1)", border:"2px solid rgba(251,191,36,0.3)" }}>
+                        {pendingGoogleUser.nombre[0]?.toUpperCase()}
+                      </div>
+                  }
+                </div>
+
+                {/* Hourglass animated icon */}
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.25)" }}>
+                  <Clock size={22} style={{ color:"#fbbf24" }}/>
+                </div>
+
+                <h2 className="text-xl font-black text-white mb-2">Cuenta en Revisión</h2>
+                <p className="text-sm font-bold mb-1" style={{ color:"#fbbf24" }}>
+                  ¡Hola, {pendingGoogleUser.nombre.split(" ")[0]}!
+                </p>
+                <p className="text-xs text-white/45 leading-relaxed mb-5">
+                  Tu cuenta Google <strong className="text-white/70">{pendingGoogleUser.email}</strong> fue registrada exitosamente con <strong className="text-teal-400">Plan Básico</strong>. Un administrador CIVAC la activará en breve.
+                </p>
+
+                {/* Steps */}
+                <div className="text-left space-y-2.5 mb-6 p-4 rounded-2xl" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)" }}>
+                  {[
+                    { n:"1", txt:"Cuenta registrada con Google", done:true },
+                    { n:"2", txt:"Revisión por administrador CIVAC", done:false },
+                    { n:"3", txt:"Activación y acceso completo", done:false },
+                  ].map(s => (
+                    <div key={s.n} className="flex items-center gap-3 text-xs">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 font-black text-[10px]"
+                        style={{ background: s.done ? "rgba(57,255,126,0.15)" : "rgba(255,255,255,0.06)", border:`1px solid ${s.done ? "rgba(57,255,126,0.4)" : "rgba(255,255,255,0.1)"}`, color: s.done ? "#39ff7e" : "rgba(255,255,255,0.3)" }}>
+                        {s.done ? "✓" : s.n}
+                      </div>
+                      <span style={{ color: s.done ? "#39ff7e" : "rgba(255,255,255,0.4)" }}>{s.txt}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-white/25 mb-5">Recibirás acceso una vez el administrador active tu cuenta. Mientras tanto puedes explorar la plataforma.</p>
+
+                <button onClick={() => setPendingGoogleUser(null)}
+                  className="w-full py-3 rounded-2xl text-sm font-bold transition-all hover:opacity-80"
+                  style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.25)", color:"#fbbf24" }}>
+                  Volver al inicio de sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Invite welcome banner ── */}
       {inviteBanner && (
@@ -782,7 +881,7 @@ export default function Login() {
                     <div className="flex-1 h-px" style={{ background:"rgba(255,255,255,0.07)" }}/>
                   </div>
 
-                  <GoogleSignInButton />
+                  <GoogleSignInButton onError={msg => setError(msg)} />
 
                   {/* Bottom links */}
                   <div className="mt-6 pt-5 flex items-center justify-between" style={{ borderTop:"1px solid rgba(0,245,212,0.08)" }}>

@@ -79,7 +79,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd artifacts/gps-server && python3 manage.py migrate --run-syncdb --no-input 2>/dev/null; python3 manage.py runserver 0.0.0.0:${PORT:-8000} --noreload"
+args = "cd artifacts/gps-server && /home/runner/workspace/.pythonlibs/bin/python3 manage.py migrate --run-syncdb --no-input 2>/dev/null; /home/runner/workspace/.pythonlibs/bin/python3 manage.py runserver 0.0.0.0:8000 --noreload"
 waitForPort = 8000
 
 [agent]
@@ -97,10 +97,6 @@ externalPort = 5000
 [[ports]]
 localPort = 8000
 externalPort = 8000
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
 
 [[ports]]
 localPort = 8081

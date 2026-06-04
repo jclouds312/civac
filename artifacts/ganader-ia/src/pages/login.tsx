@@ -130,50 +130,69 @@ function Particles() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
-   LIVE STATS WIDGETS BAR
+   FOOTER KPI STRIP — debajo del recuadro de login
 ═══════════════════════════════════════════════════════════════════════════════ */
-function StatsWidgets() {
+function LoginStatsFooter() {
   const [tick, setTick] = useState(0);
-  useEffect(() => { const id = setInterval(() => setTick(t => t+1), 3000); return () => clearInterval(id); }, []);
+  useEffect(() => { const id = setInterval(() => setTick(t => t+1), 2500); return () => clearInterval(id); }, []);
 
-  const litros   = 84 + Math.sin(tick * 0.7) * 2;
+  const litros   = (84 + Math.sin(tick * 0.7) * 2).toFixed(0);
   const temp     = (22.4 + Math.sin(tick * 0.4) * 0.6).toFixed(1);
   const humidity = (68 + Math.sin(tick * 0.5) * 3).toFixed(0);
-  const uptime   = "99.8%";
 
   const stats = [
-    { icon:<Activity size={13}/>,  label:"Producción", val:`${litros.toFixed(0)} L/día`, sub:"↑ 3.2% vs ayer",  c:"#00f5d4", g:"0,245,212",   pulse:true  },
-    { icon:<MapPin size={13}/>,    label:"GPS Online",  val:"13 collares",               sub:"Todos activos",    c:"#00c8ff", g:"0,200,255",   pulse:true  },
-    { icon:<Thermometer size={13}/>,label:"Temperatura",val:`${temp}°C`,                sub:"Zona Andina",      c:"#fbbf24", g:"251,191,36",  pulse:false },
-    { icon:<Droplets size={13}/>,  label:"Humedad",     val:`${humidity}%`,              sub:"Óptimo ganado",   c:"#60a5fa", g:"96,165,250",  pulse:false },
-    { icon:<TrendingUp size={13}/>,label:"Utilidad",    val:"$40.2M",                   sub:"Mes actual COP",   c:"#39ff7e", g:"57,255,126",  pulse:false },
-    { icon:<Server size={13}/>,    label:"Servidores",  val:uptime,                      sub:"Analytics + GPS",  c:"#e879f9", g:"232,121,249", pulse:true  },
+    { icon:<Activity size={16}/>,     label:"Producción",  val:`${litros} L/día`,   sub:"↑ 3.2% vs ayer",    c:"#00f5d4", g:"0,245,212",   pulse:true  },
+    { icon:<MapPin size={16}/>,       label:"GPS Online",  val:"13 collares",        sub:"Todos activos",     c:"#00c8ff", g:"0,200,255",   pulse:true  },
+    { icon:<Thermometer size={16}/>,  label:"Temperatura", val:`${temp}°C`,          sub:"Zona Andina",       c:"#fbbf24", g:"251,191,36",  pulse:false },
+    { icon:<Droplets size={16}/>,     label:"Humedad",     val:`${humidity}%`,       sub:"Óptimo ganado",     c:"#60a5fa", g:"96,165,250",  pulse:false },
+    { icon:<TrendingUp size={16}/>,   label:"Utilidad",    val:"$40.2M",             sub:"Mes actual COP",    c:"#39ff7e", g:"57,255,126",  pulse:false },
+    { icon:<Server size={16}/>,       label:"Servidores",  val:"99.8%",              sub:"Analytics + GPS",   c:"#e879f9", g:"232,121,249", pulse:true  },
   ];
 
   return (
-    <div className="flex flex-wrap justify-center gap-2 mb-5">
-      {stats.map((s,i) => (
-        <div key={i}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all hover:scale-105 cursor-default"
-          style={{
-            background:`rgba(${s.g},0.07)`,
-            border:`1px solid rgba(${s.g},0.22)`,
-            backdropFilter:"blur(12px)",
-            boxShadow:`0 0 12px rgba(${s.g},0.1)`,
-            animation: s.pulse ? `pulse-glow-${i} 2.5s ease-in-out infinite` : undefined,
-          }}>
-          <div style={{ color:s.c }}>{s.icon}</div>
-          <div>
-            <div className="text-[9px] font-bold uppercase tracking-wider" style={{ color:`rgba(${s.g},0.55)` }}>{s.label}</div>
-            <div className="text-xs font-black text-white leading-none">{s.val}</div>
+    <div className="mt-6 w-full">
+      {/* Separator */}
+      <div className="relative flex items-center mb-4">
+        <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.18),transparent)" }}/>
+        <span className="mx-3 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+          style={{ color:"rgba(0,245,212,0.35)", border:"1px solid rgba(0,245,212,0.12)", background:"rgba(0,245,212,0.04)" }}>
+          Estado en tiempo real
+        </span>
+        <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.18),transparent)" }}/>
+      </div>
+
+      {/* KPI grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        {stats.map((s,i) => (
+          <div key={i}
+            className="group flex flex-col items-center gap-2 px-3 py-4 rounded-2xl cursor-default transition-all duration-300 hover:scale-[1.04]"
+            style={{
+              background:`rgba(${s.g},0.05)`,
+              border:`1px solid rgba(${s.g},0.18)`,
+              backdropFilter:"blur(16px)",
+              boxShadow:`0 0 0px rgba(${s.g},0)`,
+              transition:"all 0.3s ease",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px rgba(${s.g},0.2), 0 8px 20px rgba(0,0,0,0.3)`; (e.currentTarget as HTMLElement).style.background = `rgba(${s.g},0.09)`; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 0px rgba(${s.g},0)`; (e.currentTarget as HTMLElement).style.background = `rgba(${s.g},0.05)`; }}>
+            {/* Icon circle */}
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center relative flex-shrink-0"
+              style={{ background:`rgba(${s.g},0.12)`, border:`1px solid rgba(${s.g},0.28)`, boxShadow:`0 0 12px rgba(${s.g},0.12)` }}>
+              <div style={{ color:s.c }}>{s.icon}</div>
+              {s.pulse && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
+                  style={{ background:s.c, boxShadow:`0 0 6px ${s.c}`, animation:"ping-dot 1.5s ease-in-out infinite" }}/>
+              )}
+            </div>
+            {/* Label + value */}
+            <div className="text-center">
+              <div className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color:`rgba(${s.g},0.5)` }}>{s.label}</div>
+              <div className="text-sm font-black text-white leading-none mb-0.5">{s.val}</div>
+              <div className="text-[8px]" style={{ color:`rgba(${s.g},0.4)` }}>{s.sub}</div>
+            </div>
           </div>
-          <div className="text-[8px] ml-1" style={{ color:`rgba(${s.g},0.45)` }}>{s.sub}</div>
-          {s.pulse && (
-            <div className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-              style={{ background:s.c, boxShadow:`0 0 6px ${s.c}`, animation:"ping-dot 1.5s ease-in-out infinite" }}/>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -787,9 +806,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* ── Live Stats Widgets ── */}
-        <StatsWidgets />
-
         {/* ═══════════════════════════════════════════════════════════════════
             TAB: LOGIN (principal)
         ═══════════════════════════════════════════════════════════════════ */}
@@ -1175,6 +1191,9 @@ export default function Login() {
             <RightWidgets />
           </div>
         )}
+
+        {/* ── Footer KPI Strip — siempre visible debajo del card ── */}
+        <LoginStatsFooter />
 
         {/* Footer */}
         <p className="text-center mt-6 text-[9px]" style={{ color:"rgba(255,255,255,0.12)" }}>

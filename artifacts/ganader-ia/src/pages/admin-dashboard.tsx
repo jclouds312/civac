@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import GoogleUsersPanel from "@/components/google-users-panel";
 import {
   useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
@@ -326,6 +326,227 @@ function AccountForm({
         </Button>
       </DialogFooter>
     </form>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PYTHON ANALYTICS — Módulos (uso real desde Analytics Server)
+────────────────────────────────────────────────────────────────────────── */
+type PyMod = { id:string; label:string; plan:string; uso_pct:number; sesiones_mes:number; icono:string };
+type PyUser = { id:string; nombre:string; email:string; plan:string; activo:boolean; animales:number; litros_dia:number; modulos_activos:number; region:string; ultima_sesion:string; creado:string };
+type PyStats = { total_usuarios:number; activos:number; inactivos:number; por_plan:Record<string,number>; total_animales:number; total_litros_dia:number; mrr_cop:number; total_modulos:number; sesiones_mes:number };
+
+function PythonModuloStats() {
+  const [mods, setMods]   = useState<PyMod[]>([]);
+  const [stats, setStats] = useState<PyStats|null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState("");
+  const ANALYTICS_BASE = window.location.port === "5000" ? "http://localhost:8099" : "";
+
+  useEffect(() => {
+    setLoading(true); setErr("");
+    Promise.all([
+      fetch(`${ANALYTICS_BASE}/api/analytics/admin/modulos`).then(r=>r.json()),
+      fetch(`${ANALYTICS_BASE}/api/analytics/admin/stats`).then(r=>r.json()),
+    ]).then(([mRes, sRes]) => {
+      if (mRes.ok) setMods(mRes.modulos as PyMod[]);
+      if (sRes.ok) setStats(sRes.plataforma as PyStats);
+      setLoading(false);
+    }).catch(() => { setErr("Analytics Server no disponible"); setLoading(false); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fmt = (n:number) => n>=1_000_000 ? `$${(n/1_000_000).toFixed(1)}M` : n>=1000 ? `$${(n/1000).toFixed(0)}K` : `$${n}`;
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-10 text-white/30 text-xs gap-2">
+      <div className="w-4 h-4 border-2 border-white/20 border-t-teal-400 rounded-full animate-spin"/>
+      Cargando datos de Analytics Server (Python)…
+    </div>
+  );
+  if (err) return (
+    <div className="flex items-center gap-2 px-4 py-3 rounded-2xl text-xs" style={{background:"rgba(255,100,100,0.07)",border:"1px solid rgba(255,100,100,0.2)",color:"#ff8080"}}>
+      <AlertTriangle size={13}/> {err} — verificar que el Analytics Server esté corriendo en puerto 8099
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Stats header */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label:"MRR Plataforma", val:fmt(stats.mrr_cop),                      c:"#fbbf24", g:"251,191,36", icon:<DollarSign size={14}/> },
+            { label:"Animales totales", val:stats.total_animales.toLocaleString(),  c:"#39ff7e", g:"57,255,126", icon:<Activity size={14}/> },
+            { label:"Litros/día total",  val:`${stats.total_litros_dia.toLocaleString()} L`, c:"#00f5d4", g:"0,245,212", icon:<BarChart3 size={14}/> },
+            { label:"Sesiones este mes", val:stats.sesiones_mes.toLocaleString(),   c:"#e879f9", g:"232,121,249", icon:<TrendingUp size={14}/> },
+          ].map(s=>(
+            <div key={s.label} className="flex items-center gap-3 px-4 py-3 rounded-2xl"
+              style={{background:`rgba(${s.g},0.06)`,border:`1px solid rgba(${s.g},0.2)`}}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{background:`rgba(${s.g},0.12)`,color:s.c}}>{s.icon}</div>
+              <div>
+                <div className="text-[9px] uppercase tracking-wider font-bold" style={{color:`rgba(${s.g},0.5)`}}>{s.label}</div>
+                <div className="text-base font-black text-white leading-tight">{s.val}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Usage bar chart */}
+      <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(232,121,249,0.15)"}}>
+        <div className="px-4 py-3 flex items-center justify-between"
+          style={{background:"rgba(232,121,249,0.05)",borderBottom:"1px solid rgba(232,121,249,0.1)"}}>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <BarChart3 size={14} style={{color:"#e879f9"}}/> Uso real de módulos · sesiones este mes
+          </h3>
+          <span className="text-[9px] px-2 py-1 rounded-full font-bold"
+            style={{background:"rgba(232,121,249,0.1)",color:"#e879f9",border:"1px solid rgba(232,121,249,0.2)"}}>
+            🐍 Python Analytics Server
+          </span>
+        </div>
+        <div className="p-4 space-y-2">
+          {mods.slice(0,15).map(m=>{
+            const planC = PLAN_COLOR[m.plan as PlanId] ?? "#94a3b8";
+            const maxSes = mods[0]?.sesiones_mes ?? 1;
+            const pct = Math.round((m.sesiones_mes / maxSes) * 100);
+            return (
+              <div key={m.id} className="flex items-center gap-3">
+                <div className="w-5 text-sm flex-shrink-0 text-center">{m.icono}</div>
+                <div className="w-28 text-[10px] text-white/60 truncate flex-shrink-0">{m.label}</div>
+                <div className="flex-1 h-5 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.04)"}}>
+                  <div className="h-full rounded-full flex items-center pl-2 transition-all duration-700"
+                    style={{width:`${pct}%`,background:`linear-gradient(90deg,${planC}90,${planC}40)`,minWidth:24}}>
+                    <span className="text-[8px] font-black" style={{color:planC}}>{m.uso_pct}%</span>
+                  </div>
+                </div>
+                <div className="w-14 text-right text-[9px] font-bold flex-shrink-0" style={{color:`${planC}cc`}}>
+                  {m.sesiones_mes.toLocaleString()}
+                </div>
+                <PlanBadge plan={m.plan as PlanId}/>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   PYTHON ANALYTICS — Usuarios de plataforma
+────────────────────────────────────────────────────────────────────────── */
+function PythonUsuariosPlataforma() {
+  const [users, setUsers]   = useState<PyUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr]       = useState("");
+  const [planFil, setPlanFil] = useState<"todos"|string>("todos");
+  const [q, setQ]           = useState("");
+  const ANALYTICS_BASE = window.location.port === "5000" ? "http://localhost:8099" : "";
+
+  const load = () => {
+    setLoading(true); setErr("");
+    const params = new URLSearchParams();
+    if (planFil !== "todos") params.set("plan", planFil);
+    if (q) params.set("q", q);
+    fetch(`${ANALYTICS_BASE}/api/analytics/admin/usuarios?${params}`)
+      .then(r=>r.json())
+      .then(d=>{ if(d.ok) setUsers(d.usuarios); setLoading(false); })
+      .catch(()=>{ setErr("Analytics Server no disponible"); setLoading(false); });
+  };
+
+  useEffect(() => { load(); }, [planFil]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const filtered = users.filter(u => !q || u.nombre.toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase()));
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-40 max-w-xs">
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar finca o email…"
+            className="w-full pl-8 pr-3 py-2 text-xs rounded-xl text-white"
+            style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",outline:"none"}}/>
+          <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"/>
+        </div>
+        {["todos","basico","pro","premium","platino"].map(p=>(
+          <button key={p} onClick={()=>setPlanFil(p)}
+            className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+            style={{
+              background: planFil===p ? (p==="todos"?"rgba(255,255,255,0.1)":PLAN_COLOR[p as PlanId]+"18") : "rgba(255,255,255,0.03)",
+              border:`1px solid ${planFil===p?(p==="todos"?"rgba(255,255,255,0.25)":PLAN_COLOR[p as PlanId]+"50"):"rgba(255,255,255,0.08)"}`,
+              color: planFil===p ? (p==="todos"?"white":PLAN_COLOR[p as PlanId]) : "rgba(255,255,255,0.35)",
+            }}>
+            {p==="todos" ? "Todos" : (PLAN_ICON[p as PlanId]+" "+PLAN_LABEL[p as PlanId])}
+          </button>
+        ))}
+        <span className="text-[10px] text-white/25 ml-1 font-mono">🐍 Analytics</span>
+      </div>
+
+      {loading && (
+        <div className="flex items-center gap-2 py-6 justify-center text-white/30 text-xs">
+          <div className="w-4 h-4 border-2 border-white/20 border-t-teal-400 rounded-full animate-spin"/>Cargando…
+        </div>
+      )}
+      {err && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl text-xs"
+          style={{background:"rgba(255,100,100,0.07)",border:"1px solid rgba(255,100,100,0.2)",color:"#ff8080"}}>
+          <AlertTriangle size={13}/> {err}
+        </div>
+      )}
+      {!loading && !err && (
+        <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.1)"}}>
+          <div className="px-4 py-2.5 flex items-center gap-2"
+            style={{background:"rgba(0,245,212,0.05)",borderBottom:"1px solid rgba(0,245,212,0.08)"}}>
+            <Globe size={13} style={{color:"#00f5d4"}}/>
+            <span className="text-xs font-bold text-white">Fincas registradas en plataforma</span>
+            <span className="text-[9px] text-white/30 ml-auto">{filtered.length} resultados · Python Analytics</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr style={{background:"rgba(0,0,0,0.3)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                  {["Finca / Email","Región","Plan","Animales","L/día","Módulos","Estado","Última sesión"].map(h=>(
+                    <th key={h} className="px-3 py-2 text-left text-[9px] uppercase tracking-wider font-bold"
+                      style={{color:"rgba(0,245,212,0.5)"}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length===0&&(
+                  <tr><td colSpan={8} className="text-center py-8 text-white/25 text-xs">Sin resultados</td></tr>
+                )}
+                {filtered.map((u,i)=>(
+                  <tr key={u.id} style={{background:i%2===0?"rgba(255,255,255,0.015)":"transparent",borderBottom:"1px solid rgba(255,255,255,0.03)"}}>
+                    <td className="px-3 py-2.5">
+                      <p className="text-xs font-bold text-white">{u.nombre}</p>
+                      <p className="text-[9px]" style={{color:"rgba(0,245,212,0.4)"}}>{u.email}</p>
+                    </td>
+                    <td className="px-3 py-2.5 text-[10px] text-white/45">{u.region}</td>
+                    <td className="px-3 py-2.5"><PlanBadge plan={u.plan as PlanId}/></td>
+                    <td className="px-3 py-2.5 text-xs font-bold" style={{color:"#39ff7e"}}>{u.animales}</td>
+                    <td className="px-3 py-2.5 text-xs font-bold" style={{color:"#00f5d4"}}>{u.litros_dia} L</td>
+                    <td className="px-3 py-2.5 text-[10px] text-white/50">{u.modulos_activos} mód.</td>
+                    <td className="px-3 py-2.5">
+                      <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full w-fit"
+                        style={{
+                          background: u.activo ? "rgba(57,255,126,0.1)" : "rgba(248,113,113,0.1)",
+                          color: u.activo ? "#39ff7e" : "#f87171",
+                          border: `1px solid ${u.activo?"rgba(57,255,126,0.3)":"rgba(248,113,113,0.3)"}`,
+                        }}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{background: u.activo?"#39ff7e":"#f87171"}}/>
+                        {u.activo?"Activa":"Inactiva"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-[9px] text-white/35">{u.ultima_sesion}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1136,6 +1357,19 @@ export default function AdminDashboard({
               <div className="h-px flex-1" style={{ background:"rgba(0,245,212,0.1)" }}/>
             </div>
             <GoogleUsersPanel />
+          </div>
+
+          {/* ── PYTHON: Fincas registradas en plataforma ── */}
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-px flex-1" style={{background:"linear-gradient(90deg,transparent,rgba(96,165,250,0.2),transparent)"}}/>
+              <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full"
+                style={{color:"rgba(96,165,250,0.55)",border:"1px solid rgba(96,165,250,0.15)",background:"rgba(96,165,250,0.05)"}}>
+                🐍 Python Analytics · Fincas registradas
+              </span>
+              <div className="h-px flex-1" style={{background:"linear-gradient(90deg,transparent,rgba(96,165,250,0.2),transparent)"}}/>
+            </div>
+            <PythonUsuariosPlataforma />
           </div>
 
           {/* ── INVITE MODAL ── */}
@@ -2170,6 +2404,19 @@ export default function AdminDashboard({
                   </tfoot>
                 </table>
               </div>
+            </div>
+
+            {/* ── PYTHON ANALYTICS: Uso real de módulos ── */}
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-px flex-1" style={{background:"linear-gradient(90deg,transparent,rgba(232,121,249,0.2),transparent)"}}/>
+                <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full"
+                  style={{color:"rgba(232,121,249,0.5)",border:"1px solid rgba(232,121,249,0.15)",background:"rgba(232,121,249,0.05)"}}>
+                  🐍 Analytics Python · Uso real
+                </span>
+                <div className="h-px flex-1" style={{background:"linear-gradient(90deg,transparent,rgba(232,121,249,0.2),transparent)"}}/>
+              </div>
+              <PythonModuloStats />
             </div>
           </div>
         );

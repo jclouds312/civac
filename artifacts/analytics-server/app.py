@@ -484,6 +484,145 @@ def chat():
     })
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ADMIN ENDPOINTS — estadísticas de plataforma para el panel admin
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Datos mock de usuarios registrados en la plataforma
+USUARIOS_PLATAFORMA = [
+    {"id":"u001","nombre":"Hacienda El Dorado","email":"eldorado@gmail.com","plan":"platino","activo":True, "animales":287,"litros_dia":1840,"modulos_activos":32,"pais":"CO","region":"Antioquia","ultima_sesion":"2026-06-03","creado":"2025-01-10"},
+    {"id":"u002","nombre":"Finca Las Brisas",  "email":"brisas@hotmail.com","plan":"premium","activo":True, "animales":98, "litros_dia":620, "modulos_activos":25,"pais":"CO","region":"Cundinamarca","ultima_sesion":"2026-06-02","creado":"2025-03-15"},
+    {"id":"u003","nombre":"Rancho San Pedro",  "email":"sanpedro@civac.co", "plan":"pro",    "activo":True, "animales":54, "litros_dia":340, "modulos_activos":18,"pais":"CO","region":"Boyacá","ultima_sesion":"2026-06-01","creado":"2025-05-20"},
+    {"id":"u004","nombre":"Ganadería Córdoba",  "email":"cordoba@outlook.com","plan":"pro",  "activo":True, "animales":71, "litros_dia":448, "modulos_activos":18,"pais":"CO","region":"Córdoba","ultima_sesion":"2026-05-30","creado":"2025-06-01"},
+    {"id":"u005","nombre":"Finca La Esperanza", "email":"esperanza@gmail.com","plan":"basico","activo":True,"animales":13,"litros_dia":84,  "modulos_activos":7, "pais":"CO","region":"Nariño","ultima_sesion":"2026-06-03","creado":"2026-01-08"},
+    {"id":"u006","nombre":"Granja El Porvenir", "email":"porvenir@yahoo.com","plan":"basico","activo":False,"animales":8, "litros_dia":0,  "modulos_activos":7, "pais":"CO","region":"Cauca","ultima_sesion":"2026-04-15","creado":"2026-02-20"},
+    {"id":"u007","nombre":"Hacienda San Rafael", "email":"sanrafael@civac.co","plan":"premium","activo":True,"animales":142,"litros_dia":890,"modulos_activos":25,"pais":"CO","region":"Valle","ultima_sesion":"2026-06-02","creado":"2025-07-12"},
+    {"id":"u008","nombre":"Finca Los Alpes",     "email":"losalpes@gmail.com","plan":"pro",  "activo":True,"animales":67,"litros_dia":422, "modulos_activos":18,"pais":"CO","region":"Caldas","ultima_sesion":"2026-05-28","creado":"2025-09-05"},
+]
+
+MODULOS_PLATAFORMA = [
+    {"id":"dashboard",    "label":"Dashboard",       "plan":"basico",  "uso_pct":98, "sesiones_mes":2140, "icono":"📊"},
+    {"id":"inventario",   "label":"Inventario",      "plan":"basico",  "uso_pct":95, "sesiones_mes":1980, "icono":"🐄"},
+    {"id":"produccion",   "label":"Producción",      "plan":"basico",  "uso_pct":91, "sesiones_mes":1820, "icono":"🥛"},
+    {"id":"alertas",      "label":"Alertas",         "plan":"basico",  "uso_pct":88, "sesiones_mes":1560, "icono":"🔔"},
+    {"id":"potreros",     "label":"Potreros",        "plan":"basico",  "uso_pct":82, "sesiones_mes":1340, "icono":"🌿"},
+    {"id":"sanidad",      "label":"Sanidad",         "plan":"basico",  "uso_pct":79, "sesiones_mes":1120, "icono":"💉"},
+    {"id":"pesaje-manual","label":"Pesaje Manual",   "plan":"basico",  "uso_pct":65, "sesiones_mes":890,  "icono":"⚖️"},
+    {"id":"reproduccion", "label":"Reproducción",    "plan":"pro",     "uso_pct":77, "sesiones_mes":980,  "icono":"🔁"},
+    {"id":"genetica",     "label":"Genética",        "plan":"pro",     "uso_pct":62, "sesiones_mes":740,  "icono":"🧬"},
+    {"id":"pesaje",       "label":"Pesaje BT",       "plan":"pro",     "uso_pct":58, "sesiones_mes":680,  "icono":"📡"},
+    {"id":"insumos",      "label":"Insumos",         "plan":"pro",     "uso_pct":71, "sesiones_mes":860,  "icono":"💊"},
+    {"id":"alimentacion", "label":"Alimentación",    "plan":"pro",     "uso_pct":68, "sesiones_mes":810,  "icono":"🌾"},
+    {"id":"semen",        "label":"Semen / TE",      "plan":"pro",     "uso_pct":44, "sesiones_mes":520,  "icono":"🧊"},
+    {"id":"costos",       "label":"Costos P&G",      "plan":"pro",     "uso_pct":81, "sesiones_mes":960,  "icono":"💰"},
+    {"id":"personal",     "label":"Personal",        "plan":"pro",     "uso_pct":55, "sesiones_mes":640,  "icono":"👷"},
+    {"id":"gps",          "label":"GPS Bovino",      "plan":"pro",     "uso_pct":73, "sesiones_mes":880,  "icono":"📡"},
+    {"id":"gps-chips",    "label":"GPS Chips",       "plan":"pro",     "uso_pct":49, "sesiones_mes":580,  "icono":"🛰️"},
+    {"id":"lotes",        "label":"Lotes",           "plan":"pro",     "uso_pct":60, "sesiones_mes":720,  "icono":"📦"},
+    {"id":"ficha",        "label":"Ficha Clínica",   "plan":"pro",     "uso_pct":67, "sesiones_mes":800,  "icono":"📋"},
+    {"id":"trazabilidad", "label":"Trazabilidad ICA","plan":"pro",     "uso_pct":57, "sesiones_mes":680,  "icono":"🗺️"},
+    {"id":"asesora",      "label":"Asesora IA",      "plan":"premium", "uso_pct":88, "sesiones_mes":1040, "icono":"🤖"},
+    {"id":"ventas",       "label":"Ventas CRM",      "plan":"premium", "uso_pct":74, "sesiones_mes":880,  "icono":"📈"},
+    {"id":"multifinca",   "label":"Multi-Finca",     "plan":"premium", "uso_pct":52, "sesiones_mes":620,  "icono":"🏡"},
+    {"id":"prediccion",   "label":"Predicción IA",   "plan":"premium", "uso_pct":81, "sesiones_mes":960,  "icono":"🔮"},
+    {"id":"co2",          "label":"Huella CO₂",      "plan":"premium", "uso_pct":46, "sesiones_mes":540,  "icono":"🌱"},
+    {"id":"drive",        "label":"Drive Backup",    "plan":"premium", "uso_pct":63, "sesiones_mes":750,  "icono":"☁️"},
+    {"id":"datos",        "label":"Centro Datos",    "plan":"basico",  "uso_pct":42, "sesiones_mes":500,  "icono":"🗄️"},
+    {"id":"configuracion","label":"Configuración",   "plan":"basico",  "uso_pct":78, "sesiones_mes":920,  "icono":"⚙️"},
+    {"id":"usuarios",     "label":"Usuarios",        "plan":"pro",     "uso_pct":41, "sesiones_mes":480,  "icono":"👥"},
+    {"id":"documentacion","label":"Documentación",   "plan":"basico",  "uso_pct":35, "sesiones_mes":410,  "icono":"📖"},
+    {"id":"manual",       "label":"Manual",          "plan":"basico",  "uso_pct":28, "sesiones_mes":330,  "icono":"📕"},
+    {"id":"planes",       "label":"Planes",          "plan":"basico",  "uso_pct":55, "sesiones_mes":650,  "icono":"⭐"},
+]
+
+@app.route("/api/analytics/admin/stats")
+def admin_stats():
+    activos  = [u for u in USUARIOS_PLATAFORMA if u["activo"]]
+    inactivos= [u for u in USUARIOS_PLATAFORMA if not u["activo"]]
+    por_plan = {}
+    for p in ["basico","pro","premium","platino"]:
+        por_plan[p] = len([u for u in USUARIOS_PLATAFORMA if u["plan"]==p])
+
+    total_animales = sum(u["animales"] for u in activos)
+    total_litros   = sum(u["litros_dia"] for u in activos)
+    mrr_map = {"basico":0,"pro":89000,"premium":189000,"platino":399000}
+    mrr = sum(mrr_map.get(u["plan"],0) for u in activos)
+
+    return jsonify({
+        "ok": True,
+        "plataforma": {
+            "total_usuarios":  len(USUARIOS_PLATAFORMA),
+            "activos":         len(activos),
+            "inactivos":       len(inactivos),
+            "por_plan":        por_plan,
+            "total_animales":  total_animales,
+            "total_litros_dia":total_litros,
+            "mrr_cop":         mrr,
+            "total_modulos":   len(MODULOS_PLATAFORMA),
+            "sesiones_mes":    sum(m["sesiones_mes"] for m in MODULOS_PLATAFORMA),
+        },
+        "top_usuarios": sorted(activos, key=lambda x: x["litros_dia"], reverse=True)[:5],
+        "generado": datetime.now().isoformat(),
+    })
+
+
+@app.route("/api/analytics/admin/usuarios")
+def admin_usuarios():
+    plan_filter = request.args.get("plan", "todos")
+    search_q    = request.args.get("q", "").lower()
+    result = USUARIOS_PLATAFORMA
+    if plan_filter != "todos":
+        result = [u for u in result if u["plan"] == plan_filter]
+    if search_q:
+        result = [u for u in result if search_q in u["nombre"].lower() or search_q in u["email"].lower()]
+    return jsonify({
+        "ok":      True,
+        "total":   len(result),
+        "usuarios": result,
+        "generado": datetime.now().isoformat(),
+    })
+
+
+@app.route("/api/analytics/admin/modulos")
+def admin_modulos():
+    plan_filter = request.args.get("plan", "todos")
+    result = MODULOS_PLATAFORMA
+    if plan_filter != "todos":
+        result = [m for m in result if m["plan"] == plan_filter]
+    result_sorted = sorted(result, key=lambda x: x["sesiones_mes"], reverse=True)
+
+    por_plan = {}
+    for p in ["basico","pro","premium","platino"]:
+        mods = [m for m in MODULOS_PLATAFORMA if m["plan"] == p]
+        por_plan[p] = {
+            "count":       len(mods),
+            "uso_promedio": round(sum(m["uso_pct"] for m in mods) / len(mods), 1) if mods else 0,
+            "sesiones_mes": sum(m["sesiones_mes"] for m in mods),
+        }
+
+    return jsonify({
+        "ok":      True,
+        "total":   len(result),
+        "modulos":  result_sorted,
+        "por_plan": por_plan,
+        "top5":    result_sorted[:5],
+        "generado": datetime.now().isoformat(),
+    })
+
+
+@app.route("/api/analytics/admin/usuarios/<uid>", methods=["PATCH"])
+def admin_patch_usuario(uid):
+    data = request.get_json() or {}
+    usuario = next((u for u in USUARIOS_PLATAFORMA if u["id"] == uid), None)
+    if not usuario:
+        return jsonify({"ok":False,"error":"Usuario no encontrado"}), 404
+    if "activo" in data:
+        usuario["activo"] = bool(data["activo"])
+    if "plan" in data and data["plan"] in ["basico","pro","premium","platino"]:
+        usuario["plan"] = data["plan"]
+    return jsonify({"ok":True,"usuario":usuario})
+
+
 if __name__ == "__main__":
     port = int(__import__("os").environ.get("PORT", 8099))
     app.run(host="0.0.0.0", port=port, debug=False)

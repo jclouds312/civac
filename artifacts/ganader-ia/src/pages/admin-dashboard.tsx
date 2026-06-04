@@ -341,13 +341,11 @@ function PythonModuloStats() {
   const [stats, setStats] = useState<PyStats|null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const ANALYTICS_BASE = window.location.port === "5000" ? "http://localhost:8099" : "";
-
   useEffect(() => {
     setLoading(true); setErr("");
     Promise.all([
-      fetch(`${ANALYTICS_BASE}/api/analytics/admin/modulos`).then(r=>r.json()),
-      fetch(`${ANALYTICS_BASE}/api/analytics/admin/stats`).then(r=>r.json()),
+      fetch(`/api/analytics/admin/modulos`).then(r=>r.json()),
+      fetch(`/api/analytics/admin/stats`).then(r=>r.json()),
     ]).then(([mRes, sRes]) => {
       if (mRes.ok) setMods(mRes.modulos as PyMod[]);
       if (sRes.ok) setStats(sRes.plataforma as PyStats);
@@ -443,14 +441,12 @@ function PythonUsuariosPlataforma() {
   const [err, setErr]       = useState("");
   const [planFil, setPlanFil] = useState<"todos"|string>("todos");
   const [q, setQ]           = useState("");
-  const ANALYTICS_BASE = window.location.port === "5000" ? "http://localhost:8099" : "";
-
   const load = () => {
     setLoading(true); setErr("");
     const params = new URLSearchParams();
     if (planFil !== "todos") params.set("plan", planFil);
     if (q) params.set("q", q);
-    fetch(`${ANALYTICS_BASE}/api/analytics/admin/usuarios?${params}`)
+    fetch(`/api/analytics/admin/usuarios?${params}`)
       .then(r=>r.json())
       .then(d=>{ if(d.ok) setUsers(d.usuarios); setLoading(false); })
       .catch(()=>{ setErr("Analytics Server no disponible"); setLoading(false); });

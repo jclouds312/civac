@@ -1381,43 +1381,74 @@ export default function Login() {
                 </span>
                 <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(251,191,36,0.3))" }}/>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {civacAccounts.map(account => {
                   const rc = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
                   const isLoading = loadingId === account.id;
                   const isHov = hoveredCard === `civac-${account.id}`;
+                  const ACCESS_DESC: Record<string,string> = {
+                    superadmin: "Acceso total · Server Panel · Auditoría · Config global",
+                    admin:      "Panel Admin · 15 secciones · Plataforma completa",
+                    developer:  "Dev Console · 12 tabs · Feature Flags · API Explorer · Docs",
+                    sales:      "Sales Dashboard · CRM · Pipeline · Reportes · Comisiones",
+                  };
                   return (
                     <div key={account.id}
                       className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
                       style={{
-                        background: isHov ? `linear-gradient(145deg,rgba(${rc.glow},0.12),rgba(0,0,0,0.7))` : `linear-gradient(145deg,rgba(${rc.glow},0.05),rgba(0,0,0,0.55))`,
-                        border:`1px solid rgba(${rc.glow},${isHov?"0.5":"0.2"})`,
-                        boxShadow: isHov ? `0 0 22px rgba(${rc.glow},0.18)` : "none",
+                        background: isHov ? `linear-gradient(145deg,rgba(${rc.glow},0.10),rgba(0,0,0,0.7))` : `linear-gradient(145deg,rgba(${rc.glow},0.04),rgba(0,0,0,0.55))`,
+                        border:`1px solid rgba(${rc.glow},${isHov?"0.45":"0.20"})`,
+                        boxShadow: isHov ? `0 0 28px rgba(${rc.glow},0.18)` : "none",
                         transform: isHov ? "translateY(-2px)" : "none",
                       }}
                       onMouseEnter={() => setHoveredCard(`civac-${account.id}`)}
                       onMouseLeave={() => setHoveredCard(null)}>
                       <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to})` }}/>
-                      <div className="p-2.5 text-center">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-1.5"
-                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, boxShadow:`0 0 12px rgba(${rc.glow},0.3)` }}>
-                          <span style={{ fontSize:"1.1rem" }}>{rc.emoji}</span>
+                      <div className="p-3">
+                        <div className="flex items-center gap-3 mb-2.5">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ background:`linear-gradient(135deg,${rc.from}30,${rc.to}20)`, border:`1px solid rgba(${rc.glow},0.35)`, boxShadow:`0 0 12px rgba(${rc.glow},0.2)` }}>
+                            <span style={{ fontSize:"1.3rem" }}>{account.avatar}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-[11px] font-black text-white leading-tight truncate">
+                                {account.nombre.split(" ").slice(0,3).join(" ")}
+                              </p>
+                              <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0"
+                                style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(251,191,36,0.3)", color:"rgba(251,191,36,0.8)" }}>
+                                ⬡ CIVAC
+                              </span>
+                            </div>
+                            <p className="text-[9px] font-bold truncate" style={{ color:`rgba(${rc.glow},0.55)` }}>
+                              {account.cargo.split("·")[0].trim()}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-[10px] font-black text-white leading-tight mb-0.5">
-                          {account.nombre.split(" ")[0]}
+                        {/* Credentials */}
+                        <div className="space-y-1 mb-2.5">
+                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl" style={{ background:"rgba(0,0,0,0.3)" }}>
+                            <span className="text-[8px] font-black text-white/25 w-6 flex-shrink-0">📧</span>
+                            <span className="text-[9px] font-mono text-white/50 truncate flex-1">{account.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl" style={{ background:"rgba(0,0,0,0.3)" }}>
+                            <span className="text-[8px] font-black text-white/25 w-6 flex-shrink-0">🔑</span>
+                            <span className="text-[9px] font-mono flex-1" style={{ color:`rgba(${rc.glow},0.7)` }}>{account.password}</span>
+                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
+                              style={{ background:`rgba(${rc.glow},0.08)`, color:`rgba(${rc.glow},0.6)`, border:`1px solid rgba(${rc.glow},0.2)` }}>
+                              {account.role}
+                            </span>
+                          </div>
+                        </div>
+                        {/* Access description */}
+                        <p className="text-[9px] text-white/30 leading-relaxed mb-2.5">
+                          {ACCESS_DESC[account.id] ?? "Acceso al sistema"}
                         </p>
-                        <p className="text-[8px] mb-1.5" style={{ color:`rgba(${rc.glow},0.5)` }}>
-                          {account.cargo.split("·")[0].trim()}
-                        </p>
-                        <span className="inline-block text-[7px] font-black px-1.5 py-0.5 rounded-full mb-1.5"
-                          style={{ background:"rgba(251,191,36,0.10)", border:"1px solid rgba(251,191,36,0.28)", color:"rgba(251,191,36,0.7)" }}>
-                          ⬡ CIVAC
-                        </span>
                         <button onClick={() => handleQuick(account)} disabled={loading}
-                          className="w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl font-black text-[9px] transition-all hover:scale-105"
-                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"white", boxShadow:`0 0 10px rgba(${rc.glow},0.25)` }}>
-                          {isLoading ? <div className="w-2.5 h-2.5 border border-white/40 border-t-white rounded-full animate-spin"/> : <ArrowRight size={9}/>}
-                          {isLoading ? "Entrando…" : "Entrar"}
+                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl font-black text-[10px] transition-all hover:scale-[1.02] relative overflow-hidden"
+                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"white", boxShadow:`0 0 14px rgba(${rc.glow},0.3)` }}>
+                          {isLoading ? <div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin"/> : <ArrowRight size={10}/>}
+                          {isLoading ? "Entrando…" : `Entrar como ${account.role}`}
                         </button>
                       </div>
                     </div>

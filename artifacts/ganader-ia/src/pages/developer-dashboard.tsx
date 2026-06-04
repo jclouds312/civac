@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useAuth } from "@/lib/auth";
+import { useAuth, LoginActivity } from "@/lib/auth";
 import {
   Terminal, Code, GitBranch, Zap, Activity, Database, Globe,
   Download, Upload, RefreshCw, Play, CheckCircle,
@@ -18,7 +18,7 @@ import {
 /* ── Version history ────────────────────────────────────────────────────── */
 const CIVAC_VERSIONS = [
   { v:"1.0.0", date:"2026-05-26", status:"current", tag:"stable",
-    changes:["Panel Admin 14 tabs completo (Logs, Soporte, Seguridad)","Sidebar expandido: Sanidad, Trazabilidad, 32 módulos","v7.0 branding unificado en toda la plataforma","Login redesign con cuentas reales colombianas","Nuevos roles: Developer + SuperAdmin + Sales","Plan-based PWA install + popup","Generación de licencias JSON por usuario"],
+    changes:["Panel Admin 14 tabs completo (Logs, Soporte, Seguridad)","Sidebar expandido: Sanidad, Trazabilidad, 32 módulos","v1.0 branding unificado en toda la plataforma","Login redesign con cuentas reales colombianas","Nuevos roles: Developer + SuperAdmin + Sales","Plan-based PWA install + popup","Generación de licencias JSON por usuario"],
     plans:{ basico:"1.0.0", pro:"1.0.0", premium:"1.0.0", platino:"1.0.0" },
     notes:"Release v7.0 — 32 módulos, cuentas reales colombianas, sidebar con Sanidad+Trazabilidad.",
   },
@@ -78,7 +78,7 @@ const TIP = { background:"rgba(4,15,26,0.95)", border:"1px solid rgba(0,255,136,
 const G   = "#00ff88";
 const C   = "#00d4ff";
 
-type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api"|"pwa"|"bd";
+type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api"|"pwa"|"bd"|"tickets"|"accesos";
 
 const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"resumen",     icon:<BarChart3 size={13}/>,   label:"Resumen"      },
@@ -90,6 +90,8 @@ const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"api",         icon:<Key size={13}/>,         label:"API Explorer" },
   { id:"pwa",         icon:<Globe size={13}/>,       label:"PWA"          },
   { id:"bd",          icon:<Database size={13}/>,    label:"Base de Datos"},
+  { id:"tickets",     icon:<Send size={13}/>,        label:"Tickets"      },
+  { id:"accesos",     icon:<Shield size={13}/>,      label:"Accesos"      },
 ];
 
 export default function DeveloperDashboard() {
@@ -113,6 +115,32 @@ export default function DeveloperDashboard() {
   const [bdLoading, setBdLoading]       = useState(false);
   const [swInfo, setSwInfo]             = useState<{registered:boolean;scope?:string;scriptURL?:string}|null>(null);
   const [pwaInstalled, setPwaInstalled] = useState(false);
+
+  /* ─── Tickets ─── */
+  interface Ticket {
+    id: string; titulo: string; desc: string;
+    prioridad: "alta"|"media"|"baja"; estado: "abierto"|"en_proceso"|"cerrado";
+    fecha: string; autor: string; categoria: string;
+  }
+  const loadTickets = (): Ticket[] => { try { const s=localStorage.getItem("civac_tickets"); return s?JSON.parse(s):[]; } catch { return []; } };
+  const [tickets, setTickets] = useState<Ticket[]>(loadTickets);
+  const [tForm, setTForm] = useState({ titulo:"", desc:"", prioridad:"media" as Ticket["prioridad"], categoria:"bug" });
+  const [tFilter, setTFilter] = useState<"all"|Ticket["estado"]>("all");
+  const saveTickets = (t: Ticket[]) => { try { localStorage.setItem("civac_tickets",JSON.stringify(t)); } catch {} };
+  const addTicket = () => {
+    if (!tForm.titulo.trim()) return;
+    const t: Ticket = { id:`TKT-${Date.now()}`, titulo:tForm.titulo, desc:tForm.desc, prioridad:tForm.prioridad, estado:"abierto", fecha:new Date().toLocaleDateString("es-CO"), autor:user?.nombre??"Desarrollador", categoria:tForm.categoria };
+    const next=[t,...tickets]; setTickets(next); saveTickets(next);
+    setTForm({ titulo:"", desc:"", prioridad:"media", categoria:"bug" });
+  };
+  const updateTicketEstado = (id: string, estado: Ticket["estado"]) => {
+    const next=tickets.map(t=>t.id===id?{...t,estado}:t); setTickets(next); saveTickets(next);
+  };
+  const deleteTicket = (id: string) => { const next=tickets.filter(t=>t.id!==id); setTickets(next); saveTickets(next); };
+
+  /* ─── Login Activity ─── */
+  const { loginActivity } = useAuth();
+  const [actFilter, setActFilter] = useState<"all"|"civac"|"demo"|"client">("all");
 
   /* Persist feature flags to localStorage */
   useEffect(()=>{

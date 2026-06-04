@@ -114,7 +114,7 @@ export function checkDomainAndWarn(): void {
 /** Inyecta créditos en la consola del navegador */
 export function printConsoleBranding(): void {
   console.log(
-    `%c🐄 CIVAC PRO v7.0%c\n` +
+    `%c🐄 CIVAC PRO v1.0%c\n` +
     `%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `Propietario: Johnatan Vallejo Marulanda\n` +
     `Empresa: Universal Business Technology\n` +

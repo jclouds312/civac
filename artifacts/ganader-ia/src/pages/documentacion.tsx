@@ -212,7 +212,7 @@ function SecModulos() {
   };
   return (
     <div className="space-y-6">
-      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos activos · CIVAC PRO v7.0`} c1="#071325" c2="#0a1f3c"/>
+      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos activos · CIVAC PRO v1.0`} c1="#071325" c2="#0a1f3c"/>
       {cats.map(cat => (
         <div key={cat}>
           <div className="flex items-center gap-2 mb-3">
@@ -848,7 +848,7 @@ export default function Documentacion() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-white" style={{ fontFamily:"Sora,sans-serif" }}>Documentación</h1>
-              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v7.0 · {SECTIONS.length} secciones · 30+ módulos</p>
+              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v1.0 · {SECTIONS.length} secciones · 30+ módulos</p>
             </div>
           </div>
           <button onClick={() => setMobileOpen(v => !v)} className="lg:hidden flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold"

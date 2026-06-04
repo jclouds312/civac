@@ -99,7 +99,7 @@ function StatTicker() {
     '🤖 IA Asesora disponible','🧬 DEP Score: 94.2','🌱 -18% huella CO₂ · IPCC 2019',
     '🩺 Sanidad ICA · 10 registros','🏷️ Trazabilidad SINIGAN · activa','⚖️ 3 básculas BT vinculadas',
     '☁️ Analytics Server ONLINE','💼 CRM Ventas · 3 prospectos activos',
-    '🔒 CIVAC PRO v7.0 · 32 módulos · Licencia activa','📡 MQTT mqtt.civac.co · 13 collares online',
+    '🔒 CIVAC PRO v1.0 · 32 módulos · Licencia activa','📡 MQTT mqtt.civac.co · 13 collares online',
   ];
   const doubled = [...items, ...items];
   return (
@@ -275,7 +275,7 @@ export default function Dashboard() {
                 {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                 &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
               </p>
-              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v7.0</p>
+              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v1.0</p>
             </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[

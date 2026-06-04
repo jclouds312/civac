@@ -168,7 +168,7 @@ export default function Ventas() {
                   CRM LIVE
                 </span>
               </div>
-              <p className="text-white/50 text-xs sm:text-sm">Hola {user?.nombre?.split(' ')[0] ?? 'Asesora'} · Panel comercial CIVAC v7.0 · {new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}</p>
+              <p className="text-white/50 text-xs sm:text-sm">Hola {user?.nombre?.split(' ')[0] ?? 'Asesora'} · Panel comercial CIVAC v1.0 · {new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}</p>
               <p className="text-[10px] mt-0.5" style={{color:'rgba(232,121,249,0.35)'}}>Pipeline · CRM · Reportes diarios · Contabilidad de ventas</p>
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -377,7 +377,7 @@ export default function Ventas() {
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <h2 className="text-lg font-black text-white">📋 Reporte Diario de Ventas</h2>
-                  <p className="text-xs text-white/40 mt-0.5">CIVAC v7.0 · Asesora: {user?.nombre} · {new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
+                  <p className="text-xs text-white/40 mt-0.5">CIVAC v1.0 · Asesora: {user?.nombre} · {new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={()=>printModule('Reporte Diario CRM','Reporte de ventas')}

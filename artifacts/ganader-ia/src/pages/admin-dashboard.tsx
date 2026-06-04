@@ -3493,7 +3493,7 @@ export default function AdminDashboard({
         <div className="space-y-4">
           <div className="rounded-2xl p-4" style={{background:"rgba(96,165,250,0.06)",border:"1px solid rgba(96,165,250,0.2)"}}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v7.0</h3>
+              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v1.0</h3>
               <div className="flex gap-2">
                 <button className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
                   style={{background:"rgba(96,165,250,0.12)",color:"#60a5fa",border:"1px solid rgba(96,165,250,0.25)"}}>

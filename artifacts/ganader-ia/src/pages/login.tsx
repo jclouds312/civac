@@ -276,7 +276,7 @@ function ColombianTicker() {
     "📡 GPS Real-Time · 13 collares activos","🤖 Asesora IA Colombia · GPT ganadero",
     "🩺 Sanidad ICA · Vacunas al día","🌿 -18% Huella CO₂ · Carbono neutro 2027",
     "⚖️ 3 Básculas Bluetooth vinculadas","☁️ Analytics Server ONLINE · 99.8% uptime",
-    "🔒 CIVAC PRO v7.0 · 32 módulos activos","🏆 #1 Software Ganadero Colombia",
+    "🔒 CIVAC PRO v1.0 · 32 módulos activos","🏆 #1 Software Ganadero Colombia",
   ];
   const doubled = [...items, ...items];
   return (
@@ -823,7 +823,7 @@ export default function Login() {
           <div className="flex items-center justify-center gap-3 mb-1">
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight" style={{ fontFamily:"'Sora',sans-serif", letterSpacing:"-0.03em" }}>
               <span className="text-white">CIVAC </span>
-              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", filter:"drop-shadow(0 0 12px rgba(0,245,212,0.5))" }}>v7</span>
+              <span style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", filter:"drop-shadow(0 0 12px rgba(0,245,212,0.5))" }}>v1</span>
             </h1>
             <div className="flex flex-col items-start gap-0.5">
               <span className="text-[10px] font-black px-2.5 py-1 rounded-lg leading-none"

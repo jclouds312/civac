@@ -670,7 +670,7 @@ export default function CivacBot({ show }: { show?: boolean }) {
                 <Send size={13} style={{color:"#040d1a"}}/>
               </button>
             </div>
-            <p className="text-[8px] text-white/15 text-center mt-1.5">CIVAC Bot · GanaderIA PRO v7.0 · 32 módulos</p>
+            <p className="text-[8px] text-white/15 text-center mt-1.5">CIVAC Bot · GanaderIA PRO v1.0 · 32 módulos</p>
           </div>
         </div>
       )}

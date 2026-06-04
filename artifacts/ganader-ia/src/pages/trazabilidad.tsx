@@ -167,7 +167,7 @@ export default function Trazabilidad() {
                   <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif" }}>
                     Trazabilidad ICA
                   </h1>
-                  <p className="text-xs text-white/50">Movimientos · Guías · Códigos QR · CIVAC v7.0</p>
+                  <p className="text-xs text-white/50">Movimientos · Guías · Códigos QR · CIVAC v1.0</p>
                 </div>
               </div>
             </div>

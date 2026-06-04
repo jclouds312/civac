@@ -34,8 +34,8 @@ const PWA_VERSIONS = [
   {
     v:"7.0.0", date:"2026-06-01", status:"current", label:"PROD · Estable", color:"#00f5d4",
     plans:["basico","pro","premium","platino"], size:"3.1 MB", downloads:4,
-    features:["32 módulos completos","Sanidad Animal ICA","Trazabilidad SINIGAN","GPS Chips MQTT","Ventas CRM","Asesora IA","Drive Backup","SW v8 · 33 rutas","Manifest v7 · 8 shortcuts","Documentación 24 secciones"],
-    changelog:"CIVAC PRO v7.0 — Release mayor. 32+ módulos. Sanidad+Trazabilidad ICA. GPS Chips MQTT. CRM Ventas. Asesora IA especializada en ganadería Colombia. Service Worker v8. Server Panel 11 secciones.",
+    features:["32 módulos completos","Sanidad Animal ICA","Trazabilidad SINIGAN","GPS Chips MQTT","Ventas CRM","Asesora IA","Drive Backup","SW v1 · 33 rutas","Manifest v7 · 8 shortcuts","Documentación 24 secciones"],
+    changelog:"CIVAC PRO v1.0 — Release mayor. 32+ módulos. Sanidad+Trazabilidad ICA. GPS Chips MQTT. CRM Ventas. Asesora IA especializada en ganadería Colombia. Service Worker v8. Server Panel 11 secciones.",
   },
   {
     v:"6.0.0", date:"2026-05-26", status:"lts", label:"LTS · 6.x", color:"#fbbf24",
@@ -1133,7 +1133,7 @@ function ConfigPanel() {
         <p className="text-[10px] font-mono font-bold tracking-widest mb-3" style={{ color:"rgba(148,163,184,0.3)" }}>PLATAFORMA</p>
         {[
           { label:"Dominio principal",      val:"civac.co",                   icon:"🌐", editable:false },
-          { label:"Versión plataforma",     val:"CIVAC PRO v7.0.0",           icon:"📦", editable:false },
+          { label:"Versión plataforma",     val:"CIVAC PRO v1.0.0",           icon:"📦", editable:false },
           { label:"Región de despliegue",   val:"Bogotá, Colombia — SA-East", icon:"📍", editable:false },
           { label:"Base de datos",          val:"PostgreSQL (Replit native)",  icon:"🗄️", editable:false },
           { label:"PWA Service Worker",     val:"v8 · 33 rutas · Offline full", icon:"⚙️", editable:false },

@@ -287,11 +287,35 @@ function saveAccounts(accounts: Account[]) {
   } catch {}
 }
 
+/* ─── LoginActivity — quién accede, cuándo, desde dónde ──────────────────── */
+export interface LoginActivity {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userRole: string;
+  plan: PlanId;
+  timestamp: string;   // ISO
+  hora: string;        // HH:MM
+  fecha: string;       // DD/MM/YYYY
+  ua: string;          // user-agent short
+  isDemo: boolean;
+  isCivac: boolean;
+}
+
+function loadActivities(): LoginActivity[] {
+  try { const s = localStorage.getItem('civac_login_activity'); return s ? JSON.parse(s) : []; } catch { return []; }
+}
+function saveActivities(a: LoginActivity[]) {
+  try { localStorage.setItem('civac_login_activity', JSON.stringify(a.slice(0, 200))); } catch {}
+}
+
 /* ─── Contexto Auth ───────────────────────────────────────────────────────── */
 interface AuthContextType {
   user: Account | null;
   accounts: Account[];
   wompiPayments: WompiPayment[];
+  loginActivity: LoginActivity[];
   login: (email: string, password: string) => boolean;
   loginAs: (account: Account) => void;
   logout: () => void;
@@ -313,6 +337,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [accounts, setAccountsState] = useState<Account[]>(loadAccounts);
   const [wompiPayments, setWompiPaymentsState] = useState<WompiPayment[]>(loadPayments);
+  const [loginActivity, setLoginActivity] = useState<LoginActivity[]>(loadActivities);
 
   const setAccounts = useCallback((next: Account[]) => {
     setAccountsState(next);
@@ -335,6 +360,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginAs = (account: Account) => {
     setUser(account);
     try { localStorage.setItem('ganader_user', JSON.stringify(account)); } catch {}
+    // Record login activity
+    try {
+      const now = new Date();
+      const activity: LoginActivity = {
+        id: `act_${Date.now()}`,
+        userId: account.id,
+        userName: account.nombre,
+        userEmail: account.email,
+        userRole: account.role,
+        plan: account.plan ?? 'basico',
+        timestamp: now.toISOString(),
+        hora: now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
+        fecha: now.toLocaleDateString('es-CO'),
+        ua: (navigator.userAgent.match(/Chrome|Firefox|Safari|Edge/)??['Web'])[0],
+        isDemo: account.id.startsWith('demo_'),
+        isCivac: CIVAC_STAFF_IDS.includes(account.id),
+      };
+      setLoginActivity(prev => { const next=[activity,...prev].slice(0,200); saveActivities(next); return next; });
+    } catch { /* ignore */ }
     // Background: also get a real server session token for API access
     fetch('/api/auth/login', {
       method: 'POST',
@@ -404,7 +448,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return createElement(AuthContext.Provider, {
     value: {
-      user, accounts, wompiPayments,
+      user, accounts, wompiPayments, loginActivity,
       login, loginAs, logout,
       registerUser, updateUser, deleteUser,
       activatePlan, addWompiPayment,

@@ -129,3 +129,6 @@ externalPort = 3000
 [nix]
 channel = "stable-25_05"
 packages = ["glibcLocales", "openssl", "postgresql"]
+
+[objectStorage]
+defaultBucketID = "replit-objstore-31a0990b-4900-4cdb-9c3f-b8a7326677af"

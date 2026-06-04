@@ -224,4 +224,58 @@ router.get("/auth/google/status", (_req, res) => {
   res.json({ configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) });
 });
 
+/* ── POST /api/auth/register ─────────────────────────────────────────────── */
+router.post("/auth/register", async (req, res) => {
+  try {
+    const { nombre, email, password, finca, cargo } = req.body as {
+      nombre?: string; email?: string; password?: string; finca?: string; cargo?: string;
+    };
+
+    if (!nombre?.trim()) return res.status(400).json({ ok: false, error: "El nombre es requerido" });
+    if (!email?.trim())  return res.status(400).json({ ok: false, error: "El correo es requerido" });
+    if (!password || password.length < 6)
+      return res.status(400).json({ ok: false, error: "La contraseña debe tener al menos 6 caracteres" });
+
+    const normalEmail = email.toLowerCase().trim();
+    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRx.test(normalEmail))
+      return res.status(400).json({ ok: false, error: "Correo electrónico inválido" });
+
+    try {
+      const existing = await db.select({ id: usuariosTable.id })
+        .from(usuariosTable).where(eq(usuariosTable.email, normalEmail)).limit(1);
+      if (existing[0])
+        return res.status(409).json({ ok: false, error: "Ya existe una cuenta con ese correo" });
+
+      const FALLBACK_EMAILS = FALLBACK_USERS.map(u => u.email);
+      if (FALLBACK_EMAILS.includes(normalEmail))
+        return res.status(409).json({ ok: false, error: "Ya existe una cuenta con ese correo" });
+
+      const newId = `r_${randomUUID().slice(0, 8)}`;
+      const [created] = await db.insert(usuariosTable).values({
+        id: newId,
+        nombre: nombre.trim(),
+        cargo: cargo?.trim() || "Propietario de Finca",
+        finca: finca?.trim() || "Sin asignar",
+        email: normalEmail,
+        password,
+        role: "viewer",
+        permisos: JSON.stringify(["dashboard","alertas","inventario","produccion"]),
+        planCode: "basico",
+        activo: false,
+        estado: "pendiente",
+      } as Parameters<typeof db.insert>[0]).returning();
+
+      return res.status(201).json({
+        ok: true,
+        message: "Registro recibido. Tu cuenta está pendiente de activación por el administrador.",
+        userId: created.id,
+      });
+    } catch (dbErr) {
+      console.error("[register] DB error", dbErr);
+      return res.status(500).json({ ok: false, error: "Error al crear la cuenta. Intenta de nuevo." });
+    }
+  } catch (e) { return res.status(500).json({ ok: false, error: String(e) }); }
+});
+
 export default router;

@@ -6,7 +6,7 @@ import {
   Phone, Building2, ChevronRight, CheckCircle2, ExternalLink,
   Settings2, AlertTriangle, Copy, Activity, Globe, Cpu,
   TrendingUp, MapPin, Thermometer, Wind, Droplets, BarChart3,
-  Server, CheckCircle, Clock, Layers
+  Server, CheckCircle, Clock, Layers, UserPlus
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -593,13 +593,25 @@ export default function Login() {
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [loadingId, setLoadingId] = useState<string|null>(null);
-  const [tab, setTab]             = useState<"login"|"cuentas"|"planes">("login");
+  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro">("login");
   const [entered, setEntered]     = useState(false);
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string|null>(null);
   const [inviteBanner, setInviteBanner] = useState<{nombre:string;plan:string}|null>(null);
   const [pendingGoogleUser, setPendingGoogleUser] = useState<{nombre:string;email:string;googleFoto?:string}|null>(null);
+
+  /* ── Registro nuevo usuario ── */
+  const [regNombre,   setRegNombre]   = useState("");
+  const [regEmail,    setRegEmail]    = useState("");
+  const [regPass,     setRegPass]     = useState("");
+  const [regConfirm,  setRegConfirm]  = useState("");
+  const [regFinca,    setRegFinca]    = useState("");
+  const [regCargo,    setRegCargo]    = useState("");
+  const [regLoading,  setRegLoading]  = useState(false);
+  const [regError,    setRegError]    = useState("");
+  const [regOk,       setRegOk]       = useState(false);
+  const [showRegPass, setShowRegPass] = useState(false);
 
   useEffect(() => { const t = setTimeout(() => setEntered(true), 80); return () => clearTimeout(t); }, []);
 
@@ -692,6 +704,33 @@ export default function Login() {
       if (!login(email, password)) setError("Credenciales incorrectas. Verifique email y contraseña.");
       setLoading(false);
     }, 600);
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError(""); setRegOk(false);
+    if (!regNombre.trim()) { setRegError("El nombre es requerido."); return; }
+    if (!regEmail.trim())  { setRegError("El correo es requerido."); return; }
+    if (regPass.length < 6) { setRegError("La contraseña debe tener al menos 6 caracteres."); return; }
+    if (regPass !== regConfirm) { setRegError("Las contraseñas no coinciden."); return; }
+    setRegLoading(true);
+    try {
+      const r = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: regNombre.trim(), email: regEmail.trim(), password: regPass, finca: regFinca.trim(), cargo: regCargo.trim() }),
+      });
+      const d = await r.json() as { ok: boolean; error?: string; message?: string };
+      if (d.ok) {
+        setRegOk(true);
+        setRegNombre(""); setRegEmail(""); setRegPass(""); setRegConfirm(""); setRegFinca(""); setRegCargo("");
+      } else {
+        setRegError(d.error ?? "Error al registrarse. Intenta de nuevo.");
+      }
+    } catch {
+      setRegError("Sin conexión con el servidor. Intenta de nuevo.");
+    }
+    setRegLoading(false);
   };
 
   return (
@@ -868,12 +907,13 @@ export default function Login() {
             ))}
           </div>
 
-          {/* Tabs — 3 botones con identidad de color propia */}
-          <div className="flex items-center justify-center gap-2.5">
+          {/* Tabs — 4 botones con identidad de color propia */}
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             {[
-              { id:"login"   as const, label:"Iniciar Sesión",  emoji:"🔐", c1:"#00f5d4", c2:"#00a896", g:"0,245,212"   },
-              { id:"cuentas" as const, label:"Cuentas Demo",    emoji:"👥", c1:"#39ff7e", c2:"#16a34a", g:"57,255,126"  },
-              { id:"planes"  as const, label:"Planes & Precios",emoji:"💳", c1:"#fbbf24", c2:"#ea580c", g:"251,191,36"  },
+              { id:"login"    as const, label:"Iniciar Sesión",  emoji:"🔐", c1:"#00f5d4", c2:"#00a896", g:"0,245,212"   },
+              { id:"registro" as const, label:"Registrarse",     emoji:"✨", c1:"#a855f7", c2:"#7c3aed", g:"168,85,247"  },
+              { id:"cuentas"  as const, label:"Cuentas Demo",    emoji:"👥", c1:"#39ff7e", c2:"#16a34a", g:"57,255,126"  },
+              { id:"planes"   as const, label:"Planes",          emoji:"💳", c1:"#fbbf24", c2:"#ea580c", g:"251,191,36"  },
             ].map(t => {
               const isActive = tab === t.id;
               return (
@@ -1030,10 +1070,10 @@ export default function Login() {
 
                   {/* Bottom links */}
                   <div className="mt-6 pt-5 flex items-center justify-between" style={{ borderTop:"1px solid rgba(0,245,212,0.08)" }}>
-                    <button onClick={() => setTab("planes")}
+                    <button onClick={() => setTab("registro")}
                       className="text-[11px] font-semibold transition-colors hover:opacity-80"
-                      style={{ color:"rgba(0,245,212,0.5)" }}>
-                      ¿Nuevo? Ver planes →
+                      style={{ color:"rgba(168,85,247,0.7)" }}>
+                      ¿Sin cuenta? Registrarse →
                     </button>
                     <button onClick={() => setTab("cuentas")}
                       className="text-[11px] font-semibold transition-colors hover:opacity-80"
@@ -1203,6 +1243,228 @@ export default function Login() {
               <span className="flex items-center gap-1"><Phone size={10}/>Soporte WhatsApp</span>
               <span className="flex items-center gap-1">🇨🇴 Hecho en Colombia</span>
             </div>
+          </div>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB: REGISTRO — Crear cuenta nueva
+        ═══════════════════════════════════════════════════════════════════ */}
+        {tab === "registro" && (
+          <div className="flex gap-5 items-start justify-center">
+            <FarmImageWidgets />
+            <div className="w-full max-w-md">
+              <div className="rounded-3xl overflow-hidden"
+                style={{
+                  background:"linear-gradient(145deg,rgba(4,13,26,0.98),rgba(10,7,30,0.96))",
+                  border:"1px solid rgba(168,85,247,0.28)",
+                  boxShadow:"0 0 70px rgba(168,85,247,0.12), 0 30px 70px rgba(0,0,0,0.6)",
+                  backdropFilter:"blur(28px)",
+                }}>
+                <div className="h-1" style={{ background:"linear-gradient(90deg,#a855f7,#7c3aed,#6d28d9,transparent)" }}/>
+                <div className="p-7 sm:p-8">
+
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+                      style={{ background:"rgba(168,85,247,0.10)", border:"1px solid rgba(168,85,247,0.28)", boxShadow:"0 0 20px rgba(168,85,247,0.18)" }}>
+                      <UserPlus className="w-5 h-5" style={{ color:"#a855f7" }}/>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-white leading-tight">Crear cuenta CIVAC</h2>
+                      <p className="text-xs mt-0.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                        Plan Básico gratuito · Activación en 24 h
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Success state */}
+                  {regOk && (
+                    <div className="rounded-2xl p-5 flex flex-col items-center gap-3 text-center mb-4"
+                      style={{ background:"rgba(57,255,126,0.07)", border:"1px solid rgba(57,255,126,0.25)" }}>
+                      <CheckCircle2 className="w-10 h-10" style={{ color:"#39ff7e" }}/>
+                      <div>
+                        <p className="font-black text-white text-sm">Registro exitoso</p>
+                        <p className="text-xs mt-1" style={{ color:"rgba(57,255,126,0.7)" }}>
+                          Tu cuenta fue creada y está pendiente de activación.
+                          El administrador CIVAC te notificará por correo cuando esté lista.
+                        </p>
+                      </div>
+                      <button onClick={() => { setRegOk(false); setTab("login"); }}
+                        className="mt-1 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-80"
+                        style={{ background:"rgba(0,245,212,0.12)", color:"#00f5d4", border:"1px solid rgba(0,245,212,0.3)" }}>
+                        Iniciar sesión →
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Form */}
+                  {!regOk && (
+                    <form onSubmit={handleRegister} className="space-y-4">
+                      {/* Nombre */}
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                          NOMBRE COMPLETO *
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(168,85,247,0.5)" }}/>
+                          <input value={regNombre} onChange={e => setRegNombre(e.target.value)}
+                            placeholder="Ej: Juan Carlos Herrera" required
+                            className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                            style={{ background:"rgba(168,85,247,0.07)", border:"1px solid rgba(168,85,247,0.25)" }}
+                            onFocus={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.6)"; (e.target as HTMLElement).style.boxShadow="0 0 14px rgba(168,85,247,0.12)"; }}
+                            onBlur={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.25)"; (e.target as HTMLElement).style.boxShadow="none"; }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Email */}
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                          CORREO ELECTRÓNICO *
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(168,85,247,0.5)" }}/>
+                          <input value={regEmail} onChange={e => setRegEmail(e.target.value)} type="email"
+                            placeholder="correo@mifinca.co" required
+                            className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                            style={{ background:"rgba(168,85,247,0.07)", border:"1px solid rgba(168,85,247,0.25)" }}
+                            onFocus={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.6)"; (e.target as HTMLElement).style.boxShadow="0 0 14px rgba(168,85,247,0.12)"; }}
+                            onBlur={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.25)"; (e.target as HTMLElement).style.boxShadow="none"; }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Finca */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                            NOMBRE DE FINCA
+                          </label>
+                          <input value={regFinca} onChange={e => setRegFinca(e.target.value)}
+                            placeholder="Finca El Rancho"
+                            className="w-full px-3 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                            style={{ background:"rgba(168,85,247,0.07)", border:"1px solid rgba(168,85,247,0.25)" }}
+                            onFocus={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.6)"; }}
+                            onBlur={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.25)"; }}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                            ROL / CARGO
+                          </label>
+                          <input value={regCargo} onChange={e => setRegCargo(e.target.value)}
+                            placeholder="Propietario, Vet…"
+                            className="w-full px-3 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                            style={{ background:"rgba(168,85,247,0.07)", border:"1px solid rgba(168,85,247,0.25)" }}
+                            onFocus={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.6)"; }}
+                            onBlur={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.25)"; }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Contraseña */}
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                          CONTRASEÑA * (mín. 6 caracteres)
+                        </label>
+                        <div className="relative">
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(168,85,247,0.5)" }}/>
+                          <input value={regPass} onChange={e => setRegPass(e.target.value)}
+                            type={showRegPass ? "text" : "password"} placeholder="••••••••" required
+                            className="w-full pl-10 pr-10 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                            style={{ background:"rgba(168,85,247,0.07)", border:"1px solid rgba(168,85,247,0.25)" }}
+                            onFocus={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.6)"; (e.target as HTMLElement).style.boxShadow="0 0 14px rgba(168,85,247,0.12)"; }}
+                            onBlur={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.25)"; (e.target as HTMLElement).style.boxShadow="none"; }}
+                          />
+                          <button type="button" onClick={() => setShowRegPass(v => !v)}
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                            {showRegPass ? <EyeOff size={14}/> : <Eye size={14}/>}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Confirmar contraseña */}
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color:"rgba(168,85,247,0.6)" }}>
+                          CONFIRMAR CONTRASEÑA *
+                        </label>
+                        <div className="relative">
+                          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(168,85,247,0.5)" }}/>
+                          <input value={regConfirm} onChange={e => setRegConfirm(e.target.value)}
+                            type="password" placeholder="••••••••" required
+                            className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white outline-none transition-all"
+                            style={{
+                              background:"rgba(168,85,247,0.07)",
+                              border:`1px solid ${regConfirm && regConfirm !== regPass ? "rgba(248,113,113,0.5)" : "rgba(168,85,247,0.25)"}`,
+                            }}
+                            onFocus={e => { (e.target as HTMLElement).style.borderColor="rgba(168,85,247,0.6)"; }}
+                            onBlur={e => { (e.target as HTMLElement).style.borderColor = regConfirm && regConfirm !== regPass ? "rgba(248,113,113,0.5)" : "rgba(168,85,247,0.25)"; }}
+                          />
+                        </div>
+                        {regConfirm && regConfirm !== regPass && (
+                          <p className="text-[10px] mt-1" style={{ color:"#f87171" }}>Las contraseñas no coinciden</p>
+                        )}
+                      </div>
+
+                      {/* Error */}
+                      {regError && (
+                        <div className="flex items-center gap-2 px-4 py-3 rounded-xl text-xs"
+                          style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.25)", color:"#f87171" }}>
+                          <AlertTriangle size={13} className="flex-shrink-0"/>
+                          {regError}
+                        </div>
+                      )}
+
+                      {/* Submit */}
+                      <button type="submit" disabled={regLoading}
+                        className="w-full py-3.5 rounded-2xl font-black text-sm transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] relative overflow-hidden group disabled:opacity-60 disabled:cursor-not-allowed"
+                        style={{
+                          background:"linear-gradient(135deg,#a855f7,#7c3aed,#6d28d9)",
+                          color:"white",
+                          boxShadow:"0 0 40px rgba(168,85,247,0.45), 0 8px 24px rgba(0,0,0,0.4)",
+                          border:"1.5px solid rgba(168,85,247,0.6)",
+                        }}>
+                        <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          style={{ background:"linear-gradient(135deg,rgba(255,255,255,0.14) 0%,transparent 60%)" }} />
+                        {regLoading
+                          ? <span className="flex items-center justify-center gap-2">
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                              Registrando…
+                            </span>
+                          : <span className="relative z-10 flex items-center justify-center gap-2">
+                              Crear mi cuenta
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"/>
+                            </span>
+                        }
+                      </button>
+
+                      <div className="relative flex items-center gap-3 my-1">
+                        <div className="flex-1 h-px" style={{ background:"rgba(168,85,247,0.1)" }}/>
+                        <span className="text-[10px] font-bold text-white/25 uppercase tracking-wider flex-shrink-0">o regístrate con</span>
+                        <div className="flex-1 h-px" style={{ background:"rgba(168,85,247,0.1)" }}/>
+                      </div>
+
+                      <GoogleSignInButton onError={msg => setRegError(msg)} />
+                    </form>
+                  )}
+
+                  {/* Bottom links */}
+                  <div className="mt-5 pt-4 flex items-center justify-between" style={{ borderTop:"1px solid rgba(168,85,247,0.08)" }}>
+                    <button onClick={() => setTab("login")}
+                      className="text-[11px] font-semibold transition-colors hover:opacity-80"
+                      style={{ color:"rgba(0,245,212,0.5)" }}>
+                      ← Ya tengo cuenta
+                    </button>
+                    <button onClick={() => setTab("planes")}
+                      className="text-[11px] font-semibold transition-colors hover:opacity-80"
+                      style={{ color:"rgba(168,85,247,0.4)" }}>
+                      Ver planes →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <RightWidgets />
           </div>
         )}
 

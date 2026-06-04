@@ -951,6 +951,7 @@ export default function AdminDashboard({
   const TABS = [
     { id:"resumen",    icon:"📊", label:"Resumen",      color:"#00f5d4" },
     { id:"cuentas",    icon:"👥", label:"Cuentas",      color:"#39ff7e" },
+    { id:"registros",  icon:"✨", label:"Registros",    color:"#a855f7" },
     { id:"planes",     icon:"⭐", label:"Planes",       color:"#a78bfa" },
     { id:"pagos",      icon:"💳", label:"Pagos",        color:"#fbbf24" },
     { id:"sesiones",   icon:"📡", label:"Sesiones",     color:"#00c8ff" },
@@ -1716,6 +1717,178 @@ export default function AdminDashboard({
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: REGISTROS — Registros pendientes, DB users, Pagos emitidos
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "registros" && (
+        <div className="space-y-5">
+
+          {/* Header banner */}
+          <div className="relative rounded-2xl overflow-hidden"
+            style={{ background:"linear-gradient(135deg,#0d0620 0%,#150b30 50%,#0d0620 100%)", border:"1px solid rgba(168,85,247,0.3)", boxShadow:"0 0 40px rgba(168,85,247,0.08)" }}>
+            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background:"linear-gradient(90deg,transparent,#a855f7,#7c3aed,transparent)" }}/>
+            <div className="p-5 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                  style={{ background:"rgba(168,85,247,0.12)", border:"1px solid rgba(168,85,247,0.3)" }}>
+                  <UserPlus size={18} style={{ color:"#a855f7" }}/>
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-white">Registros & Activación de Cuentas</h2>
+                  <p className="text-[11px]" style={{ color:"rgba(168,85,247,0.55)" }}>
+                    Usuarios DB · Pendientes de activación · Asignación de planes · Pagos emitidos
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap text-[10px]">
+                <span className="px-2.5 py-1 rounded-full font-bold"
+                  style={{ background:"rgba(251,191,36,0.1)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.25)" }}>
+                  ⏳ Activación manual requerida
+                </span>
+                <span className="px-2.5 py-1 rounded-full font-bold"
+                  style={{ background:"rgba(57,255,126,0.08)", color:"#39ff7e", border:"1px solid rgba(57,255,126,0.2)" }}>
+                  ✓ Google OAuth + Registro directo
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Flujo de registro — info rápida */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { step:"1", icon:"✨", label:"Se registra", desc:"Usuario llena el formulario o usa Google OAuth. Cuenta queda en estado Pendiente.", color:"#a855f7", g:"168,85,247" },
+              { step:"2", icon:"👁️", label:"Admin revisa", desc:"Admin ve la cuenta aquí, verifica, asigna plan y genera enlace de pago si aplica.", color:"#fbbf24", g:"251,191,36" },
+              { step:"3", icon:"✅", label:"Activa cuenta", desc:"Admin activa la cuenta (estado → Activo). Usuario ya puede iniciar sesión.", color:"#39ff7e", g:"57,255,126" },
+            ].map(s => (
+              <div key={s.step} className="flex items-start gap-3 p-4 rounded-2xl"
+                style={{ background:`rgba(${s.g},0.05)`, border:`1px solid rgba(${s.g},0.18)` }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-sm font-black"
+                  style={{ background:`rgba(${s.g},0.15)`, color:s.color }}>{s.step}</div>
+                <div>
+                  <p className="text-xs font-black text-white">{s.icon} {s.label}</p>
+                  <p className="text-[10px] mt-0.5" style={{ color:"rgba(255,255,255,0.4)" }}>{s.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* GoogleUsersPanel — gestiona TODOS los usuarios DB (pendientes + activos + bloqueados) */}
+          <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(168,85,247,0.18)" }}>
+            <div className="px-4 py-3 flex items-center gap-2"
+              style={{ background:"rgba(168,85,247,0.06)", borderBottom:"1px solid rgba(168,85,247,0.12)" }}>
+              <UserPlus size={14} style={{ color:"#a855f7" }}/>
+              <span className="text-sm font-black text-white">Usuarios registrados en base de datos</span>
+              <span className="ml-auto text-[9px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background:"rgba(168,85,247,0.1)", color:"#a855f7", border:"1px solid rgba(168,85,247,0.25)" }}>
+                Google OAuth + Registro manual
+              </span>
+            </div>
+            <div className="p-4">
+              <GoogleUsersPanel />
+            </div>
+          </div>
+
+          {/* Pagos emitidos */}
+          <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(251,191,36,0.18)" }}>
+            <div className="px-4 py-3 flex items-center gap-2"
+              style={{ background:"rgba(251,191,36,0.05)", borderBottom:"1px solid rgba(251,191,36,0.1)" }}>
+              <CreditCard size={14} style={{ color:"#fbbf24" }}/>
+              <span className="text-sm font-black text-white">Pagos emitidos para activación</span>
+              <span className="ml-auto text-[10px] text-white/30">
+                Total cobrado: <strong style={{ color:"#fbbf24" }}>{fmt(mrrTotal)}</strong>
+              </span>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { label:"Total cobrado",   val:fmt(mrrTotal),                                                          c:"#39ff7e", g:"57,255,126"  },
+                  { label:"Aprobados",       val:String(PAGOS_DEMO.filter(p=>p.estado==="aprobado").length),              c:"#00f5d4", g:"0,245,212"   },
+                  { label:"Pendientes",      val:String(PAGOS_DEMO.filter(p=>p.estado==="pendiente").length),             c:"#fbbf24", g:"251,191,36"  },
+                  { label:"Rechazados",      val:String(PAGOS_DEMO.filter(p=>p.estado==="rechazado").length),             c:"#f87171", g:"248,113,113" },
+                ].map(k => (
+                  <div key={k.label} className="px-3 py-2.5 rounded-xl text-center"
+                    style={{ background:`rgba(${k.g},0.06)`, border:`1px solid rgba(${k.g},0.2)` }}>
+                    <div className="text-lg font-black" style={{ color:k.c }}>{k.val}</div>
+                    <div className="text-[9px] text-white/40 mt-0.5">{k.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filters */}
+              <div className="flex gap-2 flex-wrap">
+                {(["todos","aprobado","pendiente","rechazado"] as const).map(f => (
+                  <button key={f} onClick={() => setPayFilter(f)}
+                    className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all"
+                    style={{
+                      background: payFilter===f ? (f==="aprobado"?"rgba(57,255,126,0.2)":f==="pendiente"?"rgba(251,191,36,0.2)":f==="rechazado"?"rgba(248,113,113,0.2)":"rgba(255,255,255,0.1)") : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${payFilter===f ? (f==="aprobado"?"rgba(57,255,126,0.5)":f==="pendiente"?"rgba(251,191,36,0.5)":f==="rechazado"?"rgba(248,113,113,0.5)":"rgba(255,255,255,0.25)") : "rgba(255,255,255,0.08)"}`,
+                      color: payFilter===f ? (f==="aprobado"?"#39ff7e":f==="pendiente"?"#fbbf24":f==="rechazado"?"#f87171":"white") : "rgba(255,255,255,0.4)",
+                    }}>
+                    {f==="todos"?"Todos":f.charAt(0).toUpperCase()+f.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Payments table */}
+              <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.06)" }}>
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr style={{ background:"rgba(0,0,0,0.35)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                      {["Referencia","Usuario","Plan","Monto","Método","Estado","Fecha","Acción"].map(h => (
+                        <th key={h} className="px-3 py-2 text-left text-[9px] uppercase tracking-wider font-bold"
+                          style={{ color:"rgba(251,191,36,0.5)" }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagosFilt.map((p, i) => (
+                      <tr key={p.id} style={{ background:i%2===0?"rgba(255,255,255,0.015)":"transparent", borderBottom:"1px solid rgba(255,255,255,0.03)" }}>
+                        <td className="px-3 py-2.5 font-mono text-[9px] text-white/40">{p.id}</td>
+                        <td className="px-3 py-2.5">
+                          <p className="font-bold text-white text-[10px]">{p.usuario}</p>
+                          <p className="text-[9px] text-white/30">{p.email}</p>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <PlanBadge plan={p.plan as PlanId}/>
+                        </td>
+                        <td className="px-3 py-2.5 font-black" style={{ color:"#fbbf24" }}>{fmt(p.monto)}</td>
+                        <td className="px-3 py-2.5 text-[10px] text-white/50">{p.metodo}</td>
+                        <td className="px-3 py-2.5">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold"
+                            style={{
+                              background: p.estado==="aprobado"?"rgba(57,255,126,0.12)":p.estado==="pendiente"?"rgba(251,191,36,0.12)":"rgba(248,113,113,0.12)",
+                              color: p.estado==="aprobado"?"#39ff7e":p.estado==="pendiente"?"#fbbf24":"#f87171",
+                              border: `1px solid ${p.estado==="aprobado"?"rgba(57,255,126,0.3)":p.estado==="pendiente"?"rgba(251,191,36,0.3)":"rgba(248,113,113,0.3)"}`,
+                            }}>
+                            {p.estado==="aprobado"?"✓ Aprobado":p.estado==="pendiente"?"⏳ Pendiente":"✗ Rechazado"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 text-[9px] text-white/35">{p.fecha}</td>
+                        <td className="px-3 py-2.5">
+                          {p.estado==="pendiente" && (
+                            <button
+                              className="px-2 py-1 rounded-lg text-[9px] font-bold transition-all hover:opacity-80"
+                              style={{ background:"rgba(57,255,126,0.1)", color:"#39ff7e", border:"1px solid rgba(57,255,126,0.25)" }}>
+                              Activar
+                            </button>
+                          )}
+                          {p.estado==="aprobado" && (
+                            <span className="text-[9px] text-white/20">Activo</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {pagosFilt.length === 0 && (
+                      <tr><td colSpan={8} className="text-center py-8 text-white/25 text-xs">Sin pagos en este estado</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>

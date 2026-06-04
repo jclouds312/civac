@@ -8,7 +8,7 @@ import { Link, useLocation } from "wouter";
 import {
   Bot, X, Send, Mic, ChevronDown, Satellite, Zap,
   TrendingUp, AlertTriangle, Beef, Droplets, DollarSign,
-  RefreshCw, MapPin, Loader2, Wifi, WifiOff,
+  RefreshCw, MapPin, Loader2, Wifi, WifiOff, MessageCircle, Phone,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -205,28 +205,39 @@ export default function CivacAgent() {
       {/* ── Floating Button ───────────────────────────────────────────────── */}
       <button
         onClick={() => { setOpen(v => !v); setUnread(0); }}
-        className="fixed bottom-6 right-5 z-50 flex items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-5 z-50 flex items-center gap-2.5 transition-all duration-300 hover:scale-105 active:scale-95"
         style={{
-          background: open ? 'linear-gradient(135deg,#ff4d6d,#c9184a)' : 'linear-gradient(135deg,#00f5d4,#00a896)',
+          background: open ? 'linear-gradient(135deg,#ff4d6d,#c9184a)' : 'linear-gradient(135deg,#00f5d4,#00b896)',
           boxShadow: open
-            ? '0 0 30px rgba(255,77,109,0.5), 0 8px 24px rgba(0,0,0,0.4)'
-            : `0 0 ${pulse ? '40px' : '24px'} rgba(0,245,212,${pulse ? '0.7' : '0.4'}), 0 8px 24px rgba(0,0,0,0.4)`,
-          borderRadius: 20, padding: '12px 18px', color: open ? 'white' : '#000',
+            ? '0 0 32px rgba(255,77,109,0.55), 0 8px 28px rgba(0,0,0,0.5)'
+            : `0 0 ${pulse ? '48px' : '28px'} rgba(0,245,212,${pulse ? '0.75' : '0.45'}), 0 8px 28px rgba(0,0,0,0.45)`,
+          borderRadius: 22, padding: '13px 20px', color: open ? 'white' : '#001a14',
           transition: 'all 0.3s cubic-bezier(0.175,0.885,0.32,1.275)',
         }}>
-        {open ? <X size={20}/> : <Bot size={20}/>}
-        {!open && <span className="font-black text-sm">CIVAC IA</span>}
+        {open
+          ? <X size={20}/>
+          : <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background:'rgba(0,0,0,0.15)' }}>
+                <Bot size={16} strokeWidth={2.5}/>
+              </div>
+              <div className="flex flex-col items-start leading-none">
+                <span className="font-black text-[13px] tracking-tight">CIVAC IA</span>
+                <span className="text-[9px] font-bold opacity-65">Asistente ganadero</span>
+              </div>
+            </div>
+        }
         {/* Unread badge */}
         {!open && unread > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
-            style={{ background:'#ff4d6d', color:'white', boxShadow:'0 0 8px rgba(255,77,109,0.6)' }}>
+          <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black"
+            style={{ background:'#ff4d6d', color:'white', boxShadow:'0 0 10px rgba(255,77,109,0.7)' }}>
             {unread}
           </span>
         )}
         {/* Pulse ring */}
         {!open && pulse && (
-          <span className="absolute inset-0 rounded-[20px] animate-ping"
-            style={{ background:'rgba(0,245,212,0.3)', animationDuration:'2s' }}/>
+          <span className="absolute inset-0 rounded-[22px] animate-ping"
+            style={{ background:'rgba(0,245,212,0.25)', animationDuration:'2s' }}/>
         )}
       </button>
 
@@ -237,19 +248,19 @@ export default function CivacAgent() {
           border: '1px solid rgba(0,245,212,0.2)', boxShadow: '0 0 60px rgba(0,245,212,0.1), 0 24px 80px rgba(0,0,0,0.6)' }}>
 
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
-          style={{ background:'linear-gradient(135deg,rgba(0,245,212,0.08),rgba(0,200,255,0.05))', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background:'linear-gradient(135deg,#00f5d4,#00a896)', boxShadow:'0 0 16px rgba(0,245,212,0.5)' }}>
-            <Bot size={18} style={{ color:'#000' }}/>
+        <div className="flex items-center gap-3 px-4 py-3.5 flex-shrink-0"
+          style={{ background:'linear-gradient(135deg,rgba(0,245,212,0.10),rgba(0,180,255,0.06))', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+          <div className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+            style={{ background:'linear-gradient(135deg,#00f5d4,#00a896)', boxShadow:'0 0 20px rgba(0,245,212,0.55)' }}>
+            <Bot size={20} style={{ color:'#000' }}/>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <p className="font-black text-sm text-white leading-none">CIVAC IA</p>
               <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
-                style={{ background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4' }}>v7.0</span>
+                style={{ background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4' }}>v1.0</span>
               <div className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ background: online ? '#39ff7e' : '#ff4d6d' }}/>
+                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: online ? '#39ff7e' : '#ff4d6d' }}/>
                 <span className="text-[8px]" style={{ color: online ? '#39ff7e' : '#ff4d6d' }}>
                   {online ? 'En línea' : 'Offline'}
                 </span>
@@ -259,6 +270,20 @@ export default function CivacAgent() {
               Asistente ganadero · SoftGan Colombia
             </p>
           </div>
+          {/* WhatsApp soporte humano */}
+          {(() => {
+            const waNum = typeof window !== 'undefined' ? (localStorage.getItem("civac_whatsapp_number") || "3187351262") : "3187351262";
+            return (
+              <a href={`https://wa.me/57${waNum}?text=${encodeURIComponent("Hola CIVAC, necesito soporte con GanaderIA PRO.")}`}
+                target="_blank" rel="noreferrer"
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:scale-110"
+                style={{ background:'linear-gradient(135deg,#25D366,#128C7E)', boxShadow:'0 0 12px rgba(37,211,102,0.4)' }}
+                title="Soporte humano vía WhatsApp"
+                onClick={e => e.stopPropagation()}>
+                <Phone size={14} color="white"/>
+              </a>
+            );
+          })()}
           <button onClick={() => setOpen(false)}
             className="w-7 h-7 rounded-lg flex items-center justify-center transition-all hover:bg-white/10"
             style={{ color:'rgba(255,255,255,0.3)' }}>

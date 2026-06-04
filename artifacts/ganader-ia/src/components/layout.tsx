@@ -6,7 +6,7 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, UserCircle, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles, Satellite, Shield, Tag, MessageCircle, Phone,
+  Sparkles, Satellite, Shield, Tag, MessageCircle,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
@@ -1056,26 +1056,6 @@ export function Layout({ children }: LayoutProps) {
         </nav>
       </main>
       <AiAssistant />
-      <WhatsAppFloatingButton />
     </div>
-  );
-}
-
-/* ── WhatsApp Floating Button ───────────────────────────────────────────── */
-function WhatsAppFloatingButton() {
-  const waNum = localStorage.getItem("civac_whatsapp_number") || "3187351262";
-  const url = `https://wa.me/57${waNum}?text=${encodeURIComponent("Hola CIVAC, necesito ayuda con GanaderIA PRO.")}`;
-  return (
-    <a href={url} target="_blank" rel="noreferrer"
-      className="fixed z-50 flex items-center justify-center rounded-full shadow-2xl transition-all hover:scale-110 active:scale-95"
-      style={{
-        bottom: 90, right: 18,
-        width: 48, height: 48,
-        background: "linear-gradient(135deg,#25D366,#128C7E)",
-        boxShadow: "0 4px 24px rgba(37,211,102,0.55), 0 2px 8px rgba(0,0,0,0.35)",
-      }}
-      title={`WhatsApp CIVAC · +57 ${waNum}`}>
-      <Phone size={20} color="white" strokeWidth={2.5}/>
-    </a>
   );
 }

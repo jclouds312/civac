@@ -10,7 +10,11 @@ import { PlanWidgets } from "@/components/plan-widgets";
 import {
   Bell, TrendingUp, TrendingDown, AlertCircle, AlertTriangle,
   ChevronRight, Activity, Zap, Target, BarChart2, Printer,
+  Beef, Droplets, Heart, Dna, Leaf, Wheat, Package, DollarSign,
+  FlaskConical, Users, Sparkles, Scale, Satellite, Building2,
+  FileText, UserCog, Tag, Shield, Bot, Layers, Navigation,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { printModule } from "@/lib/print";
@@ -69,27 +73,31 @@ const PIE_COLORS = ['#00f5d4','#00c8ff','#39ff7e','#a855f7'];
 const TIP = { backgroundColor:'#030f0b', border:'1px solid rgba(0,245,212,0.2)', color:'#e2e8f0', borderRadius:'12px', fontSize:'12px' };
 const TIP_LIGHT = { backgroundColor:'#f5f0e2', border:'1px solid rgba(80,120,60,0.3)', color:'#2a2010', borderRadius:'12px', fontSize:'12px' };
 
-const MODULOS = [
-  { emoji:'🐄', title:'Inventario',       desc:'Registro RFID · 13 bovinos',        href:'/inventario',    from:'#39ff7e', to:'#00c850', glow:'57,255,126',  badge:'13',  lFrom:'#b8f0cc', lTo:'#90e8b0', lText:'#1a5a30' },
-  { emoji:'🥛', title:'Producción',       desc:'84 L/día · 5 vacas ordeño',         href:'/produccion',    from:'#00c8ff', to:'#0ea5e9', glow:'0,200,255',   badge:'84L', lFrom:'#b0dcff', lTo:'#88c8f8', lText:'#0a3a70' },
-  { emoji:'🔁', title:'Reproducción',     desc:'Celos · IA · Gestación',            href:'/reproduccion',  from:'#ff6fd8', to:'#c026d3', glow:'255,111,216', badge:'1↑',  lFrom:'#f8c0f0', lTo:'#f0a0e8', lText:'#6a0a68' },
-  { emoji:'🧬', title:'Genética',         desc:'DEP · Ranking · Pedigrí',           href:'/genetica',      from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:null,  lFrom:'#e0c8fc', lTo:'#d0a8f8', lText:'#4a1a80' },
-  { emoji:'🌿', title:'Potreros',         desc:'6 lotes · Rotación activa',         href:'/potreros',      from:'#84ef34', to:'#65a30d', glow:'132,239,52',  badge:'6',   lFrom:'#d0f090', lTo:'#b4e060', lText:'#285010' },
-  { emoji:'🌾', title:'Alimentación',     desc:'Raciones · Minerales · TMR',        href:'/alimentacion',  from:'#ffd166', to:'#f59e0b', glow:'255,209,102', badge:null,  lFrom:'#fff0a0', lTo:'#ffe070', lText:'#603800' },
-  { emoji:'💊', title:'Insumos / Kardex', desc:'⚠ 4 ítems bajo stock mínimo',       href:'/insumos',       from:'#ff4d6d', to:'#c9184a', glow:'255,77,109',  badge:'⚠4',  lFrom:'#ffc0c8', lTo:'#ff9cac', lText:'#7a0820', red:true },
-  { emoji:'💰', title:'Costos y P&G',     desc:'$40.2M · Margen 35%',               href:'/costos',        from:'#34d399', to:'#059669', glow:'52,211,153',  badge:null,  lFrom:'#b0f4d4', lTo:'#88e8b8', lText:'#0a4830' },
-  { emoji:'🧊', title:'Semen y Embriones',desc:'Inventario criogénico · TE',        href:'/semen',         from:'#818cf8', to:'#4f46e5', glow:'129,140,248', badge:null,  lFrom:'#c8d0fc', lTo:'#a8b8f8', lText:'#1a1870' },
-  { emoji:'👷', title:'Personal',         desc:'6 empleados · Nómina activa',       href:'/personal',      from:'#94a3b8', to:'#64748b', glow:'148,163,184', badge:'6',   lFrom:'#d4dce8', lTo:'#bcccd8', lText:'#2a3848' },
-  { emoji:'🤖', title:'Predicciones IA',  desc:'Alertas inteligentes · GPT',        href:'/prediccion',    from:'#e879f9', to:'#9333ea', glow:'232,121,249', badge:'PRO', lFrom:'#f0c0fc', lTo:'#e098f8', lText:'#580870' },
-  { emoji:'🌱', title:'Huella Carbono',   desc:'IPCC 2019 · Bonos CO₂',            href:'/co2',           from:'#4ade80', to:'#16a34a', glow:'74,222,128',  badge:null,  lFrom:'#c0f4d0', lTo:'#98e8b0', lText:'#0a4820' },
-  { emoji:'⚖️', title:'Pesaje BT',        desc:'Báscula Bluetooth · GMD',           href:'/pesaje',        from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  badge:'PRO', lFrom:'#ffeac0', lTo:'#ffd098', lText:'#602800' },
-  { emoji:'📡', title:'GPS Ganado',       desc:'Rastreo en tiempo real',            href:'/gps',           from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',   badge:'PRO', lFrom:'#c0e4ff', lTo:'#98ccf8', lText:'#0a2868' },
-  { emoji:'🗺️', title:'Multi-Finca',      desc:'3 fincas · Gestión centralizada',  href:'/multifinca',    from:'#22d3ee', to:'#0891b2', glow:'34,211,238',  badge:null,  lFrom:'#b0f0fc', lTo:'#88e0f4', lText:'#083a50' },
-  { emoji:'📋', title:'Ficha Individual', desc:'Historia clínica por animal',       href:'/ficha',         from:'#00f5d4', to:'#00a8cc', glow:'0,245,212',   badge:null,  lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
-  { emoji:'👥', title:'Usuarios',         desc:'Accesos · Permisos por rol',        href:'/usuarios',      from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:null,  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
-  { emoji:'📐', title:'Pesaje Manual',    desc:'CC · GMD · Recibo PDF',            href:'/pesaje-manual', from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:'CC',  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
-  { emoji:'🩺', title:'Sanidad Animal',   desc:'Protocolos · Tratamientos · ICA',  href:'/sanidad',       from:'#00f5d4', to:'#00a896', glow:'0,245,212',   badge:'NEW', lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
-  { emoji:'🏷️', title:'Trazabilidad ICA', desc:'Guías · QR · Movimientos',         href:'/trazabilidad',  from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:'NEW', lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
+const MODULOS: Array<{
+  icon: ReactNode; title: string; desc: string; href: string;
+  from: string; to: string; glow: string; badge?: string | null;
+  lFrom: string; lTo: string; lText: string; red?: boolean;
+}> = [
+  { icon:<Beef size={20}/>,       title:'Inventario',       desc:'Registro RFID · 13 bovinos',       href:'/inventario',    from:'#39ff7e', to:'#00c850', glow:'57,255,126',  badge:'13',  lFrom:'#b8f0cc', lTo:'#90e8b0', lText:'#1a5a30' },
+  { icon:<Droplets size={20}/>,   title:'Producción',       desc:'84 L/día · 5 vacas ordeño',        href:'/produccion',    from:'#00c8ff', to:'#0ea5e9', glow:'0,200,255',   badge:'84L', lFrom:'#b0dcff', lTo:'#88c8f8', lText:'#0a3a70' },
+  { icon:<Heart size={20}/>,      title:'Reproducción',     desc:'Celos · IA · Gestación',           href:'/reproduccion',  from:'#ff6fd8', to:'#c026d3', glow:'255,111,216', badge:'1↑',  lFrom:'#f8c0f0', lTo:'#f0a0e8', lText:'#6a0a68' },
+  { icon:<Dna size={20}/>,        title:'Genética',         desc:'DEP · Ranking · Pedigrí',          href:'/genetica',      from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:null,  lFrom:'#e0c8fc', lTo:'#d0a8f8', lText:'#4a1a80' },
+  { icon:<Leaf size={20}/>,       title:'Potreros',         desc:'6 lotes · Rotación activa',        href:'/potreros',      from:'#84ef34', to:'#65a30d', glow:'132,239,52',  badge:'6',   lFrom:'#d0f090', lTo:'#b4e060', lText:'#285010' },
+  { icon:<Wheat size={20}/>,      title:'Alimentación',     desc:'Raciones · Minerales · TMR',       href:'/alimentacion',  from:'#ffd166', to:'#f59e0b', glow:'255,209,102', badge:null,  lFrom:'#fff0a0', lTo:'#ffe070', lText:'#603800' },
+  { icon:<Package size={20}/>,    title:'Insumos / Kardex', desc:'4 ítems bajo stock mínimo',        href:'/insumos',       from:'#ff4d6d', to:'#c9184a', glow:'255,77,109',  badge:'⚠4',  lFrom:'#ffc0c8', lTo:'#ff9cac', lText:'#7a0820', red:true },
+  { icon:<DollarSign size={20}/>, title:'Costos y P&G',     desc:'$40.2M · Margen 35%',              href:'/costos',        from:'#34d399', to:'#059669', glow:'52,211,153',  badge:null,  lFrom:'#b0f4d4', lTo:'#88e8b8', lText:'#0a4830' },
+  { icon:<FlaskConical size={20}/>,title:'Semen y Embriones',desc:'Inventario criogénico · TE',     href:'/semen',         from:'#818cf8', to:'#4f46e5', glow:'129,140,248', badge:null,  lFrom:'#c8d0fc', lTo:'#a8b8f8', lText:'#1a1870' },
+  { icon:<Users size={20}/>,      title:'Personal',         desc:'6 empleados · Nómina activa',      href:'/personal',      from:'#94a3b8', to:'#64748b', glow:'148,163,184', badge:'6',   lFrom:'#d4dce8', lTo:'#bcccd8', lText:'#2a3848' },
+  { icon:<Sparkles size={20}/>,   title:'Predicciones IA',  desc:'Simulador financiero · 12m',       href:'/prediccion',    from:'#e879f9', to:'#9333ea', glow:'232,121,249', badge:'PRO', lFrom:'#f0c0fc', lTo:'#e098f8', lText:'#580870' },
+  { icon:<Activity size={20}/>,   title:'Huella Carbono',   desc:'IPCC 2019 · Bonos CO₂',           href:'/co2',           from:'#4ade80', to:'#16a34a', glow:'74,222,128',  badge:null,  lFrom:'#c0f4d0', lTo:'#98e8b0', lText:'#0a4820' },
+  { icon:<Scale size={20}/>,      title:'Pesaje BT',        desc:'Báscula Bluetooth · GMD',          href:'/pesaje',        from:'#ff9a3c', to:'#ea580c', glow:'255,154,60',  badge:'PRO', lFrom:'#ffeac0', lTo:'#ffd098', lText:'#602800' },
+  { icon:<Satellite size={20}/>,  title:'GPS Ganado',       desc:'Rastreo en tiempo real',           href:'/gps',           from:'#00c8ff', to:'#1d4ed8', glow:'0,200,255',   badge:'PRO', lFrom:'#c0e4ff', lTo:'#98ccf8', lText:'#0a2868' },
+  { icon:<Building2 size={20}/>,  title:'Multi-Finca',      desc:'3 fincas · Gestión centralizada',  href:'/multifinca',    from:'#22d3ee', to:'#0891b2', glow:'34,211,238',  badge:null,  lFrom:'#b0f0fc', lTo:'#88e0f4', lText:'#083a50' },
+  { icon:<FileText size={20}/>,   title:'Ficha Individual', desc:'Historia clínica por animal',      href:'/ficha',         from:'#00f5d4', to:'#00a8cc', glow:'0,245,212',   badge:null,  lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
+  { icon:<UserCog size={20}/>,    title:'Usuarios',         desc:'Accesos · Permisos por rol',       href:'/usuarios',      from:'#c084fc', to:'#7c3aed', glow:'192,132,252', badge:null,  lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
+  { icon:<Scale size={20}/>,      title:'Pesaje Manual',    desc:'CC · GMD · Recibo PDF',            href:'/pesaje-manual', from:'#fb923c', to:'#c2410c', glow:'251,146,60',  badge:'CC',  lFrom:'#fee0c0', lTo:'#fdc898', lText:'#602800' },
+  { icon:<Shield size={20}/>,     title:'Sanidad Animal',   desc:'Protocolos · Tratamientos · ICA', href:'/sanidad',       from:'#00f5d4', to:'#00a896', glow:'0,245,212',   badge:'NEW', lFrom:'#b0f8f0', lTo:'#88f0e4', lText:'#083840' },
+  { icon:<Tag size={20}/>,        title:'Trazabilidad ICA', desc:'Guías · QR · SINIGAN',             href:'/trazabilidad',  from:'#a855f7', to:'#7c3aed', glow:'168,85,247',  badge:'NEW', lFrom:'#e8c8fc', lTo:'#d8a8f8', lText:'#3a0878' },
 ];
 
 function StatTicker() {
@@ -801,8 +809,16 @@ export default function Dashboard() {
                   </div>
                 )}
                 {/* Icon */}
-                <div className="text-2xl sm:text-3xl mb-2 mt-1 transition-transform group-hover:scale-110 duration-200">
-                  {m.emoji}
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center mb-2 mt-0.5 flex-shrink-0 transition-all group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(var(--m-glow),0.5)] duration-200"
+                  style={{
+                    background: isDark
+                      ? `linear-gradient(135deg,rgba(${m.glow},0.20),rgba(${m.glow},0.08))`
+                      : `linear-gradient(135deg,${m.from},${m.to})`,
+                    border: isDark ? `1px solid rgba(${m.glow},0.35)` : 'none',
+                    boxShadow: isDark ? `0 0 14px rgba(${m.glow},0.18)` : `0 4px 12px rgba(${m.glow},0.35)`,
+                    color: isDark ? m.from : 'white',
+                  }}>
+                  {m.icon}
                 </div>
                 <div className="module-title font-black text-[11px] sm:text-xs leading-tight mb-0.5"
                   style={{color: isDark ? 'rgba(255,255,255,0.92)' : m.lText}}>

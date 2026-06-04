@@ -141,57 +141,126 @@ function LoginStatsFooter() {
   const humidity = (68 + Math.sin(tick * 0.5) * 3).toFixed(0);
 
   const stats = [
-    { icon:<Activity size={16}/>,     label:"Producción",  val:`${litros} L/día`,   sub:"↑ 3.2% vs ayer",    c:"#00f5d4", g:"0,245,212",   pulse:true  },
-    { icon:<MapPin size={16}/>,       label:"GPS Online",  val:"13 collares",        sub:"Todos activos",     c:"#00c8ff", g:"0,200,255",   pulse:true  },
-    { icon:<Thermometer size={16}/>,  label:"Temperatura", val:`${temp}°C`,          sub:"Zona Andina",       c:"#fbbf24", g:"251,191,36",  pulse:false },
-    { icon:<Droplets size={16}/>,     label:"Humedad",     val:`${humidity}%`,       sub:"Óptimo ganado",     c:"#60a5fa", g:"96,165,250",  pulse:false },
-    { icon:<TrendingUp size={16}/>,   label:"Utilidad",    val:"$40.2M",             sub:"Mes actual COP",    c:"#39ff7e", g:"57,255,126",  pulse:false },
-    { icon:<Server size={16}/>,       label:"Servidores",  val:"99.8%",              sub:"Analytics + GPS",   c:"#e879f9", g:"232,121,249", pulse:true  },
+    { icon:<Activity size={20}/>,    label:"Producción",  val:`${litros} L/día`, sub:"↑ 3.2% vs ayer",   c:"#00f5d4", g:"0,245,212",   pulse:true  },
+    { icon:<MapPin size={20}/>,      label:"GPS Online",  val:"13 collares",     sub:"Todos activos",    c:"#00c8ff", g:"0,200,255",   pulse:true  },
+    { icon:<Thermometer size={20}/>, label:"Temperatura", val:`${temp}°C`,       sub:"Zona Andina",      c:"#fbbf24", g:"251,191,36",  pulse:false },
+    { icon:<Droplets size={20}/>,    label:"Humedad",     val:`${humidity}%`,    sub:"Óptimo ganado",    c:"#60a5fa", g:"96,165,250",  pulse:false },
+    { icon:<TrendingUp size={20}/>,  label:"Utilidad",    val:"$40.2M",          sub:"Mes actual COP",   c:"#39ff7e", g:"57,255,126",  pulse:false },
+    { icon:<Server size={20}/>,      label:"Servidores",  val:"99.8%",           sub:"Analytics + GPS",  c:"#e879f9", g:"232,121,249", pulse:true  },
   ];
 
   return (
-    <div className="mt-6 w-full">
-      {/* Separator */}
-      <div className="relative flex items-center mb-4">
-        <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.18),transparent)" }}/>
-        <span className="mx-3 text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
-          style={{ color:"rgba(0,245,212,0.35)", border:"1px solid rgba(0,245,212,0.12)", background:"rgba(0,245,212,0.04)" }}>
-          Estado en tiempo real
+    <div className="mt-8 w-full">
+      {/* ── Separator con label ── */}
+      <div className="relative flex items-center mb-5">
+        <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.35),transparent)" }}/>
+        <span className="mx-4 text-[11px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full"
+          style={{ color:"#00f5d4", border:"1.5px solid rgba(0,245,212,0.35)", background:"rgba(0,245,212,0.07)", boxShadow:"0 0 16px rgba(0,245,212,0.1)", letterSpacing:"0.2em" }}>
+          Estado en tiempo real · CIVAC PRO
         </span>
-        <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.18),transparent)" }}/>
+        <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.35),transparent)" }}/>
       </div>
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+      {/* ── KPI grid ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((s,i) => (
           <div key={i}
-            className="group flex flex-col items-center gap-2 px-3 py-4 rounded-2xl cursor-default transition-all duration-300 hover:scale-[1.04]"
+            className="group flex flex-col items-center gap-2.5 px-3 py-5 rounded-2xl cursor-default transition-all duration-300 hover:scale-[1.05]"
             style={{
-              background:`rgba(${s.g},0.05)`,
-              border:`1px solid rgba(${s.g},0.18)`,
+              background:`rgba(${s.g},0.07)`,
+              border:`1.5px solid rgba(${s.g},0.28)`,
               backdropFilter:"blur(16px)",
-              boxShadow:`0 0 0px rgba(${s.g},0)`,
+              boxShadow:`0 0 14px rgba(${s.g},0.08)`,
               transition:"all 0.3s ease",
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 24px rgba(${s.g},0.2), 0 8px 20px rgba(0,0,0,0.3)`; (e.currentTarget as HTMLElement).style.background = `rgba(${s.g},0.09)`; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = `0 0 0px rgba(${s.g},0)`; (e.currentTarget as HTMLElement).style.background = `rgba(${s.g},0.05)`; }}>
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.boxShadow = `0 0 32px rgba(${s.g},0.35), 0 8px 24px rgba(0,0,0,0.4)`;
+              (e.currentTarget as HTMLElement).style.background = `rgba(${s.g},0.13)`;
+              (e.currentTarget as HTMLElement).style.borderColor = `rgba(${s.g},0.55)`;
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.boxShadow = `0 0 14px rgba(${s.g},0.08)`;
+              (e.currentTarget as HTMLElement).style.background = `rgba(${s.g},0.07)`;
+              (e.currentTarget as HTMLElement).style.borderColor = `rgba(${s.g},0.28)`;
+            }}>
             {/* Icon circle */}
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center relative flex-shrink-0"
-              style={{ background:`rgba(${s.g},0.12)`, border:`1px solid rgba(${s.g},0.28)`, boxShadow:`0 0 12px rgba(${s.g},0.12)` }}>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center relative flex-shrink-0"
+              style={{ background:`rgba(${s.g},0.16)`, border:`1.5px solid rgba(${s.g},0.40)`, boxShadow:`0 0 18px rgba(${s.g},0.20)` }}>
               <div style={{ color:s.c }}>{s.icon}</div>
               {s.pulse && (
-                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
-                  style={{ background:s.c, boxShadow:`0 0 6px ${s.c}`, animation:"ping-dot 1.5s ease-in-out infinite" }}/>
+                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                  style={{ background:s.c, boxShadow:`0 0 8px ${s.c}`, animation:"ping-dot 1.5s ease-in-out infinite" }}/>
               )}
             </div>
             {/* Label + value */}
             <div className="text-center">
-              <div className="text-[9px] font-bold uppercase tracking-wider mb-0.5" style={{ color:`rgba(${s.g},0.5)` }}>{s.label}</div>
-              <div className="text-sm font-black text-white leading-none mb-0.5">{s.val}</div>
-              <div className="text-[8px]" style={{ color:`rgba(${s.g},0.4)` }}>{s.sub}</div>
+              <div className="text-[11px] font-black uppercase tracking-wider mb-1" style={{ color:s.c, letterSpacing:"0.12em" }}>{s.label}</div>
+              <div className="text-[17px] font-black leading-none mb-1" style={{ color:"#ffffff", textShadow:`0 0 20px rgba(${s.g},0.6)` }}>{s.val}</div>
+              <div className="text-[10px] font-bold" style={{ color:`rgba(${s.g},0.65)` }}>{s.sub}</div>
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ── Brand footer ── */}
+      <div className="mt-6 space-y-3">
+        {/* Main brand line */}
+        <div className="relative overflow-hidden rounded-2xl px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-3"
+          style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.05),rgba(0,200,255,0.03))", border:"1px solid rgba(0,245,212,0.18)", backdropFilter:"blur(20px)" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background:"radial-gradient(ellipse 60% 80% at 10% 50%,rgba(0,245,212,0.04),transparent)" }}/>
+          <div className="text-center sm:text-left">
+            <p className="text-[13px] font-black text-white tracking-wide leading-snug" style={{ textShadow:"0 0 30px rgba(0,245,212,0.3)" }}>
+              GanaderIA <span style={{ color:"#00f5d4" }}>CIVAC PRO</span> v7.0
+              <span className="text-white/40 font-normal mx-1.5">·</span>
+              <span style={{ color:"#e879f9" }}>32 módulos</span>
+              <span className="text-white/40 font-normal mx-1.5">·</span>
+              <span style={{ color:"#fbbf24" }}>Control Inteligente de Valor Agropecuario</span>
+            </p>
+            <p className="text-[11px] font-semibold mt-0.5" style={{ color:"rgba(255,255,255,0.45)" }}>
+              Colombia {new Date().getFullYear()}
+              <span className="mx-1.5 text-white/20">·</span>
+              Universal Business Technology
+            </p>
+          </div>
+          {/* Badges */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-[10px] font-black px-2.5 py-1 rounded-full"
+              style={{ background:"rgba(0,245,212,0.12)", border:"1px solid rgba(0,245,212,0.35)", color:"#00f5d4" }}>
+              🇨🇴 Made in Colombia
+            </span>
+            <span className="text-[10px] font-black px-2.5 py-1 rounded-full"
+              style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", color:"#fbbf24" }}>
+              ✓ DIAN
+            </span>
+          </div>
+        </div>
+
+        {/* CIVAC SERVER ACCESS */}
+        <div className="flex items-center justify-center">
+          <a href="/server"
+            className="group flex items-center gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 hover:scale-105"
+            style={{
+              background:"rgba(0,245,212,0.05)",
+              border:"1px solid rgba(0,245,212,0.20)",
+              boxShadow:"0 0 0px rgba(0,245,212,0)",
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(0,245,212,0.10)";
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,245,212,0.45)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px rgba(0,245,212,0.20)";
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(0,245,212,0.05)";
+              (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,245,212,0.20)";
+              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0px rgba(0,245,212,0)";
+            }}>
+            <span className="text-[13px] font-black tracking-[0.18em]" style={{ color:"rgba(0,245,212,0.70)", fontFamily:"'Space Grotesk',monospace" }}>
+              ⬡ CIVAC SERVER ACCESS
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
+              style={{ background:"#00f5d4", boxShadow:"0 0 8px rgba(0,245,212,0.9)" }}/>
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -1195,15 +1264,6 @@ export default function Login() {
         {/* ── Footer KPI Strip — siempre visible debajo del card ── */}
         <LoginStatsFooter />
 
-        {/* Footer */}
-        <p className="text-center mt-6 text-[9px]" style={{ color:"rgba(255,255,255,0.12)" }}>
-          GanaderIA CIVAC PRO v7.0 · 32 módulos · Control Inteligente de Valor Agropecuario · Colombia {new Date().getFullYear()} · Universal Business Technology
-        </p>
-        <p className="text-center mt-2">
-          <a href="/server" className="text-[9px] font-mono transition-colors hover:opacity-60" style={{ color:"rgba(0,245,212,0.18)", letterSpacing:"0.1em" }}>
-            ⬡ CIVAC SERVER ACCESS
-          </a>
-        </p>
       </div>
 
       {/* ── ADMIN ACCESS MODAL ── */}

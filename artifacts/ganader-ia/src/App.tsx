@@ -61,6 +61,7 @@ import Drive from "./pages/drive";
 import Sanidad from "./pages/sanidad";
 import Trazabilidad from "./pages/trazabilidad";
 import MiCuenta from "./pages/mi-cuenta";
+import ChatPage from "./pages/chat";
 
 const queryClient = new QueryClient();
 
@@ -343,6 +344,7 @@ function AuthGate() {
         <Route path="/trazabilidad" component={Trazabilidad} />
         <Route path="/acerca" component={Acerca} />
         <Route path="/mi-cuenta" component={MiCuenta} />
+        <Route path="/chat" component={ChatPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

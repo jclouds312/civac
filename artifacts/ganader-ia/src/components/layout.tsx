@@ -6,7 +6,7 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, UserCircle, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles, Satellite, Shield, Tag,
+  Sparkles, Satellite, Shield, Tag, MessageCircle, Phone,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
@@ -68,20 +68,21 @@ const MODULES: Record<string, ModuleDef> = {
   '/sanidad':       { icon: Activity,        from:'#00f5d4', to:'#00a896', glow:'0,245,212',    emoji:'🩺', label:'Sanidad Animal',        shortLabel:'Sanidad'   },
   '/trazabilidad':  { icon: Tag,             from:'#a855f7', to:'#7c3aed', glow:'168,85,247',   emoji:'🏷️', label:'Trazabilidad ICA',      shortLabel:'Traza'     },
   '/acerca':        { icon: Shield,          from:'#00f5d4', to:'#0891b2', glow:'0,245,212',    emoji:'ℹ️', label:'Acerca · Licencia',     shortLabel:'Acerca'    },
+  '/chat':          { icon: MessageCircle,   from:'#25D366', to:'#128C7E', glow:'37,211,102',   emoji:'💬', label:'Canal de Chat',         shortLabel:'Chat'      },
 };
 
 /* ── Plan-based route access ───────────────────────────────────────────────── */
 const PLAN_ROUTES: Record<string, string[]> = {
-  basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca'],
-  pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
+  basico:  ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca', '/chat'],
+  pro:     ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca', '/chat',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/ventas', '/asesora', '/sanidad', '/trazabilidad'],
-  premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
+  premium: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca', '/chat',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos', '/ventas', '/drive', '/asesora', '/sanidad', '/trazabilidad'],
-  platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca',
+  platino: ['/', '/alertas', '/inventario', '/produccion', '/potreros', '/acerca', '/chat',
             '/reproduccion', '/genetica', '/pesaje', '/ficha', '/alimentacion',
             '/gps', '/gps-chips', '/insumos', '/semen', '/costos', '/personal', '/multifinca', '/prediccion',
             '/pesaje-manual', '/co2', '/lotes', '/datos',
@@ -1046,6 +1047,26 @@ export function Layout({ children }: LayoutProps) {
         </nav>
       </main>
       <AiAssistant />
+      <WhatsAppFloatingButton />
     </div>
+  );
+}
+
+/* ── WhatsApp Floating Button ───────────────────────────────────────────── */
+function WhatsAppFloatingButton() {
+  const waNum = localStorage.getItem("civac_whatsapp_number") || "3187351262";
+  const url = `https://wa.me/57${waNum}?text=${encodeURIComponent("Hola CIVAC, necesito ayuda con GanaderIA PRO.")}`;
+  return (
+    <a href={url} target="_blank" rel="noreferrer"
+      className="fixed z-50 flex items-center justify-center rounded-full shadow-2xl transition-all hover:scale-110 active:scale-95"
+      style={{
+        bottom: 90, right: 18,
+        width: 48, height: 48,
+        background: "linear-gradient(135deg,#25D366,#128C7E)",
+        boxShadow: "0 4px 24px rgba(37,211,102,0.55), 0 2px 8px rgba(0,0,0,0.35)",
+      }}
+      title={`WhatsApp CIVAC · +57 ${waNum}`}>
+      <Phone size={20} color="white" strokeWidth={2.5}/>
+    </a>
   );
 }

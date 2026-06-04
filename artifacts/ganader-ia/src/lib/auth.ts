@@ -32,6 +32,10 @@ export interface Account {
   role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales';
   permisos: string[];
   activo?: boolean;
+  /* ── Contacto ── */
+  phone?: string;
+  foto?: string;             // base64 o URL de foto de perfil personalizada
+  etiquetas?: string[];      // etiquetas editables por admin
   /* ── Plan Wompi ── */
   plan?: PlanId;
   planExpiry?: string;       // ISO date string
@@ -99,70 +103,44 @@ export const PLAN_ICON: Record<PlanId, string> = {
 export const CIVAC_STAFF_IDS: string[] = ['superadmin', 'developer', 'admin', 'ventas'];
 
 export const DEFAULT_ACCOUNTS: Account[] = [
+  /* ── CIVAC STAFF — propietarios y equipo ── */
   {
-    id: 'admin',
-    nombre: 'Lizeth Daza',
-    cargo: 'Co-Fundadora · Dirección Ejecutiva CIVAC',
+    id: 'superadmin',
+    nombre: 'Javier Hernando Sánchez Bernal',
+    cargo: 'CEO · Fundador & Propietario CIVAC',
     finca: 'CIVAC HQ · Bogotá, Colombia',
     email: 'Softganventas@gmail.com',
-    password: 'lizeth2026',
+    password: 'civac2026',
+    avatar: '🔱',
+    phone: '3187351262',
+    gradient: 'from-[#1a0500] to-[#3d0f00]',
+    role: 'superadmin',
+    activo: true,
+    plan: 'platino',
+    planExpiry: '2099-12-31',
+    etiquetas: ['Propietario','CEO','Fundador CIVAC'],
+    permisos: ['*'],
+  },
+  {
+    id: 'admin',
+    nombre: 'Lizet Daza',
+    cargo: 'Co-Fundadora · Directora Ejecutiva CIVAC',
+    finca: 'CIVAC HQ · Bogotá, Colombia',
+    email: 'lizet.daza@civac.co',
+    password: 'lizet2026',
     avatar: '👑',
     gradient: 'from-[#2d1b00] to-[#4a2e00]',
     role: 'admin',
     activo: true,
     plan: 'platino',
     planExpiry: '2099-12-31',
+    etiquetas: ['Co-Fundadora','Directora Ejecutiva'],
     permisos: ['*'],
   },
   {
-    id: 'vet',
-    nombre: 'Dr. Carlos Ramírez',
-    cargo: 'Médico Veterinario',
-    finca: 'Finca El Rancho Verde',
-    email: 'vet@ganader.ia',
-    password: 'vet2026',
-    avatar: '🩺',
-    gradient: 'from-[#0d2137] to-[#1565c0]',
-    role: 'vet',
-    activo: true,
-    plan: 'premium',
-    planExpiry: '2026-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','prediccion','alertas','documentacion','pesaje','gps','co2','lotes','datos','pesaje-manual'],
-  },
-  {
-    id: 'campo',
-    nombre: 'Luis Patiño',
-    cargo: 'Vaquero / Jefe de Campo',
-    finca: 'Finca El Rancho Verde',
-    email: 'luis@ganader.ia',
-    password: 'campo2026',
-    avatar: '🐄',
-    gradient: 'from-[#e65100] to-[#f57c00]',
-    role: 'field',
-    activo: true,
-    plan: 'pro',
-    planExpiry: '2026-12-31',
-    permisos: ['inventario','produccion','potreros','alertas','alimentacion','insumos','gps','gps-chips','pesaje','pesaje-manual','lotes','sanidad','trazabilidad'],
-  },
-  {
-    id: 'visor',
-    nombre: 'Propietario / Inversor',
-    cargo: 'Solo Lectura',
-    finca: 'Finca El Rancho Verde',
-    email: 'visor@ganader.ia',
-    password: 'visor',
-    avatar: '💼',
-    gradient: 'from-[#4a148c] to-[#6a1b9a]',
-    role: 'viewer',
-    activo: true,
-    plan: 'pro',
-    planExpiry: '2026-12-31',
-    permisos: ['inventario','produccion','reproduccion','genetica','ficha','potreros','alimentacion','insumos','semen','costos','personal','multifinca','prediccion','alertas','gps'],
-  },
-  {
     id: 'developer',
-    nombre: 'Johnatan Vallejo',
-    cargo: 'Arquitecto Principal · Soporte PWA & Dev',
+    nombre: 'Johnatan Vallejo Marulanda',
+    cargo: 'Arquitecto Principal · Desarrollador PWA & IA',
     finca: 'CIVAC Labs · Colombia',
     email: 'johnatanvallejomarulanda@gmail.com',
     password: 'dev2026',
@@ -172,26 +150,12 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     activo: true,
     plan: 'platino',
     planExpiry: '2099-12-31',
-    permisos: ['*'],
-  },
-  {
-    id: 'superadmin',
-    nombre: 'Javier · Dueño CIVAC',
-    cargo: 'Co-Fundador · CEO CIVAC Platform',
-    finca: 'CIVAC HQ · Bogotá, Colombia',
-    email: 'super@civac.co',
-    password: 'super2026',
-    avatar: '🔱',
-    gradient: 'from-[#1a0500] to-[#3d0f00]',
-    role: 'superadmin',
-    activo: true,
-    plan: 'platino',
-    planExpiry: '2099-12-31',
+    etiquetas: ['Desarrollador','Arquitecto CIVAC'],
     permisos: ['*'],
   },
   {
     id: 'ventas',
-    nombre: 'María Salazar — Asesora CIVAC',
+    nombre: 'Asesora CIVAC · Ventas',
     cargo: 'Asesora Comercial Senior',
     finca: 'CIVAC Sales Colombia · Bogotá',
     email: 'ventas@civac.co',
@@ -200,9 +164,10 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     gradient: 'from-[#1a0540] to-[#2d0a60]',
     role: 'sales',
     activo: true,
-    plan: 'pro',
-    planExpiry: '2027-12-31',
-    permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual'],
+    plan: 'platino',
+    planExpiry: '2099-12-31',
+    etiquetas: ['Asesora','Ventas CIVAC'],
+    permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual','chat'],
   },
 
   /* ── CUENTAS CLIENTE — representantes reales por nivel de plan ── */
@@ -275,7 +240,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '7.1.0';
+const ACCOUNTS_VERSION = '7.2.0';
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {

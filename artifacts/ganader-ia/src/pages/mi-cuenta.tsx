@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS, type PlanId } from "@/lib/auth";
 import {
   User, Mail, Shield, Crown, CreditCard, LogOut, CheckCircle2,
   Clock, AlertTriangle, ExternalLink, Copy, RefreshCw, Zap,
-  Building2, Briefcase, Globe, Lock, Smartphone, Star,
+  Building2, Briefcase, Globe, Lock, Smartphone, Star, Camera, Upload, X,
 } from "lucide-react";
 
 const PLAN_FEATURES: Record<PlanId, string[]> = {
@@ -47,6 +47,25 @@ export default function MiCuenta() {
   const [showPayModal, setShowPayModal] = useState(false);
   const [copied, setCopied]           = useState(false);
   const [tab, setTab]                 = useState<"perfil" | "plan" | "seguridad">("perfil");
+  const photoKey = `civac_user_foto_${user?.id ?? ""}`;
+  const [customFoto, setCustomFoto]   = useState<string | null>(() => { try { return localStorage.getItem(photoKey); } catch { return null; } });
+  const [uploadingFoto, setUploadingFoto] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFoto(true);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const b64 = ev.target?.result as string;
+      localStorage.setItem(photoKey, b64);
+      setCustomFoto(b64);
+      setUploadingFoto(false);
+    };
+    reader.readAsDataURL(file);
+  };
+  const removePhoto = () => { localStorage.removeItem(photoKey); setCustomFoto(null); };
 
   useEffect(() => {
     const token = localStorage.getItem("civac_server_token");
@@ -92,19 +111,36 @@ export default function MiCuenta() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 90% 20%,rgba(0,245,212,0.08),transparent)" }}/>
         <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg,transparent,#00f5d4,transparent)" }}/>
         <div className="relative p-5 flex items-center gap-5">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            {googleFoto
-              ? <img src={googleFoto} alt={user.nombre} className="w-16 h-16 rounded-2xl object-cover" style={{ border: "2px solid rgba(0,245,212,0.5)", boxShadow: "0 0 20px rgba(0,245,212,0.2)" }}/>
-              : <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black"
+          {/* Avatar con upload */}
+          <div className="relative flex-shrink-0 group cursor-pointer" onClick={() => fileRef.current?.click()}>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload}/>
+            {(customFoto || googleFoto)
+              ? <img src={customFoto ?? googleFoto!} alt={user.nombre} className="w-20 h-20 rounded-2xl object-cover" style={{ border: "2px solid rgba(0,245,212,0.5)", boxShadow: "0 0 20px rgba(0,245,212,0.2)" }}/>
+              : <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black"
                   style={{ background: "linear-gradient(135deg,rgba(0,245,212,0.15),rgba(0,200,255,0.1))", border: "2px solid rgba(0,245,212,0.35)", boxShadow: "0 0 20px rgba(0,245,212,0.15)" }}>
                   {user.nombre?.[0]?.toUpperCase() ?? "U"}
                 </div>
             }
+            {/* Hover overlay para indicar upload */}
+            <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+              style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(2px)" }}>
+              {uploadingFoto
+                ? <RefreshCw size={16} className="animate-spin text-teal-400"/>
+                : <><Camera size={16} className="text-teal-400"/><span className="text-[8px] font-bold text-teal-300">Cambiar</span></>
+              }
+            </div>
             {/* Estado dot */}
             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2"
               style={{ background: estado === "activo" ? "#39ff7e" : estado === "pendiente" ? "#fbbf24" : "#f87171",
                 borderColor: "#020d1a", boxShadow: `0 0 8px ${estado === "activo" ? "#39ff7e" : estado === "pendiente" ? "#fbbf24" : "#f87171"}` }}/>
+            {/* Quitar foto */}
+            {customFoto && (
+              <button onClick={e => { e.stopPropagation(); removePhoto(); }}
+                className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full flex items-center justify-center z-10"
+                style={{ background: "rgba(248,113,113,0.9)", boxShadow: "0 0 8px rgba(248,113,113,0.5)" }}>
+                <X size={10} color="white"/>
+              </button>
+            )}
           </div>
 
           <div className="flex-1 min-w-0">

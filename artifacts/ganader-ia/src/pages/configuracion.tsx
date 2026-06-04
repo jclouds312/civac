@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Settings, MapPin, Bell, Palette, Shield, Database, Save, RotateCcw, Sun, Moon, Monitor, Trash2, Download, Upload, CheckCircle, AlertTriangle, FileJson, RefreshCw, Printer, FileText, AlignLeft, Hash, ToggleLeft, ToggleRight, Sliders } from "lucide-react";
+import { Settings, MapPin, Bell, Palette, Shield, Database, Save, RotateCcw, Sun, Moon, Monitor, Trash2, Download, Upload, CheckCircle, AlertTriangle, FileJson, RefreshCw, Printer, FileText, AlignLeft, Hash, ToggleLeft, ToggleRight, Sliders, Phone } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import { useAppState } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { exportFullBackup, readBackupFile, applyBackupToLocalStorage, getStorageStats, formatBytes, getTotalStorageBytes, getTotalRecords } from "@/lib/export";
+
+const WA_KEY = "civac_whatsapp_number";
 
 const tabs = ["Finca", "Apariencia", "Notificaciones", "Impresora", "Seguridad", "Datos"];
 
@@ -37,6 +39,8 @@ export default function Configuracion() {
     telefono: "+57 300 123 4567",
     email: "finca@ganader.ia",
   });
+  const [whatsappNum, setWhatsappNum] = useState(() => localStorage.getItem(WA_KEY) || "3187351262");
+  const saveWhatsapp = () => { localStorage.setItem(WA_KEY, whatsappNum.replace(/\D/g, "")); setSaved(true); setTimeout(() => setSaved(false), 2200); };
 
   const [notifs, setNotifs] = useState({
     alertasStock: true,
@@ -205,6 +209,28 @@ export default function Configuracion() {
                   />
                 </div>
               ))}
+
+              {/* WhatsApp CIVAC — configurable por admin */}
+              <div className="pt-2 border-t border-border">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Phone size={11} className="text-green-400"/> Número WhatsApp CIVAC (soporte y chat)
+                </Label>
+                <div className="flex gap-2 mt-1">
+                  <div className="flex items-center px-2 rounded-l-lg border border-r-0 border-border bg-muted/40 text-xs text-muted-foreground">+57</div>
+                  <Input
+                    value={whatsappNum}
+                    onChange={e => setWhatsappNum(e.target.value)}
+                    placeholder="3187351262"
+                    className="flex-1 bg-background border-border h-9 text-sm rounded-l-none"
+                  />
+                  <Button size="sm" onClick={saveWhatsapp} className="h-9 px-3 text-xs bg-green-600 hover:bg-green-700 text-white gap-1.5">
+                    <Phone size={11}/> Guardar
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Este número aparece en el canal de chat y en el botón flotante de WhatsApp de toda la app.
+                </p>
+              </div>
 
               <div className="pt-3 border-t border-border">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Resumen</p>

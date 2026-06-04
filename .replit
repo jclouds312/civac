@@ -5,7 +5,6 @@ router = "application"
 deploymentTarget = "autoscale"
 build = ["pnpm", "--filter", "@workspace/ganader-ia", "run", "build"]
 run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
-publicDir = "artifacts/ganader-ia/dist"
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]

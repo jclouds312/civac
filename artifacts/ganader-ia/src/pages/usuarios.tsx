@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
-  PlanId, Account,
+  CIVAC_STAFF_IDS, PlanId, Account,
 } from "@/lib/auth";
 import {
   UserCircle, Shield, Stethoscope, Milk, BarChart3,
@@ -423,7 +423,8 @@ export default function Usuarios() {
                       className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-purple-500/15 text-purple-400 transition-colors">
                       <Star size={13}/>
                     </button>
-                    <button onClick={() => setDeleteTarget(a)} disabled={a.id === "admin"}
+                    <button onClick={() => setDeleteTarget(a)} disabled={a.id === "admin" || !!a.isTemplate || CIVAC_STAFF_IDS.includes(a.id)}
+                      title={a.isTemplate ? "Cuenta plantilla — protegida" : a.id === "admin" ? "No eliminable" : "Eliminar"}
                       className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/60 hover:text-red-400 disabled:opacity-20 transition-colors">
                       <Trash2 size={13}/>
                     </button>

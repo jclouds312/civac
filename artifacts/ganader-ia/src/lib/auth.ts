@@ -68,6 +68,9 @@ export interface Account {
   planExpiry?: string;       // ISO date string
   wompiRef?: string;         // última referencia de pago
   planActivadoEn?: string;   // ISO date
+  /* ── Template / Backup ── */
+  isTemplate?: boolean;      // cuenta plantilla — nunca se puede eliminar
+  isDemo?: boolean;          // cuenta demo de plan — acceso a módulos de granja
 }
 
 export const PLAN_PRECIOS: Record<PlanId, number> = {
@@ -207,11 +210,14 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     password: 'demo2026',
     avatar: '🥈',
     gradient: 'from-[#1a2a3a] to-[#243040]',
-    role: 'admin',
+    role: 'viewer',
     activo: true,
+    isTemplate: true,
+    isDemo: true,
     plan: 'basico',
     planActivadoEn: '2026-01-15',
-    permisos: ['inventario','produccion','potreros','alertas','documentacion','manual','pesaje','pesaje-manual','sanidad'],
+    etiquetas: ['Demo', 'Plan Básico', 'Gratis'],
+    permisos: ['inventario','produccion','potreros','alertas','pesaje','pesaje-manual','sanidad'],
   },
   {
     id: 'demo_pro',
@@ -222,13 +228,16 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     password: 'demo2026',
     avatar: '⚡',
     gradient: 'from-[#001a1a] to-[#003030]',
-    role: 'admin',
+    role: 'viewer',
     activo: true,
+    isTemplate: true,
+    isDemo: true,
     plan: 'pro',
     planExpiry: '2027-06-30',
     planActivadoEn: '2026-03-01',
     wompiRef: 'CIVAC-PRO-2026-001',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','alertas','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','documentacion','manual','sanidad','trazabilidad','asesora','ventas'],
+    etiquetas: ['Demo', 'Plan PRO', 'GPS · Básculas · IA'],
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','alertas','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','documentacion','manual','sanidad','trazabilidad','asesora'],
   },
   {
     id: 'demo_premium',
@@ -239,13 +248,16 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     password: 'demo2026',
     avatar: '🥇',
     gradient: 'from-[#2a1a00] to-[#3d2800]',
-    role: 'admin',
+    role: 'viewer',
     activo: true,
+    isTemplate: true,
+    isDemo: true,
     plan: 'premium',
     planExpiry: '2027-06-30',
     planActivadoEn: '2026-02-10',
     wompiRef: 'CIVAC-PREM-2026-003',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','usuarios','configuracion','documentacion','manual','sanidad','trazabilidad','asesora','ventas','drive'],
+    etiquetas: ['Demo', 'Plan Premium', 'Multi-Finca · IA · Drive'],
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','usuarios','configuracion','documentacion','manual','sanidad','trazabilidad','asesora','drive'],
   },
   {
     id: 'demo_platino',
@@ -256,18 +268,35 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     password: 'demo2026',
     avatar: '🔶',
     gradient: 'from-[#1a0a00] to-[#2d1500]',
-    role: 'admin',
+    role: 'viewer',
     activo: true,
+    isTemplate: true,
+    isDemo: true,
     plan: 'platino',
     planExpiry: '2027-12-31',
     planActivadoEn: '2025-12-01',
     wompiRef: 'CIVAC-PLAT-2025-001',
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','manual','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','planes','admin_pagos','sanidad','trazabilidad','asesora','ventas','drive'],
+    etiquetas: ['Demo', 'Plan Platino', 'Todo incluido · SLA 99.9%'],
+    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','manual','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','planes','sanidad','trazabilidad','asesora','drive'],
   },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '7.2.0';
+const ACCOUNTS_VERSION = '7.3.0';
+
+/* ─── Template backup — persiste siempre las cuentas demo originales ─────── */
+function saveTemplateBackup() {
+  try {
+    const templates = DEFAULT_ACCOUNTS.filter(a => a.isTemplate);
+    localStorage.setItem('civac_account_templates', JSON.stringify(templates));
+  } catch {}
+}
+export function loadTemplateBackup(): Account[] {
+  try {
+    const s = localStorage.getItem('civac_account_templates');
+    return s ? JSON.parse(s) : DEFAULT_ACCOUNTS.filter(a => a.isTemplate);
+  } catch { return DEFAULT_ACCOUNTS.filter(a => a.isTemplate); }
+}
 
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {
@@ -292,6 +321,8 @@ function saveInvoices(inv: CivacInvoice[]) {
 }
 
 function loadAccounts(): Account[] {
+  /* Always persist template backup so it's available as restore point */
+  saveTemplateBackup();
   try {
     const version = localStorage.getItem('ganader_accounts_version');
     if (version !== ACCOUNTS_VERSION) {
@@ -306,14 +337,21 @@ function loadAccounts(): Account[] {
       const merged = [...DEFAULT_ACCOUNTS, ...extra];
       localStorage.setItem('ganader_accounts', JSON.stringify(merged));
       localStorage.setItem('ganader_accounts_version', ACCOUNTS_VERSION);
-      /* Clear cached user so they re-login with fresh plan */
+      /* Clear cached user so they re-login with fresh plan/role */
       localStorage.removeItem('ganader_user');
       return merged;
     }
     const stored = localStorage.getItem('ganader_accounts');
     if (stored) {
       const parsed: Account[] = JSON.parse(stored);
-      if (parsed.length > 0) return parsed;
+      if (parsed.length > 0) {
+        /* Ensure template accounts are always up-to-date from DEFAULT_ACCOUNTS */
+        const defaultMap = new Map(DEFAULT_ACCOUNTS.map(a => [a.id, a]));
+        const withRefreshedTemplates = parsed.map(a =>
+          (a.isTemplate && defaultMap.has(a.id)) ? defaultMap.get(a.id)! : a
+        );
+        return withRefreshedTemplates;
+      }
     }
   } catch {}
   return DEFAULT_ACCOUNTS;
@@ -461,7 +499,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteUser = (id: string) => {
-    if (id === 'admin') return;
+    const target = accounts.find(a => a.id === id);
+    if (!target) return;
+    if (target.isTemplate) return; // plantillas protegidas — nunca se eliminan
+    if (CIVAC_STAFF_IDS.includes(id)) return; // staff CIVAC no se puede eliminar
     setAccounts(accounts.filter(a => a.id !== id));
   };
 

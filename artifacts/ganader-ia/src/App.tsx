@@ -12,7 +12,7 @@ import Acerca from "./pages/acerca";
 import PlanLanding from "./pages/plan-landing";
 import InvitePage from "./pages/invite";
 import { AppStateProvider } from "./lib/data";
-import { AuthProvider, useAuth } from "./lib/auth";
+import { AuthProvider, useAuth, CIVAC_STAFF_IDS } from "./lib/auth";
 import { ThemeProvider } from "./lib/theme";
 import NotFound from "@/pages/not-found";
 import {
@@ -67,7 +67,8 @@ const queryClient = new QueryClient();
 
 function HomeRoute() {
   const { user } = useAuth();
-  if (user?.role === "admin" || user?.role === "superadmin") return <AdminDashboard />;
+  const isCivacStaff = CIVAC_STAFF_IDS.includes(user?.id ?? '');
+  if (isCivacStaff && (user?.role === "admin" || user?.role === "superadmin")) return <AdminDashboard />;
   if (user?.role === "developer") return <DeveloperDashboard />;
   if (user?.role === "sales") return <VentasDashboard />;
   return <Dashboard />;

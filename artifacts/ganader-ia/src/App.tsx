@@ -89,6 +89,7 @@ const ADMIN_SECTIONS = [
   { id: "soporte",   icon: Bell,            label: "Soporte",           sub: "Tickets y ayuda",       emoji: "🎧", from: "#f472b6", to: "#ec4899", glow: "244,114,182" },
   { id: "seguridad", icon: Shield,          label: "Seguridad",         sub: "Permisos y accesos",    emoji: "🔒", from: "#34d399", to: "#10b981", glow: "52,211,153"  },
   { id: "sistema",   icon: RefreshCw,       label: "Sistema & Config",  sub: "Estado del servidor",   emoji: "⚙️", from: "#9ca3af", to: "#6b7280", glow: "156,163,175" },
+  { id: "servidor",  icon: Server,          label: "Server Panel",      sub: "Backend CIVAC · Estado", emoji: "🖥️", from: "#00f5d4", to: "#0891b2", glow: "0,245,212"   },
 ];
 
 function AdminGate() {
@@ -288,7 +289,10 @@ function AdminGate() {
 
         {/* Admin content */}
         <div className="flex-1 p-4 lg:p-6 overflow-x-hidden pb-10">
-          <AdminDashboard activeTab={activeSection} onTabChange={setActiveSection} />
+          {activeSection === "servidor"
+            ? <ServerDashboard />
+            : <AdminDashboard activeTab={activeSection} onTabChange={setActiveSection} />
+          }
         </div>
       </main>
 

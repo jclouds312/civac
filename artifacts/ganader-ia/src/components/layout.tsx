@@ -690,8 +690,8 @@ export function Layout({ children }: LayoutProps) {
           </div>
         )}
 
-        {/* ── Pesaje Rápido quick-access ── */}
-        {!collapsed && (
+        {/* ── Pesaje Rápido quick-access — solo Premium / Platino ── */}
+        {!collapsed && (user?.plan === 'premium' || user?.plan === 'platino') && (
           <div className="px-2.5 pt-2 pb-1 flex-shrink-0">
             <Link href="/pesaje-manual">
               <div className="px-3 py-2.5 cursor-pointer group transition-all hover:scale-[1.02]"
@@ -718,7 +718,7 @@ export function Layout({ children }: LayoutProps) {
                   </div>
                   <div className="text-[8px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0"
                     style={{ background: `rgba(255,214,10,0.12)`, color: PIÑA, border: `1px solid rgba(255,214,10,0.25)` }}>
-                    PRO
+                    PREM
                   </div>
                 </div>
               </div>
@@ -731,6 +731,7 @@ export function Layout({ children }: LayoutProps) {
           <Section title="Principal">
             <NavItem href="/" accent="LIVE" accentColor="bg-[#39ff7e]/15 text-[#39ff7e] border-[#39ff7e]/25" />
             <NavItem href="/alertas" badge={4} pulse />
+            <NavItem href="/chat" accent="CHAT" accentColor="bg-[#25D366]/15 text-[#25D366] border-[#25D366]/25" />
           </Section>
           <Section title="Animales">
             <NavItem href="/inventario" />
@@ -791,6 +792,14 @@ export function Layout({ children }: LayoutProps) {
               user={user}
             />
           )}
+          <Link href="/mi-cuenta" onClick={() => setMobileOpen(false)}>
+            <button
+              className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-white/40 hover:text-[#00f5d4] hover:bg-[#00f5d4]/5 transition-all ${collapsed ? 'justify-center' : ''}`}
+              style={{ borderRadius: 12 }}
+            >
+              <UserCircle size={13} />{!collapsed && <span>Mi Cuenta</span>}
+            </button>
+          </Link>
           <button
             onClick={logout}
             className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-white/40 hover:text-rose-400 hover:bg-rose-500/10 transition-all ${collapsed ? 'justify-center' : ''}`}

@@ -200,35 +200,36 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual','chat'],
   },
 
-  /* ── CUENTAS CLIENTE — representantes reales por nivel de plan ── */
+  /* ── CUENTAS CLIENTE DEMO — ganaderos reales usando el sistema por plan ── */
   {
     id: 'demo_basico',
     nombre: 'Agropecuaria El Palmar',
-    cargo: 'Propietario — Finca Pequeña',
-    finca: 'Finca El Palmar · Boyacá',
+    cargo: 'Propietario · Finca Pequeña · Plan Básico',
+    finca: 'Finca El Palmar · Boyacá, Colombia',
     email: 'demo_basico@ganaderia.co',
     password: 'demo2026',
     avatar: '🥈',
     gradient: 'from-[#1a2a3a] to-[#243040]',
-    role: 'viewer',
+    role: 'field',
     activo: true,
     isTemplate: true,
     isDemo: true,
     plan: 'basico',
     planActivadoEn: '2026-01-15',
     etiquetas: ['Demo', 'Plan Básico', 'Gratis'],
-    permisos: ['inventario','produccion','potreros','alertas','pesaje','pesaje-manual','sanidad'],
+    /* Módulos Plan Básico: Dashboard, Alertas, Inventario, Producción, Potreros */
+    permisos: ['alertas','inventario','produccion','potreros'],
   },
   {
     id: 'demo_pro',
     nombre: 'Ganadería Los Llanos S.A.S.',
-    cargo: 'Gerente de Producción',
-    finca: 'Hacienda Los Llanos · Meta',
+    cargo: 'Propietario · Ganadero PRO · Plan Profesional',
+    finca: 'Hacienda Los Llanos · Villavicencio, Meta',
     email: 'demo_pro@ganaderia.co',
     password: 'demo2026',
     avatar: '⚡',
     gradient: 'from-[#001a1a] to-[#003030]',
-    role: 'viewer',
+    role: 'field',
     activo: true,
     isTemplate: true,
     isDemo: true,
@@ -237,18 +238,25 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planActivadoEn: '2026-03-01',
     wompiRef: 'CIVAC-PRO-2026-001',
     etiquetas: ['Demo', 'Plan PRO', 'GPS · Básculas · IA'],
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','alertas','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','documentacion','manual','sanidad','trazabilidad','asesora'],
+    /* Módulos Plan PRO: todo Básico + GPS, Reproducción, Genética, Pesaje BT, Ficha, Alimentación,
+       Insumos, Semen, Costos, Personal, Multi-Finca, Predicción IA, Asesora, Sanidad, Trazabilidad */
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'reproduccion','genetica','pesaje','ficha','alimentacion',
+      'gps','gps-chips','insumos','semen','costos','personal',
+      'multifinca','prediccion','ventas','asesora','sanidad','trazabilidad',
+    ],
   },
   {
     id: 'demo_premium',
     nombre: 'Inversiones Bovinas del Cesar',
-    cargo: 'Director Agropecuario',
-    finca: 'Hacienda Sierra Nevada · Cesar',
+    cargo: 'Director Agropecuario · Plan Premium',
+    finca: 'Hacienda Sierra Nevada · Valledupar, Cesar',
     email: 'demo_premium@ganaderia.co',
     password: 'demo2026',
     avatar: '🥇',
     gradient: 'from-[#2a1a00] to-[#3d2800]',
-    role: 'viewer',
+    role: 'vet',
     activo: true,
     isTemplate: true,
     isDemo: true,
@@ -256,19 +264,26 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planExpiry: '2027-06-30',
     planActivadoEn: '2026-02-10',
     wompiRef: 'CIVAC-PREM-2026-003',
-    etiquetas: ['Demo', 'Plan Premium', 'Multi-Finca · IA · Drive'],
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','usuarios','configuracion','documentacion','manual','sanidad','trazabilidad','asesora','drive'],
+    etiquetas: ['Demo', 'Plan Premium', 'Multi-Finca · IA · Drive · CO₂'],
+    /* Módulos Plan Premium: todo PRO + Pesaje Automatizado, Huella CO₂, Lotes, Centro Datos, Drive */
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'reproduccion','genetica','pesaje','ficha','alimentacion',
+      'gps','gps-chips','insumos','semen','costos','personal',
+      'multifinca','prediccion','ventas','asesora','sanidad','trazabilidad',
+      'pesaje-manual','co2','lotes','datos','drive',
+    ],
   },
   {
     id: 'demo_platino',
     nombre: 'Grupo Ganadero Córdoba Corp.',
-    cargo: 'CEO · Presidente',
-    finca: 'Corporativo · Montería, Córdoba',
+    cargo: 'CEO · Propietario · Plan Platino — Todo Incluido',
+    finca: 'Corporativo Ganadero · Montería, Córdoba',
     email: 'demo_platino@ganaderia.co',
     password: 'demo2026',
     avatar: '🔶',
     gradient: 'from-[#1a0a00] to-[#2d1500]',
-    role: 'viewer',
+    role: 'vet',
     activo: true,
     isTemplate: true,
     isDemo: true,
@@ -276,13 +291,21 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planExpiry: '2027-12-31',
     planActivadoEn: '2025-12-01',
     wompiRef: 'CIVAC-PLAT-2025-001',
-    etiquetas: ['Demo', 'Plan Platino', 'Todo incluido · SLA 99.9%'],
-    permisos: ['inventario','produccion','reproduccion','genetica','potreros','alimentacion','insumos','semen','costos','personal','prediccion','co2','alertas','multifinca','usuarios','configuracion','documentacion','manual','pesaje','gps','gps-chips','pesaje-manual','ficha','lotes','datos','planes','sanidad','trazabilidad','asesora','drive'],
+    etiquetas: ['Demo', 'Plan Platino', 'Todo incluido · SLA 99.9% · Corporativo'],
+    /* Módulos Plan Platino: TODO — Premium + Usuarios, Config., Documentación, Manual, Planes */
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'reproduccion','genetica','pesaje','ficha','alimentacion',
+      'gps','gps-chips','insumos','semen','costos','personal',
+      'multifinca','prediccion','ventas','asesora','sanidad','trazabilidad',
+      'pesaje-manual','co2','lotes','datos','drive',
+      'usuarios','configuracion','documentacion','manual','planes',
+    ],
   },
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '7.3.0';
+const ACCOUNTS_VERSION = '7.4.0';
 
 /* ─── Template backup — persiste siempre las cuentas demo originales ─────── */
 function saveTemplateBackup() {

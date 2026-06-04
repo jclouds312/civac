@@ -1130,73 +1130,19 @@ export default function Login() {
           return (
           <div className="space-y-6">
 
-            {/* ── Sección CIVAC Staff ── */}
+            {/* ── Sección Planes Demo — PRIMERO (el producto) ── */}
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,rgba(251,191,36,0.4),transparent)" }}/>
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full"
-                  style={{ color:"#fbbf24", border:"1px solid rgba(251,191,36,0.35)", background:"rgba(251,191,36,0.07)" }}>
-                  ⬡ Equipo CIVAC — Acceso Interno
-                </span>
-                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(251,191,36,0.4))" }}/>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {civacAccounts.map(account => {
-                  const rc = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
-                  const isLoading = loadingId === account.id;
-                  const isHov = hoveredCard === `civac-${account.id}`;
-                  return (
-                    <div key={account.id}
-                      className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
-                      style={{
-                        background: isHov ? `linear-gradient(145deg,rgba(${rc.glow},0.15),rgba(0,0,0,0.7))` : `linear-gradient(145deg,rgba(${rc.glow},0.07),rgba(0,0,0,0.6))`,
-                        border:`1.5px solid rgba(${rc.glow},${isHov?"0.6":"0.28"})`,
-                        boxShadow: isHov ? `0 0 30px rgba(${rc.glow},0.25)` : "none",
-                        transform: isHov ? "translateY(-2px)" : "none",
-                      }}
-                      onMouseEnter={() => setHoveredCard(`civac-${account.id}`)}
-                      onMouseLeave={() => setHoveredCard(null)}>
-                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to})` }}/>
-                      <div className="p-3 text-center">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2"
-                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, boxShadow:`0 0 16px rgba(${rc.glow},0.4)` }}>
-                          <span style={{ fontSize:"1.4rem" }}>{rc.emoji}</span>
-                        </div>
-                        <p className="text-[11px] font-black text-white leading-tight mb-0.5">
-                          {account.nombre.split(" ")[0]}
-                        </p>
-                        <p className="text-[9px] mb-2" style={{ color:`rgba(${rc.glow},0.55)` }}>
-                          {account.cargo.split("·")[0].trim()}
-                        </p>
-                        <div className="flex items-center justify-center gap-1 mb-2">
-                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
-                            style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(251,191,36,0.35)", color:"#fbbf24" }}>
-                            ⬡ CIVAC
-                          </span>
-                        </div>
-                        <button onClick={() => handleQuick(account)} disabled={loading}
-                          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[10px] transition-all hover:scale-105"
-                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"white", boxShadow:`0 0 12px rgba(${rc.glow},0.3)` }}>
-                          {isLoading ? <div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin"/> : <ArrowRight size={10}/>}
-                          {isLoading ? "Entrando…" : "Entrar"}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ── Sección Planes Demo ── */}
-            <div>
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-3 mb-1">
                 <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,rgba(0,245,212,0.4),transparent)" }}/>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full"
                   style={{ color:"#00f5d4", border:"1px solid rgba(0,245,212,0.35)", background:"rgba(0,245,212,0.07)" }}>
-                  Cuentas Demo · Probar por Plan
+                  Demos por Plan · Acceso Completo al Sistema
                 </span>
                 <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.4))" }}/>
               </div>
+              <p className="text-center text-[9px] mb-3" style={{ color:"rgba(255,255,255,0.25)" }}>
+                Cuentas de ganadero cliente — explora todos los módulos de tu plan · Contraseña: <strong style={{ color:"rgba(0,245,212,0.5)" }}>demo2026</strong>
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {planAccounts.map(account => {
                   const plan = (account.plan ?? "basico") as PlanId;
@@ -1297,6 +1243,61 @@ export default function Login() {
                             </button>
                           )}
                         </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Sección CIVAC Staff — acceso interno ── */}
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,rgba(251,191,36,0.3),transparent)" }}/>
+                <span className="text-[9px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+                  style={{ color:"rgba(251,191,36,0.6)", border:"1px solid rgba(251,191,36,0.2)", background:"rgba(251,191,36,0.05)" }}>
+                  ⬡ Equipo CIVAC — Acceso Interno
+                </span>
+                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(251,191,36,0.3))" }}/>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {civacAccounts.map(account => {
+                  const rc = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
+                  const isLoading = loadingId === account.id;
+                  const isHov = hoveredCard === `civac-${account.id}`;
+                  return (
+                    <div key={account.id}
+                      className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
+                      style={{
+                        background: isHov ? `linear-gradient(145deg,rgba(${rc.glow},0.12),rgba(0,0,0,0.7))` : `linear-gradient(145deg,rgba(${rc.glow},0.05),rgba(0,0,0,0.55))`,
+                        border:`1px solid rgba(${rc.glow},${isHov?"0.5":"0.2"})`,
+                        boxShadow: isHov ? `0 0 22px rgba(${rc.glow},0.18)` : "none",
+                        transform: isHov ? "translateY(-2px)" : "none",
+                      }}
+                      onMouseEnter={() => setHoveredCard(`civac-${account.id}`)}
+                      onMouseLeave={() => setHoveredCard(null)}>
+                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to})` }}/>
+                      <div className="p-2.5 text-center">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-1.5"
+                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, boxShadow:`0 0 12px rgba(${rc.glow},0.3)` }}>
+                          <span style={{ fontSize:"1.1rem" }}>{rc.emoji}</span>
+                        </div>
+                        <p className="text-[10px] font-black text-white leading-tight mb-0.5">
+                          {account.nombre.split(" ")[0]}
+                        </p>
+                        <p className="text-[8px] mb-1.5" style={{ color:`rgba(${rc.glow},0.5)` }}>
+                          {account.cargo.split("·")[0].trim()}
+                        </p>
+                        <span className="inline-block text-[7px] font-black px-1.5 py-0.5 rounded-full mb-1.5"
+                          style={{ background:"rgba(251,191,36,0.10)", border:"1px solid rgba(251,191,36,0.28)", color:"rgba(251,191,36,0.7)" }}>
+                          ⬡ CIVAC
+                        </span>
+                        <button onClick={() => handleQuick(account)} disabled={loading}
+                          className="w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl font-black text-[9px] transition-all hover:scale-105"
+                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"white", boxShadow:`0 0 10px rgba(${rc.glow},0.25)` }}>
+                          {isLoading ? <div className="w-2.5 h-2.5 border border-white/40 border-t-white rounded-full animate-spin"/> : <ArrowRight size={9}/>}
+                          {isLoading ? "Entrando…" : "Entrar"}
+                        </button>
                       </div>
                     </div>
                   );

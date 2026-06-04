@@ -554,11 +554,10 @@ function GoogleSignInButton({ onError }: { onError?: (msg: string) => void }) {
       .catch(() => setConfigured(false));
   }, []);
 
+  if (configured === false) return null;
+  void onError;
+
   const handleClick = () => {
-    if (configured === false) {
-      onError?.("Google OAuth no configurado. El administrador debe agregar GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET.");
-      return;
-    }
     setChecking(true);
     window.location.href = "/api/auth/google";
   };
@@ -579,11 +578,6 @@ function GoogleSignInButton({ onError }: { onError?: (msg: string) => void }) {
         }
         {checking ? "Redirigiendo a Google…" : configured === null ? "Verificando…" : "Continuar con Google"}
       </button>
-      {configured === false && (
-        <p className="mt-2 text-center text-[10px]" style={{ color:"rgba(255,200,0,0.7)" }}>
-          Google OAuth pendiente de configuración
-        </p>
-      )}
     </div>
   );
 }

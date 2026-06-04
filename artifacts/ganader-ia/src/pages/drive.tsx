@@ -226,18 +226,15 @@ export default function Drive() {
         </div>
       </div>
 
-      {/* ── CONFIG WARNING ─────────────────────────────────────────────────── */}
+      {/* ── CONFIG INFO ─────────────────────────────────────────────────── */}
       {!configured && (
         <div className="rounded-2xl p-4 flex items-start gap-3"
-          style={{ background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.25)" }}>
-          <AlertTriangle size={18} style={{ color:"#f59e0b", flexShrink:0, marginTop:2 }}/>
+          style={{ background:"rgba(0,200,255,0.05)", border:"1px solid rgba(0,200,255,0.12)" }}>
+          <Cloud size={16} style={{ color:"rgba(0,200,255,0.5)", flexShrink:0, marginTop:2 }}/>
           <div>
-            <p className="font-bold text-sm" style={{ color:"#fbbf24" }}>Google OAuth no configurado</p>
-            <p className="text-xs mt-1" style={{ color:"rgba(251,191,36,0.6)" }}>
-              Añade la variable de entorno <code className="font-mono bg-white/5 px-1 rounded">VITE_GOOGLE_CLIENT_ID</code> con tu Client ID de Google Cloud Console para activar Drive.
-            </p>
-            <p className="text-xs mt-2" style={{ color:"rgba(251,191,36,0.45)" }}>
-              Client ID actual: <code className="font-mono">{GOOGLE_CLIENT_ID || "(vacío)"}</code>
+            <p className="font-semibold text-sm" style={{ color:"rgba(0,200,255,0.7)" }}>Sincronización con Google Drive no activada</p>
+            <p className="text-xs mt-1" style={{ color:"rgba(0,200,255,0.4)" }}>
+              Puedes exportar e importar backups en formato JSON desde el <strong style={{ color:"rgba(0,200,255,0.55)" }}>Centro de Datos</strong>. Para activar la sincronización automática con Drive, configura <code className="font-mono bg-white/5 px-1 rounded">VITE_GOOGLE_CLIENT_ID</code> en las variables de entorno.
             </p>
           </div>
         </div>

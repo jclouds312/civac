@@ -18,6 +18,33 @@ export interface WompiPayment {
   hora: string;
   telefono?: string;
   nit?: string;
+  tipo?: 'nuevo' | 'renovacion';
+  invoiceId?: string;
+}
+
+export interface CivacInvoice {
+  id: string;
+  paymentId: string;
+  userId: string;
+  userNombre: string;
+  userEmail: string;
+  userNit?: string;
+  userTelefono?: string;
+  userDireccion?: string;
+  plan: PlanId;
+  concepto: string;
+  precio: number;
+  iva: number;
+  total: number;
+  metodo: string;
+  referencia: string;
+  fecha: string;
+  hora: string;
+  estado: 'pagada' | 'pendiente' | 'anulada';
+  tipo: 'nuevo' | 'renovacion';
+  periodoDesde: string;
+  periodoHasta: string;
+  comprobante?: string;
 }
 
 export interface Account {
@@ -245,12 +272,23 @@ const ACCOUNTS_VERSION = '7.2.0';
 /* ─── Persistencia de pagos Wompi ─────────────────────────────────────────── */
 function loadPayments(): WompiPayment[] {
   try {
-    const s = localStorage.getItem('ganader_wompi_payments');
-    return s ? JSON.parse(s) : [];
+    const s = localStorage.getItem('civac_wompi_payments');
+    if (s) return JSON.parse(s);
+    // migrate old key
+    const old = localStorage.getItem('ganader_wompi_payments');
+    return old ? JSON.parse(old) : [];
   } catch { return []; }
 }
 function savePayments(payments: WompiPayment[]) {
-  try { localStorage.setItem('ganader_wompi_payments', JSON.stringify(payments)); } catch {}
+  try { localStorage.setItem('civac_wompi_payments', JSON.stringify(payments)); } catch {}
+}
+
+/* ─── Persistencia de facturas CIVAC ─────────────────────────────────────── */
+function loadInvoices(): CivacInvoice[] {
+  try { const s = localStorage.getItem('civac_invoices'); return s ? JSON.parse(s) : []; } catch { return []; }
+}
+function saveInvoices(inv: CivacInvoice[]) {
+  try { localStorage.setItem('civac_invoices', JSON.stringify(inv)); } catch {}
 }
 
 function loadAccounts(): Account[] {
@@ -315,6 +353,7 @@ interface AuthContextType {
   user: Account | null;
   accounts: Account[];
   wompiPayments: WompiPayment[];
+  invoices: CivacInvoice[];
   loginActivity: LoginActivity[];
   login: (email: string, password: string) => boolean;
   loginAs: (account: Account) => void;
@@ -324,6 +363,8 @@ interface AuthContextType {
   deleteUser: (id: string) => void;
   activatePlan: (userId: string, plan: PlanId, payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => void;
   addWompiPayment: (payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => WompiPayment;
+  addInvoice: (inv: Omit<CivacInvoice,'id'>) => CivacInvoice;
+  updateInvoice: (id: string, data: Partial<CivacInvoice>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -337,6 +378,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [accounts, setAccountsState] = useState<Account[]>(loadAccounts);
   const [wompiPayments, setWompiPaymentsState] = useState<WompiPayment[]>(loadPayments);
+  const [invoices, setInvoicesState] = useState<CivacInvoice[]>(loadInvoices);
   const [loginActivity, setLoginActivity] = useState<LoginActivity[]>(loadActivities);
 
   const setAccounts = useCallback((next: Account[]) => {
@@ -347,6 +389,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setWompiPayments = useCallback((next: WompiPayment[]) => {
     setWompiPaymentsState(next);
     savePayments(next);
+  }, []);
+
+  const setInvoices = useCallback((next: CivacInvoice[]) => {
+    setInvoicesState(next);
+    saveInvoices(next);
   }, []);
 
   const login = (email: string, password: string): boolean => {
@@ -420,14 +467,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const addWompiPayment = (payment: Omit<WompiPayment,'id'|'fecha'|'hora'>): WompiPayment => {
     const now = new Date();
+    // Detect if renewal (user already had this plan before)
+    const prevPayments = wompiPayments.filter(p => p.userId === payment.userId && p.plan === payment.plan && p.estado === 'aprobado');
+    const tipo: 'nuevo' | 'renovacion' = prevPayments.length > 0 ? 'renovacion' : 'nuevo';
     const full: WompiPayment = {
       ...payment,
       id: `WMP${Date.now()}`,
+      tipo,
       fecha: now.toLocaleDateString('es-CO'),
       hora: now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }),
     };
     setWompiPayments([full, ...wompiPayments]);
     return full;
+  };
+
+  const addInvoice = (inv: Omit<CivacInvoice,'id'>): CivacInvoice => {
+    const all = loadInvoices();
+    const seq = String(all.length + 1).padStart(4, '0');
+    const year = new Date().getFullYear();
+    const id = `INV-${year}-${seq}`;
+    const full: CivacInvoice = { ...inv, id };
+    setInvoices([full, ...all]);
+    return full;
+  };
+
+  const updateInvoice = (id: string, data: Partial<CivacInvoice>) => {
+    const next = invoices.map(inv => inv.id === id ? { ...inv, ...data } : inv);
+    setInvoices(next);
   };
 
   const activatePlan = (
@@ -448,10 +514,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return createElement(AuthContext.Provider, {
     value: {
-      user, accounts, wompiPayments, loginActivity,
+      user, accounts, wompiPayments, invoices, loginActivity,
       login, loginAs, logout,
       registerUser, updateUser, deleteUser,
-      activatePlan, addWompiPayment,
+      activatePlan, addWompiPayment, addInvoice, updateInvoice,
     }
   }, children);
 }

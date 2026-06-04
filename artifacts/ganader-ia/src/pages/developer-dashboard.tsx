@@ -78,7 +78,7 @@ const TIP = { background:"rgba(4,15,26,0.95)", border:"1px solid rgba(0,255,136,
 const G   = "#00ff88";
 const C   = "#00d4ff";
 
-type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api"|"pwa"|"bd"|"tickets"|"accesos";
+type TabId = "resumen"|"versiones"|"flags"|"diagnostico"|"build"|"logs"|"api"|"pwa"|"bd"|"tickets"|"accesos"|"docs";
 
 const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"resumen",     icon:<BarChart3 size={13}/>,   label:"Resumen"      },
@@ -91,7 +91,8 @@ const TABS: { id:TabId; icon:React.ReactNode; label:string }[] = [
   { id:"pwa",         icon:<Globe size={13}/>,       label:"PWA"          },
   { id:"bd",          icon:<Database size={13}/>,    label:"Base de Datos"},
   { id:"tickets",     icon:<Send size={13}/>,        label:"Tickets"      },
-  { id:"accesos",     icon:<Shield size={13}/>,      label:"Accesos"      },
+  { id:"accesos",     icon:<Shield size={13}/>,      label:"Roles & Sesiones"},
+  { id:"docs",        icon:<BookOpen size={13}/>,    label:"Documentación"},
 ];
 
 export default function DeveloperDashboard() {
@@ -1175,15 +1176,291 @@ export default function DeveloperDashboard() {
               </div>
             </div>
 
-            {/* Export */}
-            <div className="flex justify-end">
-              <button onClick={()=>{
-                const csv=["ID,Usuario,Email,Rol,Plan,Fecha,Hora,Browser,Demo,CIVAC",...loginActivity.map(a=>`${a.id},${a.userName},${a.userEmail},${a.userRole},${a.plan},${a.fecha},${a.hora},${a.ua},${a.isDemo},${a.isCivac}`)].join("\n");
-                const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob); const anchor=document.createElement("a"); anchor.href=url; anchor.download="civac_accesos.csv"; anchor.click(); URL.revokeObjectURL(url);
-              }} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-80"
-                style={{background:"rgba(0,245,212,0.1)",color:"#00f5d4",border:"1px solid rgba(0,245,212,0.25)"}}>
-                <Download size={12}/> Exportar CSV
-              </button>
+            {/* Roles activos — tarjetas por cuenta */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.15)"}}>
+              <div className="px-4 py-3" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(0,245,212,0.10)"}}>
+                <span className="text-xs font-bold text-white/50 flex items-center gap-2"><Shield size={11} style={{color:"#00f5d4"}}/> Cuentas activas del sistema</span>
+              </div>
+              <div className="divide-y" style={{divideColor:"rgba(255,255,255,0.04)"}}>
+                {[
+                  {id:'superadmin', nombre:'Javier Hernando Sánchez Bernal', cargo:'CEO · Fundador & Propietario',  role:'superadmin', avatar:'🔱', c:'#fbbf24', perms:'Acceso total plataforma'},
+                  {id:'admin',      nombre:'Lizet Daza',                     cargo:'Co-Fundadora · Directora',     role:'admin',      avatar:'👑', c:'#ff9a3c', perms:'Panel Admin + todos módulos'},
+                  {id:'developer',  nombre:'Johnatan Vallejo Marulanda',     cargo:'Arquitecto Principal PWA & IA',role:'developer',  avatar:'🛠️',c:G,        perms:'Dev Console + todos módulos'},
+                  {id:'ventas',     nombre:'Asesora CIVAC · Ventas',         cargo:'Asesora Comercial Senior',     role:'sales',      avatar:'💼', c:'#e879f9', perms:'CRM + Planes + Alertas + Docs'},
+                  {id:'demo_pro',   nombre:'Ganadería Los Llanos S.A.S.',    cargo:'Plan PRO · Campo',             role:'field',      avatar:'⚡', c:C,        perms:'Módulos plan PRO'},
+                  {id:'demo_premium',nombre:'Hacienda Villa Verde',          cargo:'Plan Premium · Propietario',   role:'viewer',     avatar:'🥇', c:'#a78bfa', perms:'Módulos plan Premium'},
+                ].map(acc=>(
+                  <div key={acc.id} className="px-4 py-3 flex items-center gap-3 flex-wrap sm:flex-nowrap" style={{background:"rgba(0,0,0,0.15)"}}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                      style={{background:`${acc.c}14`,border:`1px solid ${acc.c}30`}}>{acc.avatar}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-black text-white">{acc.nombre}</span>
+                        <span className="text-[9px] font-black px-2 py-0.5 rounded-full" style={{background:`${acc.c}14`,color:acc.c,border:`1px solid ${acc.c}35`}}>{acc.role}</span>
+                      </div>
+                      <p className="text-[9px] text-white/35">{acc.cargo} · {acc.perms}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <span className="text-[8px] font-bold px-2 py-0.5 rounded-lg" style={{background:"rgba(0,245,212,0.08)",color:"#00f5d4",border:"1px solid rgba(0,245,212,0.2)"}}>
+                        {loginActivity.filter(a=>a.userId===acc.id).length} accesos
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Session actions */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)"}}>
+              <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">Gestión de sesiones</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {[
+                  {label:"Limpiar log accesos",  c:"#f87171", fn:()=>{ try{localStorage.removeItem("civac_login_activity");}catch{} window.location.reload(); }},
+                  {label:"Exportar accesos CSV", c:"#00f5d4", fn:()=>{
+                    const csv=["ID,Usuario,Email,Rol,Plan,Fecha,Hora,Browser,Demo,CIVAC",...loginActivity.map(a=>`${a.id},${a.userName},${a.userEmail},${a.userRole},${a.plan},${a.fecha},${a.hora},${a.ua},${a.isDemo},${a.isCivac}`)].join("\n");
+                    const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob); const anchor=document.createElement("a"); anchor.href=url; anchor.download="civac_accesos.csv"; anchor.click(); URL.revokeObjectURL(url);
+                  }},
+                  {label:"Recargar actividad",   c:G,         fn:()=>window.location.reload()},
+                ].map(a=>(
+                  <button key={a.label} onClick={a.fn}
+                    className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-[10px] font-bold transition-all hover:opacity-80"
+                    style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${a.c}25`,color:a.c}}>
+                    <Shield size={11}/> {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ══ DOCUMENTACIÓN ══ */}
+        {tab==="docs" && (
+          <>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="text-base font-black text-white flex items-center gap-2"><BookOpen size={14} style={{color:"#a855f7"}}/> Documentación CIVAC v1.0</h2>
+                <p className="text-[10px] text-white/30">32 módulos · Arquitectura · Decisiones de diseño · Guías técnicas</p>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold"
+                style={{background:"rgba(168,85,247,0.1)",border:"1px solid rgba(168,85,247,0.3)",color:"#a855f7"}}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{background:"#a855f7"}}/>
+                v1.0 · 32 módulos
+              </div>
+            </div>
+
+            {/* Stack tech */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(0,255,136,0.04)",border:"1px solid rgba(0,255,136,0.15)"}}>
+              <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2"><Cpu size={13} style={{color:G}}/> Stack Tecnológico</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {[
+                  {k:"Runtime",    v:"Node.js 24 · pnpm workspaces",    c:G},
+                  {k:"Frontend",   v:"React 18 · Vite 6 · TypeScript 5.9",c:C},
+                  {k:"Routing",    v:"wouter — SPA ligero",              c:"#a855f7"},
+                  {k:"UI",         v:"shadcn/ui · Tailwind CSS v4",      c:"#fbbf24"},
+                  {k:"Gráficos",   v:"Recharts (Bar · Area · Pie)",      c:"#f472b6"},
+                  {k:"Iconos",     v:"lucide-react",                     c:"#60a5fa"},
+                  {k:"Estado",     v:"React Context + localStorage + IndexedDB",c:"#39ff7e"},
+                  {k:"PWA",        v:"SW v8 · Manifest · Background Sync · 33 rutas",c:"#00f5d4"},
+                  {k:"API Server", v:"Node.js + Fastify (puerto 8080)",  c:G},
+                  {k:"Analytics",  v:"Python 3 Flask (puerto 8099)",     c:"#fbbf24"},
+                  {k:"GPS Backend",v:"Python 3 Django (puerto 8000)",    c:"#ff9a3c"},
+                  {k:"Pago",       v:"Wompi / Nequi / PSE Colombia",     c:"#a855f7"},
+                ].map(({k,v,c})=>(
+                  <div key={k} className="rounded-xl p-2.5" style={{background:"rgba(0,0,0,0.3)"}}>
+                    <div className="text-[8px] font-mono font-black mb-0.5" style={{color:c}}>{k}</div>
+                    <div className="text-[9px] text-white/60 leading-relaxed">{v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Módulos matrix */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+              <div className="px-4 py-3 flex items-center gap-2" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                <Layers size={12} style={{color:"#a855f7"}}/>
+                <span className="text-xs font-bold text-white/60">Módulos del sistema — 32 módulos</span>
+              </div>
+              <div className="divide-y max-h-96 overflow-y-auto" style={{divideColor:"rgba(255,255,255,0.04)"}}>
+                {[
+                  {n:1,  label:"Dashboard",      ruta:"/",              rol:"viewer", c:"#00c8ff", desc:"6 KPIs, charts históricos, ticker LIVE"},
+                  {n:2,  label:"Inventario",     ruta:"/inventario",    rol:"field",  c:"#39ff7e", desc:"13 bovinos, RFID, filtros, CRUD completo"},
+                  {n:3,  label:"Producción",     ruta:"/produccion",    rol:"field",  c:"#00c8ff", desc:"Ordeños, 84 L/día, top-vacas, BarChart"},
+                  {n:4,  label:"Reproducción",   ruta:"/reproduccion",  rol:"vet",    c:"#f472b6", desc:"IEP, celos, IA bovina, próximos partos"},
+                  {n:5,  label:"Genética",       ruta:"/genetica",      rol:"vet",    c:"#a855f7", desc:"DEP ranking, score bars, pedigrí"},
+                  {n:6,  label:"Pesaje BT",      ruta:"/pesaje",        rol:"field",  c:"#ff9a3c", desc:"Báscula Bluetooth — BCS, GMD, 9 razas"},
+                  {n:7,  label:"Pesaje Manual",  ruta:"/pesaje-manual", rol:"field",  c:"#ff9a3c", desc:"CC, GMD, recibo PDF imprimible"},
+                  {n:8,  label:"Ficha Clínica",  ruta:"/ficha",         rol:"vet",    c:"#22c55e", desc:"Historia clínica tabbed por animal"},
+                  {n:9,  label:"Semen",          ruta:"/semen",         rol:"vet",    c:"#a855f7", desc:"Inventario criogénico, embriones TE"},
+                  {n:10, label:"Lotes",          ruta:"/lotes",         rol:"field",  c:"#39ff7e", desc:"Movimiento de lotes ganaderos"},
+                  {n:11, label:"Potreros",       ruta:"/potreros",      rol:"field",  c:"#39ff7e", desc:"6 lotes, rotación activa, mapa CSS"},
+                  {n:12, label:"GPS Bovino",     ruta:"/gps",           rol:"field",  c:"#60a5fa", desc:"watchPosition real, mapa animado, geovallado"},
+                  {n:13, label:"GPS Chips",      ruta:"/gps-chips",     rol:"field",  c:"#60a5fa", desc:"Dispositivos GPS/collares, MQTT broker"},
+                  {n:14, label:"Alimentación",   ruta:"/alimentacion",  rol:"field",  c:"#fbbf24", desc:"Raciones TMR, minerales, suplementos"},
+                  {n:15, label:"Insumos",        ruta:"/insumos",       rol:"field",  c:"#fbbf24", desc:"Kardex, stock mínimo, +/-, alertas"},
+                  {n:16, label:"Sanidad",        ruta:"/sanidad",       rol:"vet",    c:"#22c55e", desc:"Vacunación, tratamientos, retiro"},
+                  {n:17, label:"Trazabilidad",   ruta:"/trazabilidad",  rol:"vet",    c:"#f97316", desc:"ICA, guías movilización, SINIGAN"},
+                  {n:18, label:"Costos P&G",     ruta:"/costos",        rol:"viewer", c:"#39ff7e", desc:"Ingresos/egresos, costo/litro, margen"},
+                  {n:19, label:"Personal",       ruta:"/personal",      rol:"admin",  c:"#a78bfa", desc:"6 empleados, nómina, EPS/ARL"},
+                  {n:20, label:"Predicción IA",  ruta:"/prediccion",    rol:"viewer", c:"#e879f9", desc:"Simulador financiero con sliders 12m"},
+                  {n:21, label:"Huella CO₂",     ruta:"/co2",           rol:"viewer", c:"#34d399", desc:"IPCC 2019, benchmarking Colombia"},
+                  {n:22, label:"Multi-Finca",    ruta:"/multifinca",    rol:"viewer", c:"#00f5d4", desc:"3 fincas, comparativa centralizada"},
+                  {n:23, label:"Alertas",        ruta:"/alertas",       rol:"viewer", c:"#f87171", desc:"Centro notificaciones, resolver"},
+                  {n:24, label:"Asesora IA",     ruta:"/asesora",       rol:"viewer", c:"#e879f9", desc:"Chatbot IA ganadería colombiana"},
+                  {n:25, label:"Ventas CRM",     ruta:"/ventas",        rol:"sales",  c:"#e879f9", desc:"Pipeline comercial, prospectos"},
+                  {n:26, label:"Drive",          ruta:"/drive",         rol:"viewer", c:"#60a5fa", desc:"Backup nube, historial 30 versiones"},
+                  {n:27, label:"Centro Datos",   ruta:"/datos",         rol:"viewer", c:"#fbbf24", desc:"Exportar/importar JSON, reset"},
+                  {n:28, label:"Planes",         ruta:"/planes",        rol:"viewer", c:"#cd7f32", desc:"Básico/PRO/Premium/Platino + Wompi"},
+                  {n:29, label:"Usuarios",       ruta:"/usuarios",      rol:"admin",  c:"#00f5d4", desc:"Gestión cuentas, permisos por módulo"},
+                  {n:30, label:"Configuración",  ruta:"/configuracion", rol:"viewer", c:"#94a3b8", desc:"Finca/Apariencia/Seguridad/Datos"},
+                  {n:31, label:"Documentación",  ruta:"/documentacion", rol:"viewer", c:"#a855f7", desc:"24 secciones: todos los módulos"},
+                  {n:32, label:"Manual",         ruta:"/manual",        rol:"viewer", c:"#a855f7", desc:"Manual de usuario completo"},
+                ].map(m=>(
+                  <div key={m.n} className="px-4 py-2.5 flex items-center gap-3" style={{background:"rgba(0,0,0,0.15)"}}>
+                    <span className="text-[9px] font-black text-white/20 w-5 flex-shrink-0">{m.n}</span>
+                    <span className="text-[10px] font-black w-28 flex-shrink-0" style={{color:m.c}}>{m.label}</span>
+                    <span className="font-mono text-[9px] text-white/30 w-36 flex-shrink-0 hidden sm:block">{m.ruta}</span>
+                    <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0"
+                      style={{background:`${m.c}12`,color:m.c,border:`1px solid ${m.c}30`}}>{m.rol}</span>
+                    <span className="text-[9px] text-white/35 hidden md:block">{m.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Arquitectura decisions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-2xl p-4" style={{background:"rgba(0,212,255,0.04)",border:"1px solid rgba(0,212,255,0.15)"}}>
+                <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2"><Code size={13} style={{color:C}}/> Decisiones de Arquitectura</h3>
+                <div className="space-y-2">
+                  {[
+                    {d:"Frontend puro",        v:"Todos los datos en React Context + localStorage. Sin backend obligatorio."},
+                    {d:"AppStateContext",       v:"Fuente única de verdad. useAppState() en src/lib/data.ts."},
+                    {d:"AuthContext",           v:"Autenticación localStorage con 6 cuentas. Sin JWT/servidor."},
+                    {d:"ThemeContext",          v:"Toggle dark/light via clase .dark en document.documentElement."},
+                    {d:"wouter",               v:"Router SPA ligero. Todas las rutas usan import.meta.env.BASE_URL."},
+                    {d:"Sidebar oscuro",        v:"Siempre oscuro — identidad de marca, independiente del tema."},
+                    {d:".ts críticos",          v:"auth.ts, theme.ts, data.ts: NUNCA import * as React — se vuelve null en Vite HMR."},
+                    {d:"CIVAC_STAFF_IDS",       v:"Array en auth.ts: superadmin, developer, admin, ventas — acceso Server Panel."},
+                  ].map(({d,v})=>(
+                    <div key={d} className="flex gap-2">
+                      <span className="text-[9px] font-black flex-shrink-0 w-32" style={{color:C}}>{d}</span>
+                      <span className="text-[9px] text-white/40 leading-relaxed">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl p-4" style={{background:"rgba(0,255,136,0.04)",border:"1px solid rgba(0,255,136,0.15)"}}>
+                <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2"><Globe size={13} style={{color:G}}/> PWA — Service Worker v8</h3>
+                <div className="space-y-2">
+                  {[
+                    {d:"Cache-First",             v:".js · .css · .woff2 · imágenes"},
+                    {d:"Stale-While-Revalidate",  v:"Navegación HTML (SPA shell)"},
+                    {d:"Network-First",           v:"Rutas /api/*"},
+                    {d:"TTL largo",               v:"Fuentes externas · Google Fonts"},
+                    {d:"Background Sync",         v:"Cola de acciones offline → reenvío al reconectar"},
+                    {d:"Periodic Sync",           v:"Pre-calentar datos cada 6 horas"},
+                    {d:"Push Notifications",      v:"Alertas de partos, vacunación, stock"},
+                    {d:"Share Target",            v:"Acepta archivos .json para importar backup"},
+                    {d:"33 rutas",                v:"Pre-cacheadas en install. Shell offline completo."},
+                    {d:"Mensajes SW",             v:"SKIP_WAITING · CLEAR_CACHE · GET_CACHE_SIZE · GET_VERSION"},
+                  ].map(({d,v})=>(
+                    <div key={d} className="flex gap-2">
+                      <span className="text-[9px] font-black flex-shrink-0 w-36" style={{color:G}}>{d}</span>
+                      <span className="text-[9px] text-white/40 leading-relaxed">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Auth accounts table */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,187,36,0.15)"}}>
+              <div className="px-4 py-3 flex items-center gap-2" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(251,191,36,0.08)"}}>
+                <Shield size={12} style={{color:"#fbbf24"}}/>
+                <span className="text-xs font-bold text-white/50">Sistema de autenticación — 6 cuentas staff + demo</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[10px]">
+                  <thead>
+                    <tr style={{background:"rgba(0,0,0,0.3)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                      {["Cuenta","Email","Password","Rol","Plan","Acceso"].map(h=>(
+                        <th key={h} className="px-3 py-2 text-left font-black text-white/30 uppercase tracking-wider text-[8px]">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {nombre:"Javier H. Sánchez",  email:"Softganventas@gmail.com",    pass:"civac2026",  rol:"superadmin", plan:"Platino", c:"#fbbf24", acceso:"Total + Server Panel"},
+                      {nombre:"Lizet Daza",         email:"lizet.daza@civac.co",         pass:"lizet2026",  rol:"admin",      plan:"Platino", c:"#ff9a3c", acceso:"Panel Admin completo"},
+                      {nombre:"Johnatan Vallejo",   email:"johnatanvallejomarulanda@gmail.com",pass:"dev2026",rol:"developer",  plan:"Platino", c:G,        acceso:"Dev Console + todos"},
+                      {nombre:"Asesora CIVAC",      email:"ventas@civac.co",             pass:"ventas2026", rol:"sales",      plan:"Platino", c:"#e879f9", acceso:"CRM + Planes + Docs"},
+                      {nombre:"Agropecuaria El Palmar",email:"demo_basico@ganaderia.co", pass:"demo2026",   rol:"field",      plan:"Básico",  c:"#94a3b8", acceso:"Módulos Básico"},
+                      {nombre:"Ganadería Los Llanos", email:"demo_pro@ganaderia.co",     pass:"demo2026",   rol:"field",      plan:"PRO",     c:C,         acceso:"Módulos PRO"},
+                    ].map((acc,i)=>(
+                      <tr key={i} className="border-b" style={{borderColor:"rgba(255,255,255,0.04)"}}>
+                        <td className="px-3 py-2.5 font-black" style={{color:acc.c}}>{acc.nombre}</td>
+                        <td className="px-3 py-2.5 font-mono text-white/40">{acc.email}</td>
+                        <td className="px-3 py-2.5 font-mono" style={{color:"rgba(0,255,136,0.6)"}}>{acc.pass}</td>
+                        <td className="px-3 py-2.5"><span className="px-1.5 py-0.5 rounded-full font-bold text-[8px]" style={{background:`${acc.c}14`,color:acc.c,border:`1px solid ${acc.c}30`}}>{acc.rol}</span></td>
+                        <td className="px-3 py-2.5 text-white/50">{acc.plan}</td>
+                        <td className="px-3 py-2.5 text-white/30">{acc.acceso}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Diseño visual */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)"}}>
+              <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2"><Zap size={13} style={{color:"#fbbf24"}}/> Identidad visual por módulo</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {[
+                  {mod:"GPS",         gradient:"#020d1a → #0a2745",  acento:"azul marino"},
+                  {mod:"Inventario",  gradient:"verde oscuro",        acento:"#39ff7e neón"},
+                  {mod:"Producción",  gradient:"azul profundo",       acento:"#00c8ff"},
+                  {mod:"Pesaje",      gradient:"naranja tierra",       acento:"#ff9a3c"},
+                  {mod:"Reproducción",gradient:"magenta profundo",     acento:"#ff6fd8"},
+                  {mod:"Genética",    gradient:"violeta oscuro",       acento:"#a855f7"},
+                  {mod:"Sanidad",     gradient:"verde salud",          acento:"#22c55e"},
+                  {mod:"Trazabilidad",gradient:"naranja ICA",          acento:"#f97316"},
+                  {mod:"Asesora IA",  gradient:"púrpura IA",           acento:"#e879f9"},
+                  {mod:"Server Panel",gradient:"negro matrix",         acento:"#00f5d4 teal"},
+                  {mod:"Admin Panel", gradient:"naranja ejecutivo",     acento:"#ff9a3c oro"},
+                  {mod:"Dev Console", gradient:"verde matrix",         acento:"#00ff88 matrix"},
+                ].map(m=>(
+                  <div key={m.mod} className="rounded-xl p-2.5" style={{background:"rgba(0,0,0,0.3)"}}>
+                    <div className="text-[10px] font-black text-white/70">{m.mod}</div>
+                    <div className="text-[8px] text-white/30 mt-0.5">{m.gradient}</div>
+                    <div className="text-[8px] font-mono mt-0.5" style={{color:"rgba(0,255,136,0.6)"}}>{m.acento}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Reglas críticas */}
+            <div className="rounded-2xl p-4" style={{background:"rgba(248,113,113,0.04)",border:"1px solid rgba(248,113,113,0.18)"}}>
+              <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2"><AlertTriangle size={13} style={{color:"#f87171"}}/> Reglas críticas para el desarrollo</h3>
+              <div className="space-y-2">
+                {[
+                  "useAppState en src/lib/data.ts es la ÚNICA fuente de datos. No romper.",
+                  "CRÍTICO: data.ts, theme.ts y auth.ts son .ts (no .tsx) → NUNCA import * as React — se vuelve null en Vite HMR.",
+                  "Slider: @/components/ui/slider (ya instalado). No usar librería externa.",
+                  "Todas las rutas deben usar BASE_URL prefix (import.meta.env.BASE_URL).",
+                  "Dark mode: @custom-variant dark (&:is(.dark *)) — clase .dark en document.documentElement.",
+                  "NO usar MapMap de lucide-react → usar Map. Verificar iconos antes de usar.",
+                  "Server Panel (/server, /server-dashboard) fuera del AuthGate — acceso directo sin auth.",
+                  "CIVAC_STAFF_IDS en auth.ts controla badge CIVAC y acceso al Server Panel.",
+                  "NO importar @workspace/api-client-react — solo React state puro.",
+                  "Recharts: BarChart preferido, AreaChart en dashboard, PieChart para distribución.",
+                ].map((r,i)=>(
+                  <div key={i} className="flex gap-2 items-start">
+                    <span className="text-[9px] font-black flex-shrink-0 mt-0.5" style={{color:"#f87171"}}>!</span>
+                    <span className="text-[9px] text-white/55 leading-relaxed">{r}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}

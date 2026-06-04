@@ -210,7 +210,7 @@ function LoginStatsFooter() {
           <div className="absolute inset-0 pointer-events-none" style={{ background:"radial-gradient(ellipse 60% 80% at 10% 50%,rgba(0,245,212,0.04),transparent)" }}/>
           <div className="text-center sm:text-left">
             <p className="text-[13px] font-black text-white tracking-wide leading-snug" style={{ textShadow:"0 0 30px rgba(0,245,212,0.3)" }}>
-              GanaderIA <span style={{ color:"#00f5d4" }}>CIVAC PRO</span> v7.0
+              GanaderIA <span style={{ color:"#00f5d4" }}>CIVAC PRO</span> v1.0
               <span className="text-white/40 font-normal mx-1.5">·</span>
               <span style={{ color:"#e879f9" }}>32 módulos</span>
               <span className="text-white/40 font-normal mx-1.5">·</span>
@@ -370,7 +370,7 @@ function RightWidgets() {
       <div className="rounded-2xl p-3"
         style={{ background:"rgba(0,0,0,0.5)", border:"1px solid rgba(168,85,247,0.2)", backdropFilter:"blur(12px)" }}>
         <div className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color:"rgba(168,85,247,0.55)" }}>
-          📦 Módulos v7.0 · 32 activos
+          📦 Módulos v1.0 · 32 activos
         </div>
         {[
           { name:"Productivos", val:"20", c:"#00f5d4" },
@@ -1109,157 +1109,216 @@ export default function Login() {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════════
-            TAB: CUENTAS DEMO
+            TAB: CUENTAS — CIVAC Staff + Demo por Plan
         ═══════════════════════════════════════════════════════════════════ */}
-        {tab === "cuentas" && (
-          <div className="flex gap-4 items-start">
+        {tab === "cuentas" && (() => {
+          const civacAccounts = clientAccounts.filter(a => CIVAC_STAFF_IDS.includes(a.id));
+          const planAccounts  = clientAccounts.filter(a => a.id.startsWith("demo_"));
 
-            {/* Left farm widgets */}
-            <FarmImageWidgets />
+          /* Plan card identity */
+          const PLAN_IDENTITY: Record<PlanId, {
+            c1:string; c2:string; g:string; gRGB:string;
+            badge:string; badgeBg:string; desc:string;
+            mods:string[]; emoji:string;
+          }> = {
+            basico:  { c1:"#b8c4d4", c2:"#94a3b8", g:"184,196,212", gRGB:"184,196,212", badge:"GRATIS", badgeBg:"rgba(148,163,184,0.15)", desc:"Gestión básica · Inventario, Producción, Potreros, Alertas",            mods:["📊 Dashboard","🐄 Inventario","🥛 Producción","🌿 Potreros","🔔 Alertas","🩺 Sanidad","📝 Pesaje Manual"], emoji:"🥈" },
+            pro:     { c1:"#00f5d4", c2:"#00c8ff", g:"0,245,212",   gRGB:"0,245,212",   badge:"⚡ PRO", badgeBg:"rgba(0,245,212,0.12)",  desc:"Hato completo · GPS, Genética, Reproducción, Pesaje BT, IA",         mods:["⚡ Todo Básico","🧬 Reproducción","🔬 Genética","⚖️ Pesaje BT","📡 GPS","🌾 Alimentación","📦 Insumos","🧊 Semen","💰 Costos","👷 Personal","📋 Ficha","🏷️ Lotes"], emoji:"⚡" },
+            premium: { c1:"#fbbf24", c2:"#f59e0b", g:"251,191,36",  gRGB:"251,191,36",  badge:"🥇 PREMIUM", badgeBg:"rgba(251,191,36,0.12)", desc:"Empresa ganadera · IA, Multi-Finca, CRM, Drive, CO₂ IPCC",       mods:["🥇 Todo PRO","🤖 Asesora IA","💼 CRM Ventas","🏘️ Multi-Finca","🔮 Predicción IA","🌱 Huella CO₂","☁️ Drive Backup"], emoji:"🥇" },
+            platino: { c1:"#cd7f32", c2:"#e07b54", g:"205,127,50",  gRGB:"205,127,50",  badge:"👑 PLATINO", badgeBg:"rgba(205,127,50,0.12)", desc:"Corporativo · Usuarios, Config. avanzada, SLA 99.9%, todo incluido", mods:["👑 TODO incluido","👥 Usuarios & Roles","⚙️ Config. avanzada","📖 Documentación","📘 Manual completo","🗄️ Centro Datos","💳 Gestión Planes"], emoji:"👑" },
+          };
 
-            {/* Main center content — full width (no login form column) */}
-            <div className="flex-1 min-w-0">
-              <div className="space-y-2.5">
-                <p className="text-center text-[10px] font-black uppercase tracking-[0.2em]" style={{ color:"rgba(0,245,212,0.4)" }}>
-                  — Seleccione su cuenta —
-                </p>
-                {clientAccounts.map(account => {
-                  const rc  = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
+          return (
+          <div className="space-y-6">
+
+            {/* ── Sección CIVAC Staff ── */}
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,rgba(251,191,36,0.4),transparent)" }}/>
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+                  style={{ color:"#fbbf24", border:"1px solid rgba(251,191,36,0.35)", background:"rgba(251,191,36,0.07)" }}>
+                  ⬡ Equipo CIVAC — Acceso Interno
+                </span>
+                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(251,191,36,0.4))" }}/>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {civacAccounts.map(account => {
+                  const rc = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
                   const isLoading = loadingId === account.id;
-                  const plan = (account.plan ?? "basico") as PlanId;
-                  const feats  = PLAN_FEATURES[plan];
-                  const pp  = PLAN_COLOR[plan], pp2 = PLAN_COLOR2[plan], pg = PLAN_GLOW[plan];
-                  const isHov = hoveredCard === account.id;
+                  const isHov = hoveredCard === `civac-${account.id}`;
                   return (
                     <div key={account.id}
-                      className="relative rounded-3xl overflow-hidden transition-all duration-300"
+                      className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
                       style={{
-                        background: isHov
-                          ? `linear-gradient(145deg,rgba(${rc.glow},0.18),rgba(${rc.glow},0.06),rgba(0,0,0,0.65))`
-                          : `linear-gradient(145deg,rgba(${rc.glow},0.09),rgba(0,0,0,0.58))`,
-                        border:`1.5px solid rgba(${rc.glow},${isHov ? "0.65" : "0.32"})`,
-                        backdropFilter:"blur(16px)",
-                        boxShadow: isHov
-                          ? `0 0 44px rgba(${rc.glow},0.30), 0 12px 36px rgba(0,0,0,0.5)`
-                          : `0 0 16px rgba(${rc.glow},0.12)`,
+                        background: isHov ? `linear-gradient(145deg,rgba(${rc.glow},0.15),rgba(0,0,0,0.7))` : `linear-gradient(145deg,rgba(${rc.glow},0.07),rgba(0,0,0,0.6))`,
+                        border:`1.5px solid rgba(${rc.glow},${isHov?"0.6":"0.28"})`,
+                        boxShadow: isHov ? `0 0 30px rgba(${rc.glow},0.25)` : "none",
                         transform: isHov ? "translateY(-2px)" : "none",
                       }}
-                      onMouseEnter={() => setHoveredCard(account.id)}
+                      onMouseEnter={() => setHoveredCard(`civac-${account.id}`)}
+                      onMouseLeave={() => setHoveredCard(null)}>
+                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to})` }}/>
+                      <div className="p-3 text-center">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2"
+                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, boxShadow:`0 0 16px rgba(${rc.glow},0.4)` }}>
+                          <span style={{ fontSize:"1.4rem" }}>{rc.emoji}</span>
+                        </div>
+                        <p className="text-[11px] font-black text-white leading-tight mb-0.5">
+                          {account.nombre.split(" ")[0]}
+                        </p>
+                        <p className="text-[9px] mb-2" style={{ color:`rgba(${rc.glow},0.55)` }}>
+                          {account.cargo.split("·")[0].trim()}
+                        </p>
+                        <div className="flex items-center justify-center gap-1 mb-2">
+                          <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
+                            style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(251,191,36,0.35)", color:"#fbbf24" }}>
+                            ⬡ CIVAC
+                          </span>
+                        </div>
+                        <button onClick={() => handleQuick(account)} disabled={loading}
+                          className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[10px] transition-all hover:scale-105"
+                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"white", boxShadow:`0 0 12px rgba(${rc.glow},0.3)` }}>
+                          {isLoading ? <div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin"/> : <ArrowRight size={10}/>}
+                          {isLoading ? "Entrando…" : "Entrar"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ── Sección Planes Demo ── */}
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,rgba(0,245,212,0.4),transparent)" }}/>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full"
+                  style={{ color:"#00f5d4", border:"1px solid rgba(0,245,212,0.35)", background:"rgba(0,245,212,0.07)" }}>
+                  Cuentas Demo · Probar por Plan
+                </span>
+                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.4))" }}/>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {planAccounts.map(account => {
+                  const plan = (account.plan ?? "basico") as PlanId;
+                  const pi = PLAN_IDENTITY[plan];
+                  const isLoading = loadingId === account.id;
+                  const isHov = hoveredCard === `plan-${account.id}`;
+                  const feats = PLAN_FEATURES[plan];
+                  return (
+                    <div key={account.id}
+                      className="relative rounded-3xl overflow-hidden cursor-pointer transition-all duration-300"
+                      style={{
+                        background:`rgba(4,13,26,0.97)`,
+                        border:`2px solid rgba(${pi.gRGB},${isHov?"0.65":"0.28"})`,
+                        boxShadow: isHov ? `0 0 50px rgba(${pi.gRGB},0.30), 0 16px 40px rgba(0,0,0,0.5)` : `0 0 18px rgba(${pi.gRGB},0.08)`,
+                        transform: isHov ? "translateY(-4px) scale(1.01)" : "none",
+                      }}
+                      onMouseEnter={() => setHoveredCard(`plan-${account.id}`)}
                       onMouseLeave={() => setHoveredCard(null)}>
 
-                      {/* Role color top stripe — thick, primary identity */}
-                      <div className="h-1 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to},transparent)` }} />
-                      {/* Plan stripe below — thin, secondary info */}
-                      <div className="h-px w-1/2 opacity-50" style={{ background:`linear-gradient(90deg,${pp},transparent)` }} />
+                      {/* Top gradient bar — plan identity */}
+                      <div className="h-1.5 w-full" style={{ background:`linear-gradient(90deg,${pi.c1},${pi.c2})` }}/>
 
-                      {/* Left vertical accent bar */}
-                      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-3xl"
-                        style={{ background:`linear-gradient(180deg,${rc.from},${rc.to})`, opacity: isHov ? 0.9 : 0.55 }} />
+                      {/* DEMO badge */}
+                      <div className="absolute top-3 right-3">
+                        <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                          style={{ background:pi.badgeBg, color:pi.c1, border:`1px solid rgba(${pi.gRGB},0.4)`, letterSpacing:"0.08em" }}>
+                          {pi.badge}
+                        </span>
+                      </div>
 
-                      {/* Hover glow overlay */}
-                      {isHov && (
-                        <div className="absolute inset-0 pointer-events-none" style={{
-                          background:`radial-gradient(ellipse 60% 50% at 20% 50%, rgba(${rc.glow},0.06) 0%, transparent 70%)`
-                        }}/>
-                      )}
+                      {/* Demo indicator */}
+                      <div className="absolute top-3 left-3">
+                        <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                          style={{ background:"rgba(255,255,255,0.07)", color:"rgba(255,255,255,0.35)", border:"1px solid rgba(255,255,255,0.12)" }}>
+                          🧪 DEMO
+                        </span>
+                      </div>
 
-                      <div className="p-4 flex items-center gap-4 relative">
-                        {/* Avatar with glow on hover */}
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300"
-                          style={{
-                            background:`linear-gradient(135deg,${rc.from},${rc.to})`,
-                            boxShadow: isHov ? `0 0 28px rgba(${rc.glow},0.7)` : `0 0 18px rgba(${rc.glow},0.45)`,
-                            transform: isHov ? "scale(1.08) rotate(-2deg)" : "scale(1)",
-                          }}>
-                          <span style={{ fontSize:"1.8rem", lineHeight:1 }}>{rc.emoji}</span>
+                      <div className="p-4 pt-10">
+                        {/* Plan icon */}
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
+                          style={{ background:`linear-gradient(135deg,${pi.c1}22,${pi.c2}15)`, border:`1.5px solid rgba(${pi.gRGB},0.4)`, boxShadow:`0 0 20px rgba(${pi.gRGB},0.2)` }}>
+                          <span style={{ fontSize:"2rem" }}>{pi.emoji}</span>
                         </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0 pl-1">
-                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className="font-black text-white text-base leading-tight">{account.nombre.split(" ").slice(0,3).join(" ")}</span>
-                            {/* Role badge — colored per type */}
-                            <span className="inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide text-[8px] px-2 py-0.5"
-                              style={{ background:`rgba(${rc.glow},0.14)`, border:`1.5px solid rgba(${rc.glow},0.50)`, color:rc.color, boxShadow:`0 0 8px rgba(${rc.glow},0.25)`, letterSpacing:"0.07em" }}>
-                              {rc.emoji} {rc.label}
-                            </span>
-                            {CIVAC_STAFF_IDS.includes(account.id) && (
-                              <span className="inline-flex items-center gap-1 rounded-full font-black uppercase tracking-wide text-[8px] px-2 py-0.5"
-                                style={{ background:"rgba(0,245,212,0.10)", border:"1.5px solid rgba(0,245,212,0.40)", color:"#00f5d4", letterSpacing:"0.07em" }}>
-                                ⬡ CIVAC
-                              </span>
-                            )}
+                        {/* Plan name */}
+                        <h3 className="text-lg font-black mb-0.5" style={{ color:pi.c1, textShadow:`0 0 12px rgba(${pi.gRGB},0.5)` }}>
+                          {PLAN_LABEL[plan]}
+                        </h3>
+                        <p className="text-[10px] mb-1 font-bold" style={{ color:`rgba(${pi.gRGB},0.55)` }}>
+                          {account.nombre.split(" ").slice(0,3).join(" ")}
+                        </p>
+                        <p className="text-[9px] mb-3 leading-relaxed" style={{ color:"rgba(255,255,255,0.35)" }}>{pi.desc}</p>
+
+                        {/* Module list */}
+                        <div className="space-y-1 mb-4">
+                          {pi.mods.slice(0,5).map(m=>(
+                            <div key={m} className="flex items-center gap-1.5 text-[10px]" style={{ color:`rgba(${pi.gRGB},0.65)` }}>
+                              <span style={{ color:pi.c1, fontSize:"9px" }}>✓</span>{m}
+                            </div>
+                          ))}
+                          {pi.mods.length > 5 && <div className="text-[9px]" style={{ color:"rgba(255,255,255,0.2)" }}>+{pi.mods.length-5} módulos más…</div>}
+                        </div>
+
+                        {/* Plan progress bar */}
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between text-[8px] mb-1" style={{ color:`rgba(${pi.gRGB},0.45)` }}>
+                            <span>{feats.length} módulos</span>
+                            <span>{plan==="basico"?"25%":plan==="pro"?"50%":plan==="premium"?"75%":"100%"}</span>
                           </div>
-                          <p className="text-[10px] mb-1.5" style={{ color:`rgba(${rc.glow},0.55)` }}>{account.cargo}</p>
-                          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                            {feats.slice(0,4).map(f=>(
-                              <span key={f} className="text-[9px] flex items-center gap-0.5" style={{ color:"rgba(255,255,255,0.30)" }}>
-                                <span style={{ color:rc.color, fontSize:"7px" }}>✓</span>{f}
-                              </span>
-                            ))}
+                          <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.06)" }}>
+                            <div className="h-full rounded-full" style={{
+                              width:plan==="basico"?"25%":plan==="pro"?"50%":plan==="premium"?"75%":"100%",
+                              background:`linear-gradient(90deg,${pi.c1},${pi.c2})`,
+                              boxShadow:`0 0 8px rgba(${pi.gRGB},0.5)`,
+                            }}/>
                           </div>
                         </div>
 
-                        {/* Action buttons */}
-                        <div className="flex flex-col gap-2 flex-shrink-0">
+                        {/* CTA buttons */}
+                        <div className="space-y-2">
                           <button onClick={() => handleQuick(account)} disabled={loading}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-2xl font-black text-xs transition-all duration-200 hover:scale-105 active:scale-[0.96] disabled:opacity-50"
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl font-black text-xs transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40"
                             style={{
-                              background:`linear-gradient(135deg,${rc.from},${rc.to})`,
-                              color: ["viewer","vet","superadmin","sales"].includes(account.role) ? "white" : "black",
-                              boxShadow: isHov ? `0 0 24px rgba(${rc.glow},0.60)` : `0 0 14px rgba(${rc.glow},0.30)`,
+                              background:`linear-gradient(135deg,${pi.c1},${pi.c2})`,
+                              color: plan==="platino"?"white":"black",
+                              boxShadow: isHov ? `0 0 28px rgba(${pi.gRGB},0.50)` : `0 0 16px rgba(${pi.gRGB},0.25)`,
                             }}>
                             {isLoading
-                              ? <div className="w-3 h-3 border border-current/40 border-t-current rounded-full animate-spin"/>
-                              : <ArrowRight size={12}/>}
-                            {isLoading ? "Entrando…" : "Entrar"}
+                              ? <><div className="w-3 h-3 border border-current/40 border-t-current rounded-full animate-spin"/>Entrando…</>
+                              : <><ArrowRight size={12}/>Probar {PLAN_LABEL[plan]}</>}
                           </button>
                           {plan !== "platino" && (
                             <button onClick={() => setPayPlan(plan==="basico"?"pro":plan==="pro"?"premium":"platino")}
-                              className="flex items-center gap-1 px-3 py-1 rounded-xl text-[9px] font-bold transition-all hover:opacity-80 hover:scale-[1.03]"
-                              style={{ background:`rgba(${rc.glow},0.05)`, border:`1px solid rgba(${rc.glow},0.15)`, color:`rgba(${rc.glow},0.45)` }}>
-                              ⬆ Mejorar plan
+                              className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl font-bold text-[10px] transition-all hover:opacity-80"
+                              style={{ background:`rgba(${pi.gRGB},0.07)`, border:`1px solid rgba(${pi.gRGB},0.2)`, color:`rgba(${pi.gRGB},0.6)` }}>
+                              💳 Contratar plan
                             </button>
                           )}
-                        </div>
-                      </div>
-
-                      {/* Plan progress bar */}
-                      <div className="px-4 pb-3">
-                        <div className="flex items-center justify-between text-[9px] mb-1">
-                          <span style={{ color:`rgba(${rc.glow},0.5)` }}>Plan {PLAN_LABEL[plan]} · {feats.length} módulos activos</span>
-                          <button onClick={() => setTab("planes")} className="text-white/20 hover:text-white/50 transition-colors">Ver planes →</button>
-                        </div>
-                        <div className="h-1 rounded-full overflow-hidden" style={{ background:"rgba(255,255,255,0.06)" }}>
-                          <div className="h-full rounded-full transition-all duration-700" style={{
-                            width:plan==="basico"?"25%":plan==="pro"?"50%":plan==="premium"?"75%":"100%",
-                            background:`linear-gradient(90deg,${pp},${pp2})`,
-                            boxShadow:`0 0 6px rgba(${pg},0.6)`,
-                          }}/>
                         </div>
                       </div>
                     </div>
                   );
                 })}
-
-                <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-2xl text-[9px] transition-all"
-                  style={{ background:"rgba(57,255,126,0.04)", border:"1px solid rgba(57,255,126,0.12)", color:"rgba(57,255,126,0.5)" }}>
-                  <Shield size={11}/> Autenticación segura · Sesión cifrada · Sin contraseña en servidor
-                </div>
-
-                {/* CTA — login principal */}
-                <button onClick={() => setTab("login")}
-                  className="w-full py-3 rounded-2xl font-black text-sm text-black transition-all hover:opacity-90 active:scale-[0.99]"
-                  style={{ background:"linear-gradient(135deg,#00f5d4,#00c896)", boxShadow:"0 0 24px rgba(0,245,212,0.35)" }}>
-                  🔐 Ir al Login →
-                </button>
               </div>
             </div>
 
-            {/* Right farm widgets */}
-            <RightWidgets />
+            {/* Footer */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px]"
+                style={{ background:"rgba(57,255,126,0.04)", border:"1px solid rgba(57,255,126,0.12)", color:"rgba(57,255,126,0.5)" }}>
+                <Shield size={11}/> Autenticación segura · Sesión localStorage · Sin contraseña en servidor
+              </div>
+              <button onClick={() => setTab("login")}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-sm text-black transition-all hover:opacity-90"
+                style={{ background:"linear-gradient(135deg,#00f5d4,#00c896)", boxShadow:"0 0 24px rgba(0,245,212,0.35)" }}>
+                <ArrowRight size={14}/> Iniciar sesión →
+              </button>
+            </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* ── Footer KPI Strip — siempre visible debajo del card ── */}
         <LoginStatsFooter />

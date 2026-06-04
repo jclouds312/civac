@@ -1,4 +1,4 @@
-# GanaderIA — CIVAC PRO v7.0
+# GanaderIA — CIVAC v1.0
 ## Control Inteligente de Valor Agropecuario · Colombia
 
 Sistema de gestión ganadera integral para Colombia. PWA instalable, 32+ módulos, multirol con 6 cuentas, dark/light mode, persistencia offline con IndexedDB + localStorage, rastreo GPS bovino en tiempo real, trazabilidad ICA, sanidad animal, asesora IA y backends Python (Analytics Flask + GPS Django).

@@ -20,7 +20,7 @@ const CIVAC_VERSIONS = [
   { v:"1.0.0", date:"2026-05-26", status:"current", tag:"stable",
     changes:["Panel Admin 14 tabs completo (Logs, Soporte, Seguridad)","Sidebar expandido: Sanidad, Trazabilidad, 32 módulos","v1.0 branding unificado en toda la plataforma","Login redesign con cuentas reales colombianas","Nuevos roles: Developer + SuperAdmin + Sales","Plan-based PWA install + popup","Generación de licencias JSON por usuario"],
     plans:{ basico:"1.0.0", pro:"1.0.0", premium:"1.0.0", platino:"1.0.0" },
-    notes:"Release v7.0 — 32 módulos, cuentas reales colombianas, sidebar con Sanidad+Trazabilidad.",
+    notes:"Release v1.0 — 32 módulos, cuentas reales colombianas, sidebar con Sanidad+Trazabilidad.",
   },
   { v:"0.9.5", date:"2026-05-21", status:"stable", tag:"lts",
     changes:["Nuevos roles: Developer + SuperAdmin","Version management panel","Módulos tab completo con matriz de permisos","Generación de licencias JSON por usuario","Fix: registerUser preserva plan asignado"],
@@ -956,6 +956,234 @@ export default function DeveloperDashboard() {
                   </button>
                 ))}
               </div>
+            </div>
+          </>
+        )}
+
+        {/* ══ TICKETS ══ */}
+        {tab==="tickets" && (
+          <>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="text-base font-black text-white flex items-center gap-2"><Send size={14} style={{color:"#e879f9"}}/> Tickets & Soporte Dev</h2>
+                <p className="text-[10px] text-white/30">Bugs · Mejoras · Solicitudes · Equipo CIVAC</p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {(["all","abierto","en_proceso","cerrado"] as const).map(f=>(
+                  <button key={f} onClick={()=>setTFilter(f)}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                    style={{ background:tFilter===f?"rgba(232,121,249,0.15)":"rgba(255,255,255,0.04)", color:tFilter===f?"#e879f9":"rgba(255,255,255,0.4)", border:`1px solid ${tFilter===f?"rgba(232,121,249,0.4)":"rgba(255,255,255,0.08)"}` }}>
+                    {f==="all"?"Todos":f==="abierto"?"Abiertos":f==="en_proceso"?"En proceso":"Cerrados"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Summary KPIs */}
+            <div className="grid grid-cols-3 gap-3">
+              {([["abierto","Abiertos","#f87171"],["en_proceso","En proceso","#fbbf24"],["cerrado","Cerrados","#34d399"]] as const).map(([e,l,c])=>(
+                <div key={e} className="rounded-2xl p-4 text-center" style={{background:`${c}08`,border:`1px solid ${c}25`}}>
+                  <div className="text-2xl font-black mb-1" style={{color:c}}>{tickets.filter(t=>t.estado===e).length}</div>
+                  <div className="text-[10px] text-white/40">{l}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* New ticket form */}
+            <div className="rounded-2xl p-4 space-y-3" style={{background:"rgba(232,121,249,0.04)",border:"1px solid rgba(232,121,249,0.18)"}}>
+              <h3 className="text-xs font-bold text-white/50 uppercase tracking-wider flex items-center gap-2"><Plus size={11}/> Nuevo ticket</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input value={tForm.titulo} onChange={e=>setTForm(f=>({...f,titulo:e.target.value}))} placeholder="Título del ticket…"
+                  className="col-span-2 px-3 py-2 rounded-xl text-xs text-white placeholder:text-white/25 outline-none"
+                  style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(232,121,249,0.2)"}}/>
+                <select value={tForm.prioridad} onChange={e=>setTForm(f=>({...f,prioridad:e.target.value as "alta"|"media"|"baja"}))}
+                  className="px-3 py-2 rounded-xl text-xs text-white outline-none"
+                  style={{background:"rgba(30,20,40,0.9)",border:"1px solid rgba(232,121,249,0.2)"}}>
+                  <option value="alta">🔴 Alta</option><option value="media">🟡 Media</option><option value="baja">🟢 Baja</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <textarea value={tForm.desc} onChange={e=>setTForm(f=>({...f,desc:e.target.value}))} placeholder="Descripción detallada…" rows={2}
+                  className="col-span-2 px-3 py-2 rounded-xl text-xs text-white placeholder:text-white/25 outline-none resize-none"
+                  style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(232,121,249,0.2)"}}/>
+                <div className="flex flex-col gap-2">
+                  <select value={tForm.categoria} onChange={e=>setTForm(f=>({...f,categoria:e.target.value}))}
+                    className="px-3 py-2 rounded-xl text-xs text-white outline-none"
+                    style={{background:"rgba(30,20,40,0.9)",border:"1px solid rgba(232,121,249,0.2)"}}>
+                    <option value="bug">🐛 Bug</option><option value="mejora">✨ Mejora</option>
+                    <option value="soporte">🎧 Soporte cliente</option><option value="seguridad">🔒 Seguridad</option>
+                    <option value="docs">📖 Documentación</option><option value="devops">⚙️ DevOps</option>
+                  </select>
+                  <button onClick={addTicket} disabled={!tForm.titulo.trim()}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black disabled:opacity-40 transition-all hover:opacity-90"
+                    style={{background:"linear-gradient(135deg,#e879f9,#a855f7)",color:"white"}}>
+                    <Plus size={11}/> Crear ticket
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Ticket list */}
+            <div className="space-y-2">
+              {tickets.filter(t=>tFilter==="all"||t.estado===tFilter).length === 0 ? (
+                <div className="rounded-2xl p-8 text-center" style={{background:"rgba(232,121,249,0.03)",border:"1px solid rgba(232,121,249,0.10)"}}>
+                  <Send size={24} className="mx-auto mb-3" style={{color:"rgba(232,121,249,0.3)"}}/>
+                  <p className="text-sm text-white/30">No hay tickets con este filtro. Crea uno arriba.</p>
+                </div>
+              ) : tickets.filter(t=>tFilter==="all"||t.estado===tFilter).map(t=>{
+                const prioC = t.prioridad==="alta"?"#f87171":t.prioridad==="media"?"#fbbf24":"#34d399";
+                const estC  = t.estado==="abierto"?"#f87171":t.estado==="en_proceso"?"#fbbf24":"#34d399";
+                return (
+                  <div key={t.id} className="rounded-2xl p-4" style={{background:"rgba(255,255,255,0.03)",border:`1px solid rgba(255,255,255,0.07)`}}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-[9px] font-mono text-white/25">{t.id}</span>
+                          <span className="text-xs font-black text-white">{t.titulo}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:`${prioC}18`,color:prioC,border:`1px solid ${prioC}40`}}>
+                            {t.prioridad==="alta"?"🔴":t.prioridad==="media"?"🟡":"🟢"} {t.prioridad}
+                          </span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:`${estC}12`,color:estC,border:`1px solid ${estC}30`}}>
+                            {t.estado==="abierto"?"Abierto":t.estado==="en_proceso"?"En proceso":"✓ Cerrado"}
+                          </span>
+                          <span className="text-[9px] text-white/20">{t.categoria} · {t.fecha} · {t.autor.split(" ")[0]}</span>
+                        </div>
+                        {t.desc && <p className="text-[10px] text-white/40 leading-relaxed">{t.desc}</p>}
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {t.estado==="abierto" && (
+                          <button onClick={()=>updateTicketEstado(t.id,"en_proceso")}
+                            className="text-[9px] font-bold px-2 py-1 rounded-lg transition-all hover:opacity-80"
+                            style={{background:"rgba(251,191,36,0.12)",color:"#fbbf24",border:"1px solid rgba(251,191,36,0.3)"}}>
+                            En proceso
+                          </button>
+                        )}
+                        {t.estado==="en_proceso" && (
+                          <button onClick={()=>updateTicketEstado(t.id,"cerrado")}
+                            className="text-[9px] font-bold px-2 py-1 rounded-lg transition-all hover:opacity-80"
+                            style={{background:"rgba(52,211,153,0.12)",color:"#34d399",border:"1px solid rgba(52,211,153,0.3)"}}>
+                            Cerrar ✓
+                          </button>
+                        )}
+                        {t.estado==="cerrado" && (
+                          <button onClick={()=>updateTicketEstado(t.id,"abierto")}
+                            className="text-[9px] font-bold px-2 py-1 rounded-lg transition-all hover:opacity-80"
+                            style={{background:"rgba(248,113,113,0.10)",color:"#f87171",border:"1px solid rgba(248,113,113,0.25)"}}>
+                            Reabrir
+                          </button>
+                        )}
+                        <button onClick={()=>deleteTicket(t.id)}
+                          className="w-6 h-6 rounded-lg flex items-center justify-center transition-all hover:bg-red-500/20"
+                          style={{color:"rgba(255,80,80,0.4)"}}>
+                          <X size={10}/>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* ══ ACCESOS ══ */}
+        {tab==="accesos" && (
+          <>
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h2 className="text-base font-black text-white flex items-center gap-2"><Shield size={14} style={{color:"#00f5d4"}}/> Registro de Accesos</h2>
+                <p className="text-[10px] text-white/30">Historial de inicios de sesión · Registrado en localStorage</p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {([["all","Todos"],["civac","⬡ CIVAC"],["demo","🧪 Demo"],["client","👤 Clientes"]] as const).map(([f,l])=>(
+                  <button key={f} onClick={()=>setActFilter(f)}
+                    className="px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all"
+                    style={{ background:actFilter===f?"rgba(0,245,212,0.12)":"rgba(255,255,255,0.04)", color:actFilter===f?"#00f5d4":"rgba(255,255,255,0.4)", border:`1px solid ${actFilter===f?"rgba(0,245,212,0.4)":"rgba(255,255,255,0.08)"}` }}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* KPI row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label:"Total accesos", val:loginActivity.length, c:"#00f5d4" },
+                { label:"⬡ CIVAC Staff",  val:loginActivity.filter(a=>a.isCivac).length, c:"#fbbf24" },
+                { label:"Modo Demo",      val:loginActivity.filter(a=>a.isDemo&&!a.isCivac).length, c:"#e879f9" },
+                { label:"Hoy",           val:loginActivity.filter(a=>a.fecha===new Date().toLocaleDateString("es-CO")).length, c:"#39ff7e" },
+              ].map(k=>(
+                <div key={k.label} className="rounded-2xl p-4 text-center" style={{background:`${k.c}08`,border:`1px solid ${k.c}25`}}>
+                  <div className="text-2xl font-black mb-1" style={{color:k.c}}>{k.val}</div>
+                  <div className="text-[10px] text-white/40">{k.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Activity list */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+              <div className="px-4 py-3 flex items-center justify-between" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                <span className="text-xs font-bold text-white/50">Accesos recientes — {loginActivity.length} registros</span>
+                <button onClick={()=>{ try{localStorage.removeItem("civac_login_activity");}catch{} window.location.reload(); }}
+                  className="text-[9px] font-bold px-2 py-1 rounded-lg"
+                  style={{background:"rgba(248,113,113,0.1)",color:"#f87171",border:"1px solid rgba(248,113,113,0.25)"}}>
+                  Limpiar log
+                </button>
+              </div>
+              <div className="max-h-[420px] overflow-y-auto">
+                {loginActivity.filter(a=>{
+                  if (actFilter==="civac") return a.isCivac;
+                  if (actFilter==="demo") return a.isDemo && !a.isCivac;
+                  if (actFilter==="client") return !a.isDemo && !a.isCivac;
+                  return true;
+                }).length === 0 ? (
+                  <div className="p-8 text-center">
+                    <Shield size={24} className="mx-auto mb-3" style={{color:"rgba(0,245,212,0.3)"}}/>
+                    <p className="text-sm text-white/30">Sin registros de acceso. Inicia sesión con alguna cuenta para comenzar el tracking.</p>
+                  </div>
+                ) : loginActivity.filter(a=>{
+                  if (actFilter==="civac") return a.isCivac;
+                  if (actFilter==="demo") return a.isDemo && !a.isCivac;
+                  if (actFilter==="client") return !a.isDemo && !a.isCivac;
+                  return true;
+                }).map(a=>{
+                  const planC: Record<string,string> = { basico:"#b8c4d4", pro:"#00f5d4", premium:"#fbbf24", platino:"#cd7f32" };
+                  const c = a.isCivac?"#fbbf24":planC[a.plan]??"#b8c4d4";
+                  return (
+                    <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b" style={{borderColor:"rgba(255,255,255,0.04)"}}>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base"
+                        style={{background:`${c}15`,border:`1px solid ${c}35`}}>
+                        {a.isCivac?"⬡":a.isDemo?"🧪":"👤"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-white">{a.userName.split(" ").slice(0,2).join(" ")}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:`${c}15`,color:c,border:`1px solid ${c}35`}}>
+                            {a.isCivac?"⬡ CIVAC":a.plan.toUpperCase()}
+                          </span>
+                          <span className="text-[9px] text-white/25 font-mono">{a.ua}</span>
+                        </div>
+                        <p className="text-[10px] text-white/30">{a.userEmail}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-[10px] font-bold" style={{color:c}}>{a.hora}</div>
+                        <div className="text-[9px] text-white/25">{a.fecha}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Export */}
+            <div className="flex justify-end">
+              <button onClick={()=>{
+                const csv=["ID,Usuario,Email,Rol,Plan,Fecha,Hora,Browser,Demo,CIVAC",...loginActivity.map(a=>`${a.id},${a.userName},${a.userEmail},${a.userRole},${a.plan},${a.fecha},${a.hora},${a.ua},${a.isDemo},${a.isCivac}`)].join("\n");
+                const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob); const anchor=document.createElement("a"); anchor.href=url; anchor.download="civac_accesos.csv"; anchor.click(); URL.revokeObjectURL(url);
+              }} className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-80"
+                style={{background:"rgba(0,245,212,0.1)",color:"#00f5d4",border:"1px solid rgba(0,245,212,0.25)"}}>
+                <Download size={12}/> Exportar CSV
+              </button>
             </div>
           </>
         )}

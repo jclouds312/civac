@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import GoogleUsersPanel from "@/components/google-users-panel";
 import {
-  useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
+  useAuth, LoginActivity, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
   PlanId, Account, WompiPayment,
 } from "@/lib/auth";
 import {
@@ -560,7 +560,7 @@ export default function AdminDashboard({
   activeTab?: string;
   onTabChange?: (t: string) => void;
 } = {}) {
-  const { accounts, registerUser, updateUser, deleteUser, user: currentUser } = useAuth();
+  const { accounts, registerUser, updateUser, deleteUser, user: currentUser, loginActivity } = useAuth();
 
   /* ── State ── */
   const [search,       setSearch]       = useState("");
@@ -968,6 +968,7 @@ export default function AdminDashboard({
     { id:"logs",       icon:"📋", label:"Logs",         color:"#60a5fa" },
     { id:"soporte",    icon:"🎧", label:"Soporte",      color:"#f472b6" },
     { id:"seguridad",  icon:"🔒", label:"Seguridad",    color:"#34d399" },
+    { id:"accesos",    icon:"📌", label:"Accesos",       color:"#00f5d4" },
   ];
 
   return (
@@ -1012,7 +1013,7 @@ export default function AdminDashboard({
                 </span>
                 <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
                   style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"black", boxShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
-                  v7.0
+                  v1.0
                 </span>
               </div>
               <p className="text-xs" style={{ color:"rgba(255,149,0,0.65)" }}>
@@ -3700,6 +3701,101 @@ export default function AdminDashboard({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ ACCESOS ══ */}
+      {tab === "accesos" && (
+        <div className="space-y-4">
+          {/* KPIs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label:"Total accesos",  val:loginActivity.length, c:"#00f5d4", rgb:"0,245,212" },
+              { label:"⬡ CIVAC Staff",  val:loginActivity.filter(a=>a.isCivac).length, c:"#fbbf24", rgb:"251,191,36" },
+              { label:"Demo",           val:loginActivity.filter(a=>a.isDemo&&!a.isCivac).length, c:"#e879f9", rgb:"232,121,249" },
+              { label:"Hoy",            val:loginActivity.filter(a=>a.fecha===new Date().toLocaleDateString("es-CO")).length, c:"#39ff7e", rgb:"57,255,126" },
+            ].map(k=>(
+              <div key={k.label} className="rounded-2xl p-4 text-center" style={{background:`rgba(${k.rgb},0.07)`,border:`1px solid rgba(${k.rgb},0.25)`}}>
+                <div className="text-2xl font-black mb-1" style={{color:k.c}}>{k.val}</div>
+                <div className="text-[10px] text-white/40">{k.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Table */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.12)"}}>
+            <div className="px-4 py-3 flex items-center justify-between" style={{background:"rgba(0,245,212,0.05)",borderBottom:"1px solid rgba(0,245,212,0.1)"}}>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Shield size={13} style={{color:"#00f5d4"}}/> Historial de accesos recientes
+              </h3>
+              <div className="flex items-center gap-2">
+                <button onClick={()=>{
+                  const csv=["ID,Usuario,Email,Rol,Plan,Fecha,Hora,Browser,Demo,CIVAC",...loginActivity.map(a=>`${a.id},${a.userName},${a.userEmail},${a.userRole},${a.plan},${a.fecha},${a.hora},${a.ua},${a.isDemo},${a.isCivac}`)].join("\n");
+                  const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob); const anchor=document.createElement("a"); anchor.href=url; anchor.download="civac_accesos_admin.csv"; anchor.click(); URL.revokeObjectURL(url);
+                }} className="text-[9px] font-bold px-2 py-1 rounded-lg"
+                  style={{background:"rgba(0,245,212,0.1)",color:"#00f5d4",border:"1px solid rgba(0,245,212,0.25)"}}>
+                  ↓ CSV
+                </button>
+                <button onClick={()=>{ try{localStorage.removeItem("civac_login_activity");}catch{} }}
+                  className="text-[9px] font-bold px-2 py-1 rounded-lg"
+                  style={{background:"rgba(248,113,113,0.1)",color:"#f87171",border:"1px solid rgba(248,113,113,0.25)"}}>
+                  Limpiar
+                </button>
+              </div>
+            </div>
+            <div className="max-h-[480px] overflow-y-auto">
+              {loginActivity.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Shield size={28} className="mx-auto mb-3" style={{color:"rgba(0,245,212,0.3)"}}/>
+                  <p className="text-sm text-white/30">Sin registros aún. Los accesos se registran automáticamente al iniciar sesión.</p>
+                </div>
+              ) : loginActivity.map((a, i) => {
+                const planC: Record<string,string> = { basico:"#b8c4d4", pro:"#00f5d4", premium:"#fbbf24", platino:"#cd7f32" };
+                const c = a.isCivac ? "#fbbf24" : planC[a.plan] ?? "#b8c4d4";
+                return (
+                  <div key={a.id} className="px-4 py-3 flex items-center gap-3 border-b"
+                    style={{borderColor:"rgba(255,255,255,0.04)",background:i%2===0?"transparent":"rgba(255,255,255,0.01)"}}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-sm"
+                      style={{background:`${c}15`,border:`1px solid ${c}35`}}>
+                      {a.isCivac ? "⬡" : a.isDemo ? "🧪" : "👤"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-bold text-white truncate">{a.userName}</span>
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:`${c}15`,color:c,border:`1px solid ${c}35`}}>
+                          {a.isCivac ? "⬡ CIVAC" : a.plan.toUpperCase()}
+                        </span>
+                        {a.isDemo && !a.isCivac && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:"rgba(232,121,249,0.12)",color:"#e879f9",border:"1px solid rgba(232,121,249,0.3)"}}>
+                            🧪 Demo
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-white/30 truncate">{a.userEmail} · {a.ua}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-[10px] font-bold" style={{color:c}}>{a.hora}</div>
+                      <div className="text-[9px] text-white/25">{a.fecha}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Plan breakdown */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {(["basico","pro","premium","platino"] as const).map(p=>{
+              const cnt = loginActivity.filter(a=>a.plan===p&&!a.isCivac).length;
+              const c = PLAN_COLOR[p];
+              return (
+                <div key={p} className="rounded-2xl p-4 text-center" style={{background:`${c}08`,border:`1px solid ${c}25`}}>
+                  <div className="text-xl font-black mb-1" style={{color:c}}>{cnt}</div>
+                  <div className="text-[10px] text-white/40">{PLAN_ICON[p]} {PLAN_LABEL[p]}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

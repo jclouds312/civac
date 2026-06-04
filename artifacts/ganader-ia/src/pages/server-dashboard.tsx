@@ -28,7 +28,7 @@ const PWA_VERSIONS = [
   {
     v:"7.1.0", date:"2026-06-03", status:"dev", label:"En desarrollo", color:"#00ff88",
     plans:["basico","pro","premium","platino"], size:"—", downloads:0,
-    features:["Cuentas reales colombianas","Sanidad+Trazabilidad en sidebar","32 módulos en admin matrix","Server health checks reales","Sidebar v7.0 footer","manifest.json v8"],
+    features:["Cuentas reales colombianas","Sanidad+Trazabilidad en sidebar","32 módulos en admin matrix","Server health checks reales","Sidebar v1.0 footer","manifest.json v8"],
     changelog:"v7.1 — Integración completa de 32 módulos. Cuentas cliente reales (empresas colombianas). Sidebar actualizado con Sanidad ICA y Trazabilidad QR. Server Panel con health checks en tiempo real.",
   },
   {
@@ -281,7 +281,7 @@ function ServicesPanel() {
     api:      { status:"checking", latency:null, detail:null },
     analytics:{ status:"checking", latency:null, detail:null },
     gps:      { status:"checking", latency:null, detail:null },
-    frontend: { status:"online",   latency:null, detail:"React 18 · PWA v7.0" },
+    frontend: { status:"online",   latency:null, detail:"React 18 · PWA v1.0" },
   });
   const [lastCheck, setLastCheck] = useState<string|null>(null);
   const [checking, setChecking] = useState(false);
@@ -1325,7 +1325,7 @@ export default function ServerDashboard() {
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px] font-mono" style={{ color:"rgba(0,245,212,0.18)" }}>
               <div className="w-1 h-1 rounded-full" style={{ background:"#00f5d4" }}/>
-              <span>CIVAC Platform v7.0 · Server</span>
+              <span>CIVAC Platform v1.0 · Server</span>
             </div>
           )}
           <button onClick={() => navigate("/")} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-white/30 hover:text-white/60 hover:bg-white/5 transition-all ${collapsed ? "justify-center" : ""}`} style={{ borderRadius:10 }}>

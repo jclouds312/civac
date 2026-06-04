@@ -227,26 +227,51 @@ export default function ServerLogin() {
               </button>
             </form>
 
-            {/* Staff quick access */}
+            {/* Staff quick access — Credential cards */}
             <div className="mt-5 pt-4 border-t" style={{ borderColor: "rgba(0,245,212,0.08)" }}>
-              <p className="text-[10px] font-mono text-center mb-3" style={{ color: "rgba(148,163,184,0.3)", letterSpacing: "0.1em" }}>— ACCESO RÁPIDO CIVAC STAFF —</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: "superadmin", label: "Super", email: "super@civac.co",  pwd: "super2026",  icon: "🔱", color: "#ff6b35" },
-                  { id: "developer",  label: "Dev",   email: "dev@civac.co",    pwd: "dev2026",    icon: "🛠️", color: "#00ff88" },
-                  { id: "admin",      label: "Admin", email: "admin@ganader.ia", pwd: "admin",     icon: "👑", color: "#fbbf24" },
-                ].map(acc => (
+              <p className="text-[10px] font-mono text-center mb-3" style={{ color: "rgba(148,163,184,0.3)", letterSpacing: "0.1em" }}>— CREDENCIALES CIVAC STAFF —</p>
+              <div className="grid grid-cols-2 gap-2">
+                {([
+                  { id: "superadmin", label: "Super Admin",   email: "Softganventas@gmail.com",          pwd: "civac2026",  icon: "🔱", color: "#ff6b35", glow: "255,107,53",  role: "superadmin" },
+                  { id: "developer",  label: "Desarrollador", email: "johnatanvallejomarulanda@gmail.com", pwd: "dev2026",    icon: "💻", color: "#00ff88", glow: "0,255,136",   role: "developer"  },
+                  { id: "admin",      label: "Administrador", email: "lizet.daza@civac.co",               pwd: "lizet2026",  icon: "👑", color: "#fbbf24", glow: "251,191,36",  role: "admin"      },
+                  { id: "ventas",     label: "Ventas CRM",    email: "ventas@civac.co",                   pwd: "ventas2026", icon: "📊", color: "#e879f9", glow: "232,121,249", role: "sales"      },
+                ] as const).map(acc => (
                   <button
                     key={acc.id}
-                    onClick={() => { setEmail(acc.email); setPassword(acc.pwd); }}
-                    className="flex flex-col items-center gap-1 p-2 rounded-xl transition-all hover:scale-105"
-                    style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+                    onClick={() => { setEmail(acc.id); setPassword(acc.pwd); }}
+                    className="flex flex-col gap-1.5 p-2.5 rounded-xl transition-all hover:scale-[1.03] text-left"
+                    style={{
+                      background: `rgba(${acc.glow},0.05)`,
+                      border: `1px solid rgba(${acc.glow},0.18)`,
+                      boxShadow: `0 0 0 0 rgba(${acc.glow},0)`,
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 16px rgba(${acc.glow},0.2)`; (e.currentTarget as HTMLButtonElement).style.borderColor = `rgba(${acc.glow},0.4)`; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 0 0 rgba(${acc.glow},0)`; (e.currentTarget as HTMLButtonElement).style.borderColor = `rgba(${acc.glow},0.18)`; }}
                   >
-                    <span className="text-base">{acc.icon}</span>
-                    <span className="text-[9px] font-mono" style={{ color: acc.color }}>{acc.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm">{acc.icon}</span>
+                      <span className="text-[10px] font-black" style={{ color: acc.color }}>{acc.label}</span>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-[8px] font-mono truncate" style={{ color: "rgba(255,255,255,0.3)" }}>
+                        ID: <span style={{ color: "rgba(255,255,255,0.5)" }}>{acc.id}</span>
+                      </div>
+                      <div className="text-[8px] font-mono" style={{ color: acc.color, opacity: 0.7 }}>
+                        🔑 {acc.pwd}
+                      </div>
+                    </div>
+                    <div className="text-[8px] font-mono px-1.5 py-0.5 rounded-md text-center w-full"
+                      style={{ background: `rgba(${acc.glow},0.1)`, color: acc.color }}>
+                      Clic para llenar →
+                    </div>
                   </button>
                 ))}
               </div>
+              <p className="text-[8px] font-mono text-center mt-2" style={{ color: "rgba(148,163,184,0.2)" }}>
+                Usar ID de cuenta como usuario (ej: superadmin, admin, developer, ventas)
+              </p>
             </div>
           </div>
 

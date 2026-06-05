@@ -166,24 +166,30 @@ export type GpsUbicacion = typeof gpsUbicacionesTable.$inferSelect;
 
 // ── Usuarios Sistema ──────────────────────────────────────────────────────────
 export const usuariosTable = pgTable("usuarios_sistema", {
-  id:         text("id").primaryKey(),
-  nombre:     text("nombre").notNull(),
-  cargo:      text("cargo").notNull().default(""),
-  finca:      text("finca").notNull().default("Finca El Rancho Verde"),
-  email:      text("email").notNull(),
-  password:   text("password").notNull(),
-  role:       text("role").notNull().default("viewer"),
-  permisos:   text("permisos").notNull().default("[]"),
-  planCode:   text("plan_code").notNull().default("basico"),
-  activo:     boolean("activo").notNull().default(true),
-  foto:       text("foto").default(""),
-  googleId:   text("google_id").unique(),
-  googleFoto: text("google_foto"),
-  estado:     text("estado").notNull().default("activo"),
-  createdAt:  timestamp("created_at").defaultNow(),
-  updatedAt:  timestamp("updated_at").defaultNow(),
+  id:          text("id").primaryKey(),
+  nombre:      text("nombre").notNull(),
+  cargo:       text("cargo").notNull().default(""),
+  finca:       text("finca").notNull().default("Finca El Rancho Verde"),
+  email:       text("email").notNull(),
+  password:    text("password").notNull(),
+  role:        text("role").notNull().default("viewer"),
+  permisos:    text("permisos").notNull().default("[]"),
+  planCode:    text("plan_code").notNull().default("basico"),
+  activo:      boolean("activo").notNull().default(true),
+  foto:        text("foto").default(""),
+  googleId:    text("google_id").unique(),
+  googleFoto:  text("google_foto"),
+  estado:      text("estado").notNull().default("activo"),
+  demoExpiry:  timestamp("demo_expiry"),
+  demoDias:    integer("demo_dias").notNull().default(0),
+  planExpiry:  timestamp("plan_expiry"),
+  planDias:    integer("plan_dias").notNull().default(0),
+  loginCount:  integer("login_count").notNull().default(0),
+  lastLogin:   timestamp("last_login"),
+  createdAt:   timestamp("created_at").defaultNow(),
+  updatedAt:   timestamp("updated_at").defaultNow(),
 });
-export const insertUsuarioSchema = createInsertSchema(usuariosTable).omit({ createdAt: true, updatedAt: true });
+export const insertUsuarioSchema = createInsertSchema(usuariosTable).omit({ createdAt: true, updatedAt: true, demoExpiry: true, planExpiry: true, lastLogin: true });
 export type InsertUsuario = z.infer<typeof insertUsuarioSchema>;
 export type UsuarioSistema = typeof usuariosTable.$inferSelect;
 

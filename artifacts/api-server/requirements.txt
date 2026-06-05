@@ -5,11 +5,11 @@ Install with: pip install -r requirements.txt
 """
 
 # Web Framework
-Flask==3.0.3
+Flask==3.1.0
 Flask-CORS==4.0.0
-Flask-SocketIO==5.3.5
-python-socketio==5.11.4
-python-engineio==4.8.0
+Flask-SocketIO==5.3.6
+python-socketio==5.12.1
+python-engineio==4.11.2
 
 # Serial Communication
 pyserial==3.5
@@ -32,5 +32,5 @@ gevent-websocket==0.10.1
 python-json-logger==2.0.7
 
 # Development
-python-dotenv==1.0.1
+python-dotenv==1.0.2
 

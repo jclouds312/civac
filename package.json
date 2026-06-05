@@ -11,7 +11,9 @@
   "private": true,
   "pnpm": {
     "overrides": {
-      "qs": ">=6.15.1"
+      "qs": ">=6.15.1",
+      "esbuild": ">=0.25.0",
+      "@esbuild-kit/core-utils>esbuild": ">=0.25.0"
     }
   },
   "devDependencies": {

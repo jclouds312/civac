@@ -68,6 +68,9 @@ export interface Account {
   planExpiry?: string;       // ISO date string
   wompiRef?: string;         // última referencia de pago
   planActivadoEn?: string;   // ISO date
+  /* ── Server-side expiry (synced from API) ── */
+  demoExpiry?: string | null;    // ISO date — fin período demo
+  demoDias?: number | null;      // días demo restantes (sincronizado)
   /* ── Template / Backup ── */
   isTemplate?: boolean;      // cuenta plantilla — nunca se puede eliminar
   isDemo?: boolean;          // cuenta demo de plan — acceso a módulos de granja
@@ -487,14 +490,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       setLoginActivity(prev => { const next=[activity,...prev].slice(0,200); saveActivities(next); return next; });
     } catch { /* ignore */ }
-    // Background: also get a real server session token for API access
+    // Background: get server session token + sync demoExpiry/planExpiry from DB
     fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: account.email, password: account.password }),
-    }).then(r => r.ok ? r.json() : null).then(data => {
-      if (data?.token) {
-        try { localStorage.setItem('civac_session_token', data.token); } catch {}
+    }).then(r => {
+      // Accept 200 (ok) and 402 (expired) — both carry useful data
+      if (r.ok || r.status === 402) return r.json().then((d: Record<string, unknown>) => ({ ...d, _s: r.status }));
+      return null;
+    }).then((data: Record<string, unknown> | null) => {
+      if (!data) return;
+      if (data.token) {
+        try { localStorage.setItem('civac_session_token', data.token as string); } catch {}
+      }
+      // Sync server expiry fields into local account state
+      const srv = data.user as Record<string, unknown> | undefined;
+      const updates: Partial<Account> = {};
+      if (srv?.demoExpiry !== undefined) updates.demoExpiry = (srv.demoExpiry as string | null) ?? null;
+      if (srv?.planExpiry !== undefined) updates.planExpiry = srv.planExpiry as string | undefined;
+      if (srv?.demoDiasRestantes !== undefined) updates.demoDias = srv.demoDiasRestantes as number | null;
+      // Handle expired codes
+      if (data.code === 'demo_expired') {
+        updates.demoExpiry = (data.expiredAt as string | null) ?? null;
+        updates.demoDias = 0;
+      }
+      if (data.code === 'plan_expired') {
+        updates.planExpiry = (data.expiredAt as string | undefined);
+      }
+      if (Object.keys(updates).length) {
+        setUser(u => {
+          if (!u || u.id !== account.id) return u;
+          const next = { ...u, ...updates };
+          try { localStorage.setItem('ganader_user', JSON.stringify(next)); } catch {}
+          return next;
+        });
+        // Update accounts state (setAccountsState supports functional update; setAccounts does not)
+        setAccountsState(prev => {
+          const next = prev.map((a: Account) => a.id === account.id ? { ...a, ...updates } : a);
+          saveAccounts(next);
+          return next;
+        });
       }
     }).catch(() => { /* offline — token stays empty */ });
   };
@@ -508,6 +544,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const id = `user_${Date.now()}`;
     const newAccount: Account = { id, ...data, activo: true };
     setAccounts([...accounts, newAccount]);
+    // Background: persist to server DB (fire & forget)
+    fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre: data.nombre,
+        email: data.email,
+        password: data.password,
+        finca: data.finca || '',
+        cargo: data.cargo || '',
+        role: data.role,
+        planCode: data.plan ?? 'basico',
+      }),
+    }).catch(() => { /* offline — already saved locally */ });
     return newAccount;
   };
 
@@ -568,12 +618,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const pmt = addWompiPayment(payment);
     const expiry = new Date();
     expiry.setMonth(expiry.getMonth() + 1);
+    const planExpiry = expiry.toISOString().slice(0, 10);
     updateUser(userId, {
       plan,
-      planExpiry: expiry.toISOString().slice(0,10),
+      planExpiry,
       wompiRef: pmt.id,
-      planActivadoEn: new Date().toISOString().slice(0,10),
+      planActivadoEn: new Date().toISOString().slice(0, 10),
+      demoExpiry: null, // clear demo state on real plan activation
     });
+    // Background: persist plan activation to server DB
+    const token = localStorage.getItem('civac_session_token');
+    fetch(`/api/admin/users/${userId}/activate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ planCode: plan, dias: 30 }),
+    }).catch(() => { /* offline — plan is active locally, will sync later */ });
   };
 
   return createElement(AuthContext.Provider, {

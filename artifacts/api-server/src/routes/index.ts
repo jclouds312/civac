@@ -19,6 +19,7 @@ import syncRouter from "./sync";
 import crmRouter from "./crm";
 import adminRouter from "./admin";
 import tramasRouter from "./tramas";
+import webhooksRouter from "./webhooks";
 
 const router: IRouter = Router();
 
@@ -42,5 +43,6 @@ router.use(syncRouter);
 router.use(crmRouter);
 router.use(adminRouter);
 router.use(tramasRouter);
+router.use(webhooksRouter);
 
 export default router;

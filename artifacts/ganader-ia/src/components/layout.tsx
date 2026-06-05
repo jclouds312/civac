@@ -6,16 +6,74 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, UserCircle, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles, Satellite, Shield, Tag, MessageCircle,
+  Sparkles, Satellite, Shield, Tag, MessageCircle, AlertTriangle,
 } from "lucide-react";
 import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
-import { PLAN_ICON, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_LABEL } from "@/lib/auth";
+import { PLAN_ICON, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_LABEL, CIVAC_STAFF_IDS } from "@/lib/auth";
+import type { PlanId } from "@/lib/auth";
 import { applyPlanTheme } from "@/lib/api";
 import { usePlanTheme } from "@/lib/plan-theme";
+
+/* ── Expiry Banner ─────────────────────────────────────────────────────────── */
+function ExpiryBanner() {
+  const { user } = useAuth();
+  const [dismissed, setDismissed] = useState(false);
+
+  if (!user || dismissed) return null;
+  if (CIVAC_STAFF_IDS.includes(user.id)) return null;
+
+  const today = Date.now();
+  let daysLeft: number | null = null;
+  let kind: 'demo' | 'plan' | null = null;
+
+  if (user.demoExpiry) {
+    const d = Math.ceil((new Date(user.demoExpiry).getTime() - today) / 86_400_000);
+    if (d <= 7) { daysLeft = Math.max(0, d); kind = 'demo'; }
+  } else if (user.planExpiry && user.plan && user.plan !== 'basico') {
+    const d = Math.ceil((new Date(user.planExpiry).getTime() - today) / 86_400_000);
+    if (d <= 7) { daysLeft = Math.max(0, d); kind = 'plan'; }
+  }
+
+  if (daysLeft === null || kind === null) return null;
+
+  const expired  = daysLeft <= 0;
+  const urgent   = daysLeft <= 3;
+  const planName = kind === 'plan' && user.plan ? PLAN_LABEL[user.plan as PlanId] : 'Demo';
+  const msg = kind === 'demo'
+    ? expired
+      ? 'Tu período de demo ha vencido. Activa un plan para continuar.'
+      : `Demo vence en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}. Activa tu plan.`
+    : expired
+      ? `Plan ${planName} vencido. Renueva para recuperar acceso completo.`
+      : `Plan ${planName} vence en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}. Renueva pronto.`;
+
+  const bg      = expired ? 'rgba(239,68,68,0.13)'  : urgent ? 'rgba(249,115,22,0.11)' : 'rgba(251,191,36,0.09)';
+  const border  = expired ? 'rgba(239,68,68,0.36)'  : urgent ? 'rgba(249,115,22,0.33)' : 'rgba(251,191,36,0.30)';
+  const clr     = expired ? '#f87171'                : urgent ? '#fb923c'               : '#fbbf24';
+
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 text-[11px] font-semibold"
+      style={{ background: bg, borderBottom: `1px solid ${border}`, color: clr }}>
+      <AlertTriangle size={13} className="flex-shrink-0" />
+      <span className="flex-1">{msg}</span>
+      <Link href="/planes">
+        <button className="px-2.5 py-1 rounded-lg text-[10px] font-black transition-all hover:scale-105"
+          style={{ background: `${clr}22`, border: `1px solid ${clr}55`, color: clr }}>
+          {expired ? 'Activar plan →' : 'Ver planes →'}
+        </button>
+      </Link>
+      {!expired && (
+        <button onClick={() => setDismissed(true)} className="text-white/25 hover:text-white/60 transition-colors ml-1">
+          <X size={12} />
+        </button>
+      )}
+    </div>
+  );
+}
 
 interface LayoutProps { children: React.ReactNode; }
 
@@ -985,6 +1043,9 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
         </header>
+
+        {/* ── Demo/Plan expiry warning banner ──────────────────────────── */}
+        <ExpiryBanner />
 
         {/* ── Page content ──────────────────────────────────────────────── */}
         <div className="flex-1 p-3 lg:p-5 overflow-x-hidden pb-20 lg:pb-5">

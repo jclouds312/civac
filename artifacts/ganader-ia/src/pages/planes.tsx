@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Shield, CheckCircle2, Crown, Zap, Star, Leaf, Lock,
   ChevronRight, Award, Users, TrendingUp, DollarSign, Beef,
@@ -516,6 +516,32 @@ export default function Planes() {
   const [viewInv,     setViewInv]     = useState<CivacInvoice | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastInv,     setLastInv]     = useState<CivacInvoice | null>(null);
+  const [wompiRef,    setWompiRef]    = useState<string | null>(null);
+
+  /* ── Handle Wompi redirect back: ?pago=ok&ref=CIVAC-xxx ─────────────────── */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pago = params.get("pago");
+    const ref  = params.get("ref");
+    if (pago === "ok" && ref) {
+      window.history.replaceState({}, "", window.location.pathname);
+      setWompiRef(ref);
+      setShowSuccess(true);
+      setActiveTab("suscripcion");
+      setTimeout(() => setShowSuccess(false), 10000);
+      // Notify API server of confirmed payment (fire & forget)
+      const token = localStorage.getItem("civac_session_token");
+      fetch("/api/webhooks/wompi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({
+          event: "transaction.updated",
+          data: { transaction: { status: "APPROVED", reference: ref, customer_data: { email: user?.email ?? "" } } },
+        }),
+      }).catch(() => { /* offline — plan activated locally already */ });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const actualInfo = PLANS.find(p => p.id === planActual)!;
   const userInvoices = invoices.filter(inv =>

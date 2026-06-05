@@ -633,6 +633,8 @@ export default function Login() {
         blocked:         "Tu cuenta ha sido bloqueada. Contacta al administrador.",
         userinfo_failed: "No se pudo obtener información de tu cuenta Google.",
         server_error:    "Error interno del servidor. Intenta más tarde.",
+        demo_expired:    "Tu período de demo ha vencido. Contacta a CIVAC para activar tu plan.",
+        plan_expired:    "Tu plan venció. Renueva tu suscripción para continuar.",
       };
       setError(msgs[gError] ?? "Error con Google. Intenta de nuevo.");
       return;
@@ -697,13 +699,54 @@ export default function Login() {
     setTimeout(() => { loginAs(a); setLoading(false); }, 420);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
-    setTimeout(() => {
-      if (!login(email, password)) setError("Credenciales incorrectas. Verifique email y contraseña.");
-      setLoading(false);
-    }, 600);
+    // Try local login first
+    const localOk = login(email, password);
+    if (localOk) { setLoading(false); return; }
+    // Local failed — try API (handles DB-only users and returns expiry errors)
+    try {
+      const r = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const d = await r.json() as { token?: string; error?: string; code?: string; user?: Record<string, unknown> };
+      if (r.ok && d.token) {
+        // DB user not in localStorage — log them in via loginAs
+        if (d.token) try { localStorage.setItem("civac_session_token", d.token); } catch {}
+        const u = d.user as Record<string, unknown> | undefined;
+        if (u) {
+          loginAs({
+            id: String(u.id ?? `db_${Date.now()}`),
+            nombre: String(u.nombre ?? "Usuario"),
+            email: String(u.email ?? email),
+            password,
+            role: (u.role as Account["role"]) ?? "viewer",
+            cargo: String(u.cargo ?? ""),
+            finca: String(u.finca ?? ""),
+            avatar: "🙂",
+            gradient: "from-[#0a2012] to-[#0d3520]",
+            plan: ((u.planCode as PlanId) ?? "basico"),
+            permisos: ["inventario", "produccion", "alertas", "dashboard"],
+            activo: true,
+          });
+        }
+        setLoading(false); return;
+      }
+      // Map API error codes to user-friendly messages
+      const errMsgs: Record<string, string> = {
+        demo_expired: "Tu período de demo ha vencido. Contacta a CIVAC para activar tu plan.",
+        plan_expired:  "Tu plan ha vencido. Renueva tu suscripción para continuar.",
+        pending:       "Tu cuenta está pendiente de activación. Te notificaremos por correo.",
+        blocked:       "Tu cuenta ha sido bloqueada. Contacta al administrador CIVAC.",
+      };
+      setError(errMsgs[d.code ?? ""] ?? d.error ?? "Credenciales incorrectas. Verifique email y contraseña.");
+    } catch {
+      setError("Credenciales incorrectas. Verifique email y contraseña.");
+    }
+    setLoading(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {

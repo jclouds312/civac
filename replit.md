@@ -109,18 +109,28 @@ artifacts/ganader-ia/
 
 ---
 
-## Sistema de autenticación — 6 cuentas
+## Sistema de autenticación — Cuentas oficiales
 
-| Nombre | Email | Password | Rol | Acceso |
-|--------|-------|----------|-----|--------|
-| Administrador General | admin@ganader.ia | admin | admin | Panel Admin completo (sin sidebar finca) |
-| Super Administrador | super@civac.co | super2026 | superadmin | Acceso total plataforma + Server Panel |
-| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola dev + todos los módulos |
-| Dr. Carlos Ramírez | vet@ganader.ia | vet2026 | vet | Módulos clínicos + lectura |
-| Luis Patiño | luis@ganader.ia | campo2026 | field | Campo: pesaje, GPS, potreros |
+### Cuentas CIVAC Staff (acceso Server Panel + badge ⬡ CIVAC)
+
+| Nombre | Email | Password | Rol | Cargo |
+|--------|-------|----------|-----|-------|
+| Javier Hernando Sánchez Bernal | Softganventas@gmail.com | civac2026 | superadmin | CEO · Fundador & Propietario CIVAC |
+| Lizet Daza | lizet.daza@civac.co | lizet2026 | admin | Co-Fundadora · Directora Ejecutiva |
+| Johnatan Vallejo Marulanda | johnatanvallejomarulanda@gmail.com | dev2026 | developer | Arquitecto Principal · Dev PWA & IA |
+| Asesora CIVAC · Ventas | ventas@civac.co | ventas2026 | sales | Asesora Comercial Senior |
+
+### Cuentas Demo / Cliente (acceso finca)
+
+| Nombre | Email | Password | Rol | Descripción |
+|--------|-------|----------|-----|-------------|
+| Dr. Carlos Ramírez | vet@ganader.ia | vet2026 | vet | Médico Veterinario — módulos clínicos |
+| Luis Patiño | luis@ganader.ia | campo2026 | field | Jefe de Campo — pesaje, GPS, potreros |
 | Propietario / Inversor | visor@ganader.ia | visor | viewer | Solo lectura / dashboards |
 
 **`CIVAC_STAFF_IDS`** = `['superadmin','developer','admin','sales']` — exportado de `auth.ts`. Estas cuentas muestran badge `⬡ CIVAC` en lugar del badge de plan y tienen acceso al Server Panel (`/server`).
+
+**Respaldo oficial:** `civac-accounts-backup.json` — contiene todas las cuentas staff, demo por plan y cuentas cliente con passwords, precios, permisos y configuración de días demo.
 
 ---
 

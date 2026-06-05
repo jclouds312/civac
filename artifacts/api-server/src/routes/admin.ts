@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql, gt } from "drizzle-orm";
 import {
   db, syncLogTable, animalsTable, potrerosTable, insumosTable, personalTable,
   alertasTable, pesajesTable, usuariosTable, plansTable, tramaLogsTable, appVersionsTable,
+  userSessionsTable,
 } from "@workspace/db";
 
 const router = Router();
@@ -93,6 +94,9 @@ router.get("/admin/users", async (_req, res) => {
       planCode: usuariosTable.planCode, activo: usuariosTable.activo,
       googleId: usuariosTable.googleId, googleFoto: usuariosTable.googleFoto,
       estado: usuariosTable.estado, createdAt: usuariosTable.createdAt,
+      demoExpiry: usuariosTable.demoExpiry, demoDias: usuariosTable.demoDias,
+      planExpiry: usuariosTable.planExpiry, planDias: usuariosTable.planDias,
+      loginCount: usuariosTable.loginCount, lastLogin: usuariosTable.lastLogin,
     }).from(usuariosTable).orderBy(desc(usuariosTable.createdAt));
     return res.json({ ok: true, total: users.length, users });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
@@ -119,6 +123,141 @@ router.patch("/admin/users/:id", async (req, res) => {
       .where(eq(usuariosTable.id, id)).returning();
     if (!row) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
     return res.json({ ok: true, user: row });
+  } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+/* ── POST /api/admin/users/:id/demo — otorgar días de demo ───────────────── */
+router.post("/admin/users/:id/demo", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dias = 7 } = req.body as { dias?: number };
+    if (dias < 1 || dias > 365) return res.status(400).json({ ok: false, message: "Días inválidos (1-365)" });
+
+    const [user] = await db.select().from(usuariosTable).where(eq(usuariosTable.id, id)).limit(1);
+    if (!user) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
+
+    const demoExpiry = new Date();
+    demoExpiry.setDate(demoExpiry.getDate() + dias);
+
+    const [row] = await db.update(usuariosTable).set({
+      demoExpiry,
+      demoDias: dias,
+      activo: true,
+      estado: "demo",
+      updatedAt: new Date(),
+    } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, id)).returning();
+
+    return res.json({
+      ok: true,
+      message: `Demo de ${dias} días otorgado hasta ${demoExpiry.toLocaleDateString("es-CO")}`,
+      user: row,
+      demoExpiry: demoExpiry.toISOString(),
+    });
+  } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+/* ── POST /api/admin/users/:id/activate — activar cuenta con plan ─────────── */
+router.post("/admin/users/:id/activate", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { planCode = "pro", dias = 30 } = req.body as { planCode?: string; dias?: number };
+
+    if (!["basico","pro","premium","platino"].includes(planCode))
+      return res.status(400).json({ ok: false, message: "Plan inválido" });
+
+    const [user] = await db.select().from(usuariosTable).where(eq(usuariosTable.id, id)).limit(1);
+    if (!user) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
+
+    const planExpiry = new Date();
+    planExpiry.setDate(planExpiry.getDate() + dias);
+
+    const [row] = await db.update(usuariosTable).set({
+      planCode,
+      planExpiry,
+      planDias: dias,
+      activo: true,
+      estado: "activo",
+      demoExpiry: null,
+      updatedAt: new Date(),
+    } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, id)).returning();
+
+    return res.json({
+      ok: true,
+      message: `Cuenta activada con plan ${planCode} por ${dias} días`,
+      user: row,
+      planExpiry: planExpiry.toISOString(),
+    });
+  } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+/* ── POST /api/admin/users/:id/extend — extender plan/demo ──────────────── */
+router.post("/admin/users/:id/extend", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dias = 30, type = "plan" } = req.body as { dias?: number; type?: "plan"|"demo" };
+
+    const [user] = await db.select().from(usuariosTable).where(eq(usuariosTable.id, id)).limit(1);
+    if (!user) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
+
+    const base = type === "demo"
+      ? (user.demoExpiry && user.demoExpiry > new Date() ? user.demoExpiry : new Date())
+      : (user.planExpiry && user.planExpiry > new Date() ? user.planExpiry : new Date());
+
+    const newExpiry = new Date(base);
+    newExpiry.setDate(newExpiry.getDate() + dias);
+
+    const updates = type === "demo"
+      ? { demoExpiry: newExpiry, demoDias: (user.demoDias ?? 0) + dias }
+      : { planExpiry: newExpiry, planDias: (user.planDias ?? 0) + dias };
+
+    const [row] = await db.update(usuariosTable).set({ ...updates, updatedAt: new Date() } as Parameters<typeof db.update>[0])
+      .where(eq(usuariosTable.id, id)).returning();
+
+    return res.json({ ok: true, message: `${dias} días añadidos`, user: row, newExpiry: newExpiry.toISOString() });
+  } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+/* ── GET /api/admin/sessions — sesiones activas ──────────────────────────── */
+router.get("/admin/sessions", async (_req, res) => {
+  try {
+    const sessions = await db.select({
+      id: userSessionsTable.id,
+      userId: userSessionsTable.userId,
+      userEmail: userSessionsTable.userEmail,
+      userRole: userSessionsTable.userRole,
+      userName: userSessionsTable.userName,
+      planCode: userSessionsTable.planCode,
+      ipAddress: userSessionsTable.ipAddress,
+      userAgent: userSessionsTable.userAgent,
+      expiresAt: userSessionsTable.expiresAt,
+      createdAt: userSessionsTable.createdAt,
+    }).from(userSessionsTable)
+      .where(gt(userSessionsTable.expiresAt, new Date()))
+      .orderBy(desc(userSessionsTable.createdAt))
+      .limit(100);
+
+    return res.json({ ok: true, total: sessions.length, sessions });
+  } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+/* ── DELETE /api/admin/sessions/:id — revocar sesión ─────────────────────── */
+router.delete("/admin/sessions/:id", async (req, res) => {
+  try {
+    await db.delete(userSessionsTable).where(eq(userSessionsTable.id, req.params["id"]));
+    return res.json({ ok: true, message: "Sesión revocada" });
+  } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
+});
+
+/* ── DELETE /api/admin/sessions — revocar todas las sesiones de un user ───── */
+router.delete("/admin/sessions", async (req, res) => {
+  try {
+    const { userId } = req.query as { userId?: string };
+    if (userId) {
+      await db.delete(userSessionsTable).where(eq(userSessionsTable.userId, userId));
+    } else {
+      await db.delete(userSessionsTable).where(sql`${userSessionsTable.expiresAt} < now()`);
+    }
+    return res.json({ ok: true });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });
 
@@ -279,7 +418,7 @@ router.get("/admin/health", async (_req, res) => {
   try {
     await db.execute(sql`SELECT 1`);
     return res.json({ ok: true, status: "healthy", db: "connected",
-      server: "CIVAC Admin API v2.1", uptime: process.uptime(),
+      server: "CIVAC Admin API v2.2", uptime: process.uptime(),
       memMb: Math.round(process.memoryUsage().rss / 1024 / 1024),
       checkedAt: new Date().toISOString() });
   } catch (err) { return res.status(503).json({ ok: false, status: "degraded", error: String(err) }); }

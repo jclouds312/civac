@@ -6,14 +6,19 @@ import { db, usuariosTable, userSessionsTable } from "@workspace/db";
 const router = Router();
 
 const FALLBACK_USERS = [
-  { id:"u-admin",  nombre:"Lizeth Daza",             cargo:"Co-Fundadora · Dir. Ejecutiva", finca:"CIVAC HQ · Bogotá",       email:"admin@ganader.ia",  password:"admin",     role:"admin",      planCode:"pro",      estado:"activo" },
-  { id:"u-vet",    nombre:"Dr. Carlos Ramírez",       cargo:"Médico Veterinario",             finca:"Finca El Rancho Verde",   email:"vet@ganader.ia",    password:"vet2026",   role:"vet",        planCode:"pro",      estado:"activo" },
-  { id:"u-field",  nombre:"Luis Patiño",              cargo:"Jefe de Campo",                  finca:"Finca El Rancho Verde",   email:"luis@ganader.ia",   password:"campo2026", role:"field",      planCode:"basico",   estado:"activo" },
-  { id:"u-viewer", nombre:"Propietario / Inversor",   cargo:"Propietario",                    finca:"Finca El Rancho Verde",   email:"visor@ganader.ia",  password:"visor",     role:"viewer",     planCode:"basico",   estado:"activo" },
-  { id:"u-dev",    nombre:"Johnatan Vallejo",         cargo:"Arquitecto CIVAC",               finca:"CIVAC HQ",               email:"dev@civac.co",      password:"dev2026",   role:"developer",  planCode:"platino",  estado:"activo" },
-  { id:"u-super",  nombre:"Javier · CEO CIVAC",       cargo:"Co-Fundador · CEO",              finca:"CIVAC HQ",               email:"super@civac.co",    password:"super2026", role:"superadmin", planCode:"platino",  estado:"activo" },
-  { id:"u-ventas", nombre:"María Salazar",            cargo:"Asesora Comercial Senior",       finca:"CIVAC Sales Colombia",    email:"ventas@civac.co",   password:"ventas2026",role:"sales",      planCode:"pro",      estado:"activo" },
+  { id:"superadmin", nombre:"Javier Hernando Sánchez Bernal", cargo:"CEO · Fundador & Propietario CIVAC",    finca:"CIVAC HQ · Bogotá",    email:"Softganventas@gmail.com",             password:"civac2026",  role:"superadmin", planCode:"platino", estado:"activo" },
+  { id:"admin",      nombre:"Lizet Daza",                      cargo:"Co-Fundadora · Directora Ejecutiva",   finca:"CIVAC HQ · Bogotá",    email:"lizet.daza@civac.co",                 password:"lizet2026",  role:"admin",      planCode:"platino", estado:"activo" },
+  { id:"developer",  nombre:"Johnatan Vallejo Marulanda",      cargo:"Arquitecto Principal · Dev PWA & IA",  finca:"CIVAC Labs · Colombia", email:"johnatanvallejomarulanda@gmail.com",  password:"dev2026",    role:"developer",  planCode:"platino", estado:"activo" },
+  { id:"ventas",     nombre:"Asesora CIVAC · Ventas",          cargo:"Asesora Comercial Senior",             finca:"CIVAC Sales Colombia",  email:"ventas@civac.co",                     password:"ventas2026", role:"sales",      planCode:"platino", estado:"activo" },
+  { id:"u-vet",      nombre:"Dr. Carlos Ramírez",              cargo:"Médico Veterinario",                   finca:"Finca El Rancho Verde", email:"vet@ganader.ia",                      password:"vet2026",    role:"vet",        planCode:"pro",     estado:"activo" },
+  { id:"u-field",    nombre:"Luis Patiño",                     cargo:"Jefe de Campo",                        finca:"Finca El Rancho Verde", email:"luis@ganader.ia",                     password:"campo2026",  role:"field",      planCode:"basico",  estado:"activo" },
+  { id:"u-viewer",   nombre:"Propietario / Inversor",          cargo:"Propietario",                          finca:"Finca El Rancho Verde", email:"visor@ganader.ia",                    password:"visor",      role:"viewer",     planCode:"basico",  estado:"activo" },
 ];
+
+function msLeft(expiry: Date | null | undefined): number {
+  if (!expiry) return Infinity;
+  return new Date(expiry).getTime() - Date.now();
+}
 
 /* ── POST /api/auth/login ─────────────────────────────────────────────────── */
 router.post("/auth/login", async (req, res) => {
@@ -22,14 +27,46 @@ router.post("/auth/login", async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: "Email y contraseña requeridos" });
 
     let user: typeof FALLBACK_USERS[0] | null = null;
+    let dbRow: typeof usuariosTable.$inferSelect | null = null;
+
     try {
       const rows = await db.select().from(usuariosTable)
         .where(eq(usuariosTable.email, email.toLowerCase().trim())).limit(1);
       if (rows[0] && rows[0].password === password) {
-        if (rows[0].estado === "bloqueado") return res.status(403).json({ error: "Cuenta bloqueada. Contacte al administrador." });
-        user = { id: rows[0].id, nombre: rows[0].nombre, cargo: rows[0].cargo, finca: rows[0].finca,
+        dbRow = rows[0];
+
+        if (rows[0].estado === "bloqueado")
+          return res.status(403).json({ error: "Cuenta bloqueada. Contacte al administrador." });
+
+        if (rows[0].estado === "pendiente")
+          return res.status(403).json({ error: "Tu cuenta está pendiente de activación por el administrador. Te notificaremos por correo.", code: "pending" });
+
+        /* ── Demo expiry check ────────────────────────────────────────── */
+        if (rows[0].demoExpiry && msLeft(rows[0].demoExpiry) <= 0) {
+          const expStr = new Date(rows[0].demoExpiry).toLocaleDateString("es-CO");
+          return res.status(402).json({
+            error: `Tu período de demo venció el ${expStr}. Contacta a CIVAC para activar tu plan.`,
+            code: "demo_expired",
+            expiredAt: rows[0].demoExpiry,
+          });
+        }
+
+        /* ── Plan expiry check (only for non-free plans) ─────────────── */
+        if (rows[0].planExpiry && rows[0].planCode !== "basico" && msLeft(rows[0].planExpiry) <= 0) {
+          const expStr = new Date(rows[0].planExpiry).toLocaleDateString("es-CO");
+          return res.status(402).json({
+            error: `Tu plan ${rows[0].planCode.toUpperCase()} venció el ${expStr}. Renueva tu suscripción para continuar.`,
+            code: "plan_expired",
+            expiredAt: rows[0].planExpiry,
+            planCode: rows[0].planCode,
+          });
+        }
+
+        user = {
+          id: rows[0].id, nombre: rows[0].nombre, cargo: rows[0].cargo, finca: rows[0].finca,
           email: rows[0].email, password: rows[0].password, role: rows[0].role,
-          planCode: rows[0].planCode ?? "basico", estado: rows[0].estado ?? "activo" };
+          planCode: rows[0].planCode ?? "basico", estado: rows[0].estado ?? "activo",
+        };
       }
     } catch { /* DB not ready — use fallback */ }
 
@@ -38,6 +75,17 @@ router.post("/auth/login", async (req, res) => {
       if (fb) user = fb;
     }
     if (!user) return res.status(401).json({ error: "Credenciales incorrectas" });
+
+    /* ── Increment loginCount + set lastLogin in DB ───────────────────── */
+    if (dbRow) {
+      try {
+        await db.update(usuariosTable).set({
+          loginCount: (dbRow.loginCount ?? 0) + 1,
+          lastLogin: new Date(),
+          updatedAt: new Date(),
+        } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, dbRow.id));
+      } catch { /* ok */ }
+    }
 
     const token = randomUUID();
     try {
@@ -49,8 +97,24 @@ router.post("/auth/login", async (req, res) => {
       });
     } catch { /* ok */ }
 
-    res.json({ token, user: { id: user.id, nombre: user.nombre, email: user.email,
-      role: user.role, cargo: user.cargo, finca: user.finca, planCode: user.planCode, estado: user.estado } });
+    const demoExpiry = dbRow?.demoExpiry ?? null;
+    const planExpiry = dbRow?.planExpiry ?? null;
+    const demoDiasRestantes = demoExpiry ? Math.max(0, Math.ceil(msLeft(demoExpiry) / 86_400_000)) : null;
+    const planDiasRestantes = planExpiry ? Math.max(0, Math.ceil(msLeft(planExpiry) / 86_400_000)) : null;
+
+    res.json({
+      token,
+      user: {
+        id: user.id, nombre: user.nombre, email: user.email,
+        role: user.role, cargo: user.cargo, finca: user.finca,
+        planCode: user.planCode, estado: user.estado,
+        demoExpiry: demoExpiry?.toISOString() ?? null,
+        planExpiry: planExpiry?.toISOString() ?? null,
+        demoDiasRestantes,
+        planDiasRestantes,
+        loginCount: dbRow ? (dbRow.loginCount ?? 0) + 1 : 1,
+      },
+    });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
@@ -69,6 +133,11 @@ router.get("/auth/me", async (req, res) => {
         let googleFoto: string | null = null;
         let finca = "Finca El Rancho Verde";
         let cargo = "";
+        let demoExpiry: Date | null = null;
+        let planExpiry: Date | null = null;
+        let demoDias = 0;
+        let planDias = 0;
+        let loginCount = 0;
         try {
           const users = await db.select().from(usuariosTable)
             .where(eq(usuariosTable.id, s.userId)).limit(1);
@@ -77,10 +146,20 @@ router.get("/auth/me", async (req, res) => {
             googleFoto = users[0].googleFoto ?? null;
             finca = users[0].finca ?? finca;
             cargo = users[0].cargo ?? "";
+            demoExpiry = users[0].demoExpiry ?? null;
+            planExpiry = users[0].planExpiry ?? null;
+            demoDias = users[0].demoDias ?? 0;
+            planDias = users[0].planDias ?? 0;
+            loginCount = users[0].loginCount ?? 0;
           }
         } catch { /* ok */ }
-        return res.json({ id: s.userId, nombre: s.userName, email: s.userEmail,
-          role: s.userRole, cargo, finca, planCode: s.planCode, estado, googleFoto });
+        return res.json({
+          id: s.userId, nombre: s.userName, email: s.userEmail,
+          role: s.userRole, cargo, finca, planCode: s.planCode, estado, googleFoto,
+          demoExpiry: demoExpiry?.toISOString() ?? null,
+          planExpiry: planExpiry?.toISOString() ?? null,
+          demoDias, planDias, loginCount,
+        });
       }
     } catch { /* DB not ready */ }
 
@@ -176,6 +255,8 @@ router.get("/auth/google/callback", async (req, res) => {
       const [updated] = await db.update(usuariosTable).set({
         googleId: gUser.id,
         googleFoto: gUser.picture ?? null,
+        loginCount: (existing[0].loginCount ?? 0) + 1,
+        lastLogin: new Date(),
         updatedAt: new Date(),
       }).where(eq(usuariosTable.id, existing[0].id)).returning();
       dbUser = updated;
@@ -197,6 +278,11 @@ router.get("/auth/google/callback", async (req, res) => {
         estado: "pendiente",
       }).returning();
       dbUser = created;
+    }
+
+    /* Check demo/plan expiry for google users */
+    if (dbUser.demoExpiry && msLeft(dbUser.demoExpiry) <= 0) {
+      return res.redirect(`${frontendUrl}/?google_error=demo_expired`);
     }
 
     const token = randomUUID();

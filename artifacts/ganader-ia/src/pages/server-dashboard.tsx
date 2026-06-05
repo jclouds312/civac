@@ -74,10 +74,10 @@ const CLIENT_INSTANCES = [
 ];
 
 const CIVAC_STAFF = [
-  { id:"superadmin", name:"Super Administrador", email:"super@civac.co",   role:"superadmin", icon:"🔱", color:"#ff6b35", online:true,  desc:"Acceso total plataforma · owner" },
-  { id:"developer",  name:"Dev · Arquitecto",    email:"dev@civac.co",     role:"developer",  icon:"🛠️", color:"#00ff88", online:true,  desc:"Consola · Deploy · Versiones · CI" },
-  { id:"admin",      name:"Administrador Gral.",  email:"admin@ganader.ia", role:"admin",      icon:"⚙️", color:"#00c8ff", online:true,  desc:"Panel Admin · Facturación · Clientes" },
-  { id:"ventas",     name:"Asesora de Ventas",    email:"ventas@civac.co",  role:"sales",      icon:"💼", color:"#e879f9", online:false, desc:"CRM · Pipeline · Demos comerciales" },
+  { id:"superadmin", name:"Javier Hernando Sánchez Bernal", email:"Softganventas@gmail.com",            role:"superadmin", icon:"🔱", color:"#ff6b35", online:true,  desc:"CEO · Fundador & Propietario · Acceso total plataforma", phone:"3187351262" },
+  { id:"admin",      name:"Lizet Daza",                      email:"lizet.daza@civac.co",                role:"admin",      icon:"👑", color:"#fbbf24", online:true,  desc:"Co-Fundadora · Directora Ejecutiva · Panel Admin · Facturación" },
+  { id:"developer",  name:"Johnatan Vallejo Marulanda",      email:"johnatanvallejomarulanda@gmail.com", role:"developer",  icon:"🛠️", color:"#00ff88", online:true,  desc:"Arquitecto Principal · Dev PWA & IA · Consola · Deploy" },
+  { id:"ventas",     name:"Asesora CIVAC · Ventas",          email:"ventas@civac.co",                    role:"sales",      icon:"💼", color:"#e879f9", online:false, desc:"Asesora Comercial Senior · CRM · Pipeline · Demos" },
 ];
 
 const DEPENDENCIES = {
@@ -144,13 +144,14 @@ const LANGUAGES_STACK = [
 const NAV_SECTIONS = [
   { id:"hub",       icon:Monitor,      label:"Server Hub",        sub:"Estado en vivo",        color:"#00f5d4", glow:"0,245,212"   },
   { id:"servicios", icon:Server,       label:"Servicios",         sub:"4 backends activos",    color:"#39ff7e", glow:"57,255,126"  },
+  { id:"sesiones",  icon:Users,        label:"Sesiones",          sub:"Accesos en tiempo real", color:"#00c8ff", glow:"0,200,255"  },
   { id:"versiones", icon:Package,      label:"Versiones PWA",     sub:"Descargas & build",     color:"#a78bfa", glow:"167,139,250" },
   { id:"deps",      icon:Box,          label:"Dependencias",      sub:"Tech stack completo",   color:"#fbbf24", glow:"251,191,36"  },
   { id:"langs",     icon:FileCode,     label:"Lenguajes",         sub:"TS · Python · CSS",     color:"#3178c6", glow:"49,120,198"  },
   { id:"integ",     icon:Plug,         label:"Integraciones",     sub:"APIs · IoT · Pagos",    color:"#f97316", glow:"249,115,22"  },
-  { id:"instancias",icon:Building2,    label:"Instancias",        sub:"Clientes activos",      color:"#00c8ff", glow:"0,200,255"   },
+  { id:"instancias",icon:Building2,    label:"Instancias",        sub:"Clientes activos",      color:"#60a5fa", glow:"96,165,250"  },
   { id:"demos",     icon:Play,         label:"Demos & Ventas",    sub:"Cuentas demo por plan", color:"#e879f9", glow:"232,121,249" },
-  { id:"staff",     icon:Shield,       label:"CIVAC Staff",       sub:"Cuentas internas",      color:"#ff6b35", glow:"255,107,53"  },
+  { id:"staff",     icon:Shield,       label:"CIVAC Staff",       sub:"Cuentas oficiales",     color:"#ff6b35", glow:"255,107,53"  },
   { id:"dev",       icon:Terminal,     label:"Dev Console",       sub:"Logs · API · Deploy",   color:"#00ff88", glow:"0,255,136"   },
   { id:"config",    icon:Settings,     label:"Configuración",     sub:"Sistema & seguridad",   color:"#94a3b8", glow:"148,163,175" },
 ];
@@ -1121,6 +1122,192 @@ function DevConsolePanel() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   SESSIONS PANEL — Sesiones activas en tiempo real
+══════════════════════════════════════════════════════════════════ */
+interface ServerSession {
+  id: string; userId: string; userEmail: string; userRole: string;
+  userName: string; planCode: string; ipAddress: string; userAgent: string;
+  expiresAt: string; createdAt: string;
+}
+
+function SessionsPanel() {
+  const [sessions, setSessions]     = useState<ServerSession[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [revoking, setRevoking]     = useState<string|null>(null);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
+
+  const planColor: Record<string,string> = { basico:"#94a3b8", pro:"#00f5d4", premium:"#fbbf24", platino:"#cd7f32" };
+  const planIcon:  Record<string,string> = { basico:"⚪", pro:"⚡", premium:"🥇", platino:"🔶" };
+  const roleColor: Record<string,string> = { superadmin:"#ff6b35", admin:"#fbbf24", developer:"#00ff88", sales:"#e879f9", vet:"#22c55e", field:"#00c8ff", viewer:"#94a3b8" };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await fetch("/api/admin/sessions");
+      const d = await r.json() as { ok: boolean; sessions: ServerSession[] };
+      if (d.ok) { setSessions(d.sessions ?? []); setLastRefresh(new Date()); }
+    } catch { /* ignore */ }
+    setLoading(false);
+  };
+
+  const revoke = async (sessionId: string) => {
+    setRevoking(sessionId);
+    try {
+      await fetch(`/api/admin/sessions/${sessionId}`, { method: "DELETE" });
+      setSessions(prev => prev.filter(s => s.id !== sessionId));
+    } catch { /* ignore */ }
+    setRevoking(null);
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const timeAgo = (iso: string) => {
+    const ms = Date.now() - new Date(iso).getTime();
+    if (ms < 60000) return "hace <1 min";
+    if (ms < 3600000) return `hace ${Math.floor(ms/60000)} min`;
+    if (ms < 86400000) return `hace ${Math.floor(ms/3600000)}h`;
+    return `hace ${Math.floor(ms/86400000)}d`;
+  };
+
+  const timeLeft = (iso: string) => {
+    const ms = new Date(iso).getTime() - Date.now();
+    if (ms <= 0) return "Expirada";
+    if (ms < 3600000) return `${Math.floor(ms/60000)} min`;
+    if (ms < 86400000) return `${Math.floor(ms/3600000)}h`;
+    return `${Math.floor(ms/86400000)}d`;
+  };
+
+  const getBrowser = (ua: string) => {
+    if (!ua) return "Desconocido";
+    if (ua.includes("Chrome") && !ua.includes("Edg")) return "Chrome";
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
+    if (ua.includes("Edg")) return "Edge";
+    return "Web";
+  };
+
+  const getDevice = (ua: string) => {
+    if (!ua) return "Desktop";
+    if (/Mobile|Android|iPhone/.test(ua)) return "📱 Móvil";
+    if (/iPad|Tablet/.test(ua)) return "📟 Tablet";
+    return "🖥️ Desktop";
+  };
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader icon={Users} label="Sesiones Activas" sub="Accesos en tiempo real · Tokens JWT · Control de sesiones" color="#00c8ff"/>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label:"Sesiones activas", val:sessions.length,                                                                    color:"#00c8ff", g:"0,200,255"   },
+          { label:"Staff CIVAC",      val:sessions.filter(s=>["superadmin","admin","developer","sales"].includes(s.userRole)).length, color:"#ff6b35", g:"255,107,53"  },
+          { label:"Clientes",         val:sessions.filter(s=>!["superadmin","admin","developer","sales"].includes(s.userRole)).length, color:"#39ff7e", g:"57,255,126"  },
+          { label:"Última actualización", val:lastRefresh.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit"}), color:"#a78bfa", g:"167,139,250" },
+        ].map(k => (
+          <div key={k.label} className="p-3 rounded-2xl text-center" style={{ background:`rgba(${k.g},0.06)`, border:`1px solid rgba(${k.g},0.18)` }}>
+            <p className="text-xl font-black" style={{ color:k.color }}>{k.val}</p>
+            <p className="text-[10px] mt-0.5" style={{ color:"rgba(148,163,184,0.45)" }}>{k.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Refresh */}
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-mono" style={{ color:"rgba(0,200,255,0.35)" }}>
+          {sessions.length} sesión{sessions.length!==1?"es":""} activa{sessions.length!==1?"s":""}
+        </p>
+        <button onClick={() => void load()} disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all hover:opacity-80"
+          style={{ background:"rgba(0,200,255,0.08)", border:"1px solid rgba(0,200,255,0.2)", color:"#00c8ff" }}>
+          <RefreshCw size={11} className={loading?"animate-spin":""}/>
+          Actualizar
+        </button>
+      </div>
+
+      {/* Sessions cards */}
+      {loading ? (
+        <div className="flex items-center justify-center py-16 gap-3" style={{ color:"rgba(0,200,255,0.3)" }}>
+          <RefreshCw size={18} className="animate-spin"/>
+          <span className="text-sm font-mono">Cargando sesiones…</span>
+        </div>
+      ) : sessions.length === 0 ? (
+        <div className="rounded-2xl p-8 text-center" style={{ background:"rgba(4,13,26,0.5)", border:"1px solid rgba(255,255,255,0.05)" }}>
+          <div className="text-3xl mb-3">🔒</div>
+          <p className="text-sm text-white/30">No hay sesiones activas en este momento</p>
+          <p className="text-[11px] text-white/20 mt-1">Las sesiones aparecen aquí cuando los usuarios inician sesión</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {sessions.map(s => {
+            const pc = planColor[s.planCode] ?? "#94a3b8";
+            const rc = roleColor[s.userRole] ?? "#94a3b8";
+            const isStaff = ["superadmin","admin","developer","sales"].includes(s.userRole);
+            return (
+              <div key={s.id} className="rounded-2xl p-4 transition-all"
+                style={{ background:"rgba(4,13,26,0.7)", border:`1px solid ${isStaff?"rgba(255,107,53,0.15)":"rgba(0,200,255,0.1)"}` }}>
+                <div className="flex items-start gap-3 flex-wrap">
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base flex-shrink-0"
+                    style={{ background:`${rc}12`, border:`1px solid ${rc}30`, color:rc }}>
+                    {s.userName[0]?.toUpperCase()}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <p className="text-[13px] font-black text-white">{s.userName}</p>
+                      {isStaff && (
+                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full"
+                          style={{ background:"rgba(0,245,212,0.1)", border:"1px solid rgba(0,245,212,0.3)", color:"#00f5d4" }}>⬡ CIVAC</span>
+                      )}
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full capitalize"
+                        style={{ background:`${rc}10`, border:`1px solid ${rc}25`, color:rc }}>{s.userRole}</span>
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                        style={{ background:`${pc}10`, border:`1px solid ${pc}25`, color:pc }}>{planIcon[s.planCode]}{s.planCode}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-[10px]" style={{ color:"rgba(148,163,184,0.45)" }}>
+                      <span>📧 {s.userEmail}</span>
+                      <span>🌐 {s.ipAddress || "IP desconocida"}</span>
+                      <span>💻 {getDevice(s.userAgent)} · {getBrowser(s.userAgent)}</span>
+                      <span>🕐 Login: {timeAgo(s.createdAt)}</span>
+                      <span style={{ color:timeLeft(s.expiresAt)==="Expirada"?"#f87171":"rgba(148,163,184,0.45)" }}>
+                        ⏱️ Expira: {timeLeft(s.expiresAt)}
+                      </span>
+                    </div>
+                    <p className="text-[9px] font-mono mt-1" style={{ color:"rgba(0,200,255,0.2)" }}>
+                      Token: {s.id.slice(0,8)}…{s.id.slice(-4)}
+                    </p>
+                  </div>
+
+                  {/* Revoke */}
+                  <button onClick={() => void revoke(s.id)} disabled={revoking === s.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all disabled:opacity-50 flex-shrink-0"
+                    style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)", color:"#f87171" }}>
+                    {revoking === s.id ? <RefreshCw size={10} className="animate-spin"/> : <Lock size={10}/>}
+                    Revocar
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Info */}
+      <div className="rounded-xl p-4" style={{ background:"rgba(0,200,255,0.04)", border:"1px solid rgba(0,200,255,0.1)" }}>
+        <p className="text-[11px] font-bold mb-2" style={{ color:"rgba(0,200,255,0.5)" }}>📋 Información de sesiones</p>
+        <div className="space-y-1.5 text-[10px]" style={{ color:"rgba(148,163,184,0.4)" }}>
+          <div className="flex items-start gap-2"><CheckCircle size={10} style={{ color:"#39ff7e", flexShrink:0, marginTop:1 }}/> Cada sesión dura 7 días desde el último login</div>
+          <div className="flex items-start gap-2"><CheckCircle size={10} style={{ color:"#39ff7e", flexShrink:0, marginTop:1 }}/> Al revocar una sesión, el usuario es desconectado inmediatamente</div>
+          <div className="flex items-start gap-2"><CheckCircle size={10} style={{ color:"#39ff7e", flexShrink:0, marginTop:1 }}/> Las sesiones expiradas se limpian automáticamente</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    CONFIG PANEL
 ══════════════════════════════════════════════════════════════════ */
 function ConfigPanel() {
@@ -1224,6 +1411,7 @@ export default function ServerDashboard() {
   const PANELS: Record<string, ReactNode> = {
     hub: <HubPanel />,
     servicios: <ServicesPanel />,
+    sesiones: <SessionsPanel />,
     versiones: <VersionesPanel />,
     deps: <DepsPanel />,
     langs: <LangsPanel />,

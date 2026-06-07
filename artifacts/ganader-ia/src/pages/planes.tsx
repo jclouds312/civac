@@ -275,8 +275,9 @@ function PaymentModal({
 }) {
   const { user, addWompiPayment, addInvoice, activatePlan } = useAuth();
   const [form, setForm] = useState<PayForm>(initForm(user));
-  const [step, setStep] = useState<"form"|"method"|"confirm">("form");
+  const [step, setStep] = useState<"form"|"method"|"confirm"|"wompi_pending">("form");
   const [loading, setLoading] = useState(false);
+  const [wompiRef, setWompiRef] = useState("");
 
   const precio  = form.billing === "anual" ? RETAIL_ANNUAL[plan.id] : RETAIL[plan.id];
   const iva     = Math.round(precio * 0.19);
@@ -451,7 +452,25 @@ function PaymentModal({
               <div className="flex gap-2">
                 <button onClick={() => setStep("form")} className="px-4 py-2 rounded-xl text-[11px] font-bold text-white/40 border border-white/10 hover:bg-white/5 transition-all">← Volver</button>
                 {form.metodo === "wompi" ? (
-                  <a href={wompiUrl()} target="_blank" rel="noreferrer" onClick={() => setTimeout(() => setStep("confirm"), 500)}
+                  <a href={wompiUrl()} target="_blank" rel="noreferrer"
+                    onClick={() => {
+                      const ref = refNum;
+                      setWompiRef(ref);
+                      addWompiPayment({
+                        userId:     user?.id     ?? "guest",
+                        userNombre: form.nombre  || (user?.nombre ?? "Cliente"),
+                        userEmail:  form.email   || (user?.email  ?? ""),
+                        plan:       plan.id,
+                        monto:      total,
+                        moneda:     "COP",
+                        metodo:     "wompi",
+                        referencia: ref,
+                        estado:     "pendiente",
+                        telefono:   form.telefono || undefined,
+                        nit:        form.nit      || undefined,
+                      });
+                      setTimeout(() => setStep("wompi_pending"), 600);
+                    }}
                     className="flex-1 text-center py-2 rounded-xl font-black text-[12px] transition-all"
                     style={{ background:`linear-gradient(135deg,${plan.from},${plan.to})`, color:plan.textColor, boxShadow:`0 4px 20px rgba(${plan.glow},0.35)` }}>
                     💳 Pagar con Wompi →

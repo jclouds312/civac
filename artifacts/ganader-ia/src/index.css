@@ -51,46 +51,46 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PALETA GRANJA — LIGHT MODE
-   Crema cálido · Verdes pasto · Tierra · Flores del campo
+   PALETA CAMPO FRESCO — LIGHT MODE v2
+   Cianes · Blancos cristalinos · Verdes bosque · Azul cielo · Tonos fríos
    ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Fondo general: crema-gris cálido ── */
-  --background:    38 22% 84%;     /* #dbd2c0 — crema gris arena */
-  --foreground:    28 40% 14%;     /* marrón oscuro legible */
-  --border:        35 20% 72%;     /* borde tierra suave */
-  --input:         38 28% 88%;     /* input crema */
-  --ring:          145 55% 38%;
+  /* ── Fondo general: blanco-cian fresco ── */
+  --background:    185 42% 93%;    /* #e2f4f2 — blanco menta frío */
+  --foreground:    172 62% 11%;    /* #0b302a — verde bosque profundo */
+  --border:        180 32% 78%;    /* borde cian suave */
+  --input:         185 45% 97%;    /* input casi blanco-cian */
+  --ring:          174 72% 36%;    /* teal vivo */
 
-  /* ── Cards: crema cálido ── */
-  --card:              40 45% 95%;   /* #f7f1e6 crema suave */
-  --card-foreground:   28 40% 14%;
-  --card-border:       38 22% 78%;
+  /* ── Cards: blanco puro con toque cristal ── */
+  --card:              0 0% 100%;       /* blanco puro */
+  --card-foreground:   172 62% 11%;
+  --card-border:       180 35% 84%;
 
   /* Popover */
-  --popover:           40 38% 97%;
-  --popover-foreground:28 40% 14%;
-  --popover-border:    38 20% 80%;
+  --popover:           0 0% 100%;
+  --popover-foreground:172 58% 11%;
+  --popover-border:    180 30% 82%;
 
-  /* Primary — verde bosque */
-  --primary:           145 58% 32%;
+  /* Primary — teal vívido */
+  --primary:           174 72% 34%;
   --primary-foreground:0 0% 100%;
-  --primary-border:    rgba(30,100,60,0.35);
+  --primary-border:    rgba(0,165,148,0.35);
 
-  /* Secondary — trigo dorado */
-  --secondary:         40 60% 88%;
-  --secondary-foreground:28 40% 20%;
-  --secondary-border:  rgba(180,140,60,0.20);
+  /* Secondary — azul cielo claro */
+  --secondary:         200 65% 90%;
+  --secondary-foreground:200 55% 18%;
+  --secondary-border:  rgba(14,165,233,0.22);
 
-  /* Muted — tierra pálida */
-  --muted:             35 25% 82%;
-  --muted-foreground:  28 20% 50%;
-  --muted-border:      rgba(150,110,60,0.12);
+  /* Muted — gris-azul frío */
+  --muted:             190 32% 88%;
+  --muted-foreground:  190 22% 42%;
+  --muted-border:      rgba(14,165,233,0.10);
 
-  /* Accent — verde vivo */
-  --accent:            140 62% 34%;
+  /* Accent — verde bosque vivo */
+  --accent:            150 62% 30%;
   --accent-foreground: 0 0% 100%;
-  --accent-border:     rgba(30,100,60,0.28);
+  --accent-border:     rgba(22,163,74,0.32);
 
   /* Destructivo */
   --destructive:       0 72% 50%;
@@ -101,11 +101,11 @@
   --sidebar:           215 65% 11%;
   --sidebar-foreground:210 18% 88%;
   --sidebar-border:    215 40% 17%;
-  --sidebar-primary:   145 75% 46%;
+  --sidebar-primary:   174 75% 46%;
   --sidebar-primary-foreground: 215 60% 8%;
   --sidebar-accent:    215 45% 17%;
   --sidebar-accent-foreground: 210 14% 85%;
-  --sidebar-ring:      145 75% 46%;
+  --sidebar-ring:      174 75% 46%;
 
   /* Fuentes */
   --app-font-sans: 'Space Grotesk', 'Sora', sans-serif;
@@ -115,44 +115,44 @@
   /* Radio de esquinas */
   --radius: 1rem;
 
-  /* ── PALETA GRANJA (light mode) ── */
-  --farm-cream:      #f5f0e2;
-  --farm-wheat:      #d4b87a;
-  --farm-sage:       #7aaa7a;
-  --farm-forest:     #3a7848;
-  --farm-terracotta: #c06840;
-  --farm-barn:       #9e3028;
-  --farm-sunflower:  #e8c030;
-  --farm-sky:        #6090c0;
-  --farm-lavender:   #9878c0;
-  --farm-rose:       #c07080;
-  --farm-earth:      #8a6040;
-  --farm-pasture:    #90c878;
-  --farm-hay:        #e0c870;
-  --farm-clay:       #c09060;
-  --farm-moss:       #6a8a5a;
-  --farm-fog:        #b8b0a8;
+  /* ── PALETA CAMPO FRESCO (light mode v2) ── */
+  --farm-cream:      #f0fafa;    /* blanco cristal-cian */
+  --farm-wheat:      #a8d8c8;    /* sage frío */
+  --farm-sage:       #4ab898;    /* teal-sage vívido */
+  --farm-forest:     #0d7a5a;    /* bosque profundo */
+  --farm-terracotta: #0ea5e9;    /* azul cielo (reemplaza terracota) */
+  --farm-barn:       #0369a1;    /* azul profundo */
+  --farm-sunflower:  #00b8a8;    /* teal (reemplaza girasol) */
+  --farm-sky:        #38bdf8;    /* cielo vívido */
+  --farm-lavender:   #818cf8;    /* índigo */
+  --farm-rose:       #34d399;    /* esmeralda (reemplaza rosa) */
+  --farm-earth:      #0d9488;    /* teal oscuro */
+  --farm-pasture:    #4ade80;    /* verde vívido pasto */
+  --farm-hay:        #00d4c0;    /* cian pasto */
+  --farm-clay:       #22c55e;    /* verde campo */
+  --farm-moss:       #16a34a;    /* musgo bosque */
+  --farm-fog:        #bae6fd;    /* bruma azul cielo */
 
-  /* ── Paleta visual de tokens de marca ── */
-  --civac-navy:    #0d2137;
-  --civac-forest:  #1a6640;
-  --civac-teal:    #00b898;
-  --civac-green:   #2a8a50;
+  /* ── Paleta visual de tokens de marca (cool) ── */
+  --civac-navy:    #003d38;
+  --civac-forest:  #0d6647;
+  --civac-teal:    #00a896;
+  --civac-green:   #16a34a;
   --civac-cyan:    #0ea5e9;
-  --civac-gold:    #d97706;
-  --civac-glow:    0 0 20px rgba(38,110,65,0.25);
+  --civac-gold:    #0891b2;
+  --civac-glow:    0 0 20px rgba(0,168,148,0.28);
 
-  /* ── Cards granja — light mode ── */
-  --lm-card-bg:    linear-gradient(135deg,#f5f0e2,#eae8d8);
-  --lm-card-alt:   linear-gradient(135deg,#f5ece0,#eeddd0);
-  --lm-card-blue:  linear-gradient(135deg,#ddeeff,#c8e0f8);
-  --lm-card-green: linear-gradient(135deg,#d8f5e0,#bce8cc);
-  --lm-card-teal:  linear-gradient(135deg,#cdf5ee,#a8e8de);
-  --lm-card-purple:linear-gradient(135deg,#ecdcf5,#dcc8f0);
-  --lm-card-rose:  linear-gradient(135deg,#f8d8e0,#f0bcc8);
-  --lm-card-amber: linear-gradient(135deg,#f8ecc0,#f0dc98);
-  --lm-section-bg: rgba(245,240,226,0.92);
-  --lm-table-hdr:  linear-gradient(90deg,#d4eed8,#bce8cc);
+  /* ── Cards Campo Fresco — light mode ── */
+  --lm-card-bg:    linear-gradient(135deg,#ffffff,#f0fafb);
+  --lm-card-alt:   linear-gradient(135deg,#f5fffe,#eefaff);
+  --lm-card-blue:  linear-gradient(135deg,#e0f4ff,#c8e8ff);
+  --lm-card-green: linear-gradient(135deg,#e0faf0,#c4f0e0);
+  --lm-card-teal:  linear-gradient(135deg,#e0faf8,#baf0ec);
+  --lm-card-purple:linear-gradient(135deg,#f0ecff,#e0d8ff);
+  --lm-card-rose:  linear-gradient(135deg,#ffe8f4,#ffd0e8);
+  --lm-card-amber: linear-gradient(135deg,#e8fff8,#c8f4ec);
+  --lm-section-bg: rgba(230,250,248,0.95);
+  --lm-table-hdr:  linear-gradient(90deg,#b8f0e4,#98e4d8);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

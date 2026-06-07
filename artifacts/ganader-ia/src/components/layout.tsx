@@ -6,9 +6,8 @@ import {
   Package, FlaskConical, DollarSign, Users, TrendingUp, Leaf,
   Map, Navigation, UserCog, UserCircle, Settings, BookOpen, Truck, Activity,
   ChevronRight, Building2, Cpu, BarChart3, Lock, ShoppingBag, Cloud,
-  Sparkles, Satellite, Shield, Tag, MessageCircle,
+  Sparkles, Satellite, Shield, Tag, MessageCircle, HelpCircle,
 } from "lucide-react";
-import { AiAssistant } from "./ai-assistant";
 import { SyncStatusPill } from "./sync-status";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
@@ -433,12 +432,12 @@ export function Layout({ children }: LayoutProps) {
           style={{
             borderRadius: 13,
             background: active
-              ? `linear-gradient(135deg,rgba(255,214,10,0.16),rgba(245,158,11,0.07))`
+              ? `linear-gradient(135deg,rgba(${m.glow},0.20),rgba(${m.glow},0.06))`
               : 'transparent',
             border: active
-              ? `1px solid rgba(255,214,10,0.40)`
+              ? `1px solid rgba(${m.glow},0.45)`
               : `1px solid transparent`,
-            boxShadow: active ? `0 0 20px rgba(255,214,10,0.12)` : 'none',
+            boxShadow: active ? `0 0 20px rgba(${m.glow},0.22), inset 0 1px 0 rgba(${m.glow},0.08)` : 'none',
           }}
         >
           {/* Hover fill */}
@@ -449,7 +448,7 @@ export function Layout({ children }: LayoutProps) {
           {/* Left accent bar */}
           {active && (
             <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
-              style={{ background: `linear-gradient(180deg,${PIÑA},${PIÑA2})`, boxShadow: `0 0 10px ${PIÑA}cc` }} />
+              style={{ background: `linear-gradient(180deg,${m.from},${m.to})`, boxShadow: `0 0 10px ${m.from}99` }} />
           )}
           {/* Icon */}
           <div
@@ -457,13 +456,13 @@ export function Layout({ children }: LayoutProps) {
             style={{
               width: 30, height: 30, borderRadius: 10,
               background: active
-                ? `linear-gradient(135deg,${PIÑA},${PIÑA2})`
+                ? `linear-gradient(135deg,${m.from},${m.to})`
                 : `rgba(${m.glow},0.12)`,
               border: active ? 'none' : `1px solid rgba(${m.glow},0.22)`,
               boxShadow: active
-                ? `0 0 16px rgba(255,214,10,0.55), inset 0 1px 0 rgba(255,255,255,0.25)`
+                ? `0 0 18px rgba(${m.glow},0.65), inset 0 1px 0 rgba(255,255,255,0.20)`
                 : `0 0 6px rgba(${m.glow},0.12)`,
-              color: active ? '#000' : m.from,
+              color: active ? '#001a0a' : m.from,
             }}
           >
             <Icon size={15} strokeWidth={2.3} />
@@ -471,12 +470,12 @@ export function Layout({ children }: LayoutProps) {
           {!collapsed && (
             <>
               <span
-                className="flex-1 text-[13px] leading-none transition-all truncate"
+                className="flex-1 transition-all truncate text-[15px] font-extrabold"
                 style={{
-                  color: active ? PIÑA : 'rgba(255,255,255,0.68)',
+                  color: active ? m.from : 'rgba(255,255,255,0.68)',
                   fontWeight: active ? 700 : 500,
                   fontFamily: "'Space Grotesk','Sora',sans-serif",
-                  textShadow: active ? `0 0 12px rgba(255,214,10,0.4)` : 'none',
+                  textShadow: active ? `0 0 14px rgba(${m.glow},0.60)` : 'none',
                 }}
               >
                 {m.label}
@@ -819,8 +818,8 @@ export function Layout({ children }: LayoutProps) {
           style={{
             background: 'rgba(4,15,26,0.97)',
             backdropFilter: 'blur(28px)',
-            borderColor: `rgba(255,214,10,0.08)`,
-            boxShadow: '0 1px 20px rgba(0,0,0,0.35)',
+            borderColor: `rgba(${mod.glow},0.14)`,
+            boxShadow: `0 1px 20px rgba(0,0,0,0.35), 0 1px 0 rgba(${mod.glow},0.08)`,
           }}
         >
           <div className="flex items-center gap-2.5">
@@ -833,12 +832,12 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Active module indicator */}
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex w-8 h-8 items-center justify-center"
+              <div className="hidden sm:flex w-8 h-8 items-center justify-center relative"
                 style={{
                   borderRadius: 12,
-                  background: `linear-gradient(135deg,${PIÑA},${PIÑA2})`,
-                  boxShadow: `0 0 16px rgba(255,214,10,0.50)`,
-                  color: '#000',
+                  background: `linear-gradient(135deg,${mod.from},${mod.to})`,
+                  boxShadow: `0 0 18px rgba(${mod.glow},0.65), 0 0 6px rgba(${mod.glow},0.30)`,
+                  color: '#001a0a',
                 }}>
                 <mod.icon size={16} strokeWidth={2.3} />
               </div>
@@ -846,7 +845,7 @@ export function Layout({ children }: LayoutProps) {
                 <p className="text-[13px] font-bold text-white leading-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                   {mod.label}
                 </p>
-                <p className="text-[9px] leading-none" style={{ color: 'rgba(255,214,10,0.35)' }}>
+                <p className="text-[9px] leading-none" style={{ color: `rgba(${mod.glow},0.50)` }}>
                   CIVAC PRO · {new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
               </div>
@@ -854,6 +853,19 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Sync status live pill */}
             <SyncStatusPill className="hidden lg:flex" />
+
+            {/* Module inline help */}
+            <Link href="/documentacion">
+              <button className="hidden lg:flex items-center justify-center w-7 h-7 rounded-xl transition-all hover:scale-[1.08] hover:opacity-100 opacity-60"
+                title={`Ayuda: ${mod.label}`}
+                style={{
+                  background: `rgba(${mod.glow},0.07)`,
+                  border: `1px solid rgba(${mod.glow},0.20)`,
+                  color: mod.from,
+                }}>
+                <HelpCircle size={13}/>
+              </button>
+            </Link>
 
             <Link href="/pesaje-manual">
               <button className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold transition-all hover:scale-[1.04]"
@@ -1081,7 +1093,6 @@ export function Layout({ children }: LayoutProps) {
           </button>
         </nav>
       </main>
-      <AiAssistant />
     </div>
   );
 }

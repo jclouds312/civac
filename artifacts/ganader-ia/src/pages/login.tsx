@@ -235,32 +235,6 @@ function LoginStatsFooter() {
           </div>
         </div>
 
-        {/* CIVAC SERVER ACCESS */}
-        <div className="flex items-center justify-center">
-          <a href="/server"
-            className="group flex items-center gap-2.5 px-5 py-2.5 rounded-xl transition-all duration-300 hover:scale-105"
-            style={{
-              background:"rgba(0,245,212,0.05)",
-              border:"1px solid rgba(0,245,212,0.20)",
-              boxShadow:"0 0 0px rgba(0,245,212,0)",
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.background = "rgba(0,245,212,0.10)";
-              (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,245,212,0.45)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 24px rgba(0,245,212,0.20)";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.background = "rgba(0,245,212,0.05)";
-              (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,245,212,0.20)";
-              (e.currentTarget as HTMLElement).style.boxShadow = "0 0 0px rgba(0,245,212,0)";
-            }}>
-            <span className="text-[13px] font-black tracking-[0.18em]" style={{ color:"rgba(0,245,212,0.70)", fontFamily:"'Space Grotesk',monospace" }}>
-              ⬡ CIVAC SERVER ACCESS
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
-              style={{ background:"#00f5d4", boxShadow:"0 0 8px rgba(0,245,212,0.9)" }}/>
-          </a>
-        </div>
       </div>
     </div>
   );

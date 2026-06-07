@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   TrendingUp, Users, Star, Bell, BookOpen, Settings, LogOut,
   ChevronLeft, Menu, X, Target, DollarSign, CreditCard,
-  MessageSquare, BarChart3, Globe, Zap,
+  MessageSquare, BarChart3, Globe, Zap, Server,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import VentasDashboard from "@/pages/ventas-dashboard";
@@ -12,11 +12,13 @@ import Asesora from "@/pages/asesora";
 import Alertas from "@/pages/alertas";
 import Documentacion from "@/pages/documentacion";
 import Usuarios from "@/pages/usuarios";
+import ServerDashboard from "@/pages/server-dashboard";
 import CivacAgent from "@/components/civac-agent";
 
 type SalesSection =
   | "dashboard" | "pipeline" | "planes" | "asesora"
-  | "alertas" | "clientes" | "documentacion" | "configuracion";
+  | "alertas" | "clientes" | "documentacion" | "configuracion"
+  | "servidor";
 
 const SALES_NAV = [
   {
@@ -41,6 +43,12 @@ const SALES_NAV = [
       { id: "documentacion" as SalesSection,icon: BookOpen,      label: "Materiales",      sub: "Demos · Guías · Docs",     c: "#00c8ff" },
     ]
   },
+  {
+    label: "SERVIDOR",
+    items: [
+      { id: "servidor" as SalesSection,     icon: Server,        label: "Server Panel",    sub: "CIVAC Backend · Estado",   c: "#00f5d4" },
+    ]
+  },
 ];
 
 function renderSection(section: SalesSection) {
@@ -52,6 +60,7 @@ function renderSection(section: SalesSection) {
     case "alertas":       return <Alertas />;
     case "clientes":      return <Usuarios />;
     case "documentacion": return <Documentacion />;
+    case "servidor":      return <ServerDashboard />;
     default:              return <VentasDashboard />;
   }
 }

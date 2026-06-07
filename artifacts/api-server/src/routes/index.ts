@@ -19,6 +19,9 @@ import syncRouter from "./sync";
 import crmRouter from "./crm";
 import adminRouter from "./admin";
 import tramasRouter from "./tramas";
+import licensesRouter from "./licenses";
+import codigosRouter from "./codigos";
+import auditRouter from "./audit";
 
 const router: IRouter = Router();
 
@@ -42,5 +45,8 @@ router.use(syncRouter);
 router.use(crmRouter);
 router.use(adminRouter);
 router.use(tramasRouter);
+router.use(licensesRouter);
+router.use(codigosRouter);
+router.use(auditRouter);
 
 export default router;

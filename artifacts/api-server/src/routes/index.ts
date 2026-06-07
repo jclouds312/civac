@@ -49,5 +49,6 @@ router.use(tramasRouter);
 router.use(licensesRouter);
 router.use(codigosRouter);
 router.use(auditRouter);
+router.use(dbStatusRouter);
 
 export default router;

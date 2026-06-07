@@ -22,6 +22,7 @@ import tramasRouter from "./tramas";
 import licensesRouter from "./licenses";
 import codigosRouter from "./codigos";
 import auditRouter from "./audit";
+import dbStatusRouter from "./db-status";
 
 const router: IRouter = Router();
 

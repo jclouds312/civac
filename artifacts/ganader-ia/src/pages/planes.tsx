@@ -32,7 +32,7 @@ const CIVAC_EMAIL = "ventas@civac.co";
 const CIVAC_TEL   = "+57 318 735 1262";
 
 /* ── Módulos por plan ────────────────────────────────────────────────────── */
-type ModuleEntry = { id: string; icon: JSX.Element; name: string; desc: string; plan: PlanId };
+type ModuleEntry = { id: string; icon: import("react").ReactElement; name: string; desc: string; plan: PlanId };
 const ALL_MODULES: ModuleEntry[] = [
   { id:"dashboard",   icon:<BarChart3 size={13}/>,    name:"Dashboard",          desc:"6 KPIs, gráficos, ticker en vivo",       plan:"basico" },
   { id:"inventario",  icon:<Beef size={13}/>,          name:"Inventario",         desc:"RFID, 50 animales, filtros CRUD",        plan:"basico" },

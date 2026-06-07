@@ -986,7 +986,7 @@ export default function VentasDashboard() {
                   {[['nombre','Nombre completo *','Ej: Juan Pérez'],['empresa','Empresa','Finca La Victoria']].map(([k,l,ph])=>(
                     <div key={k} className={k==='nombre'?'col-span-2':''}>
                       <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">{l}</label>
-                      <input value={(formData as Record<string,string>)[k]} onChange={e=>setFormData(f=>({...f,[k]:e.target.value}))} placeholder={ph}
+                      <input value={(formData as unknown as Record<string,string>)[k]} onChange={e=>setFormData(f=>({...f,[k]:e.target.value}))} placeholder={ph}
                         className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder:text-white/20 outline-none"
                         style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(232,121,249,0.2)'}}/>
                     </div>
@@ -996,7 +996,7 @@ export default function VentasDashboard() {
                   {[['cargo','Cargo','Propietario'],['ciudad','Ciudad','Bogotá, Colombia']].map(([k,l,ph])=>(
                     <div key={k}>
                       <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">{l}</label>
-                      <input value={(formData as Record<string,string>)[k]} onChange={e=>setFormData(f=>({...f,[k]:e.target.value}))} placeholder={ph}
+                      <input value={(formData as unknown as Record<string,string>)[k]} onChange={e=>setFormData(f=>({...f,[k]:e.target.value}))} placeholder={ph}
                         className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder:text-white/20 outline-none"
                         style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(232,121,249,0.2)'}}/>
                     </div>
@@ -1006,7 +1006,7 @@ export default function VentasDashboard() {
                   {[['phone','Teléfono','3001234567'],['email','Email','ganadero@finca.co']].map(([k,l,ph])=>(
                     <div key={k}>
                       <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mb-1">{l}</label>
-                      <input value={(formData as Record<string,string>)[k]} onChange={e=>setFormData(f=>({...f,[k]:e.target.value}))} placeholder={ph}
+                      <input value={(formData as unknown as Record<string,string>)[k]} onChange={e=>setFormData(f=>({...f,[k]:e.target.value}))} placeholder={ph}
                         className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder:text-white/20 outline-none"
                         style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(232,121,249,0.2)'}}/>
                     </div>

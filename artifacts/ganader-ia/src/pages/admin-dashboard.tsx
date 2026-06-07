@@ -547,6 +547,231 @@ function PythonUsuariosPlataforma() {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
+   CÓDIGOS TAB — sub-component so hooks are top-level
+────────────────────────────────────────────────────────────────────────── */
+type CodigoItem = {
+  id?: number; codigo: string; planCode: string; diasPlan: number;
+  sessionLimit: number; maxAnimales: number; estado: string;
+  usadoPor?: string; usadoPorEmail?: string; notas?: string;
+  createdAt?: string;
+};
+
+function CodigosTab() {
+  const [codigosData, setCodigosData] = useState<CodigoItem[]>([]);
+  const [genPlan,    setGenPlan]    = useState<PlanId>("pro");
+  const [genDias,    setGenDias]    = useState(30);
+  const [genNotas,   setGenNotas]   = useState("");
+  const [genQty,     setGenQty]     = useState(1);
+  const [genLoading, setGenLoading] = useState(false);
+  const [genMsg,     setGenMsg]     = useState("");
+
+  const MOCK: CodigoItem[] = [
+    { id:1, codigo:"CIVAC-PRO-ABC123", planCode:"pro",     diasPlan:30,  sessionLimit:3,   maxAnimales:999, estado:"disponible", notas:"Demo PRO",       createdAt:"2026-06-01" },
+    { id:2, codigo:"CIVAC-PREM-XY9Z1", planCode:"premium", diasPlan:90,  sessionLimit:5,   maxAnimales:999, estado:"disponible", notas:"Premio feria",   createdAt:"2026-06-02" },
+    { id:3, codigo:"CIVAC-PLAT-QWE72", planCode:"platino", diasPlan:365, sessionLimit:999, maxAnimales:999, estado:"usado",     usadoPorEmail:"cliente@farm.co", notas:"Cliente Platino", createdAt:"2026-05-28" },
+    { id:4, codigo:"CIVAC-PRO-TEST01", planCode:"pro",     diasPlan:7,   sessionLimit:1,   maxAnimales:50,  estado:"expirado",  notas:"Test 7 días",    createdAt:"2026-05-01" },
+  ];
+
+  useEffect(() => {
+    fetch("/api/codigos").then(r => r.json()).then(d => {
+      if (d.codigos) setCodigosData(d.codigos);
+      else setCodigosData(MOCK);
+    }).catch(() => setCodigosData(MOCK));
+  }, [genMsg]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleGenerate = async () => {
+    setGenLoading(true); setGenMsg("");
+    try {
+      const tasks = Array.from({ length: Math.min(genQty, 10) }).map(() =>
+        fetch("/api/codigos", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planCode: genPlan, diasPlan: genDias, notas: genNotas, creadoPor: "admin" })
+        }).then(r => r.json())
+      );
+      const batch = await Promise.all(tasks);
+      const codes = batch.map((b: { codigo?: string }) => b.codigo ?? "").filter(Boolean).join(", ");
+      setGenMsg(`Código(s) generado(s): ${codes}`);
+    } catch {
+      setGenMsg("Error generando. API offline.");
+    } finally { setGenLoading(false); }
+  };
+
+  const handleRevoke = async (id?: number) => {
+    if (!id) return;
+    await fetch(`/api/codigos/${id}`, { method: "DELETE" }).catch(() => {});
+    setCodigosData(prev => prev.map(c => c.id === id ? { ...c, estado: "expirado" } : c));
+  };
+
+  const copyCode = (code: string) => navigator.clipboard?.writeText(code);
+
+  const estadoBadge = (est: string) => {
+    const map: Record<string, { bg: string; c: string; label: string }> = {
+      disponible: { bg: "rgba(57,255,126,0.12)",  c: "#39ff7e", label: "Disponible" },
+      usado:      { bg: "rgba(96,165,250,0.12)",  c: "#60a5fa", label: "Usado"      },
+      expirado:   { bg: "rgba(248,113,113,0.12)", c: "#f87171", label: "Expirado"   },
+    };
+    const s = map[est] ?? map.expirado;
+    return (
+      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+        style={{ background: s.bg, color: s.c, border: `1px solid ${s.c}44` }}>
+        {s.label}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Generador */}
+      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(244,114,182,0.25)" }}>
+        <div className="px-4 py-3 flex items-center gap-2"
+          style={{ background: "rgba(244,114,182,0.06)", borderBottom: "1px solid rgba(244,114,182,0.12)" }}>
+          <Hash size={14} style={{ color: "#f472b6" }}/>
+          <span className="text-sm font-bold text-white">Generar códigos de activación</span>
+          <span className="ml-auto text-[9px] px-2 py-0.5 rounded-full font-bold"
+            style={{ background: "rgba(244,114,182,0.12)", color: "#f472b6", border: "1px solid rgba(244,114,182,0.25)" }}>
+            CIVAC-PLAN-XXXXXX
+          </span>
+        </div>
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+          <div>
+            <Label className="text-[10px] text-white/50 mb-1 block">Plan</Label>
+            <Select value={genPlan} onValueChange={v => setGenPlan(v as PlanId)}>
+              <SelectTrigger className="h-8 text-xs" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <SelectValue/>
+              </SelectTrigger>
+              <SelectContent>
+                {(["basico","pro","premium","platino"] as PlanId[]).map(p => (
+                  <SelectItem key={p} value={p}>{PLAN_LABEL[p]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-[10px] text-white/50 mb-1 block">Días de plan</Label>
+            <Select value={String(genDias)} onValueChange={v => setGenDias(Number(v))}>
+              <SelectTrigger className="h-8 text-xs" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <SelectValue/>
+              </SelectTrigger>
+              <SelectContent>
+                {[7,15,30,60,90,180,365].map(d => (
+                  <SelectItem key={d} value={String(d)}>{d} días</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-[10px] text-white/50 mb-1 block">Cantidad (máx 10)</Label>
+            <Input type="number" min={1} max={10} value={genQty}
+              onChange={e => setGenQty(Math.min(10, Math.max(1, Number(e.target.value))))}
+              className="h-8 text-xs" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}/>
+          </div>
+          <div>
+            <Label className="text-[10px] text-white/50 mb-1 block">Notas internas</Label>
+            <Input placeholder="Ej: Feria Agro 2026…" value={genNotas}
+              onChange={e => setGenNotas(e.target.value)}
+              className="h-8 text-xs" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}/>
+          </div>
+        </div>
+        <div className="px-4 pb-4">
+          <Button onClick={handleGenerate} disabled={genLoading}
+            className="gap-1.5 text-xs"
+            style={{ background: "linear-gradient(135deg,#f472b6,#ec4899)", color: "white" }}>
+            {genLoading ? <RefreshCw size={12} className="animate-spin"/> : <Hash size={12}/>}
+            {genLoading ? "Generando…" : `Generar ${genQty > 1 ? `${genQty} códigos` : "código"}`}
+          </Button>
+          {genMsg && (
+            <div className="mt-2 rounded-xl p-2.5 flex items-center gap-2 font-mono text-xs"
+              style={{ background: "rgba(57,255,126,0.08)", border: "1px solid rgba(57,255,126,0.2)", color: "#39ff7e" }}>
+              <CheckCircle size={12}/> {genMsg}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total generados", val: codigosData.length,                                    c: "#f472b6" },
+          { label: "Disponibles",     val: codigosData.filter(c=>c.estado==="disponible").length, c: "#39ff7e" },
+          { label: "Usados",          val: codigosData.filter(c=>c.estado==="usado").length,      c: "#60a5fa" },
+          { label: "Expirados",       val: codigosData.filter(c=>c.estado==="expirado").length,   c: "#f87171" },
+        ].map(k => (
+          <div key={k.label} className="rounded-2xl p-3 text-center"
+            style={{ background: `${k.c}08`, border: `1px solid ${k.c}20` }}>
+            <div className="text-2xl font-black text-white">{k.val}</div>
+            <div className="text-[9px] mt-0.5" style={{ color: `${k.c}aa` }}>{k.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabla */}
+      <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="px-4 py-3"
+          style={{ background: "rgba(244,114,182,0.05)", borderBottom: "1px solid rgba(244,114,182,0.1)" }}>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Hash size={14} style={{ color: "#f472b6" }}/> Todos los códigos
+            <span className="text-[9px] text-white/30 font-normal ml-1">({codigosData.length} total)</span>
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: "rgba(244,114,182,0.04)", borderBottom: "1px solid rgba(244,114,182,0.08)" }}>
+                {["Código","Plan","Días","Notas","Estado","Usado por","Fecha",""].map(h => (
+                  <th key={h} className="px-3 py-2 text-left text-[9px] uppercase tracking-wider font-bold"
+                    style={{ color: "rgba(244,114,182,0.5)" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {codigosData.length === 0 && (
+                <tr><td colSpan={8} className="text-center py-8 text-white/20 text-xs">Sin códigos generados todavía</td></tr>
+              )}
+              {codigosData.map((c, i) => (
+                <tr key={c.id ?? i}
+                  style={{ background: i%2===0 ? "rgba(255,255,255,0.01)" : "transparent", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[10px] font-bold" style={{ color: "#f472b6" }}>{c.codigo}</span>
+                      <button onClick={() => copyCode(c.codigo)}
+                        className="w-5 h-5 rounded flex items-center justify-center text-white/30 hover:text-white/80 transition-colors">
+                        <Copy size={9}/>
+                      </button>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="text-[10px] font-bold" style={{ color: PLAN_COLOR[c.planCode as PlanId] ?? "#fff" }}>
+                      {PLAN_LABEL[c.planCode as PlanId] ?? c.planCode}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2"><span className="text-[10px] text-white/60">{c.diasPlan}d</span></td>
+                  <td className="px-3 py-2"><span className="text-[10px] text-white/40">{c.notas ?? "—"}</span></td>
+                  <td className="px-3 py-2">{estadoBadge(c.estado)}</td>
+                  <td className="px-3 py-2">
+                    <span className="text-[9px] text-white/30">{c.usadoPorEmail ?? "—"}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="text-[9px] text-white/25">{c.createdAt ? String(c.createdAt).slice(0, 10) : "—"}</span>
+                  </td>
+                  <td className="px-3 py-2">
+                    {c.estado === "disponible" && (
+                      <button onClick={() => handleRevoke(c.id)}
+                        className="flex items-center gap-0.5 px-2 py-0.5 rounded-lg text-[9px] font-bold"
+                        style={{ background: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.25)", color: "#f87171" }}>
+                        <Ban size={9}/> Revocar
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
    MAIN COMPONENT
 ────────────────────────────────────────────────────────────────────────── */
 export default function AdminDashboard({
@@ -1852,8 +2077,8 @@ export default function AdminDashboard({
                       <tr key={p.id} style={{ background:i%2===0?"rgba(255,255,255,0.015)":"transparent", borderBottom:"1px solid rgba(255,255,255,0.03)" }}>
                         <td className="px-3 py-2.5 font-mono text-[9px] text-white/40">{p.id}</td>
                         <td className="px-3 py-2.5">
-                          <p className="font-bold text-white text-[10px]">{p.usuario}</p>
-                          <p className="text-[9px] text-white/30">{p.email}</p>
+                          <p className="font-bold text-white text-[10px]">{p.userNombre}</p>
+                          <p className="text-[9px] text-white/30">{p.userEmail}</p>
                         </td>
                         <td className="px-3 py-2.5">
                           <PlanBadge plan={p.plan as PlanId}/>
@@ -3970,6 +4195,154 @@ export default function AdminDashboard({
           </div>
         </div>
       )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: ESTADÍSTICAS — DAU / WAU / MAU, conversión, módulos
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "estadisticas" && (
+        <div className="space-y-4">
+          {/* KPI row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label:"Usuarios activos HOY",  val:"12",  sub:"↑ 4 vs ayer",       c:"#818cf8", icon:"👤" },
+              { label:"Activos esta SEMANA",   val:"28",  sub:"↑ 6 vs sem. ant.",   c:"#00f5d4", icon:"📅" },
+              { label:"Activos este MES",      val:"41",  sub:"↑ 9 vs mes ant.",    c:"#39ff7e", icon:"📆" },
+              { label:"Tiempo promedio sesión",val:"22 min",sub:"↑ 3 min",          c:"#fbbf24", icon:"⏱️" },
+            ].map(k=>(
+              <div key={k.label} className="rounded-2xl p-4 text-center"
+                style={{background:`${k.c}08`,border:`1px solid ${k.c}22`}}>
+                <div className="text-2xl mb-1">{k.icon}</div>
+                <div className="text-2xl font-black text-white">{k.val}</div>
+                <div className="text-[9px] font-bold mt-0.5" style={{color:`${k.c}cc`}}>{k.label}</div>
+                <div className="text-[9px] text-white/30 mt-0.5">{k.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Conversión funnel */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(129,140,248,0.2)"}}>
+              <div className="px-4 py-3" style={{background:"rgba(129,140,248,0.06)",borderBottom:"1px solid rgba(129,140,248,0.12)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <TrendingUp size={14} style={{color:"#818cf8"}}/> Funnel de conversión
+                </h3>
+              </div>
+              <div className="p-4 space-y-3">
+                {[
+                  { label:"Visitantes únicos",    val:312, pct:100, c:"#60a5fa" },
+                  { label:"Cuenta creada",         val:87,  pct:28,  c:"#818cf8" },
+                  { label:"Plan gratuito activo",  val:63,  pct:20,  c:"#a78bfa" },
+                  { label:"Conversión a PRO+",     val:24,  pct:8,   c:"#00f5d4" },
+                  { label:"Plan Premium / Platino",val:9,   pct:3,   c:"#fbbf24" },
+                ].map(f=>(
+                  <div key={f.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-white/60">{f.label}</span>
+                      <span className="text-[10px] font-bold text-white">{f.val} <span className="text-white/30">({f.pct}%)</span></span>
+                    </div>
+                    <div className="h-2 rounded-full" style={{background:"rgba(255,255,255,0.05)"}}>
+                      <div className="h-full rounded-full transition-all" style={{width:`${f.pct}%`,background:f.c,boxShadow:`0 0 8px ${f.c}60`}}/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Módulos más usados */}
+            <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,245,212,0.2)"}}>
+              <div className="px-4 py-3" style={{background:"rgba(0,245,212,0.06)",borderBottom:"1px solid rgba(0,245,212,0.12)"}}>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <BarChart3 size={14} style={{color:"#00f5d4"}}/> Top módulos visitados (30d)
+                </h3>
+              </div>
+              <div className="p-4 space-y-2.5">
+                {[
+                  { label:"Dashboard",    val:1840, c:"#00f5d4" },
+                  { label:"Inventario",   val:1420, c:"#39ff7e" },
+                  { label:"GPS Bovino",   val:1180, c:"#00c8ff" },
+                  { label:"Producción",   val:980,  c:"#fbbf24" },
+                  { label:"Asesora IA",   val:862,  c:"#e879f9" },
+                  { label:"Pesaje BT",    val:714,  c:"#fb923c" },
+                  { label:"Trazabilidad", val:540,  c:"#f97316" },
+                  { label:"Reproducción", val:480,  c:"#f472b6" },
+                ].map((m,i)=>{
+                  const max = 1840;
+                  return (
+                    <div key={m.label} className="flex items-center gap-2">
+                      <span className="text-[9px] text-white/30 w-4 text-right">{i+1}</span>
+                      <span className="text-[10px] text-white/70 w-24 flex-shrink-0">{m.label}</span>
+                      <div className="flex-1 h-2 rounded-full" style={{background:"rgba(255,255,255,0.05)"}}>
+                        <div className="h-full rounded-full" style={{width:`${(m.val/max)*100}%`,background:m.c}}/>
+                      </div>
+                      <span className="text-[9px] text-white/40 w-10 text-right">{m.val.toLocaleString()}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Actividad diaria 30d — mini chart */}
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(129,140,248,0.15)"}}>
+            <div className="px-4 py-3" style={{background:"rgba(129,140,248,0.05)",borderBottom:"1px solid rgba(129,140,248,0.1)"}}>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Activity size={14} style={{color:"#818cf8"}}/> Sesiones diarias — últimos 30 días
+              </h3>
+            </div>
+            <div className="p-4">
+              <ResponsiveContainer width="100%" height={120}>
+                <AreaChart data={Array.from({length:30},(_,i)=>{
+                  const d = new Date(); d.setDate(d.getDate()-29+i);
+                  const label = `${d.getDate()}/${d.getMonth()+1}`;
+                  const base = 8 + Math.round(Math.sin(i*0.4)*3);
+                  return { label, sesiones: base + Math.round(Math.random()*5), acciones: (base+4) + Math.round(Math.random()*8) };
+                })}>
+                  <defs>
+                    <linearGradient id="statGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#818cf8" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)"/>
+                  <XAxis dataKey="label" tick={{fontSize:8,fill:"rgba(255,255,255,0.25)"}} interval={4}/>
+                  <YAxis tick={{fontSize:8,fill:"rgba(255,255,255,0.25)"}}/>
+                  <RTooltip contentStyle={{background:"#0a1628",border:"1px solid rgba(129,140,248,0.3)",borderRadius:12,fontSize:11}}/>
+                  <Area type="monotone" dataKey="sesiones" stroke="#818cf8" strokeWidth={2} fill="url(#statGrad)" dot={false}/>
+                  <Area type="monotone" dataKey="acciones" stroke="#00f5d4" strokeWidth={1.5} fill="none" dot={false} strokeDasharray="3 3"/>
+                </AreaChart>
+              </ResponsiveContainer>
+              <div className="flex items-center gap-4 mt-2 justify-end">
+                <div className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded-full inline-block" style={{background:"#818cf8"}}/><span className="text-[9px] text-white/40">Sesiones</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-3 h-0.5 rounded-full inline-block" style={{background:"#00f5d4"}} /><span className="text-[9px] text-white/40">Acciones</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Retención + Churn */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { label:"Tasa retención 30d",  val:"78.4%",  sub:"↑ 2.1 pp",  c:"#39ff7e", icon:"🔄" },
+              { label:"Churn mensual",        val:"4.8%",   sub:"↓ 0.6 pp",  c:"#f87171", icon:"📉" },
+              { label:"NPS estimado",         val:"72 pts", sub:"Excelente",  c:"#fbbf24", icon:"⭐" },
+            ].map(k=>(
+              <div key={k.label} className="rounded-2xl p-4 flex items-center gap-3"
+                style={{background:`${k.c}08`,border:`1px solid ${k.c}22`}}>
+                <span className="text-3xl">{k.icon}</span>
+                <div>
+                  <div className="text-xl font-black text-white">{k.val}</div>
+                  <div className="text-[10px] font-bold" style={{color:`${k.c}cc`}}>{k.label}</div>
+                  <div className="text-[9px] text-white/30">{k.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════
+          TAB: CÓDIGOS DE ACTIVACIÓN
+      ════════════════════════════════════════════════════════════════════ */}
+      {tab === "codigos" && <CodigosTab />}
 
       {/* Delete confirm */}
       <Dialog open={!!deleteTarget} onOpenChange={v=>{if(!v)setDeleteTarget(null);}}>

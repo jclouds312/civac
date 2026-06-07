@@ -1181,7 +1181,7 @@ export default function DeveloperDashboard() {
               <div className="px-4 py-3" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(0,245,212,0.10)"}}>
                 <span className="text-xs font-bold text-white/50 flex items-center gap-2"><Shield size={11} style={{color:"#00f5d4"}}/> Cuentas activas del sistema</span>
               </div>
-              <div className="divide-y" style={{divideColor:"rgba(255,255,255,0.04)"}}>
+              <div className="divide-y divide-white/5">
                 {[
                   {id:'superadmin', nombre:'Javier Hernando Sánchez Bernal', cargo:'CEO · Fundador & Propietario',  role:'superadmin', avatar:'🔱', c:'#fbbf24', perms:'Acceso total plataforma'},
                   {id:'admin',      nombre:'Lizet Daza',                     cargo:'Co-Fundadora · Directora',     role:'admin',      avatar:'👑', c:'#ff9a3c', perms:'Panel Admin + todos módulos'},
@@ -1280,7 +1280,7 @@ export default function DeveloperDashboard() {
                 <Layers size={12} style={{color:"#a855f7"}}/>
                 <span className="text-xs font-bold text-white/60">Módulos del sistema — 32 módulos</span>
               </div>
-              <div className="divide-y max-h-96 overflow-y-auto" style={{divideColor:"rgba(255,255,255,0.04)"}}>
+              <div className="divide-y divide-white/5 max-h-96 overflow-y-auto">
                 {[
                   {n:1,  label:"Dashboard",      ruta:"/",              rol:"viewer", c:"#00c8ff", desc:"6 KPIs, charts históricos, ticker LIVE"},
                   {n:2,  label:"Inventario",     ruta:"/inventario",    rol:"field",  c:"#39ff7e", desc:"13 bovinos, RFID, filtros, CRUD completo"},

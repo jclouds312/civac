@@ -71,6 +71,24 @@ export interface Account {
   /* ── Template / Backup ── */
   isTemplate?: boolean;      // cuenta plantilla — nunca se puede eliminar
   isDemo?: boolean;          // cuenta demo de plan — acceso a módulos de granja
+  /* ── Sesiones y Acceso ── */
+  sessionLimit?: number;     // 0 = ilimitado, >0 = máx sesiones concurrentes por admin
+  totalConexiones?: number;  // contador total de logins acumulados
+  ultimaConexion?: string;   // ISO timestamp del último login
+  loginMethod?: 'email' | 'google' | 'outlook';
+  googleEmail?: string;      // email Google vinculado para OAuth
+  outlookEmail?: string;     // email Outlook/Microsoft vinculado
+  googleAvatar?: string;     // avatar obtenido desde Google OAuth
+  /* ── Licencias y Activación ── */
+  codigoActivacion?: string; // último código de activación canjeado
+  licenseKey?: string;       // ID de la última licencia descargada
+  licenseExpiry?: string;    // ISO date vencimiento de la licencia
+  fechaCreacion?: string;    // ISO date creación de la cuenta
+  /* ── Límites por plan ── */
+  maxAnimales?: number;      // máximo de animales permitidos (override del plan)
+  maxUsuarios?: number;      // máximo de sub-usuarios (override del plan)
+  diasPlan?: number;         // días totales del plan asignado por admin
+  notas?: string;            // notas internas del administrador
 }
 
 export const PLAN_PRECIOS: Record<PlanId, number> = {
@@ -418,11 +436,14 @@ interface AuthContextType {
   loginActivity: LoginActivity[];
   login: (email: string, password: string) => boolean;
   loginAs: (account: Account) => void;
+  loginWithOAuth: (provider: 'google'|'outlook', email: string, name: string, avatarUrl?: string) => { ok: boolean; account: Account | null };
   logout: () => void;
-  registerUser: (data: Omit<Account, 'id'>) => Account;
+  registerUser: (data: Omit<Account, 'id'> & { pendiente?: boolean }) => Account;
   updateUser: (id: string, data: Partial<Account>) => void;
   deleteUser: (id: string) => void;
   activatePlan: (userId: string, plan: PlanId, payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => void;
+  assignPlan: (userId: string, plan: PlanId, dias: number, opts?: { sessionLimit?: number; maxAnimales?: number; maxUsuarios?: number; motivo?: string }) => void;
+  redeemCode: (codigo: string) => { ok: boolean; message: string; plan?: PlanId };
   addWompiPayment: (payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => WompiPayment;
   addInvoice: (inv: Omit<CivacInvoice,'id'>) => CivacInvoice;
   updateInvoice: (id: string, data: Partial<CivacInvoice>) => void;
@@ -461,8 +482,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const account = accounts.find(
       a => (a.email === email || a.id === email) && a.password === password && a.activo !== false
     );
-    if (account) { loginAs(account); return true; }
+    if (account) {
+      const now = new Date().toISOString();
+      const updates: Partial<Account> = {
+        totalConexiones: (account.totalConexiones || 0) + 1,
+        ultimaConexion: now,
+        loginMethod: 'email',
+      };
+      updateUser(account.id, updates);
+      loginAs({ ...account, ...updates });
+      return true;
+    }
     return false;
+  };
+
+  const loginWithOAuth = (provider: 'google'|'outlook', email: string, name: string, avatarUrl?: string): { ok: boolean; account: Account | null } => {
+    const found = accounts.find(a =>
+      a.activo !== false && (
+        a.email.toLowerCase() === email.toLowerCase() ||
+        (provider === 'google' && a.googleEmail?.toLowerCase() === email.toLowerCase()) ||
+        (provider === 'outlook' && a.outlookEmail?.toLowerCase() === email.toLowerCase())
+      )
+    );
+    if (found) {
+      const now = new Date().toISOString();
+      const updates: Partial<Account> = {
+        loginMethod: provider,
+        totalConexiones: (found.totalConexiones || 0) + 1,
+        ultimaConexion: now,
+      };
+      if (provider === 'google') {
+        updates.googleEmail = email;
+        if (avatarUrl) updates.googleAvatar = avatarUrl;
+      }
+      if (provider === 'outlook') updates.outlookEmail = email;
+      updateUser(found.id, updates);
+      loginAs({ ...found, ...updates });
+      return { ok: true, account: found };
+    }
+    return { ok: false, account: null };
   };
 
   const loginAs = (account: Account) => {
@@ -573,15 +631,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       planExpiry: expiry.toISOString().slice(0,10),
       wompiRef: pmt.id,
       planActivadoEn: new Date().toISOString().slice(0,10),
+      diasPlan: 30,
     });
+  };
+
+  const assignPlan = (
+    userId: string,
+    plan: PlanId,
+    dias: number,
+    opts: { sessionLimit?: number; maxAnimales?: number; maxUsuarios?: number; motivo?: string } = {}
+  ) => {
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + dias);
+    const updates: Partial<Account> = {
+      plan,
+      planExpiry: expiry.toISOString().slice(0,10),
+      planActivadoEn: new Date().toISOString().slice(0,10),
+      diasPlan: dias,
+    };
+    if (opts.sessionLimit !== undefined) updates.sessionLimit = opts.sessionLimit;
+    if (opts.maxAnimales !== undefined) updates.maxAnimales = opts.maxAnimales;
+    if (opts.maxUsuarios !== undefined) updates.maxUsuarios = opts.maxUsuarios;
+    updateUser(userId, updates);
+  };
+
+  const redeemCode = (codigo: string): { ok: boolean; message: string; plan?: PlanId } => {
+    try {
+      const stored = localStorage.getItem('civac_activation_codes');
+      const codes: Array<{
+        codigo: string; planCode: PlanId; diasPlan: number;
+        sessionLimit?: number; maxAnimales?: number; estado: string; usadoAt?: string;
+      }> = stored ? JSON.parse(stored) : [];
+      const found = codes.find(c => c.codigo.toUpperCase() === codigo.toUpperCase() && c.estado === 'disponible');
+      if (!found) return { ok: false, message: 'Código inválido o ya utilizado' };
+      const updated = codes.map(c =>
+        c.codigo === found.codigo ? { ...c, estado: 'usado', usadoAt: new Date().toISOString() } : c
+      );
+      localStorage.setItem('civac_activation_codes', JSON.stringify(updated));
+      if (user) {
+        assignPlan(user.id, found.planCode, found.diasPlan, {
+          sessionLimit: found.sessionLimit,
+          maxAnimales: found.maxAnimales,
+        });
+        updateUser(user.id, { codigoActivacion: codigo });
+      }
+      return { ok: true, message: `Plan ${found.planCode.toUpperCase()} activado por ${found.diasPlan} días`, plan: found.planCode };
+    } catch {
+      return { ok: false, message: 'Error al procesar el código' };
+    }
   };
 
   return createElement(AuthContext.Provider, {
     value: {
       user, accounts, wompiPayments, invoices, loginActivity,
-      login, loginAs, logout,
+      login, loginAs, loginWithOAuth, logout,
       registerUser, updateUser, deleteUser,
-      activatePlan, addWompiPayment, addInvoice, updateInvoice,
+      activatePlan, assignPlan, redeemCode,
+      addWompiPayment, addInvoice, updateInvoice,
     }
   }, children);
 }

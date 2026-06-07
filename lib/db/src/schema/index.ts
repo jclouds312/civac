@@ -361,3 +361,111 @@ export const syncLogTable = pgTable("sync_log", {
 export const insertSyncLogSchema = createInsertSchema(syncLogTable).omit({ id: true, syncedAt: true });
 export type InsertSyncLog = z.infer<typeof insertSyncLogSchema>;
 export type SyncLog = typeof syncLogTable.$inferSelect;
+
+// ── Licencias de Plan (admin genera → usuario descarga → app valida) ──────────
+export const licenciasTable = pgTable("licencias", {
+  id:             text("id").primaryKey(),
+  userId:         text("user_id").notNull(),
+  userEmail:      text("user_email").notNull(),
+  userNombre:     text("user_nombre").notNull().default(""),
+  planCode:       text("plan_code").notNull().default("basico"),
+  diasValidos:    integer("dias_validos").notNull().default(30),
+  sessionLimit:   integer("session_limit").notNull().default(1),
+  maxAnimales:    integer("max_animales").notNull().default(50),
+  maxUsuarios:    integer("max_usuarios").notNull().default(1),
+  permisos:       text("permisos").notNull().default("[]"),
+  signature:      text("signature").notNull().default(""),
+  estado:         text("estado").notNull().default("activa"),  // activa | revocada | expirada
+  generadaPor:    text("generada_por").notNull().default(""),
+  descargada:     boolean("descargada").notNull().default(false),
+  descargadaAt:   timestamp("descargada_at"),
+  expiresAt:      timestamp("expires_at"),
+  revokedAt:      timestamp("revoked_at"),
+  revokedPor:     text("revoked_por"),
+  notas:          text("notas").notNull().default(""),
+  createdAt:      timestamp("created_at").defaultNow(),
+  updatedAt:      timestamp("updated_at").defaultNow(),
+});
+export const insertLicenciaSchema = createInsertSchema(licenciasTable).omit({ createdAt: true, updatedAt: true, descargadaAt: true, revokedAt: true });
+export type InsertLicencia = z.infer<typeof insertLicenciaSchema>;
+export type Licencia = typeof licenciasTable.$inferSelect;
+
+// ── Códigos de Activación (admin crea → usuario canjea en login) ──────────────
+export const codigosActivacionTable = pgTable("codigos_activacion", {
+  id:               serial("id").primaryKey(),
+  codigo:           text("codigo").notNull().unique(),
+  planCode:         text("plan_code").notNull().default("basico"),
+  diasPlan:         integer("dias_plan").notNull().default(30),
+  sessionLimit:     integer("session_limit").notNull().default(1),
+  maxAnimales:      integer("max_animales").notNull().default(50),
+  maxUsuarios:      integer("max_usuarios").notNull().default(1),
+  estado:           text("estado").notNull().default("disponible"), // disponible | usado | expirado
+  creadoPor:        text("creado_por").notNull().default(""),
+  usadoPor:         text("usado_por"),
+  usadoPorEmail:    text("usado_por_email"),
+  usadoPorNombre:   text("usado_por_nombre"),
+  usadoAt:          timestamp("usado_at"),
+  expiresAt:        timestamp("expires_at"),
+  notas:            text("notas").notNull().default(""),
+  createdAt:        timestamp("created_at").defaultNow(),
+});
+export const insertCodigoActivacionSchema = createInsertSchema(codigosActivacionTable).omit({ id: true, createdAt: true, usadoAt: true });
+export type InsertCodigoActivacion = z.infer<typeof insertCodigoActivacionSchema>;
+export type CodigoActivacion = typeof codigosActivacionTable.$inferSelect;
+
+// ── Audit Log (trazabilidad completa de acciones admin/dev) ──────────────────
+export const auditLogTable = pgTable("audit_log", {
+  id:         serial("id").primaryKey(),
+  userId:     text("user_id").notNull(),
+  userEmail:  text("user_email").notNull(),
+  userRole:   text("user_role").notNull().default(""),
+  accion:     text("accion").notNull(),            // create_user | delete_user | change_plan | generate_license | redeem_code | revoke_session ...
+  entidad:    text("entidad").notNull().default(""),
+  entidadId:  text("entidad_id").notNull().default(""),
+  detalles:   text("detalles").notNull().default("{}"),
+  ipAddress:  text("ip_address").notNull().default(""),
+  resultado:  text("resultado").notNull().default("ok"),
+  createdAt:  timestamp("created_at").defaultNow(),
+});
+export const insertAuditLogSchema = createInsertSchema(auditLogTable).omit({ id: true, createdAt: true });
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogTable.$inferSelect;
+
+// ── Plan Asignaciones (historial de cambios de plan por admin) ────────────────
+export const planAsignacionesTable = pgTable("plan_asignaciones", {
+  id:               serial("id").primaryKey(),
+  userId:           text("user_id").notNull(),
+  userEmail:        text("user_email").notNull(),
+  userNombre:       text("user_nombre").notNull().default(""),
+  planAnterior:     text("plan_anterior").notNull().default("basico"),
+  planNuevo:        text("plan_nuevo").notNull().default("basico"),
+  asignadoPor:      text("asignado_por").notNull().default(""),
+  asignadoPorEmail: text("asignado_por_email").notNull().default(""),
+  motivo:           text("motivo").notNull().default(""),
+  diasAsignados:    integer("dias_asignados").notNull().default(30),
+  sessionLimit:     integer("session_limit").notNull().default(1),
+  licenciaId:       text("licencia_id"),
+  codigoCanjeado:   text("codigo_canjeado"),
+  createdAt:        timestamp("created_at").defaultNow(),
+});
+export const insertPlanAsignacionSchema = createInsertSchema(planAsignacionesTable).omit({ id: true, createdAt: true });
+export type InsertPlanAsignacion = z.infer<typeof insertPlanAsignacionSchema>;
+export type PlanAsignacion = typeof planAsignacionesTable.$inferSelect;
+
+// ── OAuth Cuentas Vinculadas (Google / Outlook) ───────────────────────────────
+export const oauthCuentasTable = pgTable("oauth_cuentas", {
+  id:             serial("id").primaryKey(),
+  userId:         text("user_id").notNull(),
+  provider:       text("provider").notNull(),          // google | outlook | microsoft
+  providerEmail:  text("provider_email").notNull(),
+  providerName:   text("provider_name").notNull().default(""),
+  providerAvatar: text("provider_avatar").notNull().default(""),
+  providerId:     text("provider_id").notNull().default(""),
+  accessToken:    text("access_token").notNull().default(""),
+  activo:         boolean("activo").notNull().default(true),
+  lastUsedAt:     timestamp("last_used_at"),
+  createdAt:      timestamp("created_at").defaultNow(),
+});
+export const insertOauthCuentaSchema = createInsertSchema(oauthCuentasTable).omit({ id: true, createdAt: true, lastUsedAt: true });
+export type InsertOauthCuenta = z.infer<typeof insertOauthCuentaSchema>;
+export type OauthCuenta = typeof oauthCuentasTable.$inferSelect;

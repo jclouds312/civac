@@ -879,9 +879,35 @@ export function Layout({ children }: LayoutProps) {
 
             <button
               onClick={toggleTheme}
-              className="w-8 h-8 rounded-xl text-white/50 hover:text-white/90 hover:bg-white/5 transition-all flex items-center justify-center"
+              title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+              className="civac-theme-pill"
+              style={{
+                background: theme === 'dark'
+                  ? 'rgba(10,28,50,0.92)'
+                  : 'rgba(255,247,200,0.96)',
+                border: theme === 'dark'
+                  ? '1px solid rgba(0,245,212,0.38)'
+                  : '1px solid rgba(245,158,11,0.55)',
+                boxShadow: theme === 'dark'
+                  ? '0 0 10px rgba(0,245,212,0.1), inset 0 1px 0 rgba(0,245,212,0.06)'
+                  : '0 0 10px rgba(245,158,11,0.18), inset 0 1px 0 rgba(255,255,255,0.3)',
+              }}
             >
-              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+              <div
+                className="civac-theme-pill-thumb"
+                style={{
+                  left: theme === 'dark' ? '2px' : '26px',
+                  background: theme === 'dark'
+                    ? 'linear-gradient(135deg,#00f5d4,#00a896)'
+                    : 'linear-gradient(135deg,#f59e0b,#d97706)',
+                  boxShadow: theme === 'dark'
+                    ? '0 0 8px rgba(0,245,212,0.65)'
+                    : '0 0 8px rgba(245,158,11,0.72)',
+                  color: '#000',
+                }}
+              >
+                {theme === 'dark' ? <Moon size={11} strokeWidth={2.2} /> : <Sun size={11} strokeWidth={2.2} />}
+              </div>
             </button>
 
             <Link href="/alertas">

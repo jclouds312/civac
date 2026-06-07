@@ -1518,3 +1518,232 @@ html {
 .pwa-install-btn {
   animation: install-pulse 3s ease-in-out infinite;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SMOOTH THEME TRANSITIONS — cambio dark ↔ light suave
+   ═══════════════════════════════════════════════════════════════════════════ */
+html {
+  transition: background-color 0.28s cubic-bezier(0.4,0,0.2,1),
+              color 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+body {
+  transition: background-color 0.28s cubic-bezier(0.4,0,0.2,1),
+              color 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+/* Transición en cards, borders, botones */
+.card, .rounded-2xl, .rounded-xl, .rounded-lg,
+[class*="border-"], input, textarea, select, button {
+  transition: background-color 0.22s ease, border-color 0.22s ease,
+              color 0.2s ease, box-shadow 0.22s ease !important;
+}
+
+/* ── Animated theme toggle pill ───────────────────────────────────────────── */
+.civac-theme-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 50px;
+  height: 26px;
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background 0.3s cubic-bezier(0.4,0,0.2,1),
+              border-color 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.civac-theme-pill-thumb {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.3s ease, box-shadow 0.3s ease;
+}
+.civac-theme-pill-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 13px;
+  transition: background 0.3s ease;
+}
+
+/* ── Page entrance animations ─────────────────────────────────────────────── */
+@keyframes civac-page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes civac-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes civac-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes civac-scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.civac-animate {
+  animation: civac-page-enter 0.38s cubic-bezier(0.22,0.61,0.36,1) both;
+}
+.civac-animate-fade {
+  animation: civac-fade-in 0.3s ease both;
+}
+.civac-animate-scale {
+  animation: civac-scale-in 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* Stagger children of animate containers */
+.civac-stagger > *:nth-child(1)  { animation-delay: 0.02s; }
+.civac-stagger > *:nth-child(2)  { animation-delay: 0.05s; }
+.civac-stagger > *:nth-child(3)  { animation-delay: 0.08s; }
+.civac-stagger > *:nth-child(4)  { animation-delay: 0.11s; }
+.civac-stagger > *:nth-child(5)  { animation-delay: 0.14s; }
+.civac-stagger > *:nth-child(6)  { animation-delay: 0.17s; }
+
+/* ── Custom scrollbars ────────────────────────────────────────────────────── */
+::-webkit-scrollbar             { width: 5px; height: 5px; }
+::-webkit-scrollbar-track       { background: transparent; }
+.dark ::-webkit-scrollbar-thumb { background: rgba(0,245,212,0.22); border-radius: 4px; }
+.dark ::-webkit-scrollbar-thumb:hover { background: rgba(0,245,212,0.45); }
+:root:not(.dark) ::-webkit-scrollbar-thumb { background: rgba(58,120,72,0.22); border-radius: 4px; }
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover { background: rgba(58,120,72,0.44); }
+
+/* ── Card hover lift ─────────────────────────────────────────────────────── */
+.dark .card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+.dark .card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,245,212,0.07) !important;
+}
+:root:not(.dark) .card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(60,120,60,0.13) !important;
+}
+
+/* ── License / plan status pills ─────────────────────────────────────────── */
+.pill-active   { background: rgba(57,255,126,0.1);  border: 1px solid rgba(57,255,126,0.3);  color: #39ff7e; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-warning  { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.3);  color: #fbbf24; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-expired  { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #f87171; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-pending  { background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.3); color: #94a3b8; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-demo     { background: rgba(0,200,255,0.1);   border: 1px solid rgba(0,200,255,0.3);   color: #00c8ff; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-revoked  { background: rgba(239,68,68,0.1);   border: 1px solid rgba(239,68,68,0.3);   color: #ef4444; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-google   { background: rgba(66,133,244,0.1);  border: 1px solid rgba(66,133,244,0.3);  color: #4285F4; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+.pill-outlook  { background: rgba(0,120,215,0.1);   border: 1px solid rgba(0,120,215,0.3);   color: #0078D7; border-radius: 9999px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+
+/* ── Badge pulse (live indicators) ──────────────────────────────────────── */
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+.badge-live { animation: badge-pulse 2s ease-in-out infinite; }
+
+/* ── Glass morphism enhanced ────────────────────────────────────────────── */
+.glass-dark {
+  background: rgba(4,14,26,0.88) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+}
+.glass-light {
+  background: rgba(245,240,226,0.90) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+}
+
+/* ── OAuth buttons ───────────────────────────────────────────────────────── */
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 10px 16px;
+  background: white; border: 1.5px solid #dadce0;
+  border-radius: 10px; font-size: 13px; font-weight: 600; color: #3c4043;
+  cursor: pointer; transition: all 0.18s ease;
+}
+.btn-google:hover {
+  background: #f8f9fa; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.dark .btn-google {
+  background: rgba(66,133,244,0.07); border-color: rgba(66,133,244,0.3);
+  color: #8ab4f8;
+}
+.dark .btn-google:hover {
+  background: rgba(66,133,244,0.12); box-shadow: 0 0 12px rgba(66,133,244,0.15);
+}
+.btn-microsoft {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 10px 16px;
+  background: white; border: 1.5px solid #8c8c8c;
+  border-radius: 10px; font-size: 13px; font-weight: 600; color: #1d1d1d;
+  cursor: pointer; transition: all 0.18s ease;
+}
+.btn-microsoft:hover {
+  background: #f3f3f3; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.dark .btn-microsoft {
+  background: rgba(0,120,215,0.07); border-color: rgba(0,120,215,0.35);
+  color: #60a5fa;
+}
+.dark .btn-microsoft:hover {
+  background: rgba(0,120,215,0.13); box-shadow: 0 0 12px rgba(0,120,215,0.18);
+}
+
+/* ── Responsive grid utilities ────────────────────────────────────────────── */
+.grid-auto-200 { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.grid-auto-280 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grid-auto-320 { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+
+/* ── Responsive typography scale ─────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .text-rsp-2xl { font-size: 1.25rem !important; }
+  .text-rsp-3xl { font-size: 1.5rem  !important; }
+  .text-rsp-4xl { font-size: 1.75rem !important; }
+}
+
+/* ── Print styles ────────────────────────────────────────────────────────── */
+@media print {
+  .no-print, aside, header { display: none !important; }
+  body { background: white !important; color: black !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ── Font smoothing ──────────────────────────────────────────────────────── */
+* { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* ── Activation code input highlight ─────────────────────────────────────── */
+.codigo-input {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* ── Admin stat cards ────────────────────────────────────────────────────── */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stat-number { animation: count-up 0.4s ease both; }
+
+/* ── Session limit progress bar ─────────────────────────────────────────── */
+.session-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0,245,212,0.15);
+  overflow: hidden;
+}
+.session-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  background: linear-gradient(90deg, #00f5d4, #00c8ff);
+}
+.session-bar-fill.warning {
+  background: linear-gradient(90deg, #fbbf24, #f59e0b);
+}
+.session-bar-fill.danger {
+  background: linear-gradient(90deg, #f87171, #ef4444);
+}

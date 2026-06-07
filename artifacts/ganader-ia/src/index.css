@@ -577,6 +577,14 @@ html { font-size: 15.5px; }
   0%,100% { opacity:0.15; }
   50%     { opacity:0.4; }
 }
+@keyframes ring-pulse {
+  0%,100% { opacity:0.35; transform:scale(1); }
+  50%     { opacity:0.70; transform:scale(1.04); }
+}
+@keyframes grid-pulse {
+  0%,100% { opacity:0.55; }
+  50%     { opacity:1.00; }
+}
 
 .civac-slide-up    { animation: slide-up 0.4s cubic-bezier(0.22,1,0.36,1) both; }
 .civac-slide-right { animation: slide-right 0.35s cubic-bezier(0.22,1,0.36,1) both; }

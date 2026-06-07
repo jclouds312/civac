@@ -278,47 +278,79 @@ function ColombianTicker() {
    FARM IMAGE WIDGETS — decorative farm panels
 ═══════════════════════════════════════════════════════════════════════════════ */
 function FarmImageWidgets() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const id = setInterval(()=>setTick(t=>t+1),2000); return ()=>clearInterval(id); }, []);
+  const litros = (84 + Math.sin(tick*0.8)*2.5).toFixed(0);
+  const animals = 13;
   return (
-    <div className="hidden xl:flex flex-col gap-3 w-40 flex-shrink-0">
+    <div className="hidden xl:flex flex-col gap-2.5 w-44 flex-shrink-0">
       {[
-        { img:"https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=320&h=200&q=70&auto=format&fit=crop", label:"🐄 Inventario", sub:"13 cabezas", c:"#39ff7e", g:"57,255,126" },
-        { img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=320&h=200&q=70&auto=format&fit=crop", label:"🌿 Potrero Norte", sub:"En pastoreo", c:"#00f5d4", g:"0,245,212" },
-        { img:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=320&h=200&q=70&auto=format&fit=crop", label:"📡 GPS Activo", sub:"13/13 online",  c:"#00c8ff", g:"0,200,255" },
+        { img:"https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=400&h=260&q=85&auto=format&fit=crop&crop=center",
+          label:"🐄 Inventario", sub:`${animals} cabezas · Hato cert.`, c:"#39ff7e", g:"57,255,126",
+          stat:`${animals} activos`, statLabel:"bovinos", progress:85 },
+        { img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=260&q=85&auto=format&fit=crop",
+          label:"🌿 Potrero Norte", sub:"En pastoreo · 4.2 ha", c:"#00f5d4", g:"0,245,212",
+          stat:"92%", statLabel:"cobertura", progress:92 },
+        { img:"https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=260&q=85&auto=format&fit=crop",
+          label:"📡 GPS Real-Time", sub:"13/13 collares online", c:"#00c8ff", g:"0,200,255",
+          stat:"99.8%", statLabel:"uptime", progress:99 },
       ].map((w,i) => (
-        <div key={i} className="rounded-2xl overflow-hidden relative group transition-all hover:scale-[1.03]"
-          style={{ border:`1px solid rgba(${w.g},0.25)`, boxShadow:`0 0 16px rgba(${w.g},0.1)` }}>
+        <div key={i} className="rounded-2xl overflow-hidden relative group transition-all duration-300 hover:scale-[1.04] cursor-default"
+          style={{ border:`1.5px solid rgba(${w.g},0.30)`, boxShadow:`0 0 22px rgba(${w.g},0.14), 0 4px 16px rgba(0,0,0,0.5)` }}>
           <img src={w.img} alt={w.label}
-            className="w-full h-20 object-cover transition-transform group-hover:scale-110 duration-500"
+            className="w-full h-24 object-cover transition-transform group-hover:scale-110 duration-700"
+            style={{ filter:"saturate(1.3) brightness(0.95)" }}
             onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
-          <div className="absolute inset-0" style={{ background:`linear-gradient(transparent 30%,rgba(0,0,0,0.8) 100%)` }}/>
-          <div className="absolute bottom-0 left-0 right-0 p-2">
-            <div className="text-[9px] font-black" style={{ color:w.c }}>{w.label}</div>
-            <div className="text-[8px] text-white/50">{w.sub}</div>
+          {/* Rich gradient overlay */}
+          <div className="absolute inset-0" style={{ background:`linear-gradient(160deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.72) 70%,rgba(0,0,0,0.92) 100%)` }}/>
+          {/* Top neon line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background:`linear-gradient(90deg,transparent,${w.c},transparent)` }}/>
+          {/* Hover scan overlay */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{ background:`linear-gradient(135deg,rgba(${w.g},0.08) 0%,transparent 60%)` }}/>
+          <div className="absolute bottom-0 left-0 right-0 p-2.5">
+            <div className="text-[10px] font-black leading-tight mb-0.5" style={{ color:w.c, textShadow:`0 0 10px rgba(${w.g},0.7)` }}>{w.label}</div>
+            <div className="text-[8px] text-white/45 mb-1.5">{w.sub}</div>
+            {/* Progress bar */}
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 h-1 rounded-full" style={{ background:"rgba(255,255,255,0.08)" }}>
+                <div className="h-full rounded-full transition-all duration-1000" style={{ width:`${w.progress}%`, background:`linear-gradient(90deg,${w.c},${w.c}cc)`, boxShadow:`0 0 6px rgba(${w.g},0.7)` }}/>
+              </div>
+              <span className="text-[8px] font-black" style={{ color:w.c }}>{w.stat}</span>
+            </div>
           </div>
-          {/* Hover glow line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ background:`linear-gradient(90deg,transparent,${w.c},transparent)` }}/>
+          {/* Live indicator */}
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background:w.c, boxShadow:`0 0 6px ${w.c}` }}/>
+            <span className="text-[7px] font-black" style={{ color:w.c }}>LIVE</span>
+          </div>
         </div>
       ))}
       {/* Service status widget */}
       <div className="rounded-2xl p-3"
-        style={{ background:"rgba(0,0,0,0.5)", border:"1px solid rgba(0,245,212,0.15)", backdropFilter:"blur(12px)" }}>
-        <div className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color:"rgba(0,245,212,0.5)" }}>
-          🟢 Servicios
+        style={{ background:"linear-gradient(145deg,rgba(0,0,0,0.6),rgba(0,10,20,0.8))", border:"1.5px solid rgba(0,245,212,0.20)", backdropFilter:"blur(16px)", boxShadow:"0 0 20px rgba(0,245,212,0.06)" }}>
+        <div className="text-[9px] font-black uppercase tracking-wider mb-2.5 flex items-center gap-1.5" style={{ color:"rgba(0,245,212,0.65)" }}>
+          <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background:"#39ff7e", display:"inline-block", boxShadow:"0 0 6px #39ff7e" }}/>
+          Servicios Online
         </div>
         {[
-          { name:"Frontend PWA", ok:true },
-          { name:"Analytics API", ok:true },
-          { name:"GPS Django",    ok:true },
-          { name:"Sync Server",   ok:false },
+          { name:"Frontend PWA", ok:true, ms:"12ms" },
+          { name:"Analytics API", ok:true, ms:"28ms" },
+          { name:"GPS Django",    ok:true, ms:"45ms" },
+          { name:"Sync Server",   ok:false, ms:"—" },
         ].map(s => (
-          <div key={s.name} className="flex items-center justify-between mb-1">
+          <div key={s.name} className="flex items-center justify-between mb-1.5">
             <span className="text-[8px] text-white/40">{s.name}</span>
-            <span className="text-[8px] font-bold" style={{ color:s.ok?"#39ff7e":"#ff6b6b" }}>
-              {s.ok ? "●" : "○"}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-[7px]" style={{ color:s.ok?"rgba(57,255,126,0.4)":"rgba(255,107,107,0.35)" }}>{s.ms}</span>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background:s.ok?"#39ff7e":"#ff6b6b", boxShadow:s.ok?"0 0 5px #39ff7e":"0 0 5px #ff6b6b" }}/>
+            </div>
           </div>
         ))}
+        <div className="mt-2 pt-2 flex items-center justify-between" style={{ borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+          <span className="text-[7px] text-white/20">Prod. hoy</span>
+          <span className="text-[9px] font-black" style={{ color:"#00f5d4" }}>{litros} L</span>
+        </div>
       </div>
     </div>
   );
@@ -328,44 +360,74 @@ function FarmImageWidgets() {
    RIGHT SIDE IMAGE WIDGETS
 ═══════════════════════════════════════════════════════════════════════════════ */
 function RightWidgets() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const id = setInterval(()=>setTick(t=>t+1),2500); return ()=>clearInterval(id); }, []);
+  const utilidad = (40.2 + Math.sin(tick*0.6)*0.4).toFixed(1);
   return (
-    <div className="hidden xl:flex flex-col gap-3 w-40 flex-shrink-0">
+    <div className="hidden xl:flex flex-col gap-2.5 w-44 flex-shrink-0">
       {[
-        { img:"https://images.unsplash.com/photo-1622542796254-5b9c46ab0d2f?w=320&h=200&q=70&auto=format&fit=crop", label:"🥛 Producción", sub:"84 L/día récord", c:"#fbbf24", g:"251,191,36" },
-        { img:"https://images.unsplash.com/photo-1560693559-aa2f85ef89de?w=320&h=200&q=70&auto=format&fit=crop", label:"🧬 Genética", sub:"DEP Score 94.2",   c:"#a855f7", g:"168,85,247" },
-        { img:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=320&h=200&q=70&auto=format&fit=crop", label:"🌱 Huella CO₂", sub:"-18% IPCC 2019",  c:"#39ff7e", g:"57,255,126" },
+        { img:"https://images.unsplash.com/photo-1622542796254-5b9c46ab0d2f?w=400&h=260&q=85&auto=format&fit=crop&crop=center",
+          label:"🥛 Producción", sub:"84 L/día · récord mes", c:"#fbbf24", g:"251,191,36",
+          stat:"↑3.2%", statLabel:"vs ayer", progress:84 },
+        { img:"https://images.unsplash.com/photo-1560693559-aa2f85ef89de?w=400&h=260&q=85&auto=format&fit=crop",
+          label:"🧬 Genética IA", sub:"DEP Score 94.2 · Elite", c:"#a855f7", g:"168,85,247",
+          stat:"94.2", statLabel:"DEP score", progress:94 },
+        { img:"https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&h=260&q=85&auto=format&fit=crop",
+          label:"🌱 Huella CO₂", sub:"-18% IPCC 2019 meta", c:"#39ff7e", g:"57,255,126",
+          stat:"-18%", statLabel:"emisiones", progress:72 },
       ].map((w,i) => (
-        <div key={i} className="rounded-2xl overflow-hidden relative group transition-all hover:scale-[1.03]"
-          style={{ border:`1px solid rgba(${w.g},0.25)`, boxShadow:`0 0 16px rgba(${w.g},0.1)` }}>
+        <div key={i} className="rounded-2xl overflow-hidden relative group transition-all duration-300 hover:scale-[1.04] cursor-default"
+          style={{ border:`1.5px solid rgba(${w.g},0.30)`, boxShadow:`0 0 22px rgba(${w.g},0.14), 0 4px 16px rgba(0,0,0,0.5)` }}>
           <img src={w.img} alt={w.label}
-            className="w-full h-20 object-cover transition-transform group-hover:scale-110 duration-500"
+            className="w-full h-24 object-cover transition-transform group-hover:scale-110 duration-700"
+            style={{ filter:"saturate(1.3) brightness(0.95)" }}
             onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; }} />
-          <div className="absolute inset-0" style={{ background:`linear-gradient(transparent 30%,rgba(0,0,0,0.8) 100%)` }}/>
-          <div className="absolute bottom-0 left-0 right-0 p-2">
-            <div className="text-[9px] font-black" style={{ color:w.c }}>{w.label}</div>
-            <div className="text-[8px] text-white/50">{w.sub}</div>
+          <div className="absolute inset-0" style={{ background:`linear-gradient(160deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.72) 70%,rgba(0,0,0,0.92) 100%)` }}/>
+          <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background:`linear-gradient(90deg,transparent,${w.c},transparent)` }}/>
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{ background:`linear-gradient(135deg,rgba(${w.g},0.08) 0%,transparent 60%)` }}/>
+          <div className="absolute bottom-0 left-0 right-0 p-2.5">
+            <div className="text-[10px] font-black leading-tight mb-0.5" style={{ color:w.c, textShadow:`0 0 10px rgba(${w.g},0.7)` }}>{w.label}</div>
+            <div className="text-[8px] text-white/45 mb-1.5">{w.sub}</div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 h-1 rounded-full" style={{ background:"rgba(255,255,255,0.08)" }}>
+                <div className="h-full rounded-full transition-all duration-1000" style={{ width:`${w.progress}%`, background:`linear-gradient(90deg,${w.c},${w.c}cc)`, boxShadow:`0 0 6px rgba(${w.g},0.7)` }}/>
+              </div>
+              <span className="text-[8px] font-black" style={{ color:w.c }}>{w.stat}</span>
+            </div>
           </div>
-          <div className="absolute top-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ background:`linear-gradient(90deg,transparent,${w.c},transparent)` }}/>
+          <div className="absolute top-2 left-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background:w.c, boxShadow:`0 0 6px ${w.c}` }}/>
+            <span className="text-[7px] font-black" style={{ color:w.c }}>LIVE</span>
+          </div>
         </div>
       ))}
-      {/* Module count widget */}
+      {/* AI Module widget */}
       <div className="rounded-2xl p-3"
-        style={{ background:"rgba(0,0,0,0.5)", border:"1px solid rgba(168,85,247,0.2)", backdropFilter:"blur(12px)" }}>
-        <div className="text-[9px] font-black uppercase tracking-wider mb-2" style={{ color:"rgba(168,85,247,0.55)" }}>
-          📦 Módulos v1.0 · 32 activos
+        style={{ background:"linear-gradient(145deg,rgba(5,0,20,0.75),rgba(20,5,40,0.85))", border:"1.5px solid rgba(168,85,247,0.28)", backdropFilter:"blur(16px)", boxShadow:"0 0 24px rgba(168,85,247,0.09)" }}>
+        <div className="text-[9px] font-black uppercase tracking-wider mb-2.5" style={{ color:"rgba(168,85,247,0.7)" }}>
+          🤖 Módulos IA · v1.0
         </div>
         {[
-          { name:"Productivos", val:"20", c:"#00f5d4" },
-          { name:"Sanidad",     val:"1",  c:"#39ff7e" },
-          { name:"Trazabilidad",val:"1",  c:"#a855f7" },
-          { name:"Total activos",val:"22",c:"#fbbf24" },
+          { name:"Productivos", val:"20", c:"#00f5d4", pct:100 },
+          { name:"Sanidad",     val:"1",  c:"#39ff7e", pct:100 },
+          { name:"Trazabilidad",val:"1",  c:"#a855f7", pct:100 },
+          { name:"Total activos",val:"22",c:"#fbbf24", pct:69 },
         ].map(m => (
-          <div key={m.name} className="flex items-center justify-between mb-1">
-            <span className="text-[8px] text-white/40">{m.name}</span>
-            <span className="text-[9px] font-black" style={{ color:m.c }}>{m.val}</span>
+          <div key={m.name} className="mb-2">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-[8px] text-white/40">{m.name}</span>
+              <span className="text-[9px] font-black" style={{ color:m.c }}>{m.val}</span>
+            </div>
+            <div className="h-0.5 rounded-full" style={{ background:"rgba(255,255,255,0.05)" }}>
+              <div style={{ width:`${m.pct}%`, height:"100%", background:m.c, borderRadius:"9999px", boxShadow:`0 0 4px ${m.c}` }}/>
+            </div>
           </div>
         ))}
+        <div className="mt-2 pt-2 flex items-center justify-between" style={{ borderTop:"1px solid rgba(255,255,255,0.05)" }}>
+          <span className="text-[7px] text-white/25">Utilidad mes</span>
+          <span className="text-[9px] font-black" style={{ color:"#39ff7e" }}>${utilidad}M</span>
+        </div>
       </div>
     </div>
   );
@@ -376,18 +438,38 @@ function RightWidgets() {
 ═══════════════════════════════════════════════════════════════════════════════ */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
-    <div className="relative inline-block" style={{ width:size, height:size }}>
-      <div className="w-full h-full rounded-[26%] overflow-hidden"
-        style={{ border:"2.5px solid rgba(0,245,212,0.85)", boxShadow:"0 0 32px rgba(0,245,212,0.6), 0 0 70px rgba(0,200,255,0.28), inset 0 0 20px rgba(0,245,212,0.08)" }}>
-        <img src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=240&h=240&q=80&auto=format&fit=crop&crop=face"
-          alt="GanaderIA" style={{ width:"100%", height:"100%", objectFit:"cover" }}
+    <div className="relative inline-block" style={{ width:size*1.6, height:size*1.6 }}>
+      {/* Outer pulse ring 1 */}
+      <div className="absolute inset-0 rounded-full" style={{ border:"1px solid rgba(0,245,212,0.18)", animation:"ring-pulse 3s ease-in-out infinite", borderRadius:"28%" }}/>
+      {/* Outer pulse ring 2 */}
+      <div className="absolute" style={{ inset:`-${size*0.12}px`, border:"1px solid rgba(0,200,255,0.12)", borderRadius:"28%", animation:"ring-pulse 3s ease-in-out infinite 1s" }}/>
+      {/* Outer pulse ring 3 */}
+      <div className="absolute" style={{ inset:`-${size*0.22}px`, border:"1px solid rgba(168,85,247,0.08)", borderRadius:"28%", animation:"ring-pulse 3s ease-in-out infinite 2s" }}/>
+      {/* Main image container — centered in the bigger outer box */}
+      <div className="absolute" style={{ inset:`${size*0.3}px`, borderRadius:"26%", overflow:"hidden",
+        border:"2.5px solid rgba(0,245,212,0.90)",
+        boxShadow:"0 0 40px rgba(0,245,212,0.70), 0 0 90px rgba(0,200,255,0.32), 0 0 140px rgba(0,245,212,0.14), inset 0 0 24px rgba(0,245,212,0.10)" }}>
+        <img src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=320&h=320&q=90&auto=format&fit=crop&crop=center"
+          alt="GanaderIA" style={{ width:"100%", height:"100%", objectFit:"cover", filter:"saturate(1.2) brightness(1.05)" }}
           onError={e => {
             const el = e.currentTarget.parentElement as HTMLElement;
-            el.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(135deg,#0a3d22,#082818)">🐄</div>';
+            el.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:linear-gradient(135deg,#061a10,#0a2a18)">🐄</div>';
           }} />
+        {/* Shimmer overlay */}
+        <div className="absolute inset-0" style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.10) 0%,transparent 50%,rgba(0,200,255,0.06) 100%)" }}/>
       </div>
-      <div className="absolute -bottom-1 -right-1 rounded-full flex items-center justify-center font-black"
-        style={{ width:size*0.30, height:size*0.30, background:"linear-gradient(135deg,#00f5d4,#00a896)", fontSize:size*0.095, color:"#000", border:"2px solid #0e1e38", boxShadow:"0 0 12px rgba(0,245,212,0.9)" }}>
+      {/* IA badge */}
+      <div className="absolute flex items-center justify-center font-black"
+        style={{
+          right:`${size*0.24}px`, bottom:`${size*0.24}px`,
+          width:size*0.36, height:size*0.36,
+          background:"linear-gradient(135deg,#00f5d4,#00c8ff)",
+          fontSize:size*0.115, color:"#000",
+          border:"2.5px solid #070e1c",
+          borderRadius:"50%",
+          boxShadow:"0 0 20px rgba(0,245,212,1.0), 0 0 40px rgba(0,245,212,0.5)",
+          letterSpacing:"-0.02em",
+        }}>
         IA
       </div>
     </div>
@@ -524,6 +606,117 @@ function PaymentModal({ plan, onClose }: { plan: PlanId; onClose: () => void }) 
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   BOTTOM PWA NAV — mobile navigation bar
+═══════════════════════════════════════════════════════════════════════════════ */
+function BottomPWANav({ tab, setTab }: { tab: string; setTab: (t: "login"|"registro"|"cuentas"|"planes"|"ia") => void }) {
+  const items: { id:"login"|"registro"|"cuentas"|"planes"|"ia"; emoji:string; label:string; c:string; g:string }[] = [
+    { id:"login",    emoji:"🔐", label:"Sesión",   c:"#00f5d4", g:"0,245,212"   },
+    { id:"cuentas",  emoji:"👥", label:"Cuentas",  c:"#39ff7e", g:"57,255,126"  },
+    { id:"planes",   emoji:"💳", label:"Planes",   c:"#fbbf24", g:"251,191,36"  },
+    { id:"ia",       emoji:"🤖", label:"IA",       c:"#e879f9", g:"232,121,249" },
+    { id:"registro", emoji:"✨", label:"Registro",  c:"#a855f7", g:"168,85,247"  },
+  ];
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden"
+      style={{
+        background:"linear-gradient(180deg,rgba(2,6,18,0.0) 0%,rgba(2,6,18,0.97) 20%)",
+        backdropFilter:"blur(20px)",
+        borderTop:"1px solid rgba(0,245,212,0.15)",
+        boxShadow:"0 -4px 40px rgba(0,0,0,0.7), 0 -1px 0 rgba(0,245,212,0.08)",
+        paddingBottom:"env(safe-area-inset-bottom,0px)",
+      }}>
+      <div className="flex items-center justify-around px-1 pt-2 pb-2">
+        {items.map(item => {
+          const active = tab === item.id;
+          return (
+            <button key={item.id} onClick={() => setTab(item.id)}
+              className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-2xl transition-all duration-200 min-w-[52px] relative"
+              style={{
+                background: active ? `rgba(${item.g},0.12)` : "transparent",
+                border: active ? `1px solid rgba(${item.g},0.35)` : "1px solid transparent",
+                boxShadow: active ? `0 0 18px rgba(${item.g},0.22)` : "none",
+              }}>
+              {active && (
+                <div className="absolute -top-px left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                  style={{ background:item.c, boxShadow:`0 0 8px ${item.c}` }}/>
+              )}
+              <span className="text-xl leading-none" style={{
+                filter: active ? `drop-shadow(0 0 8px rgba(${item.g},0.9))` : "none",
+                transform: active ? "scale(1.15)" : "scale(1)",
+                transition:"all 0.2s",
+              }}>{item.emoji}</span>
+              <span className="text-[9px] font-black leading-none" style={{
+                color: active ? item.c : "rgba(255,255,255,0.32)",
+                textShadow: active ? `0 0 10px rgba(${item.g},0.7)` : "none",
+              }}>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   IA MODULE TAB — showcase of AI features
+═══════════════════════════════════════════════════════════════════════════════ */
+function IaModuleTab() {
+  const features = [
+    { emoji:"🔮", title:"Predicción de Producción", desc:"IA predice litros/día por animal con 96% precisión basado en históricos, clima y nutrición.", c:"#e879f9", g:"232,121,249" },
+    { emoji:"🧬", title:"Genética Predictiva DEP", desc:"Calcula índices de mérito genético y recomienda cruces para máximo rendimiento lechero.", c:"#a855f7", g:"168,85,247" },
+    { emoji:"🩺", title:"Diagnóstico Sanitario IA", desc:"Detecta signos tempranos de enfermedad por variación de temperatura y producción.", c:"#39ff7e", g:"57,255,126" },
+    { emoji:"💰", title:"Optimización de Costos", desc:"Modela escenarios de alimentación vs producción para maximizar rentabilidad COP/L.", c:"#fbbf24", g:"251,191,36" },
+    { emoji:"📡", title:"GPS + Comportamiento Animal", desc:"Análisis de movimiento GPS para detectar celo, estrés y problemas sanitarios.", c:"#00c8ff", g:"0,200,255" },
+    { emoji:"🌱", title:"Huella de Carbono IPCC", desc:"Calcula y monitorea la huella CO₂ del hato según estándares IPCC 2019.", c:"#00f5d4", g:"0,245,212" },
+  ];
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="text-center">
+        <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl mb-3"
+          style={{ background:"linear-gradient(135deg,rgba(232,121,249,0.10),rgba(168,85,247,0.07))", border:"1.5px solid rgba(232,121,249,0.30)", boxShadow:"0 0 30px rgba(232,121,249,0.12)" }}>
+          <span className="text-2xl" style={{ filter:"drop-shadow(0 0 12px rgba(232,121,249,0.9))" }}>🤖</span>
+          <div className="text-left">
+            <div className="text-sm font-black text-white">Asesora IA GanaderIA Colombia</div>
+            <div className="text-[10px]" style={{ color:"rgba(232,121,249,0.65)" }}>GPT especializado en ganadería · 6 módulos activos</div>
+          </div>
+          <span className="text-[8px] font-black px-2 py-1 rounded-full"
+            style={{ background:"rgba(57,255,126,0.12)", border:"1px solid rgba(57,255,126,0.35)", color:"#39ff7e" }}>
+            ● EN VIVO
+          </span>
+        </div>
+        <p className="text-[11px] max-w-lg mx-auto" style={{ color:"rgba(255,255,255,0.35)" }}>
+          Inteligencia Artificial entrenada con datos de ganadería colombiana · Razas Cebú, Holstein, Gyr, Brahman · Clima tropical andino
+        </p>
+      </div>
+
+      {/* Feature grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto">
+        {features.map((f,i) => (
+          <div key={i} className="relative rounded-2xl p-4 group cursor-default transition-all duration-300 hover:scale-[1.03]"
+            style={{ background:`linear-gradient(145deg,rgba(${f.g},0.07),rgba(${f.g},0.03))`, border:`1.5px solid rgba(${f.g},0.25)`, boxShadow:`0 0 20px rgba(${f.g},0.07)` }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow=`0 0 35px rgba(${f.g},0.28)`; (e.currentTarget as HTMLElement).style.borderColor=`rgba(${f.g},0.55)`; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow=`0 0 20px rgba(${f.g},0.07)`; (e.currentTarget as HTMLElement).style.borderColor=`rgba(${f.g},0.25)`; }}>
+            <div className="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl" style={{ background:`linear-gradient(90deg,transparent,${f.c},transparent)` }}/>
+            <div className="text-3xl mb-2.5" style={{ filter:`drop-shadow(0 0 10px rgba(${f.g},0.7))` }}>{f.emoji}</div>
+            <h3 className="text-xs font-black mb-1.5" style={{ color:f.c }}>{f.title}</h3>
+            <p className="text-[10px] leading-relaxed" style={{ color:"rgba(255,255,255,0.40)" }}>{f.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <div className="text-center">
+        <div className="inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-black"
+          style={{ background:"linear-gradient(135deg,rgba(232,121,249,0.10),rgba(168,85,247,0.08))", border:"1.5px solid rgba(232,121,249,0.30)", color:"rgba(232,121,249,0.7)" }}>
+          🤖 Disponible en planes PRO, Premium y Platino · <span style={{ color:"#fbbf24" }}>Plan PRO desde $89.000/mes</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    GOOGLE SIGN-IN — server-side redirect flow
 ═══════════════════════════════════════════════════════════════════════════════ */
 function GoogleSignInButton({ onError }: { onError?: (msg: string) => void }) {
@@ -576,7 +769,7 @@ export default function Login() {
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [loadingId, setLoadingId] = useState<string|null>(null);
-  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro">("login");
+  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro"|"ia">("login");
   const [entered, setEntered]     = useState(false);
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -823,7 +1016,7 @@ export default function Login() {
       </button>
 
       {/* Main container */}
-      <div className={`relative z-10 w-full max-w-6xl px-4 py-6 transition-all duration-700 ${entered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+      <div className={`relative z-10 w-full max-w-6xl px-4 py-6 pb-28 sm:pb-6 transition-all duration-700 ${entered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
 
         {/* ── Colombian ticker ── */}
         <ColombianTicker />
@@ -890,13 +1083,14 @@ export default function Login() {
             ))}
           </div>
 
-          {/* Tabs — 4 botones con identidad de color propia */}
+          {/* Tabs — 5 botones con identidad de color propia */}
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {[
               { id:"login"    as const, label:"Iniciar Sesión",  emoji:"🔐", c1:"#00f5d4", c2:"#00a896", g:"0,245,212"   },
               { id:"registro" as const, label:"Registrarse",     emoji:"✨", c1:"#a855f7", c2:"#7c3aed", g:"168,85,247"  },
               { id:"cuentas"  as const, label:"Cuentas Demo",    emoji:"👥", c1:"#39ff7e", c2:"#16a34a", g:"57,255,126"  },
               { id:"planes"   as const, label:"Planes",          emoji:"💳", c1:"#fbbf24", c2:"#ea580c", g:"251,191,36"  },
+              { id:"ia"       as const, label:"Módulo IA",       emoji:"🤖", c1:"#e879f9", c2:"#a855f7", g:"232,121,249" },
             ].map(t => {
               const isActive = tab === t.id;
               return (
@@ -1712,10 +1906,18 @@ export default function Login() {
           );
         })()}
 
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB: IA MODULE
+        ═══════════════════════════════════════════════════════════════════ */}
+        {tab === "ia" && <IaModuleTab />}
+
         {/* ── Footer KPI Strip — siempre visible debajo del card ── */}
         <LoginStatsFooter />
 
       </div>
+
+      {/* ── BOTTOM PWA NAV ── */}
+      <BottomPWANav tab={tab} setTab={setTab} />
 
       {/* ── ADMIN ACCESS MODAL ── */}
       {showAdminForm && (

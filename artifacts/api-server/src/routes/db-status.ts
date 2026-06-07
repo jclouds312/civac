@@ -10,7 +10,7 @@ import { initGateway, getGatewayState } from "@workspace/db";
 const router = Router();
 
 /** GET /api/db/status — estado resumido del gateway */
-router.get("/api/db/status", async (_req, res) => {
+router.get("/db/status", async (_req, res) => {
   try {
     const gw    = await initGateway();
     const state = gw.state;
@@ -33,7 +33,7 @@ router.get("/api/db/status", async (_req, res) => {
 });
 
 /** GET /api/db/info — info detallada de SQLite (tablas, tamaño, versión) */
-router.get("/api/db/info", async (_req, res) => {
+router.get("/db/info", async (_req, res) => {
   try {
     const gw = await initGateway();
     if (gw.mode !== "sqlite") {
@@ -51,7 +51,7 @@ router.get("/api/db/info", async (_req, res) => {
 });
 
 /** POST /api/db/reconnect — intenta reconectar a PostgreSQL */
-router.post("/api/db/reconnect", async (_req, res) => {
+router.post("/db/reconnect", async (_req, res) => {
   try {
     const gw      = await initGateway();
     const success = await gw.reconnect();
@@ -71,7 +71,7 @@ router.post("/api/db/reconnect", async (_req, res) => {
 });
 
 /** GET /api/db/sync-queue — cola de operaciones pendientes de sincronizar */
-router.get("/api/db/sync-queue", async (_req, res) => {
+router.get("/db/sync-queue", async (_req, res) => {
   try {
     const gw = await initGateway();
     if (gw.mode !== "sqlite") {
@@ -93,7 +93,7 @@ router.get("/api/db/sync-queue", async (_req, res) => {
 });
 
 /** GET /api/db/meta — metadatos internos de la BD local */
-router.get("/api/db/meta", async (_req, res) => {
+router.get("/db/meta", async (_req, res) => {
   try {
     const gw = await initGateway();
     if (gw.mode !== "sqlite") {

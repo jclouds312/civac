@@ -6,3 +6,5 @@
 - [Hooks in conditional JSX](hooks-conditional-jsx.md) — useState/useEffect inside IIFE expressions in JSX are conditionally called and violate Rules of Hooks. Always extract to a named sub-component.
 - [WompiPayment field names](wompi-payment-fields.md) — WompiPayment type uses `userNombre` and `userEmail`, not `usuario`/`email`.
 - [CSS-in-JSX invalid props](css-invalid-props.md) — `divideColor` is not a valid React inline style; use Tailwind `divide-white/5` class. Always check CSS property names against React's style types.
+- [better-sqlite3 Replit build](better-sqlite3-replit.md) — pnpm blocks build scripts by default; add onlyBuiltDependencies to package.json, then compile with `make -C <pkg>/build better_sqlite3` using PATH with Nix g++. Also install in consumer package (api-server) since it's external in esbuild bundle.
+- [API server route prefix](api-server-route-prefix.md) — app.ts mounts router at /api, so route files must NOT include /api prefix. Real health path is /api/healthz not /api/health.

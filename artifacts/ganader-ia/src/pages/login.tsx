@@ -50,41 +50,50 @@ const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; fr
 function FarmBackground() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Layer 1: Colombian cattle panorama */}
+      {/* Layer 1: High-quality Colombian cattle panorama */}
       <div className="absolute inset-0" style={{
-        backgroundImage:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1920&q=50&auto=format&fit=crop')",
-        backgroundSize:"cover", backgroundPosition:"center 35%",
-        transform:"scale(1.05)",
-        animation:"slow-drift 30s ease-in-out infinite alternate",
+        backgroundImage:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=2560&q=85&auto=format&fit=crop')",
+        backgroundSize:"cover", backgroundPosition:"center 30%",
+        transform:"scale(1.08)",
+        animation:"slow-drift 40s ease-in-out infinite alternate",
+        filter:"saturate(1.3) brightness(0.85)",
       }}/>
-      {/* Layer 2: Rich dark-navy gradient overlay */}
+      {/* Layer 2: Deep atmospheric overlay — dark navy cinematic */}
       <div className="absolute inset-0" style={{
-        background:"linear-gradient(165deg,rgba(3,9,22,0.94) 0%,rgba(6,16,40,0.88) 35%,rgba(2,10,20,0.96) 100%)",
+        background:"linear-gradient(175deg,rgba(2,6,18,0.97) 0%,rgba(4,12,35,0.86) 30%,rgba(2,8,22,0.92) 65%,rgba(1,5,15,0.98) 100%)",
       }}/>
-      {/* Layer 3: Bottom pastoral fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-72" style={{
-        backgroundImage:"url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1920&q=30&auto=format&fit=crop&crop=bottom')",
-        backgroundSize:"cover", backgroundPosition:"center bottom", opacity:0.22,
-        maskImage:"linear-gradient(transparent 0%,rgba(0,0,0,0.9) 60%)",
-        WebkitMaskImage:"linear-gradient(transparent 0%,rgba(0,0,0,0.9) 60%)",
+      {/* Layer 3: Bottom cinematic green fields fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-80" style={{
+        backgroundImage:"url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=2560&q=60&auto=format&fit=crop&crop=bottom')",
+        backgroundSize:"cover", backgroundPosition:"center bottom", opacity:0.28,
+        maskImage:"linear-gradient(transparent 0%,rgba(0,0,0,0.95) 50%)",
+        WebkitMaskImage:"linear-gradient(transparent 0%,rgba(0,0,0,0.95) 50%)",
+        filter:"saturate(1.5) hue-rotate(5deg)",
       }}/>
-      {/* Layer 4: Tech dot-grid */}
+      {/* Layer 4: Neon tech dot-grid */}
       <div className="absolute inset-0" style={{
-        backgroundImage:"radial-gradient(circle, rgba(0,245,212,0.035) 1px, transparent 1px)",
-        backgroundSize:"48px 48px",
+        backgroundImage:"radial-gradient(circle, rgba(0,245,212,0.055) 1px, transparent 1px)",
+        backgroundSize:"44px 44px",
+        animation:"grid-pulse 8s ease-in-out infinite",
       }}/>
-      {/* Layer 5: Colombian flag accent glow (amarillo, azul, rojo) */}
+      {/* Layer 5: Vibrant radial glow spots */}
       <div className="absolute inset-0" style={{ background:`
-        radial-gradient(ellipse 55% 35% at 12% 8%,  rgba(0,245,212,0.08) 0%, transparent 65%),
-        radial-gradient(ellipse 45% 45% at 88% 88%, rgba(57,255,126,0.07) 0%, transparent 65%),
-        radial-gradient(ellipse 35% 35% at 82% 12%, rgba(0,180,255,0.05)  0%, transparent 60%),
-        radial-gradient(ellipse 60% 30% at 50% 100%,rgba(251,191,36,0.04) 0%, transparent 60%)`}}/>
-      {/* Layer 6: Animated scan line */}
-      <div className="absolute top-0 left-0 right-0 h-px opacity-30"
-        style={{ background:"linear-gradient(90deg,transparent 0%,#00f5d4 45%,#00c8ff 55%,transparent 100%)", animation:"scan-line 10s linear infinite" }}/>
-      {/* Layer 7: Right side tech accent */}
-      <div className="absolute right-0 top-0 bottom-0 w-1 opacity-20"
-        style={{ background:"linear-gradient(180deg,transparent,#00f5d4 40%,#00c8ff 60%,transparent)", animation:"pulse-vert 4s ease-in-out infinite" }}/>
+        radial-gradient(ellipse 60% 40% at 8%  5%,   rgba(0,245,212,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 92% 90%,  rgba(57,255,126,0.11) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 85% 10%,  rgba(0,180,255,0.10)  0%, transparent 55%),
+        radial-gradient(ellipse 70% 35% at 50% 100%, rgba(251,191,36,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 35% 35% at 5%  90%,  rgba(168,85,247,0.08) 0%, transparent 50%)`}}/>
+      {/* Layer 6: Colombian flag accent streaks */}
+      <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background:"linear-gradient(90deg,transparent 0%,#FCD116 25%,#003087 50%,#CE1126 75%,transparent 100%)", opacity:0.35 }}/>
+      {/* Layer 7: Fast horizontal scan line */}
+      <div className="absolute top-0 left-0 right-0 h-px"
+        style={{ background:"linear-gradient(90deg,transparent 0%,#00f5d4 40%,#a855f7 55%,#00c8ff 70%,transparent 100%)", animation:"scan-line 8s linear infinite", opacity:0.55 }}/>
+      {/* Layer 8: Side neon accent bars */}
+      <div className="absolute left-0 top-0 bottom-0 w-0.5" style={{ background:"linear-gradient(180deg,transparent,#00f5d4 35%,#39ff7e 65%,transparent)", opacity:0.35, animation:"pulse-vert 5s ease-in-out infinite" }}/>
+      <div className="absolute right-0 top-0 bottom-0 w-0.5" style={{ background:"linear-gradient(180deg,transparent,#a855f7 35%,#00c8ff 65%,transparent)", opacity:0.35, animation:"pulse-vert 5s ease-in-out infinite 2.5s" }}/>
+      {/* Layer 9: Center light leak */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60vw] h-[35vh]"
+        style={{ background:"radial-gradient(ellipse,rgba(0,245,212,0.06) 0%,transparent 70%)", pointerEvents:"none" }}/>
     </div>
   );
 }

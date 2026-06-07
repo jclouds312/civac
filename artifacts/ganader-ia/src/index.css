@@ -251,25 +251,26 @@
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgba(45,122,79,0.28);
+    background: rgba(0,168,148,0.28);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,180,140,0.48);
+    background: rgba(0,168,148,0.52);
   }
 }
 
-/* ── LIGHT MODE: fondo principal crema-gris cálido ── */
+/* ── LIGHT MODE: fondo principal campo fresco — cianes y verdes fríos ── */
 :root:not(.dark) body {
-  background-color: hsl(38 22% 84%);
+  background-color: hsl(185 42% 93%);
 }
 :root:not(.dark) main {
   background: linear-gradient(160deg,
-    #dbd2c0 0%,
-    #d8d0bc 20%,
-    #dde0d0 45%,
-    #d4d8d0 65%,
-    #dbd2c0 100%
+    #daf4f0 0%,
+    #d0ecfa 18%,
+    #e0f6f2 38%,
+    #cce8f8 58%,
+    #d8f4f0 78%,
+    #d4eefb 100%
   ) !important;
   min-height: 100vh;
 }
@@ -289,55 +290,55 @@
   min-height: 100vh;
 }
 
-/* ── LIGHT MODE: card-lift (paneles de contenido) ── */
+/* ── LIGHT MODE: card-lift (paneles de contenido) — blanco cristal ── */
 :root:not(.dark) .card-lift {
-  background: linear-gradient(145deg,#f5f0e2,#ede8d8) !important;
-  border: 1.5px solid rgba(150,120,70,0.22) !important;
-  box-shadow: 0 4px 20px rgba(100,80,40,0.12), 0 1px 4px rgba(0,0,0,0.06) !important;
-  color: hsl(28 40% 14%) !important;
+  background: linear-gradient(145deg,#ffffff,#f0fafb) !important;
+  border: 1.5px solid rgba(0,168,148,0.18) !important;
+  box-shadow: 0 4px 24px rgba(0,150,130,0.10), 0 1px 4px rgba(0,0,0,0.05) !important;
+  color: hsl(172 62% 11%) !important;
 }
 
 /* ── LIGHT MODE: module-card (tarjetas de módulos en el dashboard) ── */
 :root:not(.dark) .module-card {
-  box-shadow: 0 4px 16px rgba(100,80,40,0.14), 0 1px 4px rgba(0,0,0,0.08) !important;
-  border-width: 2px !important;
+  box-shadow: 0 6px 24px rgba(0,150,130,0.12), 0 2px 6px rgba(0,0,0,0.06) !important;
+  border-width: 1.5px !important;
 }
 :root:not(.dark) .module-card .module-title {
-  color: hsl(28 45% 16%) !important;
+  color: hsl(172 62% 10%) !important;
 }
 :root:not(.dark) .module-card .module-desc {
-  opacity: 0.75;
-  color: hsl(28 30% 28%) !important;
+  opacity: 0.80;
+  color: hsl(180 35% 30%) !important;
 }
 
 /* ── LIGHT MODE: kpi-card overrides ── */
 :root:not(.dark) .kpi-card .kpi-sub {
-  color: rgba(40,30,20,0.55) !important;
+  color: rgba(10,48,42,0.52) !important;
 }
 
-/* ── Table headers in light mode ── */
+/* ── Table headers in light mode — verde-cian fresco ── */
 :root:not(.dark) thead tr th {
-  background: linear-gradient(90deg,#c8e8d0,#b8dccc) !important;
-  color: hsl(145 50% 22%) !important;
+  background: linear-gradient(90deg,#b0ece4,#94e0d4) !important;
+  color: hsl(172 65% 14%) !important;
 }
 :root:not(.dark) table {
-  color: hsl(28 38% 18%);
+  color: hsl(172 50% 14%);
 }
 :root:not(.dark) tbody tr:hover {
-  background: rgba(120,160,100,0.08) !important;
+  background: rgba(0,168,148,0.06) !important;
 }
 
-/* ── Inputs en light mode ── */
+/* ── Inputs en light mode — blanco cian puro ── */
 :root:not(.dark) input, :root:not(.dark) textarea, :root:not(.dark) select {
-  background: hsl(40 32% 92%) !important;
-  color: hsl(28 40% 14%) !important;
-  border-color: hsl(35 22% 74%) !important;
+  background: #ffffff !important;
+  color: hsl(172 62% 11%) !important;
+  border-color: hsl(180 32% 80%) !important;
 }
 :root:not(.dark) input:focus,
 :root:not(.dark) textarea:focus,
 :root:not(.dark) select:focus {
-  border-color: rgba(40,110,60,0.55) !important;
-  box-shadow: 0 0 0 3px rgba(40,110,60,0.10), 0 0 12px rgba(40,110,60,0.15) !important;
+  border-color: rgba(0,168,148,0.55) !important;
+  box-shadow: 0 0 0 3px rgba(0,168,148,0.10), 0 0 14px rgba(0,168,148,0.18) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -345,69 +346,69 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 .lm-card {
   background: var(--lm-card-bg);
-  border: 1px solid rgba(45,122,79,0.15);
-  box-shadow: 0 2px 12px rgba(45,122,79,0.08);
+  border: 1px solid rgba(0,168,148,0.18);
+  box-shadow: 0 2px 16px rgba(0,168,148,0.08);
 }
 .lm-card-alt {
   background: var(--lm-card-alt);
-  border: 1px solid rgba(200,140,60,0.18);
+  border: 1px solid rgba(14,165,233,0.18);
 }
 .lm-card-blue {
   background: var(--lm-card-blue);
-  border: 1px solid rgba(14,165,233,0.18);
+  border: 1px solid rgba(14,165,233,0.22);
 }
 .lm-card-green {
   background: var(--lm-card-green);
-  border: 1px solid rgba(45,122,79,0.22);
+  border: 1px solid rgba(22,163,74,0.22);
 }
 .lm-card-teal {
   background: var(--lm-card-teal);
-  border: 1px solid rgba(0,180,140,0.20);
+  border: 1px solid rgba(0,168,148,0.22);
 }
 .lm-card-purple {
   background: var(--lm-card-purple);
-  border: 1px solid rgba(147,51,234,0.18);
+  border: 1px solid rgba(129,140,248,0.22);
 }
 .lm-card-rose {
   background: var(--lm-card-rose);
-  border: 1px solid rgba(220,38,38,0.18);
+  border: 1px solid rgba(244,114,182,0.22);
 }
 .lm-card-amber {
   background: var(--lm-card-amber);
-  border: 1px solid rgba(217,119,6,0.22);
+  border: 1px solid rgba(0,168,148,0.22);
 }
 
-/* Light mode text helpers */
-:root:not(.dark) .lm-text-dark { color: hsl(28 42% 14%) !important; }
-:root:not(.dark) .lm-text-muted { color: hsl(28 22% 44%) !important; }
+/* Light mode text helpers — bosque/cian */
+:root:not(.dark) .lm-text-dark { color: hsl(172 62% 10%) !important; }
+:root:not(.dark) .lm-text-muted { color: hsl(180 28% 38%) !important; }
 
-/* ── LIGHT MODE: Glass cards ── */
+/* ── LIGHT MODE: Glass cards — vidrio cian frío ── */
 :root:not(.dark) .glass-navy {
-  background: rgba(218,210,194,0.88) !important;
-  border: 1.5px solid rgba(110,90,60,0.22) !important;
-  box-shadow: 0 4px 20px rgba(100,80,40,0.12) !important;
-  color: hsl(28 40% 14%) !important;
+  background: rgba(230,250,248,0.94) !important;
+  border: 1.5px solid rgba(0,168,148,0.20) !important;
+  box-shadow: 0 4px 24px rgba(0,168,148,0.10) !important;
+  color: hsl(172 62% 11%) !important;
 }
 :root:not(.dark) .glass-forest {
-  background: rgba(210,230,215,0.88) !important;
-  border-color: rgba(45,122,79,0.22) !important;
-  box-shadow: 0 4px 20px rgba(45,122,79,0.10) !important;
+  background: rgba(228,252,244,0.92) !important;
+  border-color: rgba(22,163,74,0.20) !important;
+  box-shadow: 0 4px 20px rgba(22,163,74,0.08) !important;
 }
 
-/* ── LIGHT MODE: bg-navy-gradient, bg-forest-gradient ── */
+/* ── LIGHT MODE: bg-navy-gradient, bg-forest-gradient — frescos ── */
 :root:not(.dark) .bg-navy-gradient {
-  background: linear-gradient(135deg,#cfe0d8,#d8eedc,#cce0f0) !important;
+  background: linear-gradient(135deg,#c8e8f8,#c0f0e8,#cce8ff) !important;
 }
 :root:not(.dark) .bg-forest-gradient {
-  background: linear-gradient(135deg,#d0ecd8,#bce4cc,#cce8d4) !important;
+  background: linear-gradient(135deg,#c0f0e0,#a8e8d0,#b8f0e8) !important;
 }
 :root:not(.dark) .bg-civac-hero {
   background: linear-gradient(145deg,
-    #c8d8b8 0%,
-    #c0d4b0 25%,
-    #bcd0d8 55%,
-    #d8d8b8 80%,
-    #ccd8b8 100%
+    #c8eef8 0%,
+    #b8e4f8 22%,
+    #c4f4ec 48%,
+    #b8e0fa 72%,
+    #c8f0e8 100%
   ) !important;
 }
 
@@ -816,13 +817,13 @@ html { font-size: 15.5px; }
    DATA TABLES — light mode legibles
    ═══════════════════════════════════════════════════════════════════════════ */
 :root:not(.dark) .data-table-wrapper {
-  background: rgba(245,240,230,0.92);
-  border: 1px solid rgba(150,120,70,0.20);
+  background: rgba(240,252,250,0.95);
+  border: 1px solid rgba(0,168,148,0.18);
   border-radius: 16px;
 }
 :root:not(.dark) .data-table-wrapper td {
-  color: hsl(28 40% 18%);
-  border-color: rgba(150,120,70,0.12);
+  color: hsl(172 55% 14%);
+  border-color: rgba(0,168,148,0.10);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

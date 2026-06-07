@@ -14,7 +14,8 @@
       "qs": ">=6.15.1",
       "esbuild": ">=0.25.0",
       "@esbuild-kit/core-utils>esbuild": ">=0.25.0"
-    }
+    },
+    "onlyBuiltDependencies": ["better-sqlite3", "esbuild"]
   },
   "devDependencies": {
     "typescript": "~5.9.2",

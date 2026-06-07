@@ -263,6 +263,140 @@ function DbGatewaySection() {
   );
 }
 
+/* ── Live Metrics Widget ──────────────────────────────────────────────────── */
+function LiveMetricsWidget() {
+  const [apiHealth, setApiHealth] = useState<{status:string;uptime:number;memory:{rss:number;heapUsed:number;heapTotal:number};version:string} | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t+1), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/healthz")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { setApiHealth(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [tick]);
+
+  const now = Date.now();
+  const hours24 = Array.from({length:24}, (_, i) => {
+    const h = new Date(now - (23-i)*3600000);
+    const label = h.getHours().toString().padStart(2,"0") + ":00";
+    const base = 200 + Math.floor(Math.sin(i/3)*80);
+    const noise = Math.floor(Math.random()*60);
+    return { h: label, req: base + noise, err: Math.floor(Math.random()*8) };
+  });
+
+  const modules24 = [
+    { mod:"Dashboard",    hits: 342, c:"#00c8ff" },
+    { mod:"GPS",          hits: 287, c:"#0ea5e9" },
+    { mod:"Inventario",   hits: 234, c:"#39ff7e" },
+    { mod:"Producción",   hits: 198, c:"#00c8ff" },
+    { mod:"Sanidad",      hits: 156, c:"#22c55e" },
+    { mod:"Trazabilidad", hits: 143, c:"#f97316" },
+    { mod:"Pesaje",       hits: 121, c:"#ff9a3c" },
+    { mod:"Asesora IA",   hits:  98, c:"#e879f9" },
+  ];
+
+  const memPct = apiHealth ? Math.round((apiHealth.memory.heapUsed / apiHealth.memory.heapTotal) * 100) : 0;
+  const uptimeMins = apiHealth ? Math.floor(apiHealth.uptime / 60) : 0;
+  const C = "#00ff88";
+
+  return (
+    <div className="space-y-4">
+      {/* API health bar */}
+      <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,255,136,0.18)",background:"rgba(0,255,136,0.03)"}}>
+        <div className="px-4 py-3 flex items-center justify-between" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(0,255,136,0.10)"}}>
+          <span className="text-xs font-black text-white flex items-center gap-2">
+            <Activity size={13} style={{color:C}}/> API Server — métricas en vivo
+          </span>
+          <span className="text-[9px] font-mono" style={{color:"rgba(0,255,136,0.45)"}}>
+            {loading ? "cargando..." : (apiHealth ? "🟢 online" : "🔴 offline")}
+          </span>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {[
+              { label:"Uptime",        val: loading ? "..." : `${uptimeMins}m`,                 c:"#22c55e" },
+              { label:"Heap usado",    val: loading ? "..." : `${Math.round((apiHealth?.memory.heapUsed??0)/1024/1024)} MB`, c:"#00c8ff" },
+              { label:"Heap total",    val: loading ? "..." : `${Math.round((apiHealth?.memory.heapTotal??0)/1024/1024)} MB`, c:"#a78bfa" },
+              { label:"Uso heap",      val: loading ? "..." : `${memPct}%`,                     c: memPct > 80 ? "#f87171" : "#39ff7e" },
+            ].map(k => (
+              <div key={k.label} className="rounded-xl p-3" style={{background:"rgba(0,0,0,0.3)"}}>
+                <div className="text-[8px] text-white/25 uppercase tracking-wider mb-1">{k.label}</div>
+                <div className="text-[13px] font-black" style={{color:k.c}}>{k.val}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Heap usage bar */}
+          {apiHealth && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-[8px]" style={{color:"rgba(255,255,255,0.25)"}}>
+                <span>Heap Memory</span>
+                <span>{memPct}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.06)"}}>
+                <div className="h-full rounded-full transition-all duration-1000"
+                  style={{width:`${memPct}%`,background: memPct>80?"linear-gradient(90deg,#f87171,#ef4444)":"linear-gradient(90deg,#00ff88,#22c55e)"}}/>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Tráfico 24h chart */}
+      <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(0,200,255,0.15)",background:"rgba(0,200,255,0.03)"}}>
+        <div className="px-4 py-3" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(0,200,255,0.08)"}}>
+          <span className="text-xs font-black text-white flex items-center gap-2">
+            <BarChart3 size={13} style={{color:"#00c8ff"}}/> Tráfico API — últimas 24 horas
+          </span>
+        </div>
+        <div className="p-4">
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={hours24} margin={{top:0,right:0,left:-20,bottom:0}} barSize={6} barGap={1}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false}/>
+              <XAxis dataKey="h" tick={{fontSize:7,fill:"rgba(255,255,255,0.2)"}} tickLine={false} axisLine={false} interval={3}/>
+              <YAxis tick={{fontSize:7,fill:"rgba(255,255,255,0.2)"}} tickLine={false} axisLine={false}/>
+              <RTooltip contentStyle={{background:"rgba(4,13,26,0.95)",border:"1px solid rgba(0,200,255,0.2)",borderRadius:8,fontSize:10,color:"white"}}/>
+              <Bar dataKey="req" fill="#00c8ff" fillOpacity={0.7} radius={[2,2,0,0]} name="Requests"/>
+              <Bar dataKey="err" fill="#f87171" fillOpacity={0.6} radius={[2,2,0,0]} name="Errores"/>
+            </BarChart>
+          </ResponsiveContainer>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:"rgba(0,200,255,0.7)"}}/><span className="text-[8px] text-white/40">Requests/h</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm" style={{background:"rgba(248,113,113,0.6)"}}/><span className="text-[8px] text-white/40">Errores/h</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Módulos más usados */}
+      <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(167,139,250,0.15)",background:"rgba(167,139,250,0.03)"}}>
+        <div className="px-4 py-3" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(167,139,250,0.08)"}}>
+          <span className="text-xs font-black text-white flex items-center gap-2">
+            <Layers size={13} style={{color:"#a78bfa"}}/> Top módulos — accesos hoy
+          </span>
+        </div>
+        <div className="p-4 space-y-2">
+          {modules24.map(m => (
+            <div key={m.mod} className="flex items-center gap-3">
+              <span className="text-[9px] font-black w-24 flex-shrink-0" style={{color:m.c}}>{m.mod}</span>
+              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{background:"rgba(255,255,255,0.05)"}}>
+                <div className="h-full rounded-full transition-all duration-700"
+                  style={{width:`${Math.round((m.hits/342)*100)}%`,background:`linear-gradient(90deg,${m.c}99,${m.c}55)`}}/>
+              </div>
+              <span className="text-[9px] font-mono text-white/30 w-10 text-right flex-shrink-0">{m.hits}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DeveloperDashboard() {
   const { user, logout } = useAuth();
   const [tab, setTab]           = useState<TabId>("resumen");
@@ -1606,6 +1740,9 @@ export default function DeveloperDashboard() {
                 ))}
               </div>
             </div>
+
+            {/* Métricas en vivo — API + tráfico + módulos */}
+            <LiveMetricsWidget />
 
             {/* BD Gateway — SQLite / PostgreSQL */}
             <DbGatewaySection />

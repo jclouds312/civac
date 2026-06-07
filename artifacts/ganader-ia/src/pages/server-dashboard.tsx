@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { ElementType, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { useAuth, CIVAC_STAFF_IDS } from "@/lib/auth";
@@ -145,6 +145,7 @@ const NAV_SECTIONS = [
   { id:"hub",       icon:Monitor,      label:"Server Hub",        sub:"Estado en vivo",        color:"#00f5d4", glow:"0,245,212"   },
   { id:"servicios", icon:Server,       label:"Servicios",         sub:"4 backends activos",    color:"#39ff7e", glow:"57,255,126"  },
   { id:"sesiones",  icon:Users,        label:"Sesiones",          sub:"Accesos en tiempo real", color:"#00c8ff", glow:"0,200,255"  },
+  { id:"database",  icon:Database,     label:"Base de Datos",     sub:"Code Gateway · PG/SQLite", color:"#fbbf24", glow:"251,191,36" },
   { id:"versiones", icon:Package,      label:"Versiones PWA",     sub:"Descargas & build",     color:"#a78bfa", glow:"167,139,250" },
   { id:"deps",      icon:Box,          label:"Dependencias",      sub:"Tech stack completo",   color:"#fbbf24", glow:"251,191,36"  },
   { id:"langs",     icon:FileCode,     label:"Lenguajes",         sub:"TS · Python · CSS",     color:"#3178c6", glow:"49,120,198"  },
@@ -1387,6 +1388,213 @@ function ConfigPanel() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   DATABASE PANEL — Code Gateway
+══════════════════════════════════════════════════════════════════ */
+interface GwStatus { ok:boolean; mode:string; alive:boolean; pgAvailable:boolean; sqliteAvailable:boolean; pgUrl:string|null; sqlitePath:string|null; lastCheck:string; errorMsg:string|null; }
+interface GwInfo   { ok:boolean; mode:string; path?:string; sizeKb?:number; version?:string; tables?:string[]; message?:string; }
+interface GwQueue  { ok:boolean; mode:string; pendientes:number; items:{id:number;operacion:string;tabla:string;estado:string;created_at:string}[]; message?:string; }
+
+function DatabasePanel() {
+  const [status, setStatus] = useState<GwStatus|null>(null);
+  const [info,   setInfo]   = useState<GwInfo|null>(null);
+  const [queue,  setQueue]  = useState<GwQueue|null>(null);
+  const [loading,setLoading]= useState(true);
+  const [reconn, setReconn] = useState(false);
+  const [hist,   setHist]   = useState<{t:string; mode:string; alive:boolean}[]>([]);
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [sR,iR,qR] = await Promise.all([
+        fetch("/api/db/status"), fetch("/api/db/info"), fetch("/api/db/sync-queue"),
+      ]);
+      const s:GwStatus = sR.ok ? await sR.json() : null;
+      const i:GwInfo   = iR.ok ? await iR.json() : null;
+      const q:GwQueue  = qR.ok ? await qR.json() : null;
+      if (s) { setStatus(s); setHist(h => [...h.slice(-23), { t: new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}), mode:s.mode, alive:s.alive }]); }
+      if (i) setInfo(i);
+      if (q) setQueue(q);
+    } catch { /* offline */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchAll(); const id = setInterval(fetchAll, 15000); return () => clearInterval(id); }, [fetchAll]);
+
+  const reconnect = async () => {
+    setReconn(true);
+    try { await fetch("/api/db/reconnect", { method:"POST" }); await fetchAll(); } catch { /* ignore */ }
+    setReconn(false);
+  };
+
+  const mode   = status?.mode ?? "unknown";
+  const modeC  = mode === "postgres" ? "#00c8ff" : mode === "sqlite" ? "#fbbf24" : "#f87171";
+  const modeG  = mode === "postgres" ? "0,200,255" : mode === "sqlite" ? "251,191,36" : "248,113,113";
+  const modeLabel = mode === "postgres" ? "PostgreSQL" : mode === "sqlite" ? "SQLite Local" : "Sin BD";
+  const modeIcon  = mode === "postgres" ? "🐘" : mode === "sqlite" ? "🗄️" : "❌";
+
+  const KPI = ({ label, val, color }: {label:string;val:string;color:string}) => (
+    <div className="rounded-xl p-3.5 flex flex-col gap-1" style={{background:"rgba(4,13,26,0.7)",border:`1px solid rgba(${modeG},0.12)`}}>
+      <span className="text-[8px] font-black uppercase tracking-widest" style={{color:`rgba(${modeG},0.35)`}}>{label}</span>
+      <span className="text-[13px] font-black leading-none" style={{color}}>{val}</span>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader icon={Database} label="Base de Datos — Code Gateway" sub="Failover automático PostgreSQL ↔ SQLite · Sincronización offline" color={modeC} />
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <KPI label="Modo activo"    val={loading ? "..." : `${modeIcon} ${modeLabel}`} color={modeC} />
+        <KPI label="Estado"         val={loading ? "..." : (status?.alive ? "🟢 Online" : "🔴 Offline")} color={status?.alive ? "#22c55e" : "#f87171"} />
+        <KPI label="PostgreSQL"     val={loading ? "..." : (status?.pgAvailable ? "Conectado" : "No disponible")} color={status?.pgAvailable ? "#00c8ff" : "#94a3b8"} />
+        <KPI label="Cola pendiente" val={loading ? "..." : `${queue?.pendientes ?? 0} ops`} color={(queue?.pendientes ?? 0) > 0 ? "#f87171" : "#22c55e"} />
+      </div>
+
+      {/* Mode selector display */}
+      <div className="rounded-2xl overflow-hidden" style={{border:`1px solid rgba(${modeG},0.22)`,background:`rgba(${modeG},0.04)`}}>
+        <div className="px-4 py-3 flex items-center justify-between" style={{background:"rgba(0,0,0,0.4)",borderBottom:`1px solid rgba(${modeG},0.12)`}}>
+          <span className="text-xs font-black text-white flex items-center gap-2">
+            <Database size={13} style={{color:modeC}}/> Conexión activa
+          </span>
+          <div className="flex items-center gap-2">
+            {mode === "sqlite" && (
+              <button onClick={reconnect} disabled={reconn}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all"
+                style={{background:`rgba(${modeG},0.10)`,color:modeC,border:`1px solid rgba(${modeG},0.3)`,opacity:reconn?0.5:1}}>
+                <RefreshCw size={9} className={reconn?"animate-spin":""}/> Reconectar PG
+              </button>
+            )}
+            <button onClick={fetchAll} disabled={loading}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all"
+              style={{background:"rgba(255,255,255,0.05)",color:"#94a3b8",border:"1px solid rgba(255,255,255,0.08)",opacity:loading?0.5:1}}>
+              <RefreshCw size={9} className={loading?"animate-spin":""}/> Refrescar
+            </button>
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          {/* PG URL */}
+          {status?.pgUrl && (
+            <div className="rounded-xl p-3" style={{background:"rgba(0,0,0,0.3)"}}>
+              <p className="text-[8px] text-white/25 uppercase tracking-wider mb-1">URL PostgreSQL</p>
+              <code className="text-[9px] font-mono break-all" style={{color:"rgba(0,200,255,0.65)"}}>{status.pgUrl}</code>
+            </div>
+          )}
+          {/* SQLite info */}
+          {info?.mode === "sqlite" && (
+            <div className="rounded-xl p-3 space-y-2" style={{background:"rgba(0,0,0,0.3)"}}>
+              <div className="flex justify-between items-center">
+                <span className="text-[8px] text-white/25 uppercase tracking-wider">Archivo SQLite local</span>
+                <span className="text-[9px] font-mono" style={{color:"#fbbf24"}}>{info.sizeKb} KB · SQLite {info.version}</span>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {info.tables?.map(t => (
+                  <span key={t} className="px-1.5 py-0.5 rounded-md text-[8px] font-mono"
+                    style={{background:"rgba(251,191,36,0.07)",color:"rgba(251,191,36,0.65)",border:"1px solid rgba(251,191,36,0.12)"}}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+              <code className="text-[8px] text-white/20 font-mono">{info.path}</code>
+            </div>
+          )}
+          {/* Last check */}
+          {status?.lastCheck && (
+            <div className="flex items-center gap-2">
+              <Clock size={10} style={{color:"rgba(255,255,255,0.2)"}}/>
+              <span className="text-[9px] text-white/25">Última verificación: {new Date(status.lastCheck).toLocaleTimeString("es-CO",{hour12:false})}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Historia de conexión */}
+      {hist.length > 1 && (
+        <div className="rounded-2xl p-4" style={{background:"rgba(4,13,26,0.6)",border:"1px solid rgba(255,255,255,0.06)"}}>
+          <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Historial de conexión (últimos {hist.length} checks)</p>
+          <div className="flex items-end gap-1 h-12">
+            {hist.map((h,i) => (
+              <div key={i} className="flex-1 rounded-sm transition-all" title={`${h.t} — ${h.mode} (${h.alive?"online":"offline"})`}
+                style={{height:"100%",background:h.alive?(h.mode==="postgres"?"rgba(0,200,255,0.5)":"rgba(251,191,36,0.5)"):"rgba(248,113,113,0.4)",minWidth:4}} />
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[7px] text-white/20">{hist[0]?.t}</span>
+            <span className="text-[7px] text-white/20">Ahora — {hist[hist.length-1]?.t}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Cola de sincronización */}
+      <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.07)"}}>
+        <div className="px-4 py-3 flex items-center justify-between" style={{background:"rgba(0,0,0,0.4)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+          <span className="text-xs font-black text-white flex items-center gap-2">
+            <Activity size={13} style={{color:"#a78bfa"}}/> Cola de sincronización
+          </span>
+          <span className="text-[10px] font-black" style={{color:(queue?.pendientes??0)>0?"#f87171":"#22c55e"}}>
+            {queue?.pendientes ?? 0} pendientes
+          </span>
+        </div>
+        <div className="p-4">
+          {queue?.message && (
+            <p className="text-[9px] text-white/35 mb-3">{queue.message}</p>
+          )}
+          {(queue?.items?.length ?? 0) > 0 ? (
+            <div className="divide-y divide-white/5">
+              {queue!.items.slice(0,10).map(item => (
+                <div key={item.id} className="flex items-center gap-3 py-2 text-[9px]">
+                  <span className="font-mono text-white/20 w-8">#{item.id}</span>
+                  <span className="font-bold w-16" style={{color:"#fbbf24"}}>{item.operacion}</span>
+                  <span className="text-white/45 w-24 truncate">{item.tabla}</span>
+                  <span className="px-1.5 py-0.5 rounded-full text-[7px] font-bold"
+                    style={{background:"rgba(57,255,126,0.1)",color:"#39ff7e",border:"1px solid rgba(57,255,126,0.2)"}}>{item.estado}</span>
+                  <span className="text-white/20 text-[8px] ml-auto font-mono">{item.created_at}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 py-2">
+              <CheckCircle size={12} style={{color:"#22c55e"}}/>
+              <span className="text-[9px] text-white/35">Cola vacía — todas las operaciones sincronizadas</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Arquitectura */}
+      <div className="rounded-2xl p-5" style={{background:"rgba(0,245,212,0.03)",border:"1px solid rgba(0,245,212,0.12)"}}>
+        <p className="text-xs font-black text-white mb-4 flex items-center gap-2">
+          <GitBranch size={13} style={{color:"#00f5d4"}}/> Arquitectura Code Gateway
+        </p>
+        <div className="space-y-3">
+          {[
+            { step:"1", label:"API Server arranca", desc:"initGateway() se llama en main()", c:"#00f5d4" },
+            { step:"2", label:"Detecta PostgreSQL", desc:"Ping con timeout de 3 segundos al DATABASE_URL", c:"#00c8ff" },
+            { step:"3", label:"Failover automático", desc:"Si PG falla → activa SQLite (civac-local.db, WAL mode)", c:"#fbbf24" },
+            { step:"4", label:"Cola de sync", desc:"Operaciones se encolan en sync_queue para replicar cuando PG vuelva", c:"#a78bfa" },
+            { step:"5", label:"Reconexión", desc:"POST /api/db/reconnect intenta restablecer PG en caliente", c:"#39ff7e" },
+          ].map(s => (
+            <div key={s.step} className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center font-black text-[9px] flex-shrink-0 mt-0.5"
+                style={{background:`rgba(${modeG},0.12)`,color:s.c,border:`1px solid rgba(${modeG},0.2)`}}>{s.step}</div>
+              <div>
+                <p className="text-[11px] font-bold" style={{color:s.c}}>{s.label}</p>
+                <p className="text-[9px] text-white/35 mt-0.5">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 p-3 rounded-xl font-mono text-[9px]" style={{background:"rgba(0,0,0,0.4)",color:"rgba(0,245,212,0.5)"}}>
+          <span style={{color:"rgba(255,255,255,0.2)"}}>// Flujo en código</span>{"\n"}
+          <span style={{color:"#00c8ff"}}>initGateway</span>() → ping PG → {"{"}ok: true{"}"} → <span style={{color:"#22c55e"}}>modo postgres</span>{"\n"}
+          <span style={{color:"#00c8ff"}}>initGateway</span>() → ping PG → timeout  → <span style={{color:"#fbbf24"}}>modo sqlite</span> + sync_queue
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════ */
 export default function ServerDashboard() {
@@ -1412,6 +1620,7 @@ export default function ServerDashboard() {
     hub: <HubPanel />,
     servicios: <ServicesPanel />,
     sesiones: <SessionsPanel />,
+    database: <DatabasePanel />,
     versiones: <VersionesPanel />,
     deps: <DepsPanel />,
     langs: <LangsPanel />,

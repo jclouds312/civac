@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import GoogleUsersPanel from "@/components/google-users-panel";
 import {
   useAuth, LoginActivity, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
-  PlanId, Account, WompiPayment,
+  PlanId, Account, WompiPayment, CIVAC_STAFF_IDS,
 } from "@/lib/auth";
 import {
   Users, Crown, CreditCard, Activity, Plus, Trash2, Edit,
@@ -1054,7 +1054,8 @@ export default function AdminDashboard({
   const setTab = onTabChange ?? setInternalTab;
 
   /* ── Derived ── */
-  const clients     = accounts.filter(a => a.id !== "admin");
+  const civacStaff  = accounts.filter(a => CIVAC_STAFF_IDS.includes(a.id));
+  const clients     = accounts.filter(a => !CIVAC_STAFF_IDS.includes(a.id));
   const filtered    = clients.filter(a =>
     a.nombre.toLowerCase().includes(search.toLowerCase()) ||
     a.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -1256,7 +1257,7 @@ export default function AdminDashboard({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button size="sm" variant="outline"
               className="gap-1.5 text-xs border-white/20 text-white/70 hover:text-white">
               <Download size={12}/> Exportar CSV
@@ -1265,6 +1266,11 @@ export default function AdminDashboard({
               className="gap-1.5 text-xs font-bold"
               style={{ background:"linear-gradient(135deg,#ff9500,#ff6b00)", color:"white", boxShadow:"0 0 16px rgba(255,149,0,0.4)" }}>
               <Plus size={12}/> Nuevo cliente
+            </Button>
+            <Button size="sm" onClick={() => setTab("servidor")}
+              className="gap-1.5 text-xs font-bold"
+              style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.15),rgba(0,200,255,0.10))", color:"#00f5d4", border:"1px solid rgba(0,245,212,0.4)", boxShadow:"0 0 14px rgba(0,245,212,0.18)" }}>
+              <Server size={12}/> Server Panel
             </Button>
           </div>
         </div>
@@ -1472,7 +1478,80 @@ export default function AdminDashboard({
           TAB: CUENTAS
       ════════════════════════════════════════════════════════════════════ */}
       {tab === "cuentas" && (
-        <div className="space-y-3">
+        <div className="space-y-4">
+
+          {/* ── CIVAC STAFF SECTION ── */}
+          <div className="rounded-2xl overflow-hidden"
+            style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.05),rgba(0,200,255,0.03))", border:"1px solid rgba(0,245,212,0.18)", boxShadow:"0 0 30px rgba(0,245,212,0.06)" }}>
+            <div className="px-4 py-3 flex items-center justify-between border-b"
+              style={{ borderColor:"rgba(0,245,212,0.12)", background:"rgba(0,245,212,0.04)" }}>
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center"
+                  style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", boxShadow:"0 0 10px rgba(0,245,212,0.5)" }}>
+                  <Server size={12} className="text-black"/>
+                </div>
+                <span className="text-[11px] font-black tracking-wider" style={{ color:"#00f5d4", fontFamily:"'Space Grotesk',monospace" }}>
+                  ⬡ EQUIPO CIVAC — ACCESO SERVIDOR
+                </span>
+              </div>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                style={{ background:"rgba(0,245,212,0.10)", border:"1px solid rgba(0,245,212,0.25)", color:"rgba(0,245,212,0.7)" }}>
+                {civacStaff.length} miembros
+              </span>
+            </div>
+            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {civacStaff.map(staff => {
+                const roleColors: Record<string,{from:string;to:string;glow:string;label:string}> = {
+                  superadmin: { from:"#ff6b35", to:"#ff9500", glow:"255,107,53",  label:"Super Admin"  },
+                  admin:      { from:"#fbbf24", to:"#f59e0b", glow:"251,191,36",  label:"Admin"        },
+                  developer:  { from:"#00ff88", to:"#00c864", glow:"0,255,136",   label:"Developer"    },
+                  sales:      { from:"#e879f9", to:"#a855f7", glow:"232,121,249", label:"Sales CRM"    },
+                };
+                const rc = roleColors[staff.role ?? "admin"] ?? roleColors.admin;
+                return (
+                  <div key={staff.id} className="relative rounded-2xl p-3.5 flex flex-col gap-2.5 overflow-hidden"
+                    style={{ background:`linear-gradient(145deg,rgba(${rc.glow},0.08),rgba(${rc.glow},0.04))`, border:`1px solid rgba(${rc.glow},0.22)` }}>
+                    <div className="absolute top-0 left-0 right-0 h-0.5"
+                      style={{ background:`linear-gradient(90deg,transparent,${rc.from},${rc.to},transparent)` }}/>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                        style={{ background:`linear-gradient(135deg,rgba(${rc.glow},0.2),rgba(${rc.glow},0.10))`, border:`1px solid rgba(${rc.glow},0.3)` }}>
+                        {staff.avatar}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] font-black text-white truncate leading-tight">{staff.nombre.split(" ").slice(0,2).join(" ")}</p>
+                        <p className="text-[9px] font-mono truncate" style={{ color:`rgba(${rc.glow},0.6)` }}>{staff.cargo?.split(" · ")[0]}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background:`rgba(${rc.glow},0.12)`, border:`1px solid rgba(${rc.glow},0.28)`, color:rc.from }}>
+                        {rc.label}
+                      </span>
+                      <span className="flex items-center gap-1 text-[8px] font-mono"
+                        style={{ color:"rgba(0,245,212,0.5)" }}>
+                        <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background:"#00f5d4", boxShadow:"0 0 4px #00f5d4" }}/>
+                        Server ✓
+                      </span>
+                    </div>
+                    <p className="text-[8px] font-mono truncate" style={{ color:"rgba(255,255,255,0.25)" }}>{staff.email}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── SECTION DIVIDER ── */}
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1" style={{ background:"linear-gradient(90deg,transparent,rgba(57,255,126,0.2),transparent)" }}/>
+            <span className="text-[9px] font-black uppercase tracking-[0.22em] px-3 py-1 rounded-full"
+              style={{ color:"rgba(57,255,126,0.45)", border:"1px solid rgba(57,255,126,0.12)", background:"rgba(57,255,126,0.04)" }}>
+              👥 Cuentas Clientes & Demo
+            </span>
+            <div className="h-px flex-1" style={{ background:"linear-gradient(90deg,transparent,rgba(57,255,126,0.2),transparent)" }}/>
+          </div>
+
+          {/* ── SEARCH + ADD ── */}
           <div className="flex items-center gap-2 flex-wrap">
             <div className="relative flex-1 min-w-48 max-w-sm">
               <Input placeholder="Buscar nombre, email, finca…" value={search} onChange={e=>setSearch(e.target.value)}
@@ -1499,77 +1578,102 @@ export default function AdminDashboard({
                 </tr>
               </thead>
               <tbody>
-                {filtered.length===0&&(
-                  <tr><td colSpan={7} className="text-center py-8 text-white/25 text-xs">Sin resultados</td></tr>
-                )}
-                {filtered.map((a,i)=>(
-                  <tr key={a.id}
-                    style={{background:i%2===0?"rgba(255,255,255,0.02)":"transparent",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-                          style={{background:"rgba(0,245,212,0.1)",border:"1px solid rgba(0,245,212,0.2)"}}>
-                          {a.avatar}
+                {(() => {
+                  const realClients = filtered.filter(a => !a.isDemo);
+                  const demoClients = filtered.filter(a => a.isDemo);
+                  if (filtered.length === 0) return <tr><td colSpan={7} className="text-center py-8 text-white/25 text-xs">Sin resultados</td></tr>;
+                  const makeRow = (a: Account, i: number, isDemo: boolean) => (
+                    <tr key={a.id}
+                      style={{background:isDemo?"rgba(251,191,36,0.03)":(i%2===0?"rgba(255,255,255,0.02)":"transparent"),borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+                            style={{background:"rgba(0,245,212,0.1)",border:"1px solid rgba(0,245,212,0.2)"}}>
+                            {a.avatar}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-white">{a.nombre}</p>
+                            <p className="text-[9px]" style={{color:"rgba(0,245,212,0.4)"}}>{a.finca} · {a.email}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-white">{a.nombre}</p>
-                          <p className="text-[9px]" style={{color:"rgba(0,245,212,0.4)"}}>{a.finca} · {a.email}</p>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-1.5">
+                          {isDemo && <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.3)",color:"#fbbf24"}}>DEMO</span>}
+                          <span className="text-[10px] text-white/50">{a.cargo||a.role}</span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[10px] text-white/50">{a.cargo||a.role}</span>
-                    </td>
-                    <td className="px-3 py-2.5"><PlanBadge plan={a.plan}/></td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[10px] text-white/35">{(a.permisos||[]).length} módulos</span>
-                    </td>
-                    <td className="px-3 py-2.5"><StatusPill activo={a.activo}/></td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-[10px] text-white/40">{a.planExpiry ?? "—"}</span>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1 flex-wrap">
-                        {/* Activate / Deactivate — prominent pill */}
-                        <button onClick={()=>toggleStatus(a)}
-                          className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
-                          style={{
-                            background: a.activo!==false ? "rgba(57,255,126,0.12)" : "rgba(248,113,113,0.12)",
-                            border: `1px solid ${a.activo!==false ? "rgba(57,255,126,0.35)" : "rgba(248,113,113,0.35)"}`,
-                            color: a.activo!==false ? "#39ff7e" : "#f87171",
-                          }}>
-                          {a.activo!==false ? <ToggleRight size={11}/> : <ToggleLeft size={11}/>}
-                          {a.activo!==false ? "Activo" : "Inactivo"}
-                        </button>
-                        <button onClick={()=>setEditTarget(a)} title="Editar usuario"
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white transition-colors">
-                          <Edit size={11}/>
-                        </button>
-                        <button onClick={()=>setPermTarget(a)} title="Permisos"
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-blue-500/15 transition-colors" style={{color:"#60a5fa"}}>
-                          <Shield size={11}/>
-                        </button>
-                        <button onClick={()=>{setPlanTarget(a);setNewPlan(a.plan??"basico");}} title="Cambiar plan"
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-purple-500/15 transition-colors" style={{color:"#c084fc"}}>
-                          <Star size={11}/>
-                        </button>
-                        <button onClick={()=>genLicencia(a)} title="Descargar licencia"
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-amber-500/15 transition-colors"
-                          style={{color:PLAN_COLOR[a.plan??"basico"]}}>
-                          <Download size={11}/>
-                        </button>
-                        <button onClick={()=>setInviteTarget(a)} title="Enviar acceso / invitación"
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-emerald-500/15 transition-colors" style={{color:"#34d399"}}>
-                          <Send size={11}/>
-                        </button>
-                        <button onClick={()=>setDeleteTarget(a)} disabled={a.id==="admin"} title="Eliminar"
-                          className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/50 hover:text-red-400 disabled:opacity-20 transition-colors">
-                          <Trash2 size={11}/>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-3 py-2.5"><PlanBadge plan={a.plan}/></td>
+                      <td className="px-3 py-2.5">
+                        <span className="text-[10px] text-white/35">{(a.permisos||[]).length} módulos</span>
+                      </td>
+                      <td className="px-3 py-2.5"><StatusPill activo={a.activo}/></td>
+                      <td className="px-3 py-2.5">
+                        <span className="text-[10px] text-white/40">{a.planExpiry ?? "—"}</span>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <button onClick={()=>toggleStatus(a)}
+                            className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
+                            style={{
+                              background: a.activo!==false ? "rgba(57,255,126,0.12)" : "rgba(248,113,113,0.12)",
+                              border: `1px solid ${a.activo!==false ? "rgba(57,255,126,0.35)" : "rgba(248,113,113,0.35)"}`,
+                              color: a.activo!==false ? "#39ff7e" : "#f87171",
+                            }}>
+                            {a.activo!==false ? <ToggleRight size={11}/> : <ToggleLeft size={11}/>}
+                            {a.activo!==false ? "Activo" : "Inactivo"}
+                          </button>
+                          <button onClick={()=>setEditTarget(a)} title="Editar usuario"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white transition-colors">
+                            <Edit size={11}/>
+                          </button>
+                          <button onClick={()=>setPermTarget(a)} title="Permisos"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-blue-500/15 transition-colors" style={{color:"#60a5fa"}}>
+                            <Shield size={11}/>
+                          </button>
+                          <button onClick={()=>{setPlanTarget(a);setNewPlan(a.plan??"basico");}} title="Cambiar plan"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-purple-500/15 transition-colors" style={{color:"#c084fc"}}>
+                            <Star size={11}/>
+                          </button>
+                          <button onClick={()=>genLicencia(a)} title="Descargar licencia"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-amber-500/15 transition-colors"
+                            style={{color:PLAN_COLOR[a.plan??"basico"]}}>
+                            <Download size={11}/>
+                          </button>
+                          <button onClick={()=>setInviteTarget(a)} title="Enviar acceso / invitación"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-emerald-500/15 transition-colors" style={{color:"#34d399"}}>
+                            <Send size={11}/>
+                          </button>
+                          <button onClick={()=>setDeleteTarget(a)} disabled={a.id==="admin"} title="Eliminar"
+                            className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/50 hover:text-red-400 disabled:opacity-20 transition-colors">
+                            <Trash2 size={11}/>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                  return [
+                    ...(realClients.length > 0 ? [
+                      <tr key="sep-real"><td colSpan={7} className="px-3 pt-3 pb-1.5">
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em]" style={{color:"rgba(57,255,126,0.35)"}}>✓ Cuentas cliente reales ({realClients.length})</span>
+                      </td></tr>,
+                      ...realClients.map((a,i) => makeRow(a,i,false)),
+                    ] : []),
+                    ...(demoClients.length > 0 ? [
+                      <tr key="sep-demo"><td colSpan={7} className="px-3 pt-4 pb-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="h-px flex-1" style={{background:"rgba(251,191,36,0.15)"}}/>
+                          <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full"
+                            style={{color:"rgba(251,191,36,0.5)",border:"1px solid rgba(251,191,36,0.15)",background:"rgba(251,191,36,0.05)"}}>
+                            🎭 Cuentas Demo · {demoClients.length} planes
+                          </span>
+                          <div className="h-px flex-1" style={{background:"rgba(251,191,36,0.15)"}}/>
+                        </div>
+                      </td></tr>,
+                      ...demoClients.map((a,i) => makeRow(a,i,true)),
+                    ] : []),
+                  ];
+                })()}
               </tbody>
             </table>
           </div>

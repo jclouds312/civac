@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { useLocation } from "wouter";
 import { useAuth, LoginActivity } from "@/lib/auth";
 import {
   Terminal, Code, GitBranch, Zap, Activity, Database, Globe,
@@ -399,6 +400,7 @@ function LiveMetricsWidget() {
 
 export default function DeveloperDashboard() {
   const { user, logout } = useAuth();
+  const [, navigate] = useLocation();
   const [tab, setTab]           = useState<TabId>("resumen");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [flags, setFlags]       = useState(FEATURE_FLAGS_DEFAULT);
@@ -550,6 +552,11 @@ export default function DeveloperDashboard() {
             <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{background:G, boxShadow:`0 0 6px ${G}`}}/>
             {BUILD_INFO.env}
           </div>
+          <button onClick={() => navigate("/server-dashboard")}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+            style={{ background:"rgba(0,245,212,0.08)", color:"#00f5d4", border:"1px solid rgba(0,245,212,0.25)", boxShadow:"0 0 10px rgba(0,245,212,0.10)" }}>
+            <Server size={12}/><span>Server Panel</span>
+          </button>
           <span className="text-[11px] text-white/30 hidden sm:block">{user?.email}</span>
           <button onClick={logout}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"

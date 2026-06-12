@@ -1238,7 +1238,7 @@ export default function AdminDashboard({
                 </span>
                 <span className="text-[9px] font-black px-2.5 py-0.5 rounded-full"
                   style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"black", boxShadow:"0 0 10px rgba(251,191,36,0.4)" }}>
-                  v1.0
+                  v2.1
                 </span>
               </div>
               <p className="text-xs" style={{ color:"rgba(255,149,0,0.65)" }}>
@@ -3994,7 +3994,7 @@ export default function AdminDashboard({
         <div className="space-y-4">
           <div className="rounded-2xl p-4" style={{background:"rgba(96,165,250,0.06)",border:"1px solid rgba(96,165,250,0.2)"}}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v1.0</h3>
+              <h3 className="font-black text-white flex items-center gap-2"><span>📋</span> Log de Auditoría CIVAC v2.1</h3>
               <div className="flex gap-2">
                 <button className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:opacity-80"
                   style={{background:"rgba(96,165,250,0.12)",color:"#60a5fa",border:"1px solid rgba(96,165,250,0.25)"}}>

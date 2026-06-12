@@ -21,7 +21,7 @@ const SERVICES = [
   { id:"api",       name:"API Server",        port:8080, tech:"Node 24 / Express 5", color:"#00f5d4", glow:"0,245,212",   icon:"⚡", desc:"REST API principal · 40+ endpoints · PostgreSQL · pnpm workspace · Drizzle ORM", uptime:"99.8%", req:"1,247/h", lang:"TypeScript", healthUrl:"/api/healthz", healthKey:"api" },
   { id:"analytics", name:"Analytics Server",  port:8099, tech:"Python 3.12 / Flask", color:"#a78bfa", glow:"167,139,250", icon:"📊", desc:"Estadísticas ganaderas · pandas 2.2 · numpy 1.26 · SQLAlchemy · CORS habilitado", uptime:"99.5%", req:"340/h",   lang:"Python",     healthUrl:"/api/analytics/health", healthKey:"analytics" },
   { id:"gps",       name:"GPS Server",        port:8000, tech:"Python 3.12 / Django", color:"#39ff7e", glow:"57,255,126",  icon:"📡", desc:"Tracking collares CIVAC-GPS-v3 · PostgreSQL · Django REST Framework 3.15 · MQTT", uptime:"99.9%", req:"892/h",   lang:"Python",     healthUrl:"/api/gps/health/", healthKey:"gps" },
-  { id:"frontend",  name:"Frontend PWA",      port:5000, tech:"React 18 / Vite 6",   color:"#00c8ff", glow:"0,200,255",   icon:"🌐", desc:"32 módulos · Tailwind CSS v4 · shadcn/ui · Service Worker v8 · wouter · IndexedDB", uptime:"100%",  req:"—",        lang:"TypeScript/TSX", healthUrl:null, healthKey:"frontend" },
+  { id:"frontend",  name:"Frontend PWA",      port:5000, tech:"React 18 / Vite 6",   color:"#00c8ff", glow:"0,200,255",   icon:"🌐", desc:"32 módulos · Tailwind CSS v4 · shadcn/ui · Service Worker v10 · wouter · IndexedDB", uptime:"100%",  req:"—",        lang:"TypeScript/TSX", healthUrl:null, healthKey:"frontend" },
 ];
 
 const PWA_VERSIONS = [
@@ -41,7 +41,7 @@ const PWA_VERSIONS = [
     v:"7.0.0", date:"2026-06-01", status:"lts", label:"LTS · 7.x", color:"#fbbf24",
     plans:["basico","pro","premium","platino"], size:"3.1 MB", downloads:4,
     features:["32 módulos completos","Sanidad Animal ICA","Trazabilidad SINIGAN","GPS Chips MQTT","Ventas CRM","Asesora IA","Drive Backup","SW v1 · 33 rutas","Manifest v7 · 8 shortcuts","Documentación 24 secciones"],
-    changelog:"CIVAC PRO v1.0 — Release mayor. 32+ módulos. Sanidad+Trazabilidad ICA. GPS Chips MQTT. CRM Ventas. Asesora IA especializada en ganadería Colombia. Service Worker v8. Server Panel 11 secciones.",
+    changelog:"CIVAC PRO v2.1 — Release mayor. 32+ módulos. Sanidad+Trazabilidad ICA. GPS Chips MQTT. CRM Ventas. Asesora IA especializada en ganadería Colombia. Service Worker v10. Server Panel 11 secciones.",
   },
   {
     v:"6.0.0", date:"2026-05-26", status:"lts", label:"LTS · 6.x", color:"#fbbf24",
@@ -307,14 +307,14 @@ function ServicesPanel() {
     api:      { status:"checking", latency:null, detail:null },
     analytics:{ status:"checking", latency:null, detail:null },
     gps:      { status:"checking", latency:null, detail:null },
-    frontend: { status:"online",   latency:null, detail:"React 18 · PWA v1.0" },
+    frontend: { status:"online",   latency:null, detail:"React 18 · PWA v2.1" },
   });
   const [lastCheck, setLastCheck] = useState<string|null>(null);
   const [checking, setChecking] = useState(false);
 
   const checkHealth = async () => {
     setChecking(true);
-    const results: Record<string, ServiceHealth> = { ...health, frontend:{ status:"online", latency:null, detail:"React 18 · Service Worker v8 activo" } };
+    const results: Record<string, ServiceHealth> = { ...health, frontend:{ status:"online", latency:null, detail:"React 18 · Service Worker v10 activo" } };
     for (const s of SERVICES) {
       if (!s.healthUrl) continue;
       const t0 = performance.now();
@@ -1032,7 +1032,7 @@ function DevConsolePanel() {
     "[2026-06-01 18:21:09] 🌐 Frontend PWA: Vite 6 ready on :5000",
     "[2026-06-01 18:21:10] 🗄️  DB: PostgreSQL connection OK · schema synced",
     "[2026-06-01 18:21:11] ✅ CIVAC Server: all systems nominal",
-    "[2026-06-03 18:21:12] 📦 PWA v7.1.0 en desarrollo · Service Worker v8 activo",
+    "[2026-06-03 18:21:12] 📦 PWA v7.1.0 en desarrollo · Service Worker v10 activo",
     "[2026-06-01 18:21:13] 🔧 use-toast.ts: React namespace fix aplicado · HMR stable",
   ]);
 
@@ -1345,7 +1345,7 @@ function ConfigPanel() {
         <p className="text-[10px] font-mono font-bold tracking-widest mb-3" style={{ color:"rgba(148,163,184,0.3)" }}>PLATAFORMA</p>
         {[
           { label:"Dominio principal",      val:"civac.co",                   icon:"🌐", editable:false },
-          { label:"Versión plataforma",     val:"CIVAC PRO v1.0.0",           icon:"📦", editable:false },
+          { label:"Versión plataforma",     val:"CIVAC PRO v2.1.0",           icon:"📦", editable:false },
           { label:"Región de despliegue",   val:"Bogotá, Colombia — SA-East", icon:"📍", editable:false },
           { label:"Base de datos",          val:"PostgreSQL (Replit native)",  icon:"🗄️", editable:false },
           { label:"PWA Service Worker",     val:"v8 · 33 rutas · Offline full", icon:"⚙️", editable:false },
@@ -1746,7 +1746,7 @@ export default function ServerDashboard() {
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px] font-mono" style={{ color:"rgba(0,245,212,0.18)" }}>
               <div className="w-1 h-1 rounded-full" style={{ background:"#00f5d4" }}/>
-              <span>CIVAC Platform v1.0 · Server</span>
+              <span>CIVAC Platform v2.1 · Server</span>
             </div>
           )}
           <button onClick={() => navigate("/")} className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-white/30 hover:text-white/60 hover:bg-white/5 transition-all ${collapsed ? "justify-center" : ""}`} style={{ borderRadius:10 }}>

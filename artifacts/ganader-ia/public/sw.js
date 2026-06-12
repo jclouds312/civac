@@ -1,9 +1,9 @@
-// CIVAC PRO — Service Worker v9
+// CIVAC PRO — Service Worker v10
 // Estrategia: Cache-first assets · Stale-while-revalidate nav · Network-first API
 // Memoria expandida: 50 MB quota + persistent storage · Offline shell completo
-// v9: excluir deps de Vite del caché para evitar conflictos de módulos React
+// v10: +Básculas COM/BT · Google OAuth · Admin accounts · CSS3 modern effects
 
-const CACHE_VER    = 'v9';
+const CACHE_VER    = 'v10';
 const CACHE_MAIN   = `civac-main-${CACHE_VER}`;
 const CACHE_STATIC = `civac-static-${CACHE_VER}`;
 const CACHE_API    = `civac-api-${CACHE_VER}`;
@@ -196,7 +196,7 @@ self.addEventListener('fetch', (e) => {
             await caches.match('/') ||
             await caches.match('/index.html') ||
             new Response(
-              `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>CIVAC PRO — Sin conexión</title><style>*{box-sizing:border-box}body{background:#020d09;color:#00f5d4;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:1rem}h1{font-size:1.4rem;margin:.5rem 0}p{color:rgba(255,255,255,.5);font-size:.9rem;margin:.25rem 0}.tag{display:inline-block;margin-top:1rem;padding:.3rem .8rem;border-radius:999px;border:1px solid rgba(0,245,212,.3);font-size:.75rem;color:rgba(0,245,212,.6)}</style></head><body><div><div style="font-size:3rem">📡</div><h1>CIVAC PRO — Offline</h1><p>Sin conexión a internet.</p><p>Los datos guardados siguen disponibles.</p><span class="tag">Service Worker v8</span></div></body></html>`,
+              `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>CIVAC PRO — Sin conexión</title><style>*{box-sizing:border-box}body{background:#020d09;color:#00f5d4;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:1rem}h1{font-size:1.4rem;margin:.5rem 0}p{color:rgba(255,255,255,.5);font-size:.9rem;margin:.25rem 0}.tag{display:inline-block;margin-top:1rem;padding:.3rem .8rem;border-radius:999px;border:1px solid rgba(0,245,212,.3);font-size:.75rem;color:rgba(0,245,212,.6)}</style></head><body><div><div style="font-size:3rem">📡</div><h1>CIVAC PRO — Offline</h1><p>Sin conexión a internet.</p><p>Los datos guardados siguen disponibles.</p><span class="tag">Service Worker v10 · CIVAC PRO v2.1</span></div></body></html>`,
               { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
             )
           );

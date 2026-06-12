@@ -1,24 +1,53 @@
 {
   "name": "GanaderIA CIVAC PRO — Gestión Ganadera Colombia",
   "short_name": "GanaderIA PRO",
-  "description": "CIVAC PRO v2.0 — 34+ módulos de gestión ganadera inteligente para Colombia. GPS bovino tiempo real (13 collares LTE), Pesaje Bluetooth 8 drivers, Trazabilidad ICA/SINIGAN, Sanidad Animal, Predicciones IA, Asesora IA, CRM Ventas y más. 100% offline con IndexedDB v2.",
+  "description": "CIVAC PRO v2.1 — 35+ módulos ganadería Colombia. GPS bovino tiempo real (13 collares LTE), Pesaje Bluetooth/COM (8 drivers), Básculas multi-conexión, Google OAuth, Trazabilidad ICA/SINIGAN, Sanidad Animal, Predicciones IA, CRM Ventas y más. 100% offline IndexedDB v2.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui", "browser"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
   "orientation": "any",
   "background_color": "#0a1628",
   "theme_color": "#FFD60A",
-  "categories": ["business", "productivity", "agriculture", "utilities", "finance"],
+  "categories": [
+    "business",
+    "productivity",
+    "agriculture",
+    "utilities",
+    "finance"
+  ],
   "lang": "es-CO",
   "dir": "ltr",
   "id": "civac-pro-colombia-v9",
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "any"      },
-    { "src": "/favicon.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "maskable" },
-    { "src": "/favicon.svg", "sizes": "192x192", "type": "image/svg+xml"                        },
-    { "src": "/favicon.svg", "sizes": "512x512", "type": "image/svg+xml"                        }
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
   ],
   "shortcuts": [
     {
@@ -26,56 +55,96 @@
       "short_name": "Dashboard",
       "url": "/",
       "description": "Tablero principal con KPIs, gráficas y accesos rápidos",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Inventario Bovino",
       "short_name": "Inventario",
       "url": "/inventario",
       "description": "Registro y gestión de bovinos con RFID",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Pesaje Bluetooth",
       "short_name": "Pesaje BT",
       "url": "/pesaje",
       "description": "Báscula Bluetooth con IA — BCS, GMD, 9 razas",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "GPS Bovino",
       "short_name": "GPS",
       "url": "/gps",
       "description": "Rastreo GPS en tiempo real con geovallado",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Reproducción",
       "short_name": "Reproducción",
       "url": "/reproduccion",
       "description": "Partos, IEP, celos e inseminaciones",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Sanidad Animal",
       "short_name": "Sanidad",
       "url": "/sanidad",
       "description": "Vacunación, tratamientos y control sanitario",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Trazabilidad ICA",
       "short_name": "Trazabilidad",
       "url": "/trazabilidad",
       "description": "Trazabilidad bovina ICA — cumplimiento normativo Colombia",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Centro de Respaldo",
       "short_name": "Backup",
       "url": "/datos",
       "description": "Exportar, importar y restaurar datos",
-      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
     }
   ],
   "screenshots": [
@@ -88,13 +157,24 @@
     }
   ],
   "protocol_handlers": [],
-  "edge_side_panel": { "preferred_width": 420 },
+  "edge_side_panel": {
+    "preferred_width": 420
+  },
   "share_target": {
     "action": "/datos",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {
-      "files": [{ "name": "backup", "accept": ["application/json", ".json"] }]
+      "files": [
+        {
+          "name": "backup",
+          "accept": [
+            "application/json",
+            ".json"
+          ]
+        }
+      ]
     }
-  }
+  },
+  "version": "2.1.0"
 }

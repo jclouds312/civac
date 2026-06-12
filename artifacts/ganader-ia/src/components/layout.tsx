@@ -782,7 +782,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: `rgba(255,214,10,0.08)` }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: 'rgba(255,214,10,0.25)' }}>
-              <Wifi size={9} /><span>CIVAC PRO v1.0 · 32 módulos · Offline PWA · Colombia</span>
+              <Wifi size={9} /><span>CIVAC PRO v2.1 · 35+ módulos · Offline PWA · Colombia</span>
             </div>
           )}
           {!collapsed && (

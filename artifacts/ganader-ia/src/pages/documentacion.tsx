@@ -231,7 +231,7 @@ function SecModulos() {
 
   return (
     <div className="space-y-7">
-      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos · 10 categorías · CIVAC PRO v1.0`} c1="#071325" c2="#0a1f3c"/>
+      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos · 10 categorías · CIVAC PRO v2.1`} c1="#071325" c2="#0a1f3c"/>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -412,67 +412,149 @@ function SecOffline() {
 }
 
 function SecLogin() {
+  const CIVAC_STAFF = [
+    { emoji:"🔱", n:"Javier Sánchez B.",            e:"Softganventas@gmail.com",            p:"civac2026",   r:"superadmin", rc:"#e74c3c", cargo:"CEO · Fundador",         from:"#c0392b", to:"#e74c3c", glow:"192,57,43"   },
+    { emoji:"👑", n:"Lizet Daza",                   e:"lizet.daza@civac.co",                p:"lizet2026",   r:"admin",      rc:"#f0c040", cargo:"Co-Fund · Dir. Ejec.",  from:"#d4a017", to:"#f0c040", glow:"212,160,23"  },
+    { emoji:"🛠️",n:"Johnatan Vallejo M.",            e:"johnatanvallejomarulanda@gmail.com", p:"dev2026",     r:"developer",  rc:"#00e676", cargo:"Arquitecto · Dev",      from:"#00c853", to:"#00e676", glow:"0,200,83"    },
+    { emoji:"📊", n:"Asesora CIVAC Ventas",          e:"ventas@civac.co",                   p:"ventas2026",  r:"sales",      rc:"#e879f9", cargo:"Asesora Comercial",     from:"#e879f9", to:"#a855f7", glow:"232,121,249" },
+  ];
+  const DEMO_CLIENTS = [
+    { emoji:"🩺", n:"Dr. Carlos Ramírez",  e:"vet@ganader.ia",    p:"vet2026",   r:"vet",    rc:"#29b6f6", plan:"PRO",    cargo:"Médico Veterinario"          },
+    { emoji:"🌿", n:"Luis Patiño",         e:"luis@ganader.ia",   p:"campo2026", r:"field",  rc:"#66bb6a", plan:"Básico", cargo:"Jefe de Campo"               },
+    { emoji:"📈", n:"Propietario / Inv.",  e:"visor@ganader.ia",  p:"visor",     r:"viewer", rc:"#ab47bc", plan:"Básico", cargo:"Propietario · Solo lectura"  },
+  ];
+
   return (
     <div className="space-y-6">
-      <SectionBanner emoji="🔐" title="Login & Cuentas" subtitle="3 formas de acceso · 6 cuentas predefinidas · 6 roles" c1="#1a0a1a" c2="#2a0a2a"/>
+      <SectionBanner emoji="🔐" title="Login & Cuentas" subtitle="3 tabs · 2 tipos de cuenta · Google OAuth · 7 usuarios" c1="#1a0a1a" c2="#2a0a2a"/>
 
-      <div className="space-y-3">
+      {/* Login tabs info */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         {[
-          { tab:"🔑 Iniciar Sesión", desc:"Formulario principal con correo + contraseña. También permite acceso rápido con Google (próximamente)." },
-          { tab:"👤 Cuentas Demo", desc:"Acceso directo a las 6 cuentas predefinidas del sistema. Solo visible para cuentas CIVAC Staff." },
-          { tab:"💳 Planes", desc:"Información de los 4 planes (Básico · PRO · Premium · Platino) con precios y pasarela de pago Wompi." },
+          { tab:"🔑 Iniciar Sesión",  color:"#00f5d4", glow:"0,245,212",   desc:"Email + contraseña · Google OAuth · auto-login por invite token" },
+          { tab:"👥 Cuentas Demo",    color:"#39ff7e", glow:"57,255,126",  desc:"4 planes de demostración + panel CIVAC Staff con tarjetas de equipo" },
+          { tab:"💳 Planes",          color:"#fbbf24", glow:"251,191,36",  desc:"Básico / PRO / Premium / Platino · pasarela Wompi · Nequi · PSE" },
+          { tab:"✨ Registrarse",     color:"#a855f7", glow:"168,85,247",  desc:"Registro nuevo usuario: nombre, email, finca · pendiente de activación" },
+          { tab:"🤖 Módulo IA",       color:"#e879f9", glow:"232,121,249", desc:"Showcase de 6 capacidades IA: Genética, GPS, CO₂, Costos, Diagnóstico" },
         ].map(t => (
-          <div key={t.tab} className="flex items-start gap-3 p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
-            <span className="text-sm font-bold text-foreground mt-0.5">{t.tab}</span>
-            <p className="text-xs text-muted-foreground">{t.desc}</p>
+          <div key={t.tab} className="p-3 rounded-xl"
+            style={{ background:`rgba(${t.glow},0.05)`, border:`1px solid rgba(${t.glow},0.20)` }}>
+            <p className="text-[11px] font-black mb-1" style={{ color:t.color }}>{t.tab}</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">{t.desc}</p>
           </div>
         ))}
       </div>
 
-      <p className="text-[11px] font-mono font-bold tracking-widest" style={{ color:"rgba(0,245,212,0.4)" }}>CUENTAS DEL SISTEMA</p>
-      <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.07)" }}>
-        <table className="w-full text-xs">
-          <thead>
-            <tr style={{ background:"rgba(255,255,255,0.04)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-              {["Nombre","Email","Contraseña","Rol"].map(h => (
-                <th key={h} className="text-left px-3 py-2 font-bold text-muted-foreground">{h}</th>
+      {/* Google OAuth info */}
+      <div className="rounded-2xl p-4" style={{ background:"rgba(66,133,244,0.06)", border:"1px solid rgba(66,133,244,0.25)" }}>
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background:"rgba(66,133,244,0.10)", border:"1px solid rgba(66,133,244,0.25)" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-black text-white mb-0.5">Google OAuth 2.0 — Inicio con Google</p>
+            <p className="text-[10px] text-muted-foreground leading-relaxed mb-2">
+              El backend Node.js maneja el flujo OAuth server-side vía <code className="text-blue-400">/api/auth/google</code>. El botón "Continuar con Google" aparece solo cuando <code className="text-blue-400">GOOGLE_CLIENT_ID</code> está configurado. Nuevos usuarios quedan en estado <em>pendiente</em> hasta activación por admin.
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {["GET /api/auth/google → redirect","GET /api/auth/google/callback → token","GET /api/auth/google/status → bool","GET /api/auth/me → user info"].map(e => (
+                <code key={e} className="text-[8px] px-2 py-0.5 rounded" style={{ background:"rgba(66,133,244,0.10)", color:"rgba(147,197,253,0.7)" }}>{e}</code>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { n:"Administrador",    e:"admin@ganader.ia",  p:"admin",    r:"admin",      rc:"#ff9500" },
-              { n:"Super Admin",      e:"super@civac.co",    p:"super2026",r:"superadmin", rc:"#ff6b35" },
-              { n:"Dev · Arquitecto", e:"dev@civac.co",      p:"dev2026",  r:"developer",  rc:"#00ff88" },
-              { n:"Dr. Carlos Ramírez",e:"vet@ganader.ia",   p:"vet2026",  r:"vet",        rc:"#39ff7e" },
-              { n:"Luis Patiño",      e:"luis@ganader.ia",   p:"campo2026",r:"field",      rc:"#fbbf24" },
-              { n:"Visor Inversor",   e:"visor@ganader.ia",  p:"visor",    r:"viewer",     rc:"#94a3b8" },
-            ].map((row, i) => (
-              <tr key={row.e} style={{ borderBottom:"1px solid rgba(255,255,255,0.04)", background: i%2===0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
-                <td className="px-3 py-2 font-semibold text-foreground">{row.n}</td>
-                <td className="px-3 py-2 font-mono text-muted-foreground">{row.e}</td>
-                <td className="px-3 py-2 font-mono" style={{ color:"#a78bfa" }}>{row.p}</td>
-                <td className="px-3 py-2"><Badge text={row.r} color={row.rc}/></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {[
-          { role:"admin / superadmin", desc:"Panel Admin completo, sin sidebar de finca", color:"#ff9500" },
-          { role:"developer",          desc:"Consola dev + acceso completo todos los módulos", color:"#00ff88" },
-          { role:"vet",                desc:"Módulos clínicos — sanidad, ficha, reproducción", color:"#39ff7e" },
-          { role:"field",              desc:"Campo: pesaje, GPS, potreros, insumos", color:"#fbbf24" },
-          { role:"viewer",             desc:"Solo lectura — dashboard y reportes", color:"#94a3b8" },
-          { role:"sales",              desc:"CRM ventas, demos, pipeline comercial", color:"#e879f9" },
-        ].map(r => (
-          <div key={r.role} className="p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.02)", border:`1px solid ${r.color}20` }}>
-            <Badge text={r.role} color={r.color}/>
-            <p className="text-[11px] text-muted-foreground mt-1.5">{r.desc}</p>
+      {/* CIVAC Staff accounts */}
+      <div>
+        <p className="text-[10px] font-black tracking-widest uppercase mb-3" style={{ color:"rgba(0,245,212,0.5)" }}>
+          ⬡ CIVAC Staff — Acceso Portal Servidor
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {CIVAC_STAFF.map(s => (
+            <div key={s.e} className="rounded-2xl overflow-hidden"
+              style={{ background:`linear-gradient(135deg,rgba(${s.glow},0.08),rgba(${s.glow},0.03))`, border:`1.5px solid rgba(${s.glow},0.25)` }}>
+              <div className="h-0.5" style={{ background:`linear-gradient(90deg,${s.from},${s.to})` }}/>
+              <div className="p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                  style={{ background:`rgba(${s.glow},0.12)`, border:`1px solid rgba(${s.glow},0.30)` }}>
+                  {s.emoji}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <p className="text-[12px] font-black text-white">{s.n}</p>
+                    <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background:`rgba(${s.glow},0.12)`, color:`rgb(${s.glow})`, border:`1px solid rgba(${s.glow},0.25)` }}>{s.r}</span>
+                    <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background:"rgba(0,245,212,0.07)", color:"rgba(0,245,212,0.6)", border:"1px solid rgba(0,245,212,0.18)" }}>⬡ CIVAC</span>
+                  </div>
+                  <p className="text-[9px] font-mono text-muted-foreground truncate">{s.e}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <code className="text-[8px] px-1.5 py-0.5 rounded" style={{ background:"rgba(167,139,250,0.10)", color:"rgba(167,139,250,0.7)" }}>{s.p}</code>
+                    <span className="text-[8px]" style={{ color:"rgba(255,255,255,0.25)" }}>· {s.cargo}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Demo client accounts */}
+      <div>
+        <p className="text-[10px] font-black tracking-widest uppercase mb-3" style={{ color:"rgba(57,255,126,0.5)" }}>
+          Cuentas Demo — Ganadero Cliente
+        </p>
+        <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.08)" }}>
+          <div className="grid grid-cols-4 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground"
+            style={{ background:"rgba(255,255,255,0.03)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+            <span>Usuario</span><span>Email</span><span>Password</span><span>Rol · Plan</span>
           </div>
-        ))}
+          {DEMO_CLIENTS.map((row, i) => (
+            <div key={row.e} className="grid grid-cols-4 px-3 py-2.5 text-[10px] items-center gap-1"
+              style={{ borderBottom: i<DEMO_CLIENTS.length-1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: i%2===0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+              <div className="flex items-center gap-1.5 font-semibold text-foreground">
+                <span>{row.emoji}</span><span className="truncate">{row.n.split(" ")[0]} {row.n.split(" ")[1]}</span>
+              </div>
+              <code className="font-mono text-muted-foreground text-[9px] truncate">{row.e}</code>
+              <code className="font-mono text-[9px]" style={{ color:"#a78bfa" }}>{row.p}</code>
+              <div className="flex flex-wrap gap-1">
+                <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background:`${row.rc}15`, color:row.rc, border:`1px solid ${row.rc}30` }}>{row.r}</span>
+                <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background:"rgba(0,245,212,0.07)", color:"rgba(0,245,212,0.55)", border:"1px solid rgba(0,245,212,0.15)" }}>{row.plan}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Roles matrix */}
+      <div>
+        <p className="text-[10px] font-black tracking-widest uppercase mb-3" style={{ color:"rgba(255,255,255,0.25)" }}>
+          Matriz de roles · 6 niveles de acceso
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { role:"superadmin", emoji:"🔱", desc:"Control total · Server Panel · Auditoría · Config global", color:"#e74c3c" },
+            { role:"admin",      emoji:"👑", desc:"Panel Admin · Gestión clientes · Facturación · Usuarios",  color:"#f0c040" },
+            { role:"developer",  emoji:"🛠️", desc:"Consola Dev · API · Feature flags · Deploy",               color:"#00e676" },
+            { role:"sales",      emoji:"📊", desc:"CRM · Pipeline comercial · Reportes de ventas",             color:"#e879f9" },
+            { role:"vet",        emoji:"🩺", desc:"Sanidad · Ficha clínica · Reproducción · Genética",         color:"#29b6f6" },
+            { role:"field",      emoji:"🌿", desc:"Pesaje · Potreros · GPS · Insumos · Básculas COM/BT",       color:"#66bb6a" },
+          ].map(r => (
+            <div key={r.role} className="p-3 rounded-xl"
+              style={{ background:`${r.color}08`, border:`1px solid ${r.color}22` }}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-base">{r.emoji}</span>
+                <Badge text={r.role} color={r.color}/>
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{r.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -904,7 +986,7 @@ export default function Documentacion() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-white" style={{ fontFamily:"Sora,sans-serif" }}>Documentación</h1>
-              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v1.0 · {SECTIONS.length} secciones · 30+ módulos</p>
+              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v2.1 · {SECTIONS.length} secciones · 30+ módulos</p>
             </div>
           </div>
           <button onClick={() => setMobileOpen(v => !v)} className="lg:hidden flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold"

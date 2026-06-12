@@ -259,7 +259,7 @@ function ColombianTicker() {
     "📡 GPS Real-Time · 13 collares activos","🤖 Asesora IA Colombia · GPT ganadero",
     "🩺 Sanidad ICA · Vacunas al día","🌿 -18% Huella CO₂ · Carbono neutro 2027",
     "⚖️ 3 Básculas Bluetooth vinculadas","☁️ Analytics Server ONLINE · 99.8% uptime",
-    "🔒 CIVAC PRO v1.0 · 32 módulos activos","🏆 #1 Software Ganadero Colombia",
+    "🔒 CIVAC PRO v2.1 · 35+ módulos activos","🏆 #1 Software Ganadero Colombia",
   ];
   const doubled = [...items, ...items];
   return (
@@ -1034,7 +1034,7 @@ export default function Login() {
               <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none"
                 style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO Colombia</span>
               <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none ml-1"
-                style={{ background:"linear-gradient(135deg,#00f5d4,#0891b2)", color:"#000", letterSpacing:"0.05em" }}>v2.0</span>
+                style={{ background:"linear-gradient(135deg,#00f5d4,#0891b2)", color:"#000", letterSpacing:"0.05em" }}>v2.1</span>
             </div>
           </div>
 
@@ -1045,11 +1045,11 @@ export default function Login() {
           {/* Feature badges — animated glow pills */}
           <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
             {[
-              { icon:<Wifi size={13}/>,       label:"Offline PWA",    sub:"Service Worker v8", c:"0,245,212",   ac:"#00f5d4" },
+              { icon:<Wifi size={13}/>,       label:"Offline PWA",    sub:"Service Worker v10", c:"0,245,212",   ac:"#00f5d4" },
               { icon:<Zap size={13}/>,        label:"Serial · BT",    sub:"8 drivers COM · 11 BLE", c:"255,149,0", ac:"#ff9a3c" },
               { icon:<Smartphone size={13}/>, label:"GPS Real-Time",  sub:"13 collares CIVAC",c:"0,200,255",   ac:"#00c8ff" },
               { icon:<Star size={13}/>,       label:"IA Predictiva",  sub:"Asesora ganadero", c:"232,121,249", ac:"#e879f9" },
-              { icon:<Globe size={13}/>,      label:"34+ Módulos",    sub:"CRUD completo",    c:"57,255,126",  ac:"#39ff7e" },
+              { icon:<Globe size={13}/>,      label:"35+ Módulos",    sub:"CRUD completo",    c:"57,255,126",  ac:"#39ff7e" },
               { icon:<Cpu size={13}/>,        label:"IndexedDB v2",   sub:"100k registros",   c:"168,85,247",  ac:"#a855f7" },
             ].map((p, i) => (
               <span key={p.label}
@@ -1313,7 +1313,7 @@ export default function Login() {
                     <div className="min-w-0">
                       <div className="text-[10px] font-black text-white leading-tight">100% Colombia · Universal Business Technology</div>
                       <div className="text-[8px] truncate" style={{ color:"rgba(252,209,22,0.5)" }}>
-                        GanaderIA CIVAC PRO v1.0 · Control Inteligente de Valor Agropecuario
+                        GanaderIA CIVAC PRO v2.1 · Control Inteligente de Valor Agropecuario
                       </div>
                     </div>
                   </div>
@@ -1799,86 +1799,214 @@ export default function Login() {
               </div>
             </div>
 
-            {/* ── Acceso Exclusivo CIVAC Staff ── */}
+            {/* ══════════════════════════════════════════════════════════
+                CIVAC ADMIN ACCOUNTS — equipo interno con tarjetas
+            ══════════════════════════════════════════════════════════ */}
             <div className="relative rounded-3xl overflow-hidden"
-              style={{
-                background:"linear-gradient(145deg,rgba(2,8,20,0.97),rgba(5,14,30,0.95))",
-                border:"1px solid rgba(0,245,212,0.15)",
-                boxShadow:"0 0 40px rgba(0,245,212,0.06)",
-              }}>
+              style={{ background:"linear-gradient(145deg,rgba(1,5,15,0.98),rgba(3,9,22,0.97))", border:"1px solid rgba(0,245,212,0.18)", boxShadow:"0 0 60px rgba(0,245,212,0.06)" }}>
+
+              {/* Ambient background glow */}
               <div className="absolute inset-0 pointer-events-none"
-                style={{ background:"radial-gradient(ellipse at 50% 0%,rgba(0,245,212,0.06) 0%,transparent 65%)" }}/>
-              <div className="h-px w-full" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.35),rgba(0,200,255,0.25),transparent)" }}/>
-              <div className="relative p-6 flex flex-col sm:flex-row items-center gap-5">
+                style={{ background:"radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,245,212,0.07) 0%,transparent 60%)" }}/>
+              <div className="absolute top-0 left-0 right-0 h-px"
+                style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.5),rgba(0,200,255,0.35),rgba(0,245,212,0.5),transparent)" }}/>
 
-                {/* Left — hexagon CIVAC badge */}
-                <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
-                    style={{
-                      background:"linear-gradient(135deg,rgba(0,245,212,0.10),rgba(0,200,255,0.06))",
-                      border:"1.5px solid rgba(0,245,212,0.28)",
-                      boxShadow:"0 0 30px rgba(0,245,212,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
-                    }}>
-                    <span className="text-3xl" style={{ filter:"drop-shadow(0 0 10px rgba(0,245,212,0.7))" }}>⬡</span>
+              <div className="relative p-5">
+                {/* Section header */}
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                      style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.12),rgba(0,200,255,0.07))", border:"1.5px solid rgba(0,245,212,0.35)", boxShadow:"0 0 30px rgba(0,245,212,0.20), inset 0 1px 0 rgba(0,245,212,0.08)" }}>
+                      <span className="text-2xl" style={{ filter:"drop-shadow(0 0 12px rgba(0,245,212,0.9))" }}>⬡</span>
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                      style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", boxShadow:"0 0 10px rgba(0,245,212,0.7)" }}>
+                      <span className="text-[9px] font-black text-black">S</span>
+                    </div>
                   </div>
-                  <span className="text-[8px] font-black tracking-[0.18em] uppercase"
-                    style={{ color:"rgba(0,245,212,0.45)" }}>
-                    CIVAC STAFF
-                  </span>
-                </div>
-
-                {/* Center — info */}
-                <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-base font-black text-white leading-tight mb-1">
-                    Acceso Exclusivo CIVAC
-                  </h3>
-                  <p className="text-[11px] leading-relaxed mb-3" style={{ color:"rgba(255,255,255,0.35)" }}>
-                    Portal privado para el equipo interno CIVAC.<br/>
-                    CEO · Dirección · Desarrollo · Ventas corporativas.
-                  </p>
-                  <div className="flex flex-wrap justify-center sm:justify-start gap-1.5">
-                    {["⬡ CEO & Fundador","⚙️ Desarrollo","📊 Admin","💼 Ventas Corp."].map(tag => (
-                      <span key={tag}
-                        className="text-[9px] font-bold px-2.5 py-1 rounded-full"
-                        style={{ background:"rgba(0,245,212,0.06)", border:"1px solid rgba(0,245,212,0.18)", color:"rgba(0,245,212,0.55)" }}>
-                        {tag}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <h3 className="text-base font-black text-white leading-none">Equipo CIVAC — Portal Staff</h3>
+                      <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                        style={{ background:"rgba(0,245,212,0.10)", border:"1px solid rgba(0,245,212,0.30)", color:"#00f5d4" }}>
+                        ⬡ PRIVADO
                       </span>
-                    ))}
+                      <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                        style={{ background:"rgba(57,255,126,0.10)", border:"1px solid rgba(57,255,126,0.30)", color:"#39ff7e" }}>
+                        ● ACTIVO
+                      </span>
+                    </div>
+                    <p className="text-[10px]" style={{ color:"rgba(255,255,255,0.30)" }}>
+                      Acceso exclusivo para el equipo fundador CIVAC · Portal independiente de la app cliente
+                    </p>
                   </div>
-                </div>
-
-                {/* Right — CTA button */}
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={() => setShowAdminForm(true)}
-                    className="relative flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm transition-all duration-300 hover:scale-[1.05] active:scale-[0.97] overflow-hidden group"
-                    style={{
-                      background:"linear-gradient(135deg,rgba(0,245,212,0.12),rgba(0,200,255,0.08))",
-                      border:"1.5px solid rgba(0,245,212,0.40)",
-                      color:"#00f5d4",
-                      boxShadow:"0 0 24px rgba(0,245,212,0.15)",
-                    }}
-                    onMouseEnter={e => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.background = "linear-gradient(135deg,rgba(0,245,212,0.20),rgba(0,200,255,0.14))";
-                      el.style.borderColor = "rgba(0,245,212,0.65)";
-                      el.style.boxShadow = "0 0 36px rgba(0,245,212,0.30), 0 6px 20px rgba(0,0,0,0.4)";
-                    }}
-                    onMouseLeave={e => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.background = "linear-gradient(135deg,rgba(0,245,212,0.12),rgba(0,200,255,0.08))";
-                      el.style.borderColor = "rgba(0,245,212,0.40)";
-                      el.style.boxShadow = "0 0 24px rgba(0,245,212,0.15)";
-                    }}>
-                    <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{ background:"linear-gradient(135deg,rgba(255,255,255,0.07) 0%,transparent 60%)" }}/>
-                    <span style={{ filter:"drop-shadow(0 0 6px rgba(0,245,212,0.8))" }}>⬡</span>
-                    <span className="whitespace-nowrap">Ingresar CIVAC</span>
-                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-200"/>
+                  <button onClick={() => setShowAdminForm(true)}
+                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-[11px] transition-all duration-300 hover:scale-[1.06] active:scale-[0.97] group relative overflow-hidden"
+                    style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.14),rgba(0,200,255,0.08))", border:"1.5px solid rgba(0,245,212,0.45)", color:"#00f5d4", boxShadow:"0 0 20px rgba(0,245,212,0.15)" }}>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.10) 0%,transparent 60%)" }}/>
+                    <span style={{ filter:"drop-shadow(0 0 5px rgba(0,245,212,0.9))" }}>⬡</span>
+                    <span className="whitespace-nowrap">Acceder</span>
+                    <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform"/>
                   </button>
                 </div>
+
+                {/* Staff cards grid — 4 members */}
+                {(() => {
+                  const STAFF_MEMBERS = [
+                    {
+                      emoji:"🔱", name:"Javier Sánchez", short:"Javier",
+                      cargo:"CEO · Fundador & Propietario",
+                      sub:"Control total · Auditoría · Config global · Server Panel",
+                      role:"superadmin", plan:"Platino",
+                      from:"#c0392b", to:"#e74c3c", glow:"192,57,43",
+                      img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80&fit=crop&crop=face",
+                      tags:["⬡ Superadmin","🔱 CEO","🛡 Audit","⚙️ Config"],
+                    },
+                    {
+                      emoji:"👑", name:"Lizet Daza", short:"Lizet",
+                      cargo:"Co-Fundadora · Dir. Ejecutiva",
+                      sub:"Dirección ejecutiva · Panel Admin · Plataforma completa",
+                      role:"admin", plan:"Platino",
+                      from:"#d4a017", to:"#f0c040", glow:"212,160,23",
+                      img:"https://images.unsplash.com/photo-1494790108755-2616b612b1e6?w=120&q=80&fit=crop&crop=face",
+                      tags:["👑 Admin","📊 Panel","💼 Gestión"],
+                    },
+                    {
+                      emoji:"🛠️", name:"Johnatan Vallejo", short:"Johnatan",
+                      cargo:"Arquitecto Principal · Dev",
+                      sub:"PWA · APIs · Feature Flags · Deploy · Server Panel",
+                      role:"developer", plan:"Platino",
+                      from:"#00c853", to:"#00e676", glow:"0,200,83",
+                      img:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&q=80&fit=crop&crop=face",
+                      tags:["🛠️ Dev","🚀 Deploy","🔧 APIs","⚡ PWA"],
+                    },
+                    {
+                      emoji:"📊", name:"Asesora Ventas", short:"Ventas",
+                      cargo:"Asesora Comercial Senior",
+                      sub:"CRM · Pipeline · Reportes · Gestión de cuentas",
+                      role:"sales", plan:"Platino",
+                      from:"#e879f9", to:"#a855f7", glow:"232,121,249",
+                      img:"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&q=80&fit=crop&crop=face",
+                      tags:["📊 Ventas","💼 CRM","📈 Reportes"],
+                    },
+                  ];
+                  return (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      {STAFF_MEMBERS.map((m, i) => {
+                        const isHov = hoveredCard === `staff-${i}`;
+                        return (
+                          <div key={i}
+                            className="staff-card rounded-2xl cursor-pointer group"
+                            style={{
+                              background:`linear-gradient(160deg,rgba(${m.glow},0.10),rgba(${m.glow},0.04),rgba(0,0,0,0.3))`,
+                              border:`1.5px solid rgba(${m.glow},${isHov?"0.55":"0.22"})`,
+                              boxShadow: isHov ? `0 0 40px rgba(${m.glow},0.25), 0 12px 32px rgba(0,0,0,0.5)` : `0 0 12px rgba(${m.glow},0.08)`,
+                            }}
+                            onMouseEnter={() => setHoveredCard(`staff-${i}`)}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            onClick={() => setShowAdminForm(true)}>
+
+                            {/* Top identity bar */}
+                            <div className="h-1 w-full rounded-t-2xl"
+                              style={{ background:`linear-gradient(90deg,${m.from},${m.to})` }}/>
+
+                            <div className="p-3.5">
+                              {/* Avatar + glow ring */}
+                              <div className="relative w-14 h-14 mx-auto mb-3">
+                                <div className="absolute inset-0 rounded-2xl"
+                                  style={{ background:`linear-gradient(135deg,${m.from}40,${m.to}25)`, border:`1.5px solid rgba(${m.glow},0.35)`, boxShadow:`0 0 20px rgba(${m.glow},0.20)` }}/>
+                                <img src={m.img} alt={m.name}
+                                  className="relative w-full h-full rounded-2xl object-cover"
+                                  style={{ border:`1.5px solid rgba(${m.glow},0.45)` }}
+                                  onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; const p=e.currentTarget.parentElement; if(p){p.innerHTML=`<div style="width:56px;height:56px;border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,rgba(${m.glow},0.15),rgba(${m.glow},0.08));border:1.5px solid rgba(${m.glow},0.35)">${m.emoji}</div>`;} }}
+                                />
+                                {/* Status dot */}
+                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                                  style={{ background:"#39ff7e", border:"1.5px solid rgba(0,0,0,0.6)", boxShadow:"0 0 8px rgba(57,255,126,0.6)" }}/>
+                              </div>
+
+                              {/* Name + cargo */}
+                              <div className="text-center mb-2.5">
+                                <p className="text-[12px] font-black text-white leading-tight">{m.short}</p>
+                                <p className="text-[8.5px] font-bold mt-0.5 leading-tight" style={{ color:`rgba(${m.glow},0.7)` }}>{m.cargo.split("·")[0].trim()}</p>
+                              </div>
+
+                              {/* Role tags */}
+                              <div className="flex flex-wrap justify-center gap-1 mb-3">
+                                {m.tags.slice(0,2).map(tag => (
+                                  <span key={tag} className="text-[7px] font-black px-1.5 py-0.5 rounded-full"
+                                    style={{ background:`rgba(${m.glow},0.10)`, border:`1px solid rgba(${m.glow},0.25)`, color:`rgba(${m.glow},0.8)` }}>
+                                    {tag}
+                                  </span>
+                                ))}
+                                <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full"
+                                  style={{ background:"rgba(0,245,212,0.07)", border:"1px solid rgba(0,245,212,0.20)", color:"rgba(0,245,212,0.6)" }}>
+                                  ⬡ CIVAC
+                                </span>
+                              </div>
+
+                              {/* Sub info */}
+                              <p className="text-[8.5px] text-center leading-relaxed mb-3"
+                                style={{ color:"rgba(255,255,255,0.25)" }}>
+                                {m.sub}
+                              </p>
+
+                              {/* Plan badge */}
+                              <div className="text-center">
+                                <span className="text-[7px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                                  style={{ background:"rgba(0,245,212,0.08)", border:"1px solid rgba(0,245,212,0.20)", color:"rgba(0,245,212,0.55)" }}>
+                                  👑 {m.plan} · Staff
+                                </span>
+                              </div>
+
+                              {/* Hover CTA */}
+                              <div className="mt-3 overflow-hidden transition-all duration-300"
+                                style={{ maxHeight: isHov ? "36px" : "0px", opacity: isHov ? 1 : 0 }}>
+                                <div className="flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-[9px] font-black"
+                                  style={{ background:`rgba(${m.glow},0.12)`, border:`1px solid rgba(${m.glow},0.35)`, color:`rgb(${m.glow})` }}>
+                                  <span>⬡</span> Ingresar Portal
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* Bottom separator + CTA strip */}
+                <div className="mt-4 pt-4" style={{ borderTop:"1px solid rgba(0,245,212,0.08)" }}>
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex -space-x-2">
+                        {["🔱","👑","🛠️","📊"].map(e => (
+                          <div key={e} className="w-7 h-7 rounded-full flex items-center justify-center text-sm"
+                            style={{ background:"rgba(0,245,212,0.08)", border:"1.5px solid rgba(0,245,212,0.20)" }}>{e}</div>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-white">4 miembros activos</p>
+                        <p className="text-[8px]" style={{ color:"rgba(0,245,212,0.40)" }}>CEO · Admin · Dev · Ventas · Plan Platino</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px]"
+                        style={{ background:"rgba(57,255,126,0.05)", border:"1px solid rgba(57,255,126,0.15)", color:"rgba(57,255,126,0.5)" }}>
+                        <Shield size={10}/> Sesión segura SSL
+                      </div>
+                      <button onClick={() => setShowAdminForm(true)}
+                        className="flex items-center gap-2 px-5 py-2 rounded-2xl font-black text-[11px] transition-all hover:scale-[1.05]"
+                        style={{ background:"linear-gradient(135deg,#00f5d4,#00c896)", color:"#000", boxShadow:"0 0 20px rgba(0,245,212,0.30)" }}>
+                        <span style={{ fontSize:"0.85rem" }}>⬡</span> Portal CIVAC Staff
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="h-px w-full" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.12),transparent)" }}/>
+              <div className="h-px w-full"
+                style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.15),transparent)" }}/>
             </div>
 
             {/* Footer */}
@@ -2029,7 +2157,7 @@ export default function Login() {
               {/* Bottom note */}
               <div className="mt-4 pt-3.5 text-center" style={{ borderTop:"1px solid rgba(0,245,212,0.07)" }}>
                 <p className="text-[9px]" style={{ color:"rgba(255,255,255,0.18)" }}>
-                  GanaderIA CIVAC PRO v1.0 · Control Inteligente de Valor Agropecuario · Colombia
+                  GanaderIA CIVAC PRO v2.1 · Control Inteligente de Valor Agropecuario · Colombia
                 </p>
               </div>
             </div>

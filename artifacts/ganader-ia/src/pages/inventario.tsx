@@ -729,6 +729,9 @@ export default function Inventario() {
         style={{background:'linear-gradient(135deg,#001a11 0%,#002e1a 50%,#001a11 100%)',
           border:'1px solid rgba(0,245,212,0.35)',
           boxShadow:'0 0 60px rgba(0,245,212,0.08), inset 0 1px 0 rgba(0,245,212,0.08)'}}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{backgroundImage:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1400&q=80&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.11}}/>
+        <div className="absolute inset-0 pointer-events-none" style={{background:'linear-gradient(135deg,#001a11ee 0%,#002e1a88 50%,#001a11cc 100%)'}}/>
         <div className="absolute right-0 top-0 bottom-0 w-64 pointer-events-none opacity-10"
           style={{background:'radial-gradient(ellipse at right, #00f5d4, transparent 70%)'}}/>
         <div className="absolute bottom-0 left-40 w-32 h-32 pointer-events-none opacity-5"
@@ -750,7 +753,7 @@ export default function Inventario() {
                 </span>
               </div>
               <p className="text-sm" style={{color:'rgba(0,245,212,0.65)'}}>
-                Registro RFID · Básculas Tru-Test · Etiquetas · Fichas · Estadísticas
+                RFID · Básculas Tru-Test · 8 drivers COM · 11 BLE · CIVAC PRO v2.0
               </p>
               <div className="flex gap-3 mt-1.5 flex-wrap">
                 {['Producción','Gestante','Tratamiento'].map(e => {

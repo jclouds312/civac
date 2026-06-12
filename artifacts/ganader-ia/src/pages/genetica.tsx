@@ -22,13 +22,16 @@ export default function Genetica() {
       {/* CIVAC Banner */}
       <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
         style={{background:'linear-gradient(135deg,#0d001a 0%,#1a002e 100%)', border:'1px solid rgba(191,0,255,0.35)', boxShadow:'0 0 40px rgba(191,0,255,0.1), inset 0 1px 0 rgba(191,0,255,0.08)'}}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{backgroundImage:"url('https://images.unsplash.com/photo-1530268729831-4b0b9e170218?w=1400&q=80&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.1}}/>
+        <div className="absolute inset-0 pointer-events-none" style={{background:'linear-gradient(135deg,#0d001aee 0%,#1a002e88 50%,#0d001acc 100%)'}}/>
         <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:'radial-gradient(ellipse at right, #bf00ff, transparent 70%)'}} />
         <div className="relative flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
             style={{background:'rgba(191,0,255,0.1)', border:'1px solid rgba(191,0,255,0.4)', boxShadow:'0 0 16px rgba(191,0,255,0.2)'}}>🧪</div>
           <div>
-            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif'}}>Genética y Pedigrí</h1>
-            <p className="text-sm" style={{color:'rgba(191,0,255,0.75)'}}>Evaluación y progreso genético del hato · DEP · Índices</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:'Sora,sans-serif', textShadow:'0 0 30px rgba(191,0,255,0.3)'}}>Genética y Pedigrí</h1>
+            <p className="text-sm" style={{color:'rgba(191,0,255,0.75)'}}>DEP · Score · Índices · Pedigrí · CIVAC PRO v2.0</p>
           </div>
         </div>
         <Button variant="outline" onClick={() => printModule('Genética y Pedigrí', 'Evaluación genética y ranking DEP')}

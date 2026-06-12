@@ -106,6 +106,9 @@ export default function Potreros() {
       {/* Banner */}
       <div className="rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden civac-animate"
         style={{background:"linear-gradient(135deg,#001a0d 0%,#002e14 100%)",border:"1px solid rgba(57,255,126,0.35)",boxShadow:"0 0 40px rgba(57,255,126,0.1)"}}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{backgroundImage:"url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1400&q=80&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.1}}/>
+        <div className="absolute inset-0 pointer-events-none" style={{background:"linear-gradient(135deg,#001a0dee 0%,#002e1488 50%,#001a0dcc 100%)"}}/>
         <div className="absolute right-0 top-0 w-48 h-full pointer-events-none opacity-10" style={{background:"radial-gradient(ellipse at right,#39ff7e,transparent 70%)"}} />
         <div className="relative flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -113,8 +116,8 @@ export default function Potreros() {
             <Layers size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white" style={{fontFamily:"Sora,sans-serif"}}>Potreros y Praderas</h1>
-            <p className="text-sm" style={{color:"rgba(57,255,126,0.75)"}}>Mapa interactivo · Rotación · Carga animal · CRUD completo</p>
+            <h1 className="text-xl font-bold text-white" style={{fontFamily:"Sora,sans-serif", textShadow:"0 0 30px rgba(57,255,126,0.25)"}}>Potreros y Praderas</h1>
+            <p className="text-sm" style={{color:"rgba(57,255,126,0.75)"}}>Rotación activa · Carga animal · Kikuyo · CIVAC PRO v2.0</p>
           </div>
         </div>
         <div className="relative flex gap-2 flex-wrap">

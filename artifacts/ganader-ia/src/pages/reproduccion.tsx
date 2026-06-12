@@ -59,6 +59,9 @@ export default function Reproduccion() {
           border:'1px solid rgba(255,111,216,0.32)',
           boxShadow:'0 0 40px rgba(255,111,216,0.1),inset 0 1px 0 rgba(255,111,216,0.1)',
         }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{backgroundImage:"url('https://images.unsplash.com/photo-1559131397-f94da358f7ca?w=1400&q=80&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.1}}/>
+        <div className="absolute inset-0 pointer-events-none" style={{background:'linear-gradient(135deg,#130020ee 0%,#1e003088 50%,#250038cc 100%)'}}/>
         <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full pointer-events-none"
           style={{background:'radial-gradient(circle,rgba(255,111,216,0.2),transparent 65%)'}}/>
         <div className="absolute -left-8 -bottom-12 w-48 h-48 rounded-full pointer-events-none"
@@ -73,7 +76,7 @@ export default function Reproduccion() {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                <h1 className="text-lg sm:text-2xl font-black text-white" style={{fontFamily:"'Sora',sans-serif"}}>
+                <h1 className="text-lg sm:text-2xl font-black text-white" style={{fontFamily:"'Sora',sans-serif", textShadow:"0 0 30px rgba(255,111,216,0.3)"}}>
                   Reproducción y Ciclos
                 </h1>
                 <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full font-black"
@@ -82,7 +85,7 @@ export default function Reproduccion() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm" style={{color:'rgba(255,150,230,0.75)'}}>
-                Control de montas · I.A. · Gestación · IEP · Protocolos
+                I.A. bovina · IEP · Gestación · Protocolos · CIVAC PRO v2.0
               </p>
             </div>
           </div>

@@ -286,7 +286,7 @@ export default function Dashboard() {
                 {now.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
                 &nbsp;·&nbsp;{now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
               </p>
-              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC v1.0</p>
+              <p className="text-[10px] sm:text-xs mt-0.5" style={{color:`rgba(${rb.glow},0.35)`}}>Control Inteligente de Valor Agropecuario · CIVAC PRO v2.0</p>
             </div>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {[

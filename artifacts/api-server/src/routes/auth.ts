@@ -71,7 +71,7 @@ router.post("/auth/login", async (req, res) => {
     } catch { /* DB not ready — use fallback */ }
 
     if (!user) {
-      const fb = FALLBACK_USERS.find(u => u.email === email.toLowerCase().trim() && u.password === password);
+      const fb = FALLBACK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase().trim() && u.password === password);
       if (fb) user = fb;
     }
     if (!user) return res.status(401).json({ error: "Credenciales incorrectas" });

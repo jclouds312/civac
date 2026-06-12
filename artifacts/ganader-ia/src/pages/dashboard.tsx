@@ -102,12 +102,13 @@ const MODULOS: Array<{
 
 function StatTicker() {
   const items = [
-    '🐄 13 Animales activos','🥛 84 L/día producción','💰 $40.2M utilidad mes',
-    '⚠ 4 alertas insumos','🌿 6 potreros gestionados','📡 GPS activo · 13 collares',
-    '🤖 IA Asesora disponible','🧬 DEP Score: 94.2','🌱 -18% huella CO₂ · IPCC 2019',
-    '🩺 Sanidad ICA · 10 registros','🏷️ Trazabilidad SINIGAN · activa','⚖️ 3 básculas BT vinculadas',
-    '☁️ Analytics Server ONLINE','💼 CRM Ventas · 3 prospectos activos',
-    '🔒 CIVAC PRO v1.0 · 32 módulos · Licencia activa','📡 MQTT mqtt.civac.co · 13 collares online',
+    '🐄 13 Animales activos · RFID registrados','🥛 84 L/día · 5 vacas en ordeño','💰 $40.2M utilidad · Marzo 2026',
+    '⚠ 4 alertas insumos por resolver','🌿 6 potreros · Rotación activa kikuyo','📡 GPS Real-Time · 13 collares LTE online',
+    '🤖 Asesora IA disponible 24/7','🧬 DEP Score: 94.2 · Hato certificado','🌱 -18% huella CO₂ · Meta IPCC 2019',
+    '🩺 Sanidad ICA · 10 registros · Sin brotes','🏷️ Trazabilidad SINIGAN · 100% activa','⚖️ Pesaje BT · 8 drivers COM · 11 BLE',
+    '☁️ Analytics Server v2.0 · ONLINE','💼 CRM Ventas · 3 prospectos activos · Pipeline',
+    '🚀 CIVAC PRO v2.0 · 34+ módulos · Lanzamiento Colombia','📡 MQTT mqtt.civac.co · 1883 · 13 collares',
+    '🇨🇴 Hecho en Colombia · 100% Colombiano · CIVAC®',
   ];
   const doubled = [...items, ...items];
   return (

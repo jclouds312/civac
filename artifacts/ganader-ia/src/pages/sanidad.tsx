@@ -160,21 +160,22 @@ export default function Sanidad() {
                  boxShadow:"0 0 40px rgba(0,245,212,0.08)" }}>
         <div className="absolute -top-10 -right-10 w-60 h-60 rounded-full pointer-events-none"
           style={{ background:"radial-gradient(circle,rgba(0,245,212,0.15),transparent 70%)" }}/>
-        <div className="absolute inset-0 pointer-events-none opacity-5"
-          style={{ backgroundImage:"url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&q=20&auto=format&fit=crop') center/cover no-repeat" }}/>
-        <div className="h-0.5 w-full" style={{ background:"linear-gradient(90deg,transparent,#00f5d4,#00c8ff,transparent)" }}/>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage:"url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1400&q=80&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.12 }}/>
+        <div className="absolute inset-0 pointer-events-none" style={{ background:"linear-gradient(135deg,#001a10ee 0%,#002a1888 50%,#001e30cc 100%)" }}/>
+        <div className="h-0.5 w-full" style={{ background:"linear-gradient(90deg,transparent,#00f5d4,#22c55e,transparent)" }}/>
         <div className="relative p-5 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <div className="p-2 rounded-xl" style={{ background:"rgba(0,245,212,0.15)", border:"1px solid rgba(0,245,212,0.3)" }}>
-                  <HeartPulse size={20} style={{ color:"#00f5d4" }}/>
+                <div className="p-2.5 rounded-2xl" style={{ background:"rgba(0,245,212,0.18)", border:"1px solid rgba(0,245,212,0.4)", boxShadow:"0 0 20px rgba(0,245,212,0.2)" }}>
+                  <HeartPulse size={22} style={{ color:"#00f5d4" }}/>
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif" }}>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif", textShadow:"0 0 30px rgba(0,245,212,0.3)" }}>
                     Sanidad Animal
                   </h1>
-                  <p className="text-xs text-white/50">Protocolos · Tratamientos · Registros · CIVAC v1.0</p>
+                  <p className="text-xs" style={{ color:"rgba(0,245,212,0.55)" }}>Protocolos · Tratamientos · Registros ICA · CIVAC PRO v2.0</p>
                 </div>
               </div>
             </div>

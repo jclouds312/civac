@@ -153,21 +153,24 @@ export default function Trazabilidad() {
         style={{ background:"linear-gradient(135deg,#0a0028 0%,#1a0040 40%,#0e0030 100%)",
                  border:"1px solid rgba(168,85,247,0.25)",
                  boxShadow:"0 0 40px rgba(168,85,247,0.08)" }}>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage:"url('https://images.unsplash.com/photo-1605152276897-4f618f831968?w=1400&q=80&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.1 }}/>
+        <div className="absolute inset-0 pointer-events-none" style={{ background:"linear-gradient(135deg,#0a0028ee 0%,#1a004088 50%,#0e0030cc 100%)" }}/>
         <div className="absolute -top-10 -right-10 w-60 h-60 rounded-full pointer-events-none"
           style={{ background:"radial-gradient(circle,rgba(168,85,247,0.18),transparent 70%)" }}/>
-        <div className="h-0.5 w-full" style={{ background:"linear-gradient(90deg,transparent,#a855f7,#7c3aed,transparent)" }}/>
+        <div className="h-0.5 w-full" style={{ background:"linear-gradient(90deg,transparent,#a855f7,#f97316,transparent)" }}/>
         <div className="relative p-5 sm:p-7">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <div className="p-2 rounded-xl" style={{ background:"rgba(168,85,247,0.15)", border:"1px solid rgba(168,85,247,0.3)" }}>
-                  <Tag size={20} style={{ color:"#a855f7" }}/>
+                <div className="p-2.5 rounded-2xl" style={{ background:"rgba(168,85,247,0.18)", border:"1px solid rgba(168,85,247,0.4)", boxShadow:"0 0 20px rgba(168,85,247,0.2)" }}>
+                  <Tag size={22} style={{ color:"#a855f7" }}/>
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif" }}>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white" style={{ fontFamily:"'Sora',sans-serif", textShadow:"0 0 30px rgba(168,85,247,0.3)" }}>
                     Trazabilidad ICA
                   </h1>
-                  <p className="text-xs text-white/50">Movimientos · Guías · Códigos QR · CIVAC v1.0</p>
+                  <p className="text-xs" style={{ color:"rgba(168,85,247,0.6)" }}>Movimientos · Guías · QR · SINIGAN · CIVAC PRO v2.0</p>
                 </div>
               </div>
             </div>

@@ -377,7 +377,9 @@ export default function Gps() {
       {/* ── Banner ── */}
       <div className="relative rounded-3xl overflow-hidden px-5 py-5"
         style={{background:'linear-gradient(135deg,#020d1a 0%,#0a2745 55%,#071e38 100%)',border:'1px solid rgba(20,100,180,0.4)',boxShadow:'0 0 40px rgba(20,100,180,0.1)'}}>
-        <div className="absolute inset-0 pointer-events-none" style={{background:"radial-gradient(ellipse at 70% 50%, rgba(20,80,180,0.12) 0%, transparent 70%)",opacity:1}}/>
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage:"url('https://images.unsplash.com/photo-1527684651001-731c474bbb5a?w=1400&q=75&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity:0.1 }}/>
+        <div className="absolute inset-0 pointer-events-none" style={{background:"radial-gradient(ellipse at 70% 50%, rgba(20,80,180,0.15) 0%, transparent 70%)",opacity:1}}/>
         <div className="absolute right-16 top-4 opacity-10 pointer-events-none">
           <div className="w-20 h-20 rounded-full border-2 border-blue-400 animate-ping" style={{animationDuration:'2.5s'}}/>
         </div>
@@ -411,6 +413,15 @@ export default function Gps() {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#00f5d4] animate-pulse"/>
                   Seguimiento activo
                 </span>}
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
+                  style={{
+                    background: djangoStatus==='ok' ? 'rgba(57,255,126,0.1)' : djangoStatus==='error' ? 'rgba(248,113,113,0.1)' : 'rgba(251,191,36,0.1)',
+                    border: `1px solid ${djangoStatus==='ok' ? 'rgba(57,255,126,0.35)' : djangoStatus==='error' ? 'rgba(248,113,113,0.3)' : 'rgba(251,191,36,0.3)'}`,
+                    color: djangoStatus==='ok' ? '#39ff7e' : djangoStatus==='error' ? '#f87171' : '#fbbf24',
+                  }}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${djangoStatus==='ok'?'bg-green-400 animate-pulse':djangoStatus==='error'?'bg-red-400':'bg-amber-400 animate-pulse'}`}/>
+                  {djangoStatus==='ok' ? `Django · ${devices.length} dispositivos` : djangoStatus==='error' ? 'Django offline' : 'Conectando…'}
+                </span>
                 {/* ── Offline-capability badges ── */}
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1"
                   style={{

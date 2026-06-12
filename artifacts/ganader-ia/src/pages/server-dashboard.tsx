@@ -193,13 +193,31 @@ function HubPanel() {
   const disk = "48.2";
   const net  = (1.2 + Math.sin(tick * 0.13) * 0.4).toFixed(2);
 
+  /* ── Live stats from Analytics Server ── */
+  const [liveStats, setLiveStats] = useState<{
+    instancias_activas: number; usuarios_online: number; api_calls_hora: number;
+    gps_collares_live: number; litros_tracked_hoy: number; uptime_pct: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetch_ = () => {
+      fetch('/api/analytics/admin/stats', { signal: AbortSignal.timeout(4000) })
+        .then(r => r.json())
+        .then(d => { if (d.ok) setLiveStats(d.plataforma); })
+        .catch(() => {});
+    };
+    fetch_();
+    const id = setInterval(fetch_, 12000);
+    return () => clearInterval(id);
+  }, []);
+
   const kpis = [
-    { label:"Instancias activas",  val:"4 / 5",       icon:"🏘️",  color:"#00f5d4" },
-    { label:"Usuarios en línea",   val:"8",            icon:"👥",  color:"#39ff7e" },
-    { label:"API calls / hora",    val:"1,247",        icon:"⚡",  color:"#a78bfa" },
-    { label:"Uptime servidor",     val:"312h",         icon:"⏱️",  color:"#fbbf24" },
-    { label:"GPS collares live",   val:"13",           icon:"📡",  color:"#00c8ff" },
-    { label:"Litros tracked hoy",  val:"840 L",        icon:"🥛",  color:"#ff9500" },
+    { label:"Instancias activas",  val: liveStats ? `${liveStats.instancias_activas} / 5` : "4 / 5",    icon:"🏘️",  color:"#00f5d4" },
+    { label:"Usuarios en línea",   val: liveStats ? String(liveStats.usuarios_online)      : "8",        icon:"👥",  color:"#39ff7e" },
+    { label:"API calls / hora",    val: liveStats ? liveStats.api_calls_hora.toLocaleString("es-CO") : "1,247", icon:"⚡", color:"#a78bfa" },
+    { label:"Uptime",              val: liveStats ? `${liveStats.uptime_pct}%`             : "99.8%",    icon:"⏱️",  color:"#fbbf24" },
+    { label:"GPS collares live",   val: liveStats ? String(liveStats.gps_collares_live)    : "13",       icon:"📡",  color:"#00c8ff" },
+    { label:"Litros tracked hoy",  val: liveStats ? `${liveStats.litros_tracked_hoy} L`   : "840 L",    icon:"🥛",  color:"#ff9500" },
   ];
 
   const resources = [

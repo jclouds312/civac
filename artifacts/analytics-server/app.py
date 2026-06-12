@@ -331,7 +331,194 @@ def simular():
 # ─────────────────────────────────────────────────────────────────────────────
 @app.route("/api/analytics/health")
 def health():
-    return jsonify({"ok": True, "service": "CIVAC Analytics v1.0", "engine": "Flask + pandas"})
+    return jsonify({"ok": True, "service": "CIVAC Analytics v2.0", "engine": "Flask + pandas", "endpoints": 12})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT: /api/analytics/sanidad
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/api/analytics/sanidad")
+def sanidad():
+    meses = make_meses(12)
+    vacunaciones = [int(np.random.normal(8, 1.5)) for _ in range(12)]
+    tratamientos  = [int(np.random.normal(3, 1.2)) for _ in range(12)]
+    dias_retiro   = [int(np.random.normal(5, 2)) for _ in range(12)]
+
+    proximas_vacunas = [
+        {"id":"VCA-001","nombre":"Estrella",    "vacuna":"Aftosa",          "fecha":"2026-07-02","dias":20, "estado":"pendiente"},
+        {"id":"VCA-003","nombre":"Rosa",        "vacuna":"Brucelosis",       "fecha":"2026-06-28","dias":16, "estado":"urgente"},
+        {"id":"VCA-007","nombre":"Bella",       "vacuna":"IBR",              "fecha":"2026-07-10","dias":28, "estado":"programado"},
+        {"id":"VCA-002","nombre":"Luna",        "vacuna":"Carbón sintomático","fecha":"2026-07-15","dias":33,"estado":"programado"},
+        {"id":"VCA-005","nombre":"Canela",      "vacuna":"Rabia bovina",     "fecha":"2026-08-01","dias":50, "estado":"programado"},
+    ]
+
+    enfermedades_mes = [
+        {"enfermedad":"Mastitis",           "casos":3,  "resueltos":3, "perdida_cop":180_000,  "color":"#f87171"},
+        {"enfermedad":"Cojera leve",        "casos":2,  "resueltos":1, "perdida_cop":80_000,   "color":"#fbbf24"},
+        {"enfermedad":"Diarrea ternero",    "casos":1,  "resueltos":1, "perdida_cop":45_000,   "color":"#fb923c"},
+        {"enfermedad":"Cetosis subclínica", "casos":1,  "resueltos":0, "perdida_cop":220_000,  "color":"#a78bfa"},
+    ]
+
+    return jsonify({
+        "ok": True,
+        "mensual": [{"mes":m,"vacunaciones":v,"tratamientos":t,"dias_retiro":r}
+                     for m,v,t,r in zip(meses,vacunaciones,tratamientos,dias_retiro)],
+        "proximas_vacunas":   proximas_vacunas,
+        "enfermedades_mes":   enfermedades_mes,
+        "resumen": {
+            "score_salud":       round(np.random.uniform(88, 96), 1),
+            "animales_tratados": sum(tratamientos),
+            "vacunaciones_12m":  sum(vacunaciones),
+            "incidencia_pct":    round(sum(tratamientos) / (13 * 12) * 100, 1),
+            "perdida_total_cop": sum(e["perdida_cop"] for e in enfermedades_mes),
+        },
+        "generado": datetime.now().isoformat(),
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT: /api/analytics/co2
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/api/analytics/co2")
+def co2():
+    meses = make_meses(12)
+    enterico  = [round(x, 2) for x in trend(0.41, 0.04)]   # ton CO2eq/mes
+    estiercol = [round(x, 2) for x in trend(0.12, 0.06)]
+    pasturas  = [round(-x, 2) for x in trend(0.08, 0.05)]  # negativo = captura
+    total     = [round(e + s + p, 2) for e, s, p in zip(enterico, estiercol, pasturas)]
+
+    return jsonify({
+        "ok": True,
+        "mensual": [{"mes":m,"enterico":e,"estiercol":s,"pasturas":p,"total":t}
+                     for m,e,s,p,t in zip(meses,enterico,estiercol,pasturas,total)],
+        "fuentes": [
+            {"fuente":"Fermentación entérica",   "ton_co2eq":round(sum(enterico), 2),  "pct":69.4, "color":"#f87171", "factor_ipcc":"3.1 kg CH4/cabeza/día"},
+            {"fuente":"Gestión estiércol",        "ton_co2eq":round(sum(estiercol), 2), "pct":20.8, "color":"#fbbf24", "factor_ipcc":"IPCC 2019 Tab. 10.14"},
+            {"fuente":"Captura pasturas",         "ton_co2eq":round(sum(pasturas), 2),  "pct":-9.8, "color":"#4ade80", "factor_ipcc":"1.8 ton C/ha/año kikuyo"},
+        ],
+        "benchmarks": [
+            {"pais":"Colombia promedio",  "kg_co2eq_litro":3.8},
+            {"pais":"Esta finca",         "kg_co2eq_litro":round(sum(total)/2.52/12, 2)},
+            {"pais":"México promedio",    "kg_co2eq_litro":4.2},
+            {"pais":"Meta CIVAC 2027",    "kg_co2eq_litro":2.9},
+            {"pais":"Suiza (referencia)", "kg_co2eq_litro":1.1},
+        ],
+        "resumen": {
+            "total_12m_ton":       round(sum(total), 2),
+            "intensidad_leche":    round(sum(total)*1000 / (2520*12), 2),
+            "bonos_carbono_est":   round(abs(sum(pasturas)) * 50_000),
+            "reduccion_posible_pct": 18.5,
+        },
+        "generado": datetime.now().isoformat(),
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT: /api/analytics/gps
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/api/analytics/gps")
+def gps_status():
+    now = datetime.now()
+    dispositivos = [
+        {"id":"GPS-001","nombre":"Collar Rosaura",  "animal":"Rosaura",  "tipo":"collar-gps",   "bateria":82,"signal":4,"lat":5.5334,"lon":-73.3601,"potrero":"Potrero 1","online":True,  "ultima_pos":(now-timedelta(minutes=2)).strftime("%H:%M")},
+        {"id":"GPS-002","nombre":"Collar Titán",    "animal":"Titán",    "tipo":"collar-gps",   "bateria":67,"signal":4,"lat":5.5341,"lon":-73.3598,"potrero":"Potrero 1","online":True,  "ultima_pos":(now-timedelta(minutes=3)).strftime("%H:%M")},
+        {"id":"GPS-003","nombre":"Collar Luna",     "animal":"Luna",     "tipo":"collar-bt",    "bateria":91,"signal":3,"lat":5.5328,"lon":-73.3610,"potrero":"Potrero 2","online":True,  "ultima_pos":(now-timedelta(minutes=1)).strftime("%H:%M")},
+        {"id":"GPS-004","nombre":"Bolo Perla",      "animal":"Perla",    "tipo":"bolus",        "bateria":17,"signal":2,"lat":5.5315,"lon":-73.3622,"potrero":"Potrero 3","online":True,  "ultima_pos":(now-timedelta(minutes=5)).strftime("%H:%M")},
+        {"id":"GPS-005","nombre":"Caravana Bravo",  "animal":"Bravo",    "tipo":"oreja",        "bateria":44,"signal":0,"lat":5.5290,"lon":-73.3640,"potrero":"Potrero 4","online":False, "ultima_pos":(now-timedelta(hours=1,minutes=15)).strftime("%H:%M")},
+        {"id":"GPS-006","nombre":"Collar Estrella", "animal":"Estrella", "tipo":"collar-gps",   "bateria":73,"signal":4,"lat":5.5355,"lon":-73.3588,"potrero":"Potrero 1","online":True,  "ultima_pos":(now-timedelta(minutes=4)).strftime("%H:%M")},
+    ]
+
+    alertas_gps = [
+        {"tipo":"sin_señal",    "device":"GPS-005","mensaje":"Caravana Bravo sin señal > 1h","nivel":"critico","tiempo":"Hace 1h 15m"},
+        {"tipo":"bateria_baja", "device":"GPS-004","mensaje":"Bolo Perla batería al 17%",    "nivel":"urgente","tiempo":"Hace 30m"},
+    ]
+
+    return jsonify({
+        "ok": True,
+        "dispositivos":    dispositivos,
+        "alertas":         alertas_gps,
+        "resumen": {
+            "total":           len(dispositivos),
+            "online":          sum(1 for d in dispositivos if d["online"]),
+            "offline":         sum(1 for d in dispositivos if not d["online"]),
+            "bateria_critica": sum(1 for d in dispositivos if d["bateria"] < 20),
+            "sin_señal":       sum(1 for d in dispositivos if d["signal"] == 0),
+            "cobertura_pct":   round(sum(1 for d in dispositivos if d["online"]) / len(dispositivos) * 100, 1),
+        },
+        "generado": now.isoformat(),
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT: /api/analytics/pesaje
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/api/analytics/pesaje")
+def pesaje():
+    meses = make_meses(6)
+    pesajes_mes = [int(np.random.normal(22, 3)) for _ in range(6)]
+
+    animales = [
+        {"id":"VCA-001","nombre":"Estrella","raza":"Holstein",   "peso_actual":520,"peso_anterior":510,"gmd":0.38, "bcs":3.5,"tendencia":"up"},
+        {"id":"VCA-002","nombre":"Luna",    "raza":"Jersey",     "peso_actual":418,"peso_anterior":412,"gmd":0.28, "bcs":3.2,"tendencia":"up"},
+        {"id":"VCA-003","nombre":"Rosa",    "raza":"Holstein",   "peso_actual":495,"peso_anterior":498,"gmd":-0.10,"bcs":3.8,"tendencia":"down"},
+        {"id":"VCA-004","nombre":"Diana",   "raza":"Normando",   "peso_actual":580,"peso_anterior":571,"gmd":0.52, "bcs":3.0,"tendencia":"up"},
+        {"id":"VCA-007","nombre":"Bella",   "raza":"Simental",   "peso_actual":545,"peso_anterior":540,"gmd":0.29, "bcs":3.5,"tendencia":"up"},
+        {"id":"TOR-001","nombre":"Titán",   "raza":"GyrxHolstein","peso_actual":820,"peso_anterior":805,"gmd":0.85,"bcs":4.0,"tendencia":"up"},
+    ]
+
+    return jsonify({
+        "ok": True,
+        "mensual":    [{"mes":m,"pesajes":p} for m,p in zip(meses,pesajes_mes)],
+        "animales":    sorted(animales, key=lambda x: x["gmd"], reverse=True),
+        "resumen": {
+            "peso_promedio_hato":  round(sum(a["peso_actual"] for a in animales) / len(animales)),
+            "gmd_promedio":        round(sum(a["gmd"] for a in animales) / len(animales), 2),
+            "bcs_promedio":        round(sum(a["bcs"] for a in animales) / len(animales), 1),
+            "animales_pesados_mes": pesajes_mes[-1],
+            "pendientes_pesaje":   4,
+        },
+        "generado": datetime.now().isoformat(),
+    })
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ENDPOINT: /api/analytics/clima  (simulado Boyacá 2600 msnm)
+# ─────────────────────────────────────────────────────────────────────────────
+@app.route("/api/analytics/clima")
+def clima():
+    now = datetime.now()
+    dias_7 = []
+    for i in range(7):
+        d = now + timedelta(days=i)
+        dias_7.append({
+            "fecha":      d.strftime("%a %d"),
+            "tmax":       round(np.random.normal(21, 2), 1),
+            "tmin":       round(np.random.normal(9, 2), 1),
+            "humedad":    int(np.random.normal(76, 8)),
+            "lluvia_mm":  round(max(0, np.random.normal(3, 4)), 1),
+            "condicion":  np.random.choice(["Soleado","Parcial nublado","Nublado","Lluvia leve"], p=[0.25,0.40,0.25,0.10]),
+            "riesgo_helada": "bajo",
+            "ico":        np.random.choice(["☀️","⛅","🌥️","🌦️"], p=[0.25,0.40,0.25,0.10]),
+        })
+
+    return jsonify({
+        "ok": True,
+        "ubicacion": {"nombre":"Finca La Esperanza","municipio":"Tunja","depto":"Boyacá","msnm":2600,"lat":5.5334,"lon":-73.3601},
+        "actual": {
+            "temperatura": round(np.random.normal(17, 2), 1),
+            "humedad":     int(np.random.normal(74, 5)),
+            "presion":     int(np.random.normal(748, 3)),
+            "viento_kmh":  round(np.random.uniform(5, 20), 1),
+            "condicion":   "Parcialmente nublado",
+            "uv_index":    int(np.random.uniform(2, 7)),
+        },
+        "pronostico_7d": dias_7,
+        "alertas_agro": [
+            {"tipo":"lluvia",    "msg":"Lluvia leve esperada jueves y viernes","nivel":"info"},
+            {"tipo":"potrero",   "msg":"Buenas condiciones para pastoreo esta semana","nivel":"ok"},
+        ],
+        "generado": now.isoformat(),
+    })
 
 
 # ─────────────────────────────────────────────────────────────────────────────

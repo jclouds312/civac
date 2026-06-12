@@ -1033,6 +1033,8 @@ export default function Login() {
                 style={{ background:"linear-gradient(135deg,#00f5d4,#00a896)", color:"black", letterSpacing:"0.05em", boxShadow:"0 0 14px rgba(0,245,212,0.45)" }}>GanaderIA</span>
               <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none"
                 style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO Colombia</span>
+              <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none ml-1"
+                style={{ background:"linear-gradient(135deg,#00f5d4,#0891b2)", color:"#000", letterSpacing:"0.05em" }}>v2.0</span>
             </div>
           </div>
 

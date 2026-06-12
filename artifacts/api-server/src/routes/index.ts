@@ -23,6 +23,7 @@ import licensesRouter from "./licenses";
 import codigosRouter from "./codigos";
 import auditRouter from "./audit";
 import dbStatusRouter from "./db-status";
+import telemetryRouter from "./telemetry";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,6 @@ router.use(licensesRouter);
 router.use(codigosRouter);
 router.use(auditRouter);
 router.use(dbStatusRouter);
+router.use(telemetryRouter);
 
 export default router;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, CIVAC_STAFF_IDS, type PlanId } from "@/lib/auth";
+import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, type PlanId } from "@/lib/auth";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,

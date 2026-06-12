@@ -91,18 +91,47 @@ const WINDOWS_COM_DRIVERS = [
     url: "https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers",
     sistId: "VID_10C4&PID_EA60", color: "#a78bfa", glow: "167,139,250",
   },
+  {
+    id: "cdc-acm", nombre: "USB CDC-ACM (genérico)", icon: "🖥️",
+    desc: "Clase nativa del SO — sin driver extra. Muchos indicadores modernos lo implementan. Aparece como COM# automáticamente en Windows 10+.",
+    url: "https://learn.microsoft.com/windows-hardware/drivers/usbcon/usb-driver-installation-based-on-compatible-ids",
+    sistId: "VID_xxxx&PID_xxxx (CDC class)", color: "#34d399", glow: "52,211,153",
+  },
+  {
+    id: "ch348", nombre: "CH348 (8 puertos COM)", icon: "🔀",
+    desc: "Versión multipuerto del CH340 para hubs industriales. Permite conectar báscula + EID reader + impresora por un solo USB.",
+    url: "https://www.wch-ic.com/products/CH348.html",
+    sistId: "VID_1A86&PID_55D3", color: "#f97316", glow: "249,115,22",
+  },
+  {
+    id: "cp2102n", nombre: "Silicon Labs CP2102N", icon: "⚡",
+    desc: "Versión mejorada del CP210x con velocidades hasta 3 Mbps. Presente en básculas industriales modernas y adaptadores de alta velocidad.",
+    url: "https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers",
+    sistId: "VID_10C4&PID_EA60", color: "#e879f9", glow: "232,121,249",
+  },
+  {
+    id: "wch-usb3ser", nombre: "WCH USB3.0 Serial", icon: "🚀",
+    desc: "Driver de alta velocidad para sistemas de pesaje con video integrado. USB 3.0 SuperSpeed con fallback USB 2.0.",
+    url: "https://www.wch-ic.com/products/USB3.0.html",
+    sistId: "VID_1A86&PID_7523", color: "#60a5fa", glow: "96,165,250",
+  },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────
    BLUETOOTH CONTROLLERS
 ───────────────────────────────────────────────────────────────────────────── */
 const BT_CONTROLLERS = [
-  { id:"tru-test-xr3",     nombre:"Tru-Test XR3000",    marca:"Tru-Test",      tipo:"Indicador BLE 5.0", protocol:"uart", color:"#00f5d4", glow:"0,245,212",     services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["TruTest","Tru-Test","XR3"], desc:"±0.1 kg · IP67 · BLE 5.0", icon:"⚖️" },
-  { id:"gallagher-w210-bt", nombre:"Gallagher W210 BT",  marca:"Gallagher",     tipo:"Báscula WiFi/BT",   protocol:"weight_scale", color:"#fbbf24", glow:"251,191,36", services:["weight_scale","0000181d-0000-1000-8000-00805f9b34fb"], nameFilter:["Gallagher","W210","W450"], desc:"NLIS · ±50 g · BT 4.2", icon:"🏋️" },
-  { id:"ahi-caroplus",      nombre:"AHI Caroplus 2",     marca:"AHI",           tipo:"Báscula RFID BT",   protocol:"uart", color:"#a78bfa", glow:"167,139,250",   services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["AHI","Caroplus"], desc:"RFID ISO 11784 · BLE", icon:"📡" },
-  { id:"tru-test-s3",       nombre:"Tru-Test S3",        marca:"Tru-Test",      tipo:"Portátil BLE",      protocol:"uart", color:"#34d399", glow:"52,211,153",     services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["TruTest","S3000","S3 "], desc:"5000 registros · BLE 5.0", icon:"📱" },
-  { id:"simcro-biotrack",   nombre:"Simcro BioTrack",    marca:"Simcro",        tipo:"RFID + Báscula",    protocol:"uart", color:"#f87171", glow:"248,113,113",   services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["Simcro","BioTrack"], desc:"ISO 11785 · EID dual", icon:"🔖" },
-  { id:"zee-tag-bt",        nombre:"Zee Tag EID BT",     marca:"Zee Tag",       tipo:"RFID Bluetooth",    protocol:"uart", color:"#fb923c", glow:"251,146,60",     services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["ZeeTag","Zee","EID"], desc:"EID ISO 11784/85 · Colombia", icon:"🏷️" },
+  { id:"tru-test-xr3",     nombre:"Tru-Test XR3000",    marca:"Tru-Test",      tipo:"Indicador BLE 5.0",  protocol:"uart",         color:"#00f5d4", glow:"0,245,212",     services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["TruTest","Tru-Test","XR3"],        desc:"±0.1 kg · IP67 · BLE 5.0",       icon:"⚖️" },
+  { id:"gallagher-w210-bt", nombre:"Gallagher W210 BT",  marca:"Gallagher",     tipo:"Báscula WiFi/BT",    protocol:"weight_scale", color:"#fbbf24", glow:"251,191,36",   services:["weight_scale","0000181d-0000-1000-8000-00805f9b34fb"], nameFilter:["Gallagher","W210","W450"], desc:"NLIS · ±50 g · BT 4.2",          icon:"🏋️" },
+  { id:"ahi-caroplus",      nombre:"AHI Caroplus 2",     marca:"AHI",           tipo:"Báscula RFID BT",    protocol:"uart",         color:"#a78bfa", glow:"167,139,250",   services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["AHI","Caroplus"],          desc:"RFID ISO 11784 · BLE",            icon:"📡" },
+  { id:"tru-test-s3",       nombre:"Tru-Test S3",        marca:"Tru-Test",      tipo:"Portátil BLE",       protocol:"uart",         color:"#34d399", glow:"52,211,153",    services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["TruTest","S3000","S3 "],   desc:"5000 registros · BLE 5.0",       icon:"📱" },
+  { id:"simcro-biotrack",   nombre:"Simcro BioTrack",    marca:"Simcro",        tipo:"RFID + Báscula",     protocol:"uart",         color:"#f87171", glow:"248,113,113",   services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["Simcro","BioTrack"],       desc:"ISO 11785 · EID dual",            icon:"🔖" },
+  { id:"zee-tag-bt",        nombre:"Zee Tag EID BT",     marca:"Zee Tag",       tipo:"RFID Bluetooth",     protocol:"uart",         color:"#fb923c", glow:"251,146,60",    services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["ZeeTag","Zee","EID"],      desc:"EID ISO 11784/85 · Colombia",    icon:"🏷️" },
+  { id:"herd-manager-bt",   nombre:"Herd Manager HM7",   marca:"Herd Manager",  tipo:"Sistema integrado BLE",protocol:"uart",       color:"#e879f9", glow:"232,121,249",   services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["HerdMgr","HM7","Herd"],    desc:"7\" display · BLE 5.0 · NFC",    icon:"🗂️" },
+  { id:"smaxtec-cbt",       nombre:"smaXtec CBT Sensor", marca:"smaXtec",       tipo:"Sensor rumen BLE",   protocol:"uart",         color:"#00c8ff", glow:"0,200,255",     services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["smaXtec","cbt","CBT"],     desc:"Temperatura rumen · pH · BLE",   icon:"🌡️" },
+  { id:"id-tech-rfid",      nombre:"ID Tech BLE RFID",   marca:"ID Technology", tipo:"Lector RFID+Peso BT",protocol:"weight_scale", color:"#4ade80", glow:"74,222,128",    services:["0000181d-0000-1000-8000-00805f9b34fb"], nameFilter:["IDTech","IDTECH","RFID"],  desc:"ISO 11784 · 134.2 kHz · BLE 5", icon:"🔏" },
+  { id:"agersens-ear-bt",   nombre:"Agersens eShepherd", marca:"Agersens",      tipo:"Collar virtual IA",  protocol:"uart",         color:"#f59e0b", glow:"245,158,11",    services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["Agersens","eShepherd"],    desc:"Pastoreo virtual · GPS + BLE",   icon:"🛡️" },
+  { id:"civac-scale-bt",    nombre:"CIVAC Scale v2",      marca:"CIVAC",         tipo:"Báscula Colombia BT",protocol:"uart",         color:"#FFD60A", glow:"255,214,10",    services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilter:["CIVAC","SoftGan","CSCL"],  desc:"Protocolo CIVAC-9B · ±20 g",    icon:"🇨🇴" },
 ];
 
 /* ─────────────────────────────────────────────────────────────────────────────

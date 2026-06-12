@@ -547,13 +547,13 @@ export function Layout({ children }: LayoutProps) {
 
   const sideW = collapsed ? 'w-[58px]' : 'w-[230px]';
 
-  /* ── Bottom nav tabs ──────────────────────────────────────────────────── */
+  /* ── Bottom nav tabs — cada tab con identidad de color propia ─────────── */
   const bottomTabs = [
-    { href: '/',              Icon: LayoutDashboard, label: 'Inicio',  badge: undefined },
-    { href: '/inventario',    Icon: Beef,            label: 'Ganado',  badge: undefined },
-    { href: '/pesaje-manual', Icon: Cpu,             label: 'Pesaje',  badge: undefined },
-    { href: '/alertas',       Icon: Bell,            label: 'Alertas', badge: 4 },
-    { href: '/produccion',    Icon: Droplets,        label: 'Leche',   badge: undefined },
+    { href: '/',              Icon: LayoutDashboard, label: 'Inicio',   badge: undefined, c:'#FFD60A', g:'255,214,10'  },
+    { href: '/inventario',    Icon: Beef,            label: 'Ganado',   badge: undefined, c:'#39ff7e', g:'57,255,126'  },
+    { href: '/gps',           Icon: Navigation,      label: 'GPS',      badge: undefined, c:'#00c8ff', g:'0,200,255'   },
+    { href: '/alertas',       Icon: Bell,            label: 'Alertas',  badge: 4,         c:'#ff4d6d', g:'255,77,109'  },
+    { href: '/asesora',       Icon: MessageCircle,   label: 'IA',       badge: undefined, c:'#e879f9', g:'232,121,249' },
   ];
 
   return (
@@ -1029,14 +1029,14 @@ export function Layout({ children }: LayoutProps) {
           {children}
         </div>
 
-        {/* ── Mobile bottom nav — VERDE BOSQUE NEON ─────────────────────── */}
+        {/* ── Mobile bottom nav — multicolor neon por módulo ─────────────── */}
         <nav
           className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around"
           style={{
-            background: 'linear-gradient(180deg,rgba(0,18,10,0.97) 0%,rgba(0,25,14,0.99) 100%)',
+            background: 'linear-gradient(180deg,rgba(4,12,28,0.97) 0%,rgba(2,8,20,0.99) 100%)',
             backdropFilter: 'blur(28px)',
-            borderTop: `1px solid rgba(0,200,150,0.16)`,
-            boxShadow: `0 -4px 30px rgba(0,180,120,0.12), 0 -1px 0 rgba(0,200,150,0.08)`,
+            borderTop: `1px solid rgba(255,255,255,0.07)`,
+            boxShadow: `0 -8px 40px rgba(0,0,0,0.5), 0 -1px 0 rgba(255,255,255,0.05)`,
             paddingBottom: 'env(safe-area-inset-bottom,0px)',
             height: 68,
           }}
@@ -1045,32 +1045,39 @@ export function Layout({ children }: LayoutProps) {
             const active = isActive(tab.href);
             return (
               <Link key={tab.href} href={tab.href}>
-                <div className="flex flex-col items-center gap-0.5 px-3 py-1.5 relative cursor-pointer group">
+                <div className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 relative cursor-pointer select-none">
                   {/* Top glow bar on active */}
                   {active && (
-                    <div className="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-full"
-                      style={{ background: `linear-gradient(90deg,transparent,${FOREST},transparent)`, boxShadow: `0 0 12px ${FOREST}cc` }} />
+                    <div className="absolute -top-px left-1/2 -translate-x-1/2 w-12 h-[2px] rounded-full"
+                      style={{ background: `linear-gradient(90deg,transparent,${tab.c},transparent)`, boxShadow: `0 0 10px ${tab.c}` }} />
                   )}
                   <div className="relative flex items-center justify-center transition-all duration-200"
                     style={{
-                      width: 40, height: 40, borderRadius: 14,
+                      width: 42, height: 42, borderRadius: 15,
                       background: active
-                        ? `linear-gradient(135deg,${FOREST},#00FF88)`
-                        : 'rgba(0,180,120,0.08)',
-                      boxShadow: active ? `0 0 20px rgba(0,200,150,0.55), 0 4px 12px rgba(0,0,0,0.3)` : 'none',
-                      transform: active ? 'scale(1.13)' : 'scale(1)',
-                      border: active ? 'none' : `1px solid rgba(0,200,150,0.12)`,
-                      color: active ? '#000' : `rgba(0,200,150,0.55)`,
+                        ? `linear-gradient(135deg,rgba(${tab.g},0.9),rgba(${tab.g},0.6))`
+                        : `rgba(${tab.g},0.07)`,
+                      boxShadow: active
+                        ? `0 0 22px rgba(${tab.g},0.6), 0 4px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2)`
+                        : 'none',
+                      transform: active ? 'scale(1.12) translateY(-2px)' : 'scale(1)',
+                      border: active ? 'none' : `1px solid rgba(${tab.g},0.15)`,
+                      color: active ? '#000' : `${tab.c}80`,
                     }}>
-                    <tab.Icon size={18} strokeWidth={active ? 2.5 : 2} />
+                    <tab.Icon size={18} strokeWidth={active ? 2.6 : 2} />
                     {tab.badge && !active && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[8px] font-bold flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[8px] font-bold flex items-center justify-center"
+                        style={{ background: tab.c, boxShadow: `0 0 8px ${tab.c}` }}>
                         {tab.badge}
                       </span>
                     )}
                   </div>
-                  <span className="text-[9.5px] font-bold leading-none transition-colors"
-                    style={{ color: active ? FOREST : 'rgba(0,200,150,0.38)', fontFamily: "'Space Grotesk',sans-serif" }}>
+                  <span className="text-[9px] font-black leading-none transition-colors mt-0.5"
+                    style={{
+                      color: active ? tab.c : 'rgba(255,255,255,0.25)',
+                      fontFamily: "'Space Grotesk',sans-serif",
+                      textShadow: active ? `0 0 8px ${tab.c}80` : 'none',
+                    }}>
                     {tab.label}
                   </span>
                 </div>
@@ -1079,17 +1086,17 @@ export function Layout({ children }: LayoutProps) {
           })}
 
           {/* Más button */}
-          <button onClick={() => setMobileOpen(true)} className="flex flex-col items-center gap-0.5 px-3 py-1.5 cursor-pointer">
+          <button onClick={() => setMobileOpen(true)} className="flex flex-col items-center gap-0.5 px-2.5 py-1.5 cursor-pointer select-none">
             <div className="flex items-center justify-center"
               style={{
-                width: 40, height: 40, borderRadius: 14,
-                background: 'rgba(0,180,120,0.08)',
-                border: `1px solid rgba(0,200,150,0.12)`,
-                color: 'rgba(0,200,150,0.45)',
+                width: 42, height: 42, borderRadius: 15,
+                background: 'rgba(255,255,255,0.04)',
+                border: `1px solid rgba(255,255,255,0.08)`,
+                color: 'rgba(255,255,255,0.35)',
               }}>
               <Menu size={18} strokeWidth={2} />
             </div>
-            <span className="text-[9.5px] font-bold leading-none" style={{ color: 'rgba(0,200,150,0.35)', fontFamily: "'Space Grotesk',sans-serif" }}>Más</span>
+            <span className="text-[9px] font-black leading-none" style={{ color: 'rgba(255,255,255,0.2)', fontFamily: "'Space Grotesk',sans-serif" }}>Más</span>
           </button>
         </nav>
       </main>

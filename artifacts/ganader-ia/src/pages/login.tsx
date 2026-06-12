@@ -1045,12 +1045,12 @@ export default function Login() {
           {/* Feature badges — animated glow pills */}
           <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
             {[
-              { icon:<Wifi size={13}/>,       label:"Offline PWA",    sub:"Sin internet",     c:"0,245,212",   ac:"#00f5d4" },
-              { icon:<Zap size={13}/>,        label:"Bluetooth BT",   sub:"Báscula · Pesaje", c:"255,149,0",   ac:"#ff9a3c" },
-              { icon:<Smartphone size={13}/>, label:"GPS Real-Time",  sub:"13 collares",      c:"0,200,255",   ac:"#00c8ff" },
-              { icon:<Star size={13}/>,       label:"IA Predictiva",  sub:"GPT ganadero",     c:"232,121,249", ac:"#e879f9" },
-              { icon:<Globe size={13}/>,      label:"32 Módulos",     sub:"CRUD completo",    c:"57,255,126",  ac:"#39ff7e" },
-              { icon:<Cpu size={13}/>,        label:"IndexedDB v1",   sub:"50k registros",    c:"168,85,247",  ac:"#a855f7" },
+              { icon:<Wifi size={13}/>,       label:"Offline PWA",    sub:"Service Worker v8", c:"0,245,212",   ac:"#00f5d4" },
+              { icon:<Zap size={13}/>,        label:"Serial · BT",    sub:"8 drivers COM · 11 BLE", c:"255,149,0", ac:"#ff9a3c" },
+              { icon:<Smartphone size={13}/>, label:"GPS Real-Time",  sub:"13 collares CIVAC",c:"0,200,255",   ac:"#00c8ff" },
+              { icon:<Star size={13}/>,       label:"IA Predictiva",  sub:"Asesora ganadero", c:"232,121,249", ac:"#e879f9" },
+              { icon:<Globe size={13}/>,      label:"34+ Módulos",    sub:"CRUD completo",    c:"57,255,126",  ac:"#39ff7e" },
+              { icon:<Cpu size={13}/>,        label:"IndexedDB v2",   sub:"100k registros",   c:"168,85,247",  ac:"#a855f7" },
             ].map((p, i) => (
               <span key={p.label}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-full text-[11px] font-bold transition-all duration-300 hover:scale-[1.08] cursor-default select-none"

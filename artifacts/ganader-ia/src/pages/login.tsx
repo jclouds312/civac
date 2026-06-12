@@ -4,7 +4,7 @@ import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
   Phone, Building2, ChevronRight, CheckCircle2, ExternalLink,
-  Settings2, AlertTriangle, Copy, Activity, Globe, Cpu,
+  AlertTriangle, Copy, Activity, Globe, Cpu,
   TrendingUp, MapPin, Thermometer, Wind, Droplets, BarChart3,
   Server, CheckCircle, Clock, Layers, UserPlus
 } from "lucide-react";
@@ -1008,12 +1008,6 @@ export default function Login() {
         </div>
       )}
 
-      {/* Admin gate — secret click area bottom-right */}
-      <button onClick={() => setShowAdminForm(true)}
-        className="fixed bottom-4 right-4 z-40 w-8 h-8 opacity-0 hover:opacity-100 transition-opacity duration-500"
-        title="Panel admin" style={{ cursor:"default" }}>
-        <Settings2 size={14} className="text-white/20" />
-      </button>
 
       {/* Main container */}
       <div className={`relative z-10 w-full max-w-6xl px-4 py-6 pb-28 sm:pb-6 transition-all duration-700 ${entered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
@@ -1649,7 +1643,6 @@ export default function Login() {
             TAB: CUENTAS — CIVAC Staff + Demo por Plan
         ═══════════════════════════════════════════════════════════════════ */}
         {tab === "cuentas" && (() => {
-          const civacAccounts = clientAccounts.filter(a => CIVAC_STAFF_IDS.includes(a.id));
           const planAccounts  = clientAccounts.filter(a => a.id.startsWith("demo_"));
 
           /* Plan card identity */
@@ -1804,90 +1797,86 @@ export default function Login() {
               </div>
             </div>
 
-            {/* ── Sección CIVAC Staff — acceso interno ── */}
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,rgba(251,191,36,0.3),transparent)" }}/>
-                <span className="text-[9px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full"
-                  style={{ color:"rgba(251,191,36,0.6)", border:"1px solid rgba(251,191,36,0.2)", background:"rgba(251,191,36,0.05)" }}>
-                  ⬡ Equipo CIVAC — Acceso Interno
-                </span>
-                <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(251,191,36,0.3))" }}/>
+            {/* ── Acceso Exclusivo CIVAC Staff ── */}
+            <div className="relative rounded-3xl overflow-hidden"
+              style={{
+                background:"linear-gradient(145deg,rgba(2,8,20,0.97),rgba(5,14,30,0.95))",
+                border:"1px solid rgba(0,245,212,0.15)",
+                boxShadow:"0 0 40px rgba(0,245,212,0.06)",
+              }}>
+              <div className="absolute inset-0 pointer-events-none"
+                style={{ background:"radial-gradient(ellipse at 50% 0%,rgba(0,245,212,0.06) 0%,transparent 65%)" }}/>
+              <div className="h-px w-full" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.35),rgba(0,200,255,0.25),transparent)" }}/>
+              <div className="relative p-6 flex flex-col sm:flex-row items-center gap-5">
+
+                {/* Left — hexagon CIVAC badge */}
+                <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
+                    style={{
+                      background:"linear-gradient(135deg,rgba(0,245,212,0.10),rgba(0,200,255,0.06))",
+                      border:"1.5px solid rgba(0,245,212,0.28)",
+                      boxShadow:"0 0 30px rgba(0,245,212,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    }}>
+                    <span className="text-3xl" style={{ filter:"drop-shadow(0 0 10px rgba(0,245,212,0.7))" }}>⬡</span>
+                  </div>
+                  <span className="text-[8px] font-black tracking-[0.18em] uppercase"
+                    style={{ color:"rgba(0,245,212,0.45)" }}>
+                    CIVAC STAFF
+                  </span>
+                </div>
+
+                {/* Center — info */}
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-base font-black text-white leading-tight mb-1">
+                    Acceso Exclusivo CIVAC
+                  </h3>
+                  <p className="text-[11px] leading-relaxed mb-3" style={{ color:"rgba(255,255,255,0.35)" }}>
+                    Portal privado para el equipo interno CIVAC.<br/>
+                    CEO · Dirección · Desarrollo · Ventas corporativas.
+                  </p>
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-1.5">
+                    {["⬡ CEO & Fundador","⚙️ Desarrollo","📊 Admin","💼 Ventas Corp."].map(tag => (
+                      <span key={tag}
+                        className="text-[9px] font-bold px-2.5 py-1 rounded-full"
+                        style={{ background:"rgba(0,245,212,0.06)", border:"1px solid rgba(0,245,212,0.18)", color:"rgba(0,245,212,0.55)" }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right — CTA button */}
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={() => setShowAdminForm(true)}
+                    className="relative flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm transition-all duration-300 hover:scale-[1.05] active:scale-[0.97] overflow-hidden group"
+                    style={{
+                      background:"linear-gradient(135deg,rgba(0,245,212,0.12),rgba(0,200,255,0.08))",
+                      border:"1.5px solid rgba(0,245,212,0.40)",
+                      color:"#00f5d4",
+                      boxShadow:"0 0 24px rgba(0,245,212,0.15)",
+                    }}
+                    onMouseEnter={e => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.background = "linear-gradient(135deg,rgba(0,245,212,0.20),rgba(0,200,255,0.14))";
+                      el.style.borderColor = "rgba(0,245,212,0.65)";
+                      el.style.boxShadow = "0 0 36px rgba(0,245,212,0.30), 0 6px 20px rgba(0,0,0,0.4)";
+                    }}
+                    onMouseLeave={e => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.background = "linear-gradient(135deg,rgba(0,245,212,0.12),rgba(0,200,255,0.08))";
+                      el.style.borderColor = "rgba(0,245,212,0.40)";
+                      el.style.boxShadow = "0 0 24px rgba(0,245,212,0.15)";
+                    }}>
+                    <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      style={{ background:"linear-gradient(135deg,rgba(255,255,255,0.07) 0%,transparent 60%)" }}/>
+                    <span style={{ filter:"drop-shadow(0 0 6px rgba(0,245,212,0.8))" }}>⬡</span>
+                    <span className="whitespace-nowrap">Ingresar CIVAC</span>
+                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-200"/>
+                  </button>
+                </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {civacAccounts.map(account => {
-                  const rc = CLIENT_CONFIG[account.role] ?? CLIENT_CONFIG.viewer;
-                  const isLoading = loadingId === account.id;
-                  const isHov = hoveredCard === `civac-${account.id}`;
-                  const ACCESS_DESC: Record<string,string> = {
-                    superadmin: "Acceso total · Server Panel · Auditoría · Config global",
-                    admin:      "Panel Admin · 15 secciones · Plataforma completa",
-                    developer:  "Dev Console · 12 tabs · Feature Flags · API Explorer · Docs",
-                    sales:      "Sales Dashboard · CRM · Pipeline · Reportes · Comisiones",
-                  };
-                  return (
-                    <div key={account.id}
-                      className="relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300"
-                      style={{
-                        background: isHov ? `linear-gradient(145deg,rgba(${rc.glow},0.10),rgba(0,0,0,0.7))` : `linear-gradient(145deg,rgba(${rc.glow},0.04),rgba(0,0,0,0.55))`,
-                        border:`1px solid rgba(${rc.glow},${isHov?"0.45":"0.20"})`,
-                        boxShadow: isHov ? `0 0 28px rgba(${rc.glow},0.18)` : "none",
-                        transform: isHov ? "translateY(-2px)" : "none",
-                      }}
-                      onMouseEnter={() => setHoveredCard(`civac-${account.id}`)}
-                      onMouseLeave={() => setHoveredCard(null)}>
-                      <div className="h-0.5 w-full" style={{ background:`linear-gradient(90deg,${rc.from},${rc.to})` }}/>
-                      <div className="p-3">
-                        <div className="flex items-center gap-3 mb-2.5">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ background:`linear-gradient(135deg,${rc.from}30,${rc.to}20)`, border:`1px solid rgba(${rc.glow},0.35)`, boxShadow:`0 0 12px rgba(${rc.glow},0.2)` }}>
-                            <span style={{ fontSize:"1.3rem" }}>{account.avatar}</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="text-[11px] font-black text-white leading-tight truncate">
-                                {account.nombre.split(" ").slice(0,3).join(" ")}
-                              </p>
-                              <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0"
-                                style={{ background:"rgba(251,191,36,0.12)", border:"1px solid rgba(251,191,36,0.3)", color:"rgba(251,191,36,0.8)" }}>
-                                ⬡ CIVAC
-                              </span>
-                            </div>
-                            <p className="text-[9px] font-bold truncate" style={{ color:`rgba(${rc.glow},0.55)` }}>
-                              {account.cargo.split("·")[0].trim()}
-                            </p>
-                          </div>
-                        </div>
-                        {/* Credentials */}
-                        <div className="space-y-1 mb-2.5">
-                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl" style={{ background:"rgba(0,0,0,0.3)" }}>
-                            <span className="text-[8px] font-black text-white/25 w-6 flex-shrink-0">📧</span>
-                            <span className="text-[9px] font-mono text-white/50 truncate flex-1">{account.email}</span>
-                          </div>
-                          <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl" style={{ background:"rgba(0,0,0,0.3)" }}>
-                            <span className="text-[8px] font-black text-white/25 w-6 flex-shrink-0">🔑</span>
-                            <span className="text-[9px] font-mono flex-1" style={{ color:`rgba(${rc.glow},0.7)` }}>{account.password}</span>
-                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
-                              style={{ background:`rgba(${rc.glow},0.08)`, color:`rgba(${rc.glow},0.6)`, border:`1px solid rgba(${rc.glow},0.2)` }}>
-                              {account.role}
-                            </span>
-                          </div>
-                        </div>
-                        {/* Access description */}
-                        <p className="text-[9px] text-white/30 leading-relaxed mb-2.5">
-                          {ACCESS_DESC[account.id] ?? "Acceso al sistema"}
-                        </p>
-                        <button onClick={() => handleQuick(account)} disabled={loading}
-                          className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl font-black text-[10px] transition-all hover:scale-[1.02] relative overflow-hidden"
-                          style={{ background:`linear-gradient(135deg,${rc.from},${rc.to})`, color:"white", boxShadow:`0 0 14px rgba(${rc.glow},0.3)` }}>
-                          {isLoading ? <div className="w-3 h-3 border border-white/40 border-t-white rounded-full animate-spin"/> : <ArrowRight size={10}/>}
-                          {isLoading ? "Entrando…" : `Entrar como ${account.role}`}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <div className="h-px w-full" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.12),transparent)" }}/>
             </div>
 
             {/* Footer */}
@@ -1919,59 +1908,128 @@ export default function Login() {
       {/* ── BOTTOM PWA NAV ── */}
       <BottomPWANav tab={tab} setTab={setTab} />
 
-      {/* ── ADMIN ACCESS MODAL ── */}
+      {/* ── CIVAC STAFF LOGIN MODAL ── */}
       {showAdminForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:"rgba(0,0,0,0.92)", backdropFilter:"blur(10px)" }}>
-          <div className="w-full max-w-sm rounded-3xl overflow-hidden"
-            style={{ background:"linear-gradient(145deg,#040d1a,#071325)", border:"1px solid rgba(255,149,0,0.25)", boxShadow:"0 0 70px rgba(255,149,0,0.10)" }}>
-            <div className="h-1" style={{ background:"linear-gradient(90deg,#ff9500,#ff6b00,#fbbf24)" }} />
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-                  style={{ background:"rgba(255,149,0,0.12)", border:"1px solid rgba(255,149,0,0.3)", boxShadow:"0 0 16px rgba(255,149,0,0.2)" }}>
-                  <Shield size={18} className="text-orange-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background:"rgba(0,0,0,0.94)", backdropFilter:"blur(16px)" }}
+          onClick={e => { if (e.target === e.currentTarget) setShowAdminForm(false); }}>
+          <div className="w-full max-w-sm rounded-3xl overflow-hidden relative"
+            style={{
+              background:"linear-gradient(145deg,#020810,#040d1a,#061220)",
+              border:"1.5px solid rgba(0,245,212,0.22)",
+              boxShadow:"0 0 80px rgba(0,245,212,0.12), 0 30px 70px rgba(0,0,0,0.7)",
+            }}>
+            {/* Radial glow top */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background:"radial-gradient(ellipse at 50% -20%,rgba(0,245,212,0.08) 0%,transparent 60%)" }}/>
+            {/* Top color bar */}
+            <div className="h-1 w-full" style={{ background:"linear-gradient(90deg,#00f5d4,#00c8ff,rgba(0,245,212,0.3),transparent)" }}/>
+
+            <div className="relative p-6">
+              {/* Header */}
+              <div className="flex items-start gap-3 mb-5">
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background:"linear-gradient(135deg,rgba(0,245,212,0.12),rgba(0,200,255,0.08))",
+                    border:"1.5px solid rgba(0,245,212,0.30)",
+                    boxShadow:"0 0 20px rgba(0,245,212,0.18)",
+                  }}>
+                  <span className="text-xl" style={{ filter:"drop-shadow(0 0 8px rgba(0,245,212,0.8))" }}>⬡</span>
                 </div>
-                <div>
-                  <h2 className="font-black text-white text-base">Panel de Administración</h2>
-                  <p className="text-[10px] text-white/30">Acceso restringido — Solo administradores</p>
+                <div className="flex-1">
+                  <h2 className="font-black text-white text-base leading-tight">Portal CIVAC Staff</h2>
+                  <p className="text-[10px] mt-0.5" style={{ color:"rgba(0,245,212,0.5)" }}>
+                    Acceso exclusivo · Equipo interno CIVAC
+                  </p>
                 </div>
-                <button onClick={() => setShowAdminForm(false)} className="ml-auto w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white/10 transition-colors">
-                  <X size={14} className="text-white/40" />
+                <button onClick={() => { setShowAdminForm(false); setError(""); }}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors hover:bg-white/8"
+                  style={{ color:"rgba(255,255,255,0.25)" }}>
+                  <X size={14}/>
                 </button>
               </div>
-              <div className="rounded-2xl p-3 mb-4" style={{ background:"rgba(255,149,0,0.06)", border:"1px solid rgba(255,149,0,0.15)" }}>
-                <div className="flex items-start gap-2">
-                  <AlertTriangle size={12} className="text-orange-400 flex-shrink-0 mt-0.5"/>
-                  <p className="text-[10px] text-orange-300/70">Acceso exclusivo para administración de plataforma. No es para uso del sistema de ganadería.</p>
-                </div>
+
+              {/* Info bar */}
+              <div className="rounded-2xl p-3 mb-5 flex items-center gap-2.5"
+                style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.12)" }}>
+                <Shield size={12} style={{ color:"rgba(0,245,212,0.5)", flexShrink:0 }}/>
+                <p className="text-[10px]" style={{ color:"rgba(0,245,212,0.45)" }}>
+                  Zona restringida — CEO, Dirección, Desarrollo y Ventas corporativas.
+                </p>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-3">
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-3.5">
                 <div>
-                  <label className="text-[10px] font-bold text-white/30 uppercase tracking-wider block mb-1">Email administrador</label>
-                  <input type="text" value={email} onChange={e=>{setEmail(e.target.value);setError("");}}
-                    placeholder="admin@ganader.ia"
-                    className="w-full px-4 py-3 rounded-2xl text-sm text-white transition-all"
-                    style={{ background:"rgba(255,149,0,0.04)", border:"1px solid rgba(255,149,0,0.18)", outline:"none" }} />
+                  <label className="text-[10px] font-bold uppercase tracking-wider block mb-1.5" style={{ color:"rgba(0,245,212,0.4)" }}>
+                    Correo CIVAC
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(0,245,212,0.35)" }}/>
+                    <input type="text" value={email} autoComplete="username"
+                      onChange={e=>{setEmail(e.target.value);setError("");}}
+                      placeholder="usuario@civac.co"
+                      className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm text-white transition-all"
+                      style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.16)", outline:"none" }}
+                      onFocus={e=>{(e.target as HTMLElement).style.borderColor="rgba(0,245,212,0.45)";(e.target as HTMLElement).style.boxShadow="0 0 16px rgba(0,245,212,0.10)";}}
+                      onBlur={e=>{(e.target as HTMLElement).style.borderColor="rgba(0,245,212,0.16)";(e.target as HTMLElement).style.boxShadow="none";}}/>
+                  </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-white/30 uppercase tracking-wider block mb-1">Contraseña</label>
+                  <label className="text-[10px] font-bold uppercase tracking-wider block mb-1.5" style={{ color:"rgba(0,245,212,0.4)" }}>
+                    Contraseña
+                  </label>
                   <div className="relative">
-                    <input type={showPass?"text":"password"} value={password} onChange={e=>{setPassword(e.target.value);setError("");}}
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color:"rgba(0,245,212,0.35)" }}/>
+                    <input type={showPass?"text":"password"} value={password} autoComplete="current-password"
+                      onChange={e=>{setPassword(e.target.value);setError("");}}
                       placeholder="••••••••"
-                      className="w-full pl-4 pr-11 py-3 rounded-2xl text-sm text-white transition-all"
-                      style={{ background:"rgba(255,149,0,0.04)", border:"1px solid rgba(255,149,0,0.18)", outline:"none" }} />
-                    <button type="button" onClick={()=>setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                      className="w-full pl-10 pr-11 py-3 rounded-2xl text-sm text-white transition-all"
+                      style={{ background:"rgba(0,245,212,0.04)", border:"1px solid rgba(0,245,212,0.16)", outline:"none" }}
+                      onFocus={e=>{(e.target as HTMLElement).style.borderColor="rgba(0,245,212,0.45)";(e.target as HTMLElement).style.boxShadow="0 0 16px rgba(0,245,212,0.10)";}}
+                      onBlur={e=>{(e.target as HTMLElement).style.borderColor="rgba(0,245,212,0.16)";(e.target as HTMLElement).style.boxShadow="none";}}/>
+                    <button type="button" onClick={()=>setShowPass(!showPass)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors">
                       {showPass?<EyeOff size={14}/>:<Eye size={14}/>}
                     </button>
                   </div>
                 </div>
-                {error && <div className="text-xs text-red-400 flex items-center gap-1.5"><AlertTriangle size={11}/>{error}</div>}
+
+                {error && (
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs"
+                    style={{ background:"rgba(255,77,109,0.08)", border:"1px solid rgba(255,77,109,0.22)", color:"#ff6b8a" }}>
+                    <AlertTriangle size={11} className="flex-shrink-0"/>{error}
+                  </div>
+                )}
+
                 <button type="submit" disabled={loading || !email}
-                  className="w-full py-3 rounded-2xl font-black text-sm text-black transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
-                  style={{ background:"linear-gradient(135deg,#ff9500,#ff6b00)", boxShadow:"0 0 22px rgba(255,149,0,0.35)" }}>
-                  {loading ? "Verificando…" : "Acceder al panel →"}
+                  className="w-full py-3.5 rounded-2xl font-black text-sm text-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.97] disabled:opacity-50 relative overflow-hidden group"
+                  style={{
+                    background:"linear-gradient(135deg,#00f5d4,#00a896,#00c8ff)",
+                    boxShadow:"0 0 36px rgba(0,245,212,0.45), 0 8px 20px rgba(0,0,0,0.4)",
+                    border:"1.5px solid rgba(0,245,212,0.6)",
+                  }}>
+                  <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background:"linear-gradient(135deg,rgba(255,255,255,0.16) 0%,transparent 60%)" }}/>
+                  {loading
+                    ? <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"/>
+                        Verificando…
+                      </span>
+                    : <span className="relative z-10 flex items-center justify-center gap-2 font-black tracking-wide">
+                        <span style={{ filter:"drop-shadow(0 0 4px rgba(0,0,0,0.3))" }}>⬡</span>
+                        Ingresar al portal CIVAC
+                        <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-200"/>
+                      </span>}
                 </button>
               </form>
+
+              {/* Bottom note */}
+              <div className="mt-4 pt-3.5 text-center" style={{ borderTop:"1px solid rgba(0,245,212,0.07)" }}>
+                <p className="text-[9px]" style={{ color:"rgba(255,255,255,0.18)" }}>
+                  GanaderIA CIVAC PRO v1.0 · Control Inteligente de Valor Agropecuario · Colombia
+                </p>
+              </div>
             </div>
           </div>
         </div>

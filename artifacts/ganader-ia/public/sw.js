@@ -34,6 +34,7 @@ const NAV_ROUTES = [
   '/ficha',
   '/pesaje',
   '/pesaje-manual',
+  '/basculas',
   '/lotes',
   // ── Campo
   '/potreros',

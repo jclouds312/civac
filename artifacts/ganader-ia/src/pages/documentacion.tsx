@@ -171,71 +171,127 @@ function SecInicio() {
 
 function SecModulos() {
   const mods = [
-    { emoji:"📊", name:"Dashboard",       ruta:"/",             cat:"Core",          desc:"6 KPIs, gráficas históricas, ticker live, 20 accesos rápidos" },
-    { emoji:"🐄", name:"Inventario",      ruta:"/inventario",   cat:"Animal",        desc:"Registro bovinos, RFID, categorías, CRUD completo" },
-    { emoji:"🥛", name:"Producción",      ruta:"/produccion",   cat:"Animal",        desc:"Ordeños diarios, ranking top-vacas, BarChart 7 meses" },
-    { emoji:"❤️", name:"Reproducción",    ruta:"/reproduccion", cat:"Animal",        desc:"IEP, celos, inseminaciones, próximos partos, anestros" },
-    { emoji:"🧬", name:"Genética",        ruta:"/genetica",     cat:"Animal",        desc:"DEP ranking con score bars, pedigrí, selección genética" },
-    { emoji:"⚖️", name:"Pesaje BT",       ruta:"/pesaje",       cat:"Animal",        desc:"Báscula Bluetooth — BCS, GMD, 9 razas, IA engine" },
-    { emoji:"📝", name:"Pesaje Manual",   ruta:"/pesaje-manual",cat:"Animal",        desc:"Pesaje con CC, GMD, recibo PDF imprimible" },
-    { emoji:"🏷️", name:"Lotes",           ruta:"/lotes",        cat:"Animal",        desc:"Gestión y movimiento de lotes ganaderos" },
-    { emoji:"🧪", name:"Ficha Animal",    ruta:"/ficha",        cat:"Animal",        desc:"Historia clínica por animal: vacunas, pesos, partos, eventos" },
-    { emoji:"🧊", name:"Semen",           ruta:"/semen",        cat:"Animal",        desc:"Inventario criogénico, embriones TE, toros" },
-    { emoji:"🌿", name:"Potreros",        ruta:"/potreros",     cat:"Campo",         desc:"6 lotes, rotación activa, semáforo estado, mapa CSS" },
-    { emoji:"📡", name:"GPS Bovino",      ruta:"/gps",          cat:"Campo",         desc:"watchPosition real, mapa SVG animado, geovallado, BT scan" },
-    { emoji:"🔵", name:"GPS Chips",       ruta:"/gps-chips",    cat:"Campo",         desc:"Gestión dispositivos GPS y collares inteligentes" },
-    { emoji:"🌾", name:"Alimentación",    ruta:"/alimentacion", cat:"Nutrición",     desc:"Raciones TMR, minerales, suplementos, formulación" },
-    { emoji:"📦", name:"Insumos",         ruta:"/insumos",      cat:"Nutrición",     desc:"Kardex, stock mínimo, botones +/-, alertas rojas" },
-    { emoji:"💉", name:"Sanidad",         ruta:"/sanidad",      cat:"Salud",         desc:"Vacunación, tratamientos, diagnósticos, control sanitario" },
-    { emoji:"📋", name:"Trazabilidad",    ruta:"/trazabilidad", cat:"Salud",         desc:"Trazabilidad bovina ICA — normativa Colombia" },
-    { emoji:"💰", name:"Costos P&G",      ruta:"/costos",       cat:"Finanzas",      desc:"Ingresos/egresos, costo/litro, margen 35%, 5 KPIs" },
-    { emoji:"👥", name:"Personal",        ruta:"/personal",     cat:"Finanzas",      desc:"6 empleados, cargos, nómina, EPS/ARL, horas extras" },
-    { emoji:"🔮", name:"Predicción IA",   ruta:"/prediccion",   cat:"Finanzas",      desc:"Simulador financiero IA con sliders de proyección" },
-    { emoji:"🌱", name:"Huella CO₂",      ruta:"/co2",          cat:"Finanzas",      desc:"IPCC 2019, benchmarking Colombia, bonos de carbono" },
-    { emoji:"🏢", name:"Multi-Finca",     ruta:"/multifinca",   cat:"Admin",         desc:"3 fincas, cards detalladas, tabla comparativa" },
-    { emoji:"🔔", name:"Alertas",         ruta:"/alertas",      cat:"Admin",         desc:"Centro notificaciones, severidad, resolver, filtros" },
-    { emoji:"👤", name:"Usuarios",        ruta:"/usuarios",     cat:"Admin",         desc:"Gestión cuentas, permisos por módulo y rol" },
-    { emoji:"⚙️", name:"Configuración",   ruta:"/configuracion",cat:"Admin",         desc:"Finca · Apariencia · Notificaciones · Seguridad · Datos" },
-    { emoji:"🤖", name:"Asesora IA",      ruta:"/asesora",      cat:"IA",            desc:"Asistente IA especializado en ganadería colombiana" },
-    { emoji:"💼", name:"Ventas CRM",      ruta:"/ventas",       cat:"IA",            desc:"Pipeline comercial, prospectos, seguimiento" },
-    { emoji:"💾", name:"Drive / Backup",  ruta:"/drive",        cat:"Sistema",       desc:"Backup en la nube, historial de versiones, restaurar" },
-    { emoji:"📤", name:"Centro Datos",    ruta:"/datos",        cat:"Sistema",       desc:"Exportar/importar JSON, reset datos, migración" },
-    { emoji:"💳", name:"Planes",          ruta:"/planes",       cat:"Sistema",       desc:"Básico / PRO / Premium / Platino + pasarela Wompi" },
-    { emoji:"📖", name:"Manual",          ruta:"/manual",       cat:"Ayuda",         desc:"Manual de usuario completo descargable" },
-    { emoji:"ℹ️", name:"Acerca de",       ruta:"/acerca",       cat:"Ayuda",         desc:"Información del sistema, versión, créditos" },
+    { emoji:"📊", name:"Dashboard",       ruta:"/",             cat:"Core",      color:"#00f5d4", glow:"0,245,212",    plan:"FREE", desc:"6 KPIs, gráficas históricas, ticker live, 20 accesos rápidos" },
+    { emoji:"🐄", name:"Inventario",      ruta:"/inventario",   cat:"Animal",    color:"#39ff7e", glow:"57,255,126",   plan:"FREE", desc:"Registro bovinos, RFID, categorías, CRUD completo" },
+    { emoji:"🥛", name:"Producción",      ruta:"/produccion",   cat:"Animal",    color:"#00c8ff", glow:"0,200,255",    plan:"FREE", desc:"Ordeños diarios, ranking top-vacas, BarChart 7 meses" },
+    { emoji:"❤️", name:"Reproducción",    ruta:"/reproduccion", cat:"Animal",    color:"#ff6fd8", glow:"255,111,216",  plan:"PRO",  desc:"IEP, celos, inseminaciones, próximos partos, anestros" },
+    { emoji:"🧬", name:"Genética",        ruta:"/genetica",     cat:"Animal",    color:"#a855f7", glow:"168,85,247",   plan:"PRO",  desc:"DEP ranking con score bars, pedigrí, selección genética" },
+    { emoji:"⚖️", name:"Pesaje BT",       ruta:"/pesaje",       cat:"Animal",    color:"#ff9a3c", glow:"255,154,60",   plan:"PRO",  desc:"Báscula Bluetooth — BCS, GMD, 9 razas, IA engine" },
+    { emoji:"🔧", name:"Básculas & Disp.", ruta:"/basculas",    cat:"Animal",    color:"#fb923c", glow:"251,146,60",   plan:"PRO",  desc:"Gestión multi-báscula · BT + COM simultáneos · Drivers Windows" },
+    { emoji:"📝", name:"Pesaje Manual",   ruta:"/pesaje-manual",cat:"Animal",    color:"#c084fc", glow:"192,132,252",  plan:"PREM", desc:"Pesaje con CC, GMD, recibo PDF imprimible" },
+    { emoji:"🏷️", name:"Lotes",           ruta:"/lotes",        cat:"Animal",    color:"#00c8ff", glow:"0,200,255",    plan:"PREM", desc:"Gestión y movimiento de lotes ganaderos" },
+    { emoji:"🧪", name:"Ficha Animal",    ruta:"/ficha",        cat:"Animal",    color:"#00f5d4", glow:"0,245,212",    plan:"PRO",  desc:"Historia clínica por animal: vacunas, pesos, partos, eventos" },
+    { emoji:"🧊", name:"Semen",           ruta:"/semen",        cat:"Animal",    color:"#818cf8", glow:"129,140,248",  plan:"PRO",  desc:"Inventario criogénico, embriones TE, toros" },
+    { emoji:"🌿", name:"Potreros",        ruta:"/potreros",     cat:"Campo",     color:"#84ef34", glow:"132,239,52",   plan:"FREE", desc:"6 lotes, rotación activa, semáforo estado, mapa CSS" },
+    { emoji:"📡", name:"GPS Bovino",      ruta:"/gps",          cat:"Campo",     color:"#0ea5e9", glow:"14,165,233",   plan:"PRO",  desc:"watchPosition real, mapa SVG animado, geovallado, BT scan" },
+    { emoji:"🔵", name:"GPS Chips",       ruta:"/gps-chips",    cat:"Campo",     color:"#00c8ff", glow:"0,200,255",    plan:"PRO",  desc:"Dispositivos GPS/collares, protocolo MQTT broker" },
+    { emoji:"🌾", name:"Alimentación",    ruta:"/alimentacion", cat:"Nutrición", color:"#ffd166", glow:"255,209,102",  plan:"PRO",  desc:"Raciones TMR, minerales, suplementos, formulación" },
+    { emoji:"📦", name:"Insumos",         ruta:"/insumos",      cat:"Nutrición", color:"#fbbf24", glow:"251,191,36",   plan:"PRO",  desc:"Kardex, stock mínimo, botones +/-, alertas rojas" },
+    { emoji:"💉", name:"Sanidad",         ruta:"/sanidad",      cat:"Salud",     color:"#22c55e", glow:"34,197,94",    plan:"PRO",  desc:"Vacunación, tratamientos, diagnósticos, control sanitario" },
+    { emoji:"📋", name:"Trazabilidad",    ruta:"/trazabilidad", cat:"Salud",     color:"#f97316", glow:"249,115,22",   plan:"PRO",  desc:"Trazabilidad bovina ICA — SINIGAN, guías movilización" },
+    { emoji:"💰", name:"Costos P&G",      ruta:"/costos",       cat:"Finanzas",  color:"#34d399", glow:"52,211,153",   plan:"FREE", desc:"Ingresos/egresos, costo/litro, margen 35%, 5 KPIs" },
+    { emoji:"👥", name:"Personal",        ruta:"/personal",     cat:"Finanzas",  color:"#94a3b8", glow:"148,163,184",  plan:"PRO",  desc:"6 empleados, cargos, nómina, EPS/ARL, horas extras" },
+    { emoji:"🔮", name:"Predicción IA",   ruta:"/prediccion",   cat:"Finanzas",  color:"#e879f9", glow:"232,121,249",  plan:"PRO",  desc:"Simulador financiero IA con sliders de proyección 12 meses" },
+    { emoji:"🌱", name:"Huella CO₂",      ruta:"/co2",          cat:"Finanzas",  color:"#4ade80", glow:"74,222,128",   plan:"PREM", desc:"IPCC 2019, benchmarking Colombia, bonos de carbono" },
+    { emoji:"🏢", name:"Multi-Finca",     ruta:"/multifinca",   cat:"Admin",     color:"#22d3ee", glow:"34,211,238",   plan:"PRO",  desc:"3 fincas, cards detalladas, tabla comparativa" },
+    { emoji:"🔔", name:"Alertas",         ruta:"/alertas",      cat:"Admin",     color:"#ff6b35", glow:"255,107,53",   plan:"FREE", desc:"Centro notificaciones, severidad, resolver, filtros" },
+    { emoji:"👤", name:"Usuarios",        ruta:"/usuarios",     cat:"Admin",     color:"#c084fc", glow:"192,132,252",  plan:"PLAT", desc:"Gestión cuentas, permisos por módulo y rol" },
+    { emoji:"⚙️", name:"Configuración",   ruta:"/configuracion",cat:"Admin",     color:"#9ca3af", glow:"156,163,175",  plan:"PLAT", desc:"Finca · Apariencia · Notificaciones · Seguridad · Datos" },
+    { emoji:"🤖", name:"Asesora IA",      ruta:"/asesora",      cat:"IA",        color:"#e879f9", glow:"232,121,249",  plan:"PRO",  desc:"Asistente IA especializado en ganadería colombiana" },
+    { emoji:"💼", name:"Ventas CRM",      ruta:"/ventas",       cat:"IA",        color:"#a855f7", glow:"168,85,247",   plan:"PRO",  desc:"Pipeline comercial, prospectos, seguimiento" },
+    { emoji:"☁️", name:"Drive / Backup",  ruta:"/drive",        cat:"Sistema",   color:"#00c8ff", glow:"0,200,255",    plan:"PREM", desc:"Backup en la nube, historial de versiones, restaurar" },
+    { emoji:"📤", name:"Centro Datos",    ruta:"/datos",        cat:"Sistema",   color:"#818cf8", glow:"129,140,248",  plan:"PREM", desc:"Exportar/importar JSON, reset datos, migración" },
+    { emoji:"💳", name:"Planes",          ruta:"/planes",       cat:"Sistema",   color:"#fbbf24", glow:"251,191,36",   plan:"FREE", desc:"Básico / PRO / Premium / Platino + pasarela Wompi" },
+    { emoji:"📚", name:"Documentación",   ruta:"/documentacion",cat:"Ayuda",     color:"#38bdf8", glow:"56,189,248",   plan:"PLAT", desc:"Guías 24 secciones: todos los módulos + PWA + server" },
+    { emoji:"📖", name:"Manual",          ruta:"/manual",       cat:"Ayuda",     color:"#2dd4bf", glow:"45,212,191",   plan:"PLAT", desc:"Manual de usuario completo descargable" },
+    { emoji:"ℹ️", name:"Acerca de",       ruta:"/acerca",       cat:"Ayuda",     color:"#00f5d4", glow:"0,245,212",    plan:"FREE", desc:"Información del sistema, versión, créditos CIVAC" },
   ];
-  const cats = [...new Set(mods.map(m => m.cat))];
-  const catColors: Record<string,string> = {
-    Core:"#00f5d4", Animal:"#39ff7e", Campo:"#4ade80", Nutrición:"#fbbf24",
-    Salud:"#22c55e", Finanzas:"#f97316", Admin:"#00c8ff", IA:"#e879f9",
-    Sistema:"#94a3b8", Ayuda:"#a78bfa"
+
+  const catMeta: Record<string,{color:string; icon:string}> = {
+    Core:      { color:"#00f5d4", icon:"⚡" },
+    Animal:    { color:"#39ff7e", icon:"🐄" },
+    Campo:     { color:"#4ade80", icon:"🌿" },
+    Nutrición: { color:"#fbbf24", icon:"🌾" },
+    Salud:     { color:"#22c55e", icon:"💉" },
+    Finanzas:  { color:"#f97316", icon:"💰" },
+    Admin:     { color:"#00c8ff", icon:"🏢" },
+    IA:        { color:"#e879f9", icon:"🤖" },
+    Sistema:   { color:"#94a3b8", icon:"⚙️" },
+    Ayuda:     { color:"#a78bfa", icon:"📚" },
   };
+
+  const planColors: Record<string,string> = {
+    FREE:"#39ff7e", PRO:"#fbbf24", PREM:"#a78bfa", PLAT:"#00f5d4"
+  };
+  const planLabels: Record<string,string> = {
+    FREE:"Gratis", PRO:"PRO", PREM:"Premium", PLAT:"Platino"
+  };
+
+  const cats = [...new Set(mods.map(m => m.cat))];
+
   return (
-    <div className="space-y-6">
-      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos activos · CIVAC PRO v1.0`} c1="#071325" c2="#0a1f3c"/>
-      {cats.map(cat => (
-        <div key={cat}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-px flex-1" style={{ background:"rgba(255,255,255,0.06)" }}/>
-            <span className="text-[10px] font-black tracking-widest uppercase px-2" style={{ color:catColors[cat] || "#94a3b8" }}>{cat}</span>
-            <div className="h-px flex-1" style={{ background:"rgba(255,255,255,0.06)" }}/>
+    <div className="space-y-7">
+      <SectionBanner emoji="🧩" title="Mapa de módulos" subtitle={`${mods.length} módulos · 10 categorías · CIVAC PRO v1.0`} c1="#071325" c2="#0a1f3c"/>
+
+      {/* Summary stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { val:mods.length, label:"Total módulos", color:"#00f5d4" },
+          { val:mods.filter(m=>m.plan==="FREE").length, label:"Gratis", color:"#39ff7e" },
+          { val:mods.filter(m=>m.plan==="PRO").length, label:"Plan PRO", color:"#fbbf24" },
+          { val:mods.filter(m=>["PREM","PLAT"].includes(m.plan)).length, label:"Premium+", color:"#a78bfa" },
+        ].map(({ val, label, color }) => (
+          <div key={label} className="rounded-xl p-3 text-center" style={{ background:`rgba(${color==="#00f5d4"?"0,245,212":color==="#39ff7e"?"57,255,126":color==="#fbbf24"?"251,191,36":"167,139,250"},0.06)`, border:`1px solid rgba(${color==="#00f5d4"?"0,245,212":color==="#39ff7e"?"57,255,126":color==="#fbbf24"?"251,191,36":"167,139,250"},0.2)` }}>
+            <p className="text-2xl font-black" style={{ color }}>{val}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {mods.filter(m => m.cat === cat).map(m => (
-              <div key={m.ruta} className="flex items-start gap-3 p-3 rounded-xl" style={{ background:"rgba(255,255,255,0.02)", border:"1px solid rgba(255,255,255,0.06)" }}>
-                <span className="text-xl mt-0.5">{m.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-[13px] font-bold text-foreground">{m.name}</p>
-                    <code className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background:"rgba(255,255,255,0.05)", color:"rgba(148,163,184,0.5)" }}>{m.ruta}</code>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{m.desc}</p>
-                </div>
+        ))}
+      </div>
+
+      {cats.map(cat => {
+        const meta = catMeta[cat] ?? { color:"#94a3b8", icon:"🔹" };
+        const catMods = mods.filter(m => m.cat === cat);
+        return (
+          <div key={cat}>
+            {/* Category header */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center text-base"
+                style={{ background:`rgba(${meta.color==="#00f5d4"?"0,245,212":"0,0,0"},0.12)`, border:`1px solid ${meta.color}30` }}>
+                {meta.icon}
               </div>
-            ))}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-black tracking-widest uppercase" style={{ color:meta.color }}>{cat}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full border font-bold" style={{ color:meta.color, borderColor:`${meta.color}35`, background:`${meta.color}10` }}>{catMods.length} módulos</span>
+              </div>
+              <div className="h-px flex-1" style={{ background:`linear-gradient(90deg,${meta.color}30,transparent)` }}/>
+            </div>
+            {/* Module cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
+              {catMods.map(m => (
+                <div key={m.ruta} className="rounded-xl p-3.5 hover:scale-[1.01] transition-transform cursor-default"
+                  style={{ background:`rgba(${m.glow},0.05)`, border:`1px solid rgba(${m.glow},0.2)` }}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                      style={{ background:`rgba(${m.glow},0.1)`, border:`1px solid rgba(${m.glow},0.2)` }}>
+                      {m.emoji}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <p className="text-[13px] font-black text-foreground leading-tight">{m.name}</p>
+                        <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full" style={{ background:`rgba(${planColors[m.plan]==="#39ff7e"?"57,255,126":planColors[m.plan]==="#fbbf24"?"251,191,36":planColors[m.plan]==="#a78bfa"?"167,139,250":"0,245,212"},0.12)`, color:planColors[m.plan], border:`1px solid ${planColors[m.plan]}35` }}>
+                          {planLabels[m.plan]}
+                        </span>
+                      </div>
+                      <code className="text-[9px] font-mono" style={{ color:`rgba(${m.glow},0.5)` }}>{m.ruta}</code>
+                      <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{m.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -62,6 +62,7 @@ import Sanidad from "./pages/sanidad";
 import Trazabilidad from "./pages/trazabilidad";
 import MiCuenta from "./pages/mi-cuenta";
 import ChatPage from "./pages/chat";
+import Basculas from "./pages/basculas";
 
 const queryClient = new QueryClient();
 
@@ -337,6 +338,7 @@ function AuthGate() {
         <Route path="/manual" component={Manual} />
         <Route path="/pesaje" component={Pesaje} />
         <Route path="/pesaje-manual" component={PesajeManual} />
+        <Route path="/basculas" component={Basculas} />
         <Route path="/gps" component={Gps} />
         <Route path="/planes" component={Planes} />
         <Route path="/lotes" component={Lotes} />

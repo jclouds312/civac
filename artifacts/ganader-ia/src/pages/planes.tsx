@@ -463,7 +463,7 @@ function PaymentModal({
                         plan:       plan.id,
                         monto:      total,
                         moneda:     "COP",
-                        metodo:     "wompi",
+                        metodo:     "tarjeta",
                         referencia: ref,
                         estado:     "pendiente",
                         telefono:   form.telefono || undefined,

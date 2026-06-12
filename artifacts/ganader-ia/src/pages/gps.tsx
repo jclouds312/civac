@@ -40,10 +40,14 @@ interface LivePos { lat: number; lng: number; acc: number; ts: number; }
    CONSTANTS
 ───────────────────────────────────────────────────────────────────────────── */
 const TIPOS = [
-  { id:'collar-gps', label:'Collar GPS-LTE',       emoji:'📡', desc:'Nedap · HerdDogg · Gallagher' },
-  { id:'collar-bt',  label:'Collar Bluetooth',     emoji:'🔵', desc:'Tru-Test · Destron Fearing' },
-  { id:'bolus',      label:'Bolo Ruminal GPS',      emoji:'💊', desc:'SmaXtec · Allflex' },
-  { id:'oreja',      label:'Caravana electrónica', emoji:'🏷️', desc:'Allflex · SCR · CRV' },
+  { id:'collar-gps',    label:'Collar GPS-LTE',        emoji:'📡', desc:'Nedap · HerdDogg · Gallagher · Smaxtec',        color:'#00c8ff', glow:'0,200,255'   },
+  { id:'collar-bt',     label:'Collar Bluetooth BLE',  emoji:'🔵', desc:'Tru-Test · Destron Fearing · Zee Tag',           color:'#60a5fa', glow:'96,165,250'  },
+  { id:'bolus',         label:'Bolo Ruminal GPS',       emoji:'💊', desc:'SmaXtec · Allflex · CowManager',                color:'#a78bfa', glow:'167,139,250' },
+  { id:'oreja',         label:'Caravana EID electrónica',emoji:'🏷️',desc:'Allflex · SCR · CRV · ISO 11784',              color:'#fbbf24', glow:'251,191,36'  },
+  { id:'pedometro',     label:'Podómetro BLE',          emoji:'🦶', desc:'SCR AfiTag · Afimilk · BouMatic',               color:'#34d399', glow:'52,211,153'  },
+  { id:'implante',      label:'Implante subcutáneo',    emoji:'💉', desc:'Digital Angel · AVID · Trovan',                 color:'#f87171', glow:'248,113,113' },
+  { id:'panel-solar',   label:'Collar Solar LTE',       emoji:'☀️', desc:'Ceres Tag · SenseHub · Quantified Ag',          color:'#f59e0b', glow:'245,158,11'  },
+  { id:'camara-ia',     label:'Cámara IA potrero',      emoji:'🎥', desc:'CattleEye · IdentiGEN · AKVA group',            color:'#e879f9', glow:'232,121,249' },
 ];
 
 const POTREROS_COLORS: Record<number, string> = {

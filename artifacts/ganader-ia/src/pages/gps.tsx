@@ -142,10 +142,66 @@ export default function Gps() {
   /* ── Device detail dialog ── */
   const [detailDev, setDetailDev]         = useState<GpsDevice|null>(null);
 
+  /* ── Django GPS sync ── */
+  const [djangoSynced, setDjangoSynced]   = useState(false);
+  const [djangoStatus, setDjangoStatus]   = useState<'ok'|'error'|'loading'>('loading');
+
   /* ── Refresh ── */
   const [refreshing, setRefreshing]       = useState(false);
   const [lastUpdate, setLastUpdate]       = useState(new Date());
   const tickRef                           = useRef<ReturnType<typeof setInterval>|null>(null);
+
+  /* ── Sync devices from Django GPS Server ── */
+  useEffect(() => {
+    const syncFromDjango = async () => {
+      try {
+        const res = await fetch('/api/gps/devices/?plan=pro', { signal: AbortSignal.timeout(5000) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.devices) && data.devices.length > 0) {
+          const mapped: GpsDevice[] = data.devices.map((d: Record<string, unknown>, i: number) => ({
+            id: `DEV-${String(i + 1).padStart(3, '0')}`,
+            nombre: String(d.nombre ?? ''),
+            tipo: (['collar-gps','collar-bt','bolus','oreja'].includes(String(d.tipo)) ? d.tipo : 'collar-gps') as GpsDevice['tipo'],
+            imei: String(d.imei ?? ''),
+            animalId: String(d.animal_id ?? ''),
+            animalNom: String(d.animal_nombre ?? ''),
+            vinculado: Boolean(d.vinculado),
+            fechaVin: String(d.fecha_vinculo ?? '2026-01-01'),
+            lat: typeof d.lat === 'number' ? d.lat : undefined,
+            lng: typeof d.lng === 'number' ? d.lng : undefined,
+            precision: typeof d.precision === 'number' ? d.precision : undefined,
+            bateria: typeof d.bateria === 'number' ? d.bateria : 100,
+            activo: Boolean(d.activo),
+            ultimaActualizacion: d.ultima_actualizacion
+              ? new Date(String(d.ultima_actualizacion)).getTime()
+              : Date.now() - 60000,
+            velocidad: typeof d.velocidad === 'number' ? d.velocidad : 0,
+            altitud: typeof d.altitud === 'number' ? d.altitud : undefined,
+            potreroId: typeof d.potrero_id === 'number' ? d.potrero_id : 1,
+          }));
+          setDevices(mapped);
+          setDjangoStatus('ok');
+          setDjangoSynced(true);
+          // Build SVG positions from potrero bounds
+          const newPos: Record<string, {x:number;y:number}> = {};
+          mapped.forEach((d, i) => {
+            const pb = POTREROS_BOUNDS[d.potreroId || 1] || POTREROS_BOUNDS[1];
+            newPos[d.id] = {
+              x: pb.x + 2 + (i % 3) * (pb.w / 3.5),
+              y: pb.y + 2 + Math.floor(i / 3) * (pb.h / 2.5),
+            };
+          });
+          setSvgPositions(newPos);
+        }
+      } catch {
+        setDjangoStatus('error');
+      }
+    };
+    syncFromDjango();
+    const id = setInterval(syncFromDjango, 15000);
+    return () => clearInterval(id);
+  }, []);
 
   /* ── Derived ── */
   const selectedDev = devices.find(d => d.id === selectedDevId) || null;

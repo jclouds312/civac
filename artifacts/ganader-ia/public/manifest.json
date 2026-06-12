@@ -1,7 +1,7 @@
 {
   "name": "GanaderIA CIVAC PRO — Gestión Ganadera Colombia",
   "short_name": "GanaderIA PRO",
-  "description": "Sistema CIVAC PRO v7.0: 32 módulos de gestión ganadera para Colombia. GPS bovino en tiempo real, Pesaje Bluetooth, Trazabilidad ICA, Sanidad Animal, Predicciones IA, Multi-Finca, Asesora IA, CRM y más. Funciona 100% sin internet.",
+  "description": "CIVAC PRO v2.0 — 34+ módulos de gestión ganadera inteligente para Colombia. GPS bovino tiempo real (13 collares LTE), Pesaje Bluetooth 8 drivers, Trazabilidad ICA/SINIGAN, Sanidad Animal, Predicciones IA, Asesora IA, CRM Ventas y más. 100% offline con IndexedDB v2.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

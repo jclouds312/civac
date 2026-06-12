@@ -810,6 +810,75 @@ def admin_patch_usuario(uid):
     return jsonify({"ok":True,"usuario":usuario})
 
 
+@app.route("/api/analytics/admin/stats")
+def admin_stats():
+    """Resumen ejecutivo de toda la plataforma para el panel admin/server."""
+    instancias_activas  = int(np.random.normal(4, 0.3))
+    usuarios_online     = int(np.random.normal(8, 1))
+    revenue_mes         = round(np.random.normal(12_800_000, 500_000))
+    mrr                 = round(revenue_mes * np.random.uniform(0.92, 1.05))
+    churn_pct           = round(np.random.uniform(1.2, 3.8), 1)
+    nps                 = int(np.random.normal(72, 4))
+    api_calls_hora      = int(np.random.normal(1247, 80))
+    gps_collares        = 13
+    litros_dia          = round(np.random.normal(840, 25), 1)
+    alertas_criticas    = int(np.random.randint(0, 5))
+    uptime_pct          = round(np.random.uniform(99.5, 99.99), 2)
+
+    planes = {
+        "basico":  {"activos": 1, "revenue": 0,         "label": "Básico · Gratis"},
+        "pro":     {"activos": 2, "revenue": 5_200_000,  "label": "PRO · $149.900/mes"},
+        "premium": {"activos": 1, "revenue": 4_800_000,  "label": "Premium · $289.900/mes"},
+        "platino": {"activos": 1, "revenue": 2_800_000,  "label": "Platino · $890.000/mes"},
+    }
+
+    tendencia_7d = []
+    base = 11_000_000
+    for i in range(7):
+        from datetime import datetime, timedelta
+        fecha = (datetime.now() - timedelta(days=6-i)).strftime("%d/%m")
+        tendencia_7d.append({
+            "fecha":   fecha,
+            "revenue": round(base * np.random.uniform(0.95, 1.08)),
+            "usuarios": int(np.random.normal(7, 1.5)),
+        })
+
+    return jsonify({
+        "ok": True,
+        "plataforma": {
+            "instancias_activas": instancias_activas,
+            "usuarios_online":    usuarios_online,
+            "api_calls_hora":     api_calls_hora,
+            "gps_collares_live":  gps_collares,
+            "litros_tracked_hoy": litros_dia,
+            "alertas_criticas":   alertas_criticas,
+            "uptime_pct":         uptime_pct,
+        },
+        "financiero": {
+            "revenue_mes":  revenue_mes,
+            "mrr":          mrr,
+            "churn_pct":    churn_pct,
+            "nps":          nps,
+        },
+        "planes":      planes,
+        "tendencia_7d": tendencia_7d,
+        "generado":    datetime.now().isoformat(),
+    })
+
+
+@app.route("/api/analytics/admin/alertas")
+def admin_alertas():
+    """Alertas críticas del sistema para el panel admin."""
+    alertas = [
+        {"id":"A001","tipo":"bateria","severidad":"alta",   "mensaje":"Collar Bravo sin señal > 2h. Potrero 4.","ts":"hace 2h 18min","icono":"🔴"},
+        {"id":"A002","tipo":"stock",  "severidad":"media",  "mensaje":"Ivermectina 1% por debajo del stock mínimo (2L).","ts":"hace 4h","icono":"🟡"},
+        {"id":"A003","tipo":"sanidad","severidad":"media",  "mensaje":"Perla: día 2 de 3 en tratamiento mastitis — verificar.","ts":"hace 6h","icono":"🟡"},
+        {"id":"A004","tipo":"gps",    "severidad":"baja",   "mensaje":"Bolo Perla: batería crítica 17%%.","ts":"hace 30min","icono":"🟠"},
+        {"id":"A005","tipo":"sistema","severidad":"info",   "mensaje":"Analytics Server v2.0 operando normalmente.","ts":"hace 1min","icono":"🟢"},
+    ]
+    return jsonify({"ok":True,"alertas":alertas,"total":len(alertas),"criticas":1,"medias":2,"bajas":1,"info":1})
+
+
 if __name__ == "__main__":
     port = int(__import__("os").environ.get("PORT", 8099))
     app.run(host="0.0.0.0", port=port, debug=False)

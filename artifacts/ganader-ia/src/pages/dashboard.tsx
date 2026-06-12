@@ -231,9 +231,11 @@ export default function Dashboard() {
           border:`1px solid rgba(${rb.glow},0.22)`,
           boxShadow:`0 0 50px rgba(${rb.glow},0.08), 0 8px 40px rgba(0,0,0,0.4)`,
         }}>
-        {/* Unsplash aerial farm image */}
+        {/* HD aerial farm background */}
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1000&q=20&auto=format&fit=crop') center/cover no-repeat", opacity: 0.05 }} />
+          style={{ backgroundImage:"url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1400&q=75&auto=format&fit=crop')", backgroundSize:"cover", backgroundPosition:"center", opacity: 0.13 }} />
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background:`linear-gradient(135deg,${rb.bg}dd 0%,${rb.bg}88 50%,${rb.bg}cc 100%)` }} />
         {/* Decorative blobs */}
         <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full pointer-events-none"
           style={{background:`radial-gradient(circle,rgba(${rb.glow},0.18),transparent 70%)`}}/>

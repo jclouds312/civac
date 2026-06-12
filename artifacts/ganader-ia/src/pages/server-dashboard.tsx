@@ -18,7 +18,7 @@ import {
    DATA / CONSTANTS
 ══════════════════════════════════════════════════════════════════ */
 const SERVICES = [
-  { id:"api",       name:"API Server",        port:8080, tech:"Node 24 / Fastify 5", color:"#00f5d4", glow:"0,245,212",   icon:"⚡", desc:"REST API principal · 32+ endpoints · PostgreSQL · pnpm workspace · Drizzle ORM", uptime:"99.8%", req:"1,247/h", lang:"TypeScript", healthUrl:"/api/health", healthKey:"api" },
+  { id:"api",       name:"API Server",        port:8080, tech:"Node 24 / Express 5", color:"#00f5d4", glow:"0,245,212",   icon:"⚡", desc:"REST API principal · 40+ endpoints · PostgreSQL · pnpm workspace · Drizzle ORM", uptime:"99.8%", req:"1,247/h", lang:"TypeScript", healthUrl:"/api/healthz", healthKey:"api" },
   { id:"analytics", name:"Analytics Server",  port:8099, tech:"Python 3.12 / Flask", color:"#a78bfa", glow:"167,139,250", icon:"📊", desc:"Estadísticas ganaderas · pandas 2.2 · numpy 1.26 · SQLAlchemy · CORS habilitado", uptime:"99.5%", req:"340/h",   lang:"Python",     healthUrl:"/api/analytics/health", healthKey:"analytics" },
   { id:"gps",       name:"GPS Server",        port:8000, tech:"Python 3.12 / Django", color:"#39ff7e", glow:"57,255,126",  icon:"📡", desc:"Tracking collares CIVAC-GPS-v3 · PostgreSQL · Django REST Framework 3.15 · MQTT", uptime:"99.9%", req:"892/h",   lang:"Python",     healthUrl:"/api/gps/health/", healthKey:"gps" },
   { id:"frontend",  name:"Frontend PWA",      port:5000, tech:"React 18 / Vite 6",   color:"#00c8ff", glow:"0,200,255",   icon:"🌐", desc:"32 módulos · Tailwind CSS v4 · shadcn/ui · Service Worker v8 · wouter · IndexedDB", uptime:"100%",  req:"—",        lang:"TypeScript/TSX", healthUrl:null, healthKey:"frontend" },
@@ -26,13 +26,19 @@ const SERVICES = [
 
 const PWA_VERSIONS = [
   {
-    v:"7.1.0", date:"2026-06-03", status:"dev", label:"En desarrollo", color:"#00ff88",
+    v:"8.0.0", date:"2026-06-12", status:"dev", label:"En desarrollo · v2.0", color:"#00ff88",
     plans:["basico","pro","premium","platino"], size:"—", downloads:0,
+    features:["Bottom nav multicolor neon","Login v2.0 badge","8 drivers COM · 11 drivers BT","8 tipos GPS (solar · cámara IA)","Analytics Server v2.0 · 12 endpoints","GPS Django sync tiempo real","34+ módulos","IndexedDB v2"],
+    changelog:"v8.0 (v2.0) — Renovación mayor imagen. Bottom nav neon por módulo. Login v2.0. Pesaje: 8 COM + 11 BT drivers. GPS: 8 categorías. Analytics Server v2.0 + 6 endpoints nuevos. TypeScript 100% clean.",
+  },
+  {
+    v:"7.1.0", date:"2026-06-03", status:"current", label:"PROD · Estable", color:"#00f5d4",
+    plans:["basico","pro","premium","platino"], size:"3.4 MB", downloads:6,
     features:["Cuentas reales colombianas","Sanidad+Trazabilidad en sidebar","32 módulos en admin matrix","Server health checks reales","Sidebar v1.0 footer","manifest.json v8"],
     changelog:"v7.1 — Integración completa de 32 módulos. Cuentas cliente reales (empresas colombianas). Sidebar actualizado con Sanidad ICA y Trazabilidad QR. Server Panel con health checks en tiempo real.",
   },
   {
-    v:"7.0.0", date:"2026-06-01", status:"current", label:"PROD · Estable", color:"#00f5d4",
+    v:"7.0.0", date:"2026-06-01", status:"lts", label:"LTS · 7.x", color:"#fbbf24",
     plans:["basico","pro","premium","platino"], size:"3.1 MB", downloads:4,
     features:["32 módulos completos","Sanidad Animal ICA","Trazabilidad SINIGAN","GPS Chips MQTT","Ventas CRM","Asesora IA","Drive Backup","SW v1 · 33 rutas","Manifest v7 · 8 shortcuts","Documentación 24 secciones"],
     changelog:"CIVAC PRO v1.0 — Release mayor. 32+ módulos. Sanidad+Trazabilidad ICA. GPS Chips MQTT. CRM Ventas. Asesora IA especializada en ganadería Colombia. Service Worker v8. Server Panel 11 secciones.",
@@ -61,7 +67,7 @@ const PLAN_DEMOS = [
   { id:"basico",  label:"El Palmar",         empresa:"Agropecuaria El Palmar",         email:"demo_basico@ganaderia.co",  pwd:"demo2026", color:"#94a3b8", icon:"🥈", modules:["Dashboard","Inventario","Producción","Potreros","Alertas","Sanidad básica"] },
   { id:"pro",     label:"Los Llanos",        empresa:"Ganadería Los Llanos S.A.S.",    email:"demo_pro@ganaderia.co",     pwd:"demo2026", color:"#00f5d4", icon:"⚡", modules:["+ GPS Collares","Pesaje BT","Reproducción","Genética","Costos","Sanidad","Trazabilidad ICA","Asesora IA"] },
   { id:"premium", label:"Inversiones Cesar", empresa:"Inversiones Bovinas del Cesar",  email:"demo_premium@ganaderia.co", pwd:"demo2026", color:"#fbbf24", icon:"🥇", modules:["+ IA Predicciones","CO₂ IPCC","Multi-finca","Ficha Clínica","Drive Backup","CRM Ventas"] },
-  { id:"platino", label:"Córdoba Corp.",     empresa:"Grupo Ganadero Córdoba Corp.",   email:"demo_platino@ganaderia.co", pwd:"demo2026", color:"#cd7f32", icon:"🔶", modules:["TODO Ilimitado · 32 módulos","Admin Panel","Usuarios & Roles","SLA 99.9% garantizado"] },
+  { id:"platino", label:"Córdoba Corp.",     empresa:"Grupo Ganadero Córdoba Corp.",   email:"demo_platino@ganaderia.co", pwd:"demo2026", color:"#cd7f32", icon:"🔶", modules:["Ilimitado · 34+ módulos","Admin Panel completo","Usuarios & Roles","GPS avanzado · 13 collares","SLA 99.9% garantizado","Soporte prioritario 24/7"] },
 ];
 
 const CLIENT_INSTANCES = [

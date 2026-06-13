@@ -2,9 +2,10 @@ modules = ["nodejs-20", "python-3.11", "web"]
 
 [deployment]
 router = "application"
-deploymentTarget = "autoscale"
+deploymentTarget = "static"
 build = ["pnpm", "--filter", "@workspace/ganader-ia", "run", "build"]
 run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+publicDir = "artifacts/ganader-ia/dist/public"
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]

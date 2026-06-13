@@ -182,7 +182,7 @@ function InvoiceModal({ inv, onClose }: { inv: CivacInvoice; onClose: () => void
       <tr><td colspan="2" class="total">TOTAL COP</td><td class="total">${fmtCOPFull(inv.total)}</td></tr>
       </table>
       <p>Método de pago: ${inv.metodo} · Ref: ${inv.referencia}</p>
-      <p style="color:#888;font-size:11px">Factura electrónica generada por CIVAC v1.0 — Resolución DIAN 18764 de 2024</p>
+      <p style="color:#888;font-size:11px">Factura electrónica generada por CIVAC v2.1 — Resolución DIAN 18764 de 2024</p>
       </body></html>`);
     w.document.close();
     w.print();
@@ -578,7 +578,7 @@ export default function Planes() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h1 className="font-black text-xl text-white" style={{ fontFamily:"'Sora',sans-serif" }}>Licencia CIVAC v1.0</h1>
+              <h1 className="font-black text-xl text-white" style={{ fontFamily:"'Sora',sans-serif" }}>Licencia CIVAC v2.1</h1>
               <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full"
                 style={{ background:`linear-gradient(135deg,${actualInfo.from},${actualInfo.to})`, color:actualInfo.textColor }}>
                 {PLAN_ICON[planActual]} Plan {actualInfo.nombre}

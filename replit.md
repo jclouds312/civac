@@ -303,6 +303,7 @@ Rutas públicas (sin auth)
 
 | Versión | Cambios principales |
 |---------|---------------------|
+| v9.0 (v2.1) | **Seguridad login**: cuentas CIVAC Staff sin contraseña visible (badge 🔒 Acceso protegido) · Cuentas demo con credenciales visibles + botón copiar email/pass · Versión unificada v2.1 en toda la plataforma (footer, ticker, widgets, badges, rutas) · API Server operativo con PostgreSQL real (seed completo 30 animales) · Build esbuild 0.27.7 estable con symlink drizzle-zod + nodePaths pnpm store |
 | v8.0 (v2.0) | Bottom nav mobile multicolor neon por módulo (GPS · IA · Alertas · Ganado · Inicio) · Login v2.0 badge · Feature badges actualizados (34+ Módulos, IndexedDB v2, Serial·BT 8 drivers COM / 11 BLE) · 8 drivers Windows COM (+CDC-ACM, CH348, CP2102N, USB3) · 11 controladores BT (+Herd Manager, smaXtec, ID Tech, Agersens, CIVAC Scale v2) · 8 tipos de dispositivo GPS (podómetro, implante, solar, cámara-IA) · Analytics Server v2.0: +6 endpoints Python (sanidad, co2, gps, pesaje, clima) · Login: CIVAC Staff ocultos del tab Cuentas Demo · TypeScript 100% clean |
 | v7.0 | 32+ módulos · Server Panel 11 secciones · Sanidad + Trazabilidad ICA · GPS Chips MQTT · Ventas CRM · Asesora IA · Drive backup · SW v8 (33 rutas) · Manifest v7 (8 shortcuts) · Documentación 24 secciones regenerada |
 | v6.x | server-dashboard expandido (Dependencias, Lenguajes, Integraciones) · badge ⬡ CIVAC Staff · fix `use-toast.ts` React namespace |

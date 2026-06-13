@@ -300,7 +300,7 @@ export default function VentasDashboard() {
                         CIVAC Sales Live
                       </span>
                     </div>
-                    <p className="text-white/50 text-xs">{new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · CIVAC v1.0</p>
+                    <p className="text-white/50 text-xs">{new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · CIVAC v2.1</p>
                     <p className="text-[10px] mt-0.5" style={{color:'rgba(232,121,249,0.4)'}}>Panel comercial · Pipeline CRM · Reportes · Gestión de cuentas</p>
                   </div>
                   <div className="flex gap-2 flex-wrap">

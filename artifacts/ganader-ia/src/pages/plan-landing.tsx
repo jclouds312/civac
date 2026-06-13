@@ -99,13 +99,13 @@ const PLANS: Record<PlanKey, PlanConfig> = {
     cta:"Instalar App Vendedora", ctaSub:"Acceso exclusivo equipo comercial CIVAC",
   },
   developer: {
-    id:"developer", label:"Developer Console", emoji:"💻", tagline:"Consola de desarrollo y arquitectura CIVAC v1.0",
+    id:"developer", label:"Developer Console", emoji:"💻", tagline:"Consola de desarrollo y arquitectura CIVAC v2.1",
     desc:"Panel técnico para desarrolladores CIVAC. Feature flags, build info, performance, logs del sistema.",
     precio:"Acceso técnico", periodo:"Rol developer", badge:"DEV TEAM",
     color:"#00ff88", color2:"#00c864", glow:"0,255,136",
     bg1:"#000d05", bg2:"#001a0a", border:"rgba(0,255,136,0.25)",
     from:"#00ff88", to:"#00c864", highlight:"rgba(0,255,136,0.06)",
-    modules:["💻 Dev Console CIVAC v1.0","🏗️ Build info + commit hash","⚡ Performance metrics (FCP, LCP, CLS)","🚩 Feature flags manager","📋 Logs del sistema en tiempo real","📦 Bundle analyzer (312 KB / 89 KB gz)","🔑 API Keys + Webhooks","🏷️ Version history CIVAC","⚙️ TypeScript 5.9 · React 18 · Vite 5","🧪 Testing y CI/CD pipeline","🔒 Auditoría de seguridad"],
+    modules:["💻 Dev Console CIVAC v2.1","🏗️ Build info + commit hash","⚡ Performance metrics (FCP, LCP, CLS)","🚩 Feature flags manager","📋 Logs del sistema en tiempo real","📦 Bundle analyzer (312 KB / 89 KB gz)","🔑 API Keys + Webhooks","🏷️ Version history CIVAC","⚙️ TypeScript 5.9 · React 18 · Vite 5","🧪 Testing y CI/CD pipeline","🔒 Auditoría de seguridad"],
     extras:["Acceso a todas las rutas del sistema","Feature flags en tiempo real","Consola de API interna","Diagnósticos de rendimiento","Panel multi-rol completo"],
     animals:"Todos los datos", users:"Dev + SuperAdmin", gps:"Acceso total",
     cta:"Instalar Dev Console", ctaSub:"Solo para equipo técnico CIVAC autorizado",
@@ -202,7 +202,7 @@ export default function PlanLanding() {
           </span>
           <span className="text-[8px] font-black px-2 py-0.5 rounded-full hidden sm:block"
             style={{ background: `rgba(${plan.glow},0.15)`, color: plan.color, border: `1px solid rgba(${plan.glow},0.3)` }}>
-            v1.0
+            v2.1
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ export default function PlanLanding() {
           <span className="text-xl">{plan.emoji}</span>
           <span className="font-black text-white" style={{ fontFamily: "'Sora',sans-serif" }}>GanaderIA CIVAC PRO</span>
           <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
-            style={{ background: `rgba(${plan.glow},0.12)`, color: plan.color }}>v1.0</span>
+            style={{ background: `rgba(${plan.glow},0.12)`, color: plan.color }}>v2.1</span>
         </div>
         <p className="text-[10px] text-white/20 mb-4">Control Inteligente de Valor Agropecuario · Colombia 🇨🇴 · Universal Business Technology · SoftGan</p>
         <div className="flex flex-wrap justify-center gap-3">

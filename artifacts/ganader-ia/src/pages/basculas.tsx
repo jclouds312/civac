@@ -128,7 +128,7 @@ function sendTelemetry(event: Omit<TelemetryItem, "id" | "ts">) {
   fetch("/api/telemetry", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...event, platform: navigator.platform, version: "CIVAC-v1.0" }),
+    body: JSON.stringify({ ...event, platform: navigator.platform, version: "CIVAC-v2.1" }),
   }).catch(() => {});
 }
 
@@ -425,7 +425,7 @@ export default function Basculas() {
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <h1 className="font-black text-xl text-white" style={{ fontFamily:"'Sora',sans-serif" }}>Básculas & Dispositivos</h1>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-400">CIVAC v1.0</span>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-400">CIVAC v2.1</span>
             </div>
             <p className="text-[12px] text-white/50">Gestión multi-báscula · BT + COM simultáneos · Drivers Windows · Telemetría</p>
             <div className="flex items-center gap-4 mt-3 flex-wrap">

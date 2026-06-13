@@ -173,7 +173,7 @@ export default function InvitePage() {
           <span className="font-black text-sm">GanaderIA <span style={{ color:plan.color }}>CIVAC</span></span>
           <span className="text-[9px] px-2 py-0.5 rounded-full font-bold"
             style={{ background:`rgba(${plan.glow},0.15)`, color:plan.color, border:`1px solid rgba(${plan.glow},0.3)` }}>
-            v1.0
+            v2.1
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -381,7 +381,7 @@ export default function InvitePage() {
           <span className="text-lg">🐄</span>
           <span className="font-black text-white/30 text-xs">GanaderIA CIVAC</span>
           <span className="text-[9px] px-2 py-0.5 rounded-full"
-            style={{ background:`rgba(${plan.glow},0.12)`, color:plan.color }}>v1.0</span>
+            style={{ background:`rgba(${plan.glow},0.12)`, color:plan.color }}>v2.1</span>
         </div>
         <p className="text-[10px] text-white/20">Control Inteligente de Valor Agropecuario · Colombia 🇨🇴</p>
         <p className="text-[9px] text-white/15 mt-1">Universal Business Technology · SoftGan Colombia · CIVAC®</p>

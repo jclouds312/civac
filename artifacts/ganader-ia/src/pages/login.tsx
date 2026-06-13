@@ -219,9 +219,9 @@ function LoginStatsFooter() {
           <div className="absolute inset-0 pointer-events-none" style={{ background:"radial-gradient(ellipse 60% 80% at 10% 50%,rgba(0,245,212,0.04),transparent)" }}/>
           <div className="text-center sm:text-left">
             <p className="text-[13px] font-black text-white tracking-wide leading-snug" style={{ textShadow:"0 0 30px rgba(0,245,212,0.3)" }}>
-              GanaderIA <span style={{ color:"#00f5d4" }}>CIVAC PRO</span> v1.0
+              GanaderIA <span style={{ color:"#00f5d4" }}>CIVAC PRO</span> v2.1
               <span className="text-white/40 font-normal mx-1.5">·</span>
-              <span style={{ color:"#e879f9" }}>32 módulos</span>
+              <span style={{ color:"#e879f9" }}>34+ módulos</span>
               <span className="text-white/40 font-normal mx-1.5">·</span>
               <span style={{ color:"#fbbf24" }}>Control Inteligente de Valor Agropecuario</span>
             </p>
@@ -406,7 +406,7 @@ function RightWidgets() {
       <div className="rounded-2xl p-3"
         style={{ background:"linear-gradient(145deg,rgba(5,0,20,0.75),rgba(20,5,40,0.85))", border:"1.5px solid rgba(168,85,247,0.28)", backdropFilter:"blur(16px)", boxShadow:"0 0 24px rgba(168,85,247,0.09)" }}>
         <div className="text-[9px] font-black uppercase tracking-wider mb-2.5" style={{ color:"rgba(168,85,247,0.7)" }}>
-          🤖 Módulos IA · v1.0
+          🤖 Módulos IA · v2.1
         </div>
         {[
           { name:"Productivos", val:"20", c:"#00f5d4", pct:100 },
@@ -1673,7 +1673,9 @@ export default function Login() {
                 <div className="flex-1 h-px" style={{ background:"linear-gradient(90deg,transparent,rgba(0,245,212,0.4))" }}/>
               </div>
               <p className="text-center text-[9px] mb-3" style={{ color:"rgba(255,255,255,0.25)" }}>
-                Cuentas de ganadero cliente — explora todos los módulos de tu plan · Contraseña: <strong style={{ color:"rgba(0,245,212,0.5)" }}>demo2026</strong>
+                Cuentas de ganadero cliente — explora todos los módulos de tu plan
+                <span className="mx-1.5 text-white/15">·</span>
+                <span style={{ color:"rgba(57,255,126,0.45)" }}>credenciales visibles en cada tarjeta</span>
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {planAccounts.map(account => {
@@ -1751,6 +1753,31 @@ export default function Login() {
                               background:`linear-gradient(90deg,${pi.c1},${pi.c2})`,
                               boxShadow:`0 0 8px rgba(${pi.gRGB},0.5)`,
                             }}/>
+                          </div>
+                        </div>
+
+                        {/* Credenciales demo — visibles */}
+                        <div className="mb-3 rounded-xl p-2.5" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
+                          <div className="text-[7.5px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-1" style={{ color:"rgba(57,255,126,0.5)" }}>
+                            <span>🔑</span> Credenciales demo
+                          </div>
+                          <div className="flex items-center justify-between gap-1 mb-1.5">
+                            <span className="text-[8.5px] font-mono truncate max-w-[120px]" style={{ color:"rgba(255,255,255,0.45)" }}>{account.email}</span>
+                            <button
+                              onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(account.email); }}
+                              className="flex-shrink-0 text-[7px] font-black px-1.5 py-0.5 rounded-full transition-all hover:opacity-80"
+                              style={{ background:`rgba(${pi.gRGB},0.08)`, color:`rgba(${pi.gRGB},0.6)`, border:`1px solid rgba(${pi.gRGB},0.18)` }}>
+                              copiar
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[9px] font-mono font-black" style={{ color:"rgba(57,255,126,0.75)" }}>demo2026</span>
+                            <button
+                              onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText("demo2026"); }}
+                              className="flex-shrink-0 text-[7px] font-black px-1.5 py-0.5 rounded-full transition-all hover:opacity-80"
+                              style={{ background:"rgba(57,255,126,0.07)", color:"rgba(57,255,126,0.55)", border:"1px solid rgba(57,255,126,0.16)" }}>
+                              copiar
+                            </button>
                           </div>
                         </div>
 
@@ -1957,6 +1984,14 @@ export default function Login() {
                                 <span className="text-[7px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"
                                   style={{ background:"rgba(0,245,212,0.08)", border:"1px solid rgba(0,245,212,0.20)", color:"rgba(0,245,212,0.55)" }}>
                                   👑 {m.plan} · Staff
+                                </span>
+                              </div>
+
+                              {/* Security badge — sin contraseña visible */}
+                              <div className="mt-1.5 text-center">
+                                <span className="text-[6.5px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                                  style={{ background:"rgba(239,68,68,0.07)", border:"1px solid rgba(239,68,68,0.18)", color:"rgba(239,68,68,0.50)" }}>
+                                  🔒 Acceso protegido · Sin contraseña visible
                                 </span>
                               </div>
 

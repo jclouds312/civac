@@ -2,12 +2,17 @@
  * SQLite Client — base de datos local embebida para modo offline.
  * Usa better-sqlite3 (sincrónico) + drizzle-orm/better-sqlite3.
  * Archivo: civac-local.db en la raíz del proyecto.
+ *
+ * NOTA: better-sqlite3 se carga dinámicamente para no bloquear el arranque
+ * cuando el módulo nativo no está compilado (modo PostgreSQL activo).
  */
-import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
 import * as sqliteSchema from "./sqlite-schema.js";
+
+type BetterSqlite3 = typeof import("better-sqlite3");
+type DatabaseInstance = InstanceType<BetterSqlite3["default"]>;
 
 // Ruta absoluta al archivo de base de datos (junto al workspace root)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,11 +20,23 @@ const DB_PATH   = process.env.SQLITE_DB_PATH
   ?? path.resolve(__dirname, "../../../../civac-local.db");
 
 let _sqliteClient: ReturnType<typeof drizzle> | null = null;
-let _raw: Database.Database | null = null;
+let _raw: DatabaseInstance | null = null;
+
+function loadBetterSqlite3(): BetterSqlite3["default"] {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = (typeof require !== "undefined" ? require : null);
+    if (mod) return mod("better-sqlite3");
+    throw new Error("require not available");
+  } catch {
+    throw new Error("[CIVAC SQLite] better-sqlite3 no disponible — modo offline requiere compilar el módulo nativo.");
+  }
+}
 
 export function getSqliteDb(): ReturnType<typeof drizzle<typeof sqliteSchema>> {
   if (_sqliteClient) return _sqliteClient as ReturnType<typeof drizzle<typeof sqliteSchema>>;
 
+  const Database = loadBetterSqlite3();
   _raw = new Database(DB_PATH);
 
   // Optimizaciones WAL para mayor concurrencia

@@ -78,6 +78,13 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
+      better-sqlite3:
+        specifier: ^12.10.0
+        version: 12.10.0
     devDependencies:
       prettier:
         specifier: ^3.8.1

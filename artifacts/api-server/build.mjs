@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm } from "node:fs/promises";
+import { rm, symlink, access } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -11,7 +11,23 @@ globalThis.require = createRequire(import.meta.url);
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(artifactDir, "../..");
 
+async function ensureSymlinks() {
+  const links = [
+    ["../../../lib/db/node_modules/drizzle-zod", path.resolve(artifactDir, "node_modules/drizzle-zod")],
+  ];
+  for (const [target, link] of links) {
+    try {
+      await access(link);
+    } catch {
+      try {
+        await symlink(target, link);
+      } catch { }
+    }
+  }
+}
+
 async function buildAll() {
+  await ensureSymlinks();
   const distDir = path.resolve(artifactDir, "dist");
   await rm(distDir, { recursive: true, force: true });
 
@@ -103,6 +119,13 @@ async function buildAll() {
       "electron",
     ],
     sourcemap: "linked",
+    nodePaths: [
+      path.resolve(workspaceRoot, "lib/db/node_modules"),
+      path.resolve(workspaceRoot, "lib/api-zod/node_modules"),
+      path.resolve(workspaceRoot, "node_modules/.pnpm/node_modules"),
+      path.resolve(workspaceRoot, "node_modules"),
+      path.resolve(workspaceRoot, "artifacts/api-server/node_modules"),
+    ],
     alias: {
       "@/lib/db": path.resolve(workspaceRoot, "lib/db/src/index.ts"),
       "@/lib/db/src/schema/gps": path.resolve(workspaceRoot, "lib/db/src/schema/gps.ts"),

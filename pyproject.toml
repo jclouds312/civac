@@ -2,7 +2,7 @@
 name = "repl-nix-workspace"
 version = "0.1.0"
 description = "Add your description here"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "flask>=3.0.0",
     "flask-cors>=4.0.0",
@@ -19,4 +19,4 @@ dependencies = [
 ]
 
 [tool.uv]
-python-preference = "managed"
+python-preference = "only-system"

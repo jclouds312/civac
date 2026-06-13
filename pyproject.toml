@@ -17,3 +17,6 @@ dependencies = [
     "psycopg2-binary>=2.9.12",
     "email-validator>=2.3.0",
 ]
+
+[tool.uv]
+python-preference = "managed"

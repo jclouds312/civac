@@ -58,6 +58,7 @@ const NAV_ROUTES = [
   '/alertas',
   '/asesora',
   '/ventas',
+  '/chat',
   // ── Admin & Config
   '/usuarios',
   '/configuracion',
@@ -86,7 +87,7 @@ self.addEventListener('install', (e) => {
   })());
 });
 
-// ─── Activate — purgar caches anteriores ─────────────────────────────────────
+// ─── Activate — purgar caches anteriores + broadcast update ──────────────────
 self.addEventListener('activate', (e) => {
   const keep = [CACHE_MAIN, CACHE_STATIC, CACHE_API, CACHE_IMGS, CACHE_FONTS, CACHE_QUEUE];
   e.waitUntil(
@@ -100,6 +101,16 @@ self.addEventListener('activate', (e) => {
             await caches.delete(CACHE_IMGS);
           }
         }
+        // ── Broadcast update disponible a todos los clientes activos ──
+        const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_ACTIVATED',
+            version: CACHE_VER,
+            build: 'v2.2.0',
+            ts: Date.now(),
+          });
+        });
       })
   );
 });

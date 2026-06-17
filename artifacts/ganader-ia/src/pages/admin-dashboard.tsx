@@ -772,6 +772,194 @@ function CodigosTab() {
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
+   ADMIN PAYMENT LINKS — configurable by admin in pagos tab
+────────────────────────────────────────────────────────────────────────── */
+const PL_KEY = "civac_admin_payment_links_v1";
+
+interface PayLink { id: string; label: string; plan: string; monto: string; url: string; active: boolean; ts: number; }
+
+function loadPayLinks(): PayLink[] {
+  try { return JSON.parse(localStorage.getItem(PL_KEY) || "[]"); } catch { return []; }
+}
+function savePayLinks(links: PayLink[]) {
+  try { localStorage.setItem(PL_KEY, JSON.stringify(links)); } catch {}
+}
+
+function AdminPaymentLinks() {
+  const [links, setLinks] = useState<PayLink[]>(loadPayLinks);
+  const [form, setForm] = useState({ label: "", plan: "pro", monto: "", url: "" });
+  const [showForm, setShowForm] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const planOpts = [
+    { id: "pro",      label: "PRO",     price: "89.000" },
+    { id: "premium",  label: "Premium", price: "189.000" },
+    { id: "platino",  label: "Platino", price: "399.000" },
+  ];
+
+  const addLink = () => {
+    if (!form.url.trim() || !form.label.trim()) return;
+    const newLink: PayLink = {
+      id: `pl-${Date.now()}`,
+      label: form.label,
+      plan: form.plan,
+      monto: form.monto || planOpts.find(p => p.id === form.plan)?.price + " COP/mes" || "",
+      url: form.url,
+      active: true,
+      ts: Date.now(),
+    };
+    const updated = [...links, newLink];
+    savePayLinks(updated);
+    setLinks(updated);
+    setForm({ label: "", plan: "pro", monto: "", url: "" });
+    setShowForm(false);
+  };
+
+  const toggleLink = (id: string) => {
+    const updated = links.map(l => l.id === id ? { ...l, active: !l.active } : l);
+    savePayLinks(updated);
+    setLinks(updated);
+  };
+
+  const removeLink = (id: string) => {
+    const updated = links.filter(l => l.id !== id);
+    savePayLinks(updated);
+    setLinks(updated);
+  };
+
+  const copyLink = (url: string, id: string) => {
+    navigator.clipboard.writeText(url).catch(() => {});
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const PLAN_COLORS_MAP: Record<string, string> = { pro: "#00f5d4", premium: "#fbbf24", platino: "#cd7f32" };
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,215,0,0.18)" }}>
+      <div className="px-4 py-3 flex items-center gap-3"
+        style={{ background: "rgba(255,215,0,0.06)", borderBottom: "1px solid rgba(255,215,0,0.10)" }}>
+        <Link2 size={14} style={{ color: "#FFD700" }} />
+        <div className="flex-1">
+          <span className="font-bold text-sm text-white">Links de pago personalizados</span>
+          <p className="text-[9px] text-white/30 mt-0.5">El admin configura los enlaces que aparecen en la sección de pagos del chat y módulos</p>
+        </div>
+        <button onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black transition-all hover:scale-105"
+          style={{ background: "linear-gradient(135deg,#FFD700,#f59e0b)", color: "#020d1a" }}>
+          <Plus size={11} /> Nuevo link
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="p-4 border-b space-y-3" style={{ borderColor: "rgba(255,215,0,0.08)", background: "rgba(255,215,0,0.03)" }}>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[9px] text-white/40 uppercase tracking-wider font-bold block mb-1">Etiqueta</label>
+              <input value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
+                placeholder="Ej: Plan PRO Especial"
+                className="w-full bg-black/30 border rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                style={{ borderColor: "rgba(255,215,0,0.15)" }} />
+            </div>
+            <div>
+              <label className="text-[9px] text-white/40 uppercase tracking-wider font-bold block mb-1">Plan</label>
+              <select value={form.plan} onChange={e => setForm(f => ({ ...f, plan: e.target.value }))}
+                className="w-full bg-black/30 border rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                style={{ borderColor: "rgba(255,215,0,0.15)" }}>
+                {planOpts.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[9px] text-white/40 uppercase tracking-wider font-bold block mb-1">Monto/descripción</label>
+              <input value={form.monto} onChange={e => setForm(f => ({ ...f, monto: e.target.value }))}
+                placeholder="Ej: $89.000 COP/mes"
+                className="w-full bg-black/30 border rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                style={{ borderColor: "rgba(255,215,0,0.15)" }} />
+            </div>
+            <div>
+              <label className="text-[9px] text-white/40 uppercase tracking-wider font-bold block mb-1">URL del link de pago</label>
+              <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))}
+                placeholder="https://checkout.wompi.co/p/..."
+                className="w-full bg-black/30 border rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                style={{ borderColor: "rgba(255,215,0,0.15)" }} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={addLink} disabled={!form.url.trim() || !form.label.trim()}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all disabled:opacity-40"
+              style={{ background: "linear-gradient(135deg,#FFD700,#f59e0b)", color: "#020d1a" }}>
+              <CheckCircle size={12} /> Guardar link
+            </button>
+            <button onClick={() => setShowForm(false)}
+              className="px-3 py-2 rounded-xl text-xs text-white/40 hover:text-white/60 hover:bg-white/5 transition-all">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="divide-y divide-white/5">
+        {links.length === 0 ? (
+          <div className="px-4 py-8 text-center">
+            <Link2 size={24} className="mx-auto mb-2 opacity-20" />
+            <p className="text-[11px] text-white/25">Sin links configurados</p>
+            <p className="text-[9px] text-white/15 mt-0.5">Crea un link para que aparezca en el canal de pagos del chat</p>
+          </div>
+        ) : (
+          links.map(l => (
+            <div key={l.id} className="px-4 py-3 flex items-center gap-3"
+              style={{ background: l.active ? "rgba(255,255,255,0.01)" : "rgba(0,0,0,0.2)", opacity: l.active ? 1 : 0.5 }}>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: `${PLAN_COLORS_MAP[l.plan] ?? "#94a3b8"}18`, border: `1px solid ${PLAN_COLORS_MAP[l.plan] ?? "#94a3b8"}30` }}>
+                <span className="text-sm">💳</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">{l.label}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+                    style={{ background: `${PLAN_COLORS_MAP[l.plan] ?? "#94a3b8"}18`, color: PLAN_COLORS_MAP[l.plan] ?? "#94a3b8" }}>
+                    {l.plan}
+                  </span>
+                  {l.monto && <span className="text-[9px] text-white/35">{l.monto}</span>}
+                </div>
+                <p className="text-[9px] text-white/25 truncate mt-0.5 font-mono">{l.url}</p>
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button onClick={() => copyLink(l.url, l.id)}
+                  className="p-1.5 rounded-lg transition-all hover:bg-white/5"
+                  title="Copiar URL"
+                  style={{ color: copied === l.id ? "#39ff7e" : "rgba(255,255,255,0.3)" }}>
+                  {copied === l.id ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                </button>
+                <a href={l.url} target="_blank" rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                  style={{ color: "rgba(255,255,255,0.3)" }}>
+                  <ExternalLink size={13} />
+                </a>
+                <button onClick={() => toggleLink(l.id)}
+                  className="p-1.5 rounded-lg transition-all hover:bg-white/5"
+                  title={l.active ? "Desactivar" : "Activar"}
+                  style={{ color: l.active ? "#39ff7e" : "rgba(255,255,255,0.25)" }}>
+                  {l.active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                </button>
+                <button onClick={() => removeLink(l.id)}
+                  className="p-1.5 rounded-lg hover:bg-red-500/10 transition-all"
+                  title="Eliminar"
+                  style={{ color: "rgba(248,113,113,0.5)" }}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
    MAIN COMPONENT
 ────────────────────────────────────────────────────────────────────────── */
 export default function AdminDashboard({
@@ -2363,6 +2551,9 @@ export default function AdminDashboard({
               </tbody>
             </table>
           </div>
+
+          {/* ── Custom Payment Links Panel ────────────────────────────── */}
+          <AdminPaymentLinks />
         </div>
       )}
 

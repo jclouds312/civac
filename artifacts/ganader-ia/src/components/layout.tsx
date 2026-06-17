@@ -358,6 +358,10 @@ export function Layout({ children }: LayoutProps) {
     'Principal': true, 'Animales': true, 'Campo': true,
     'Gestión': true, 'IA & Analytics': true, 'Sistema': true,
   });
+  const [swUpdateReady, setSwUpdateReady] = useState(false);
+  const [swNewVersion, setSwNewVersion] = useState('');
+  const [swDismissed, setSwDismissed] = useState(false);
+  const [unreadChat, setUnreadChat] = useState(0);
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const pt = usePlanTheme();
@@ -369,6 +373,70 @@ export function Layout({ children }: LayoutProps) {
     window.addEventListener('beforeinstallprompt', h);
     return () => window.removeEventListener('beforeinstallprompt', h);
   }, []);
+
+  /* ── SW auto-update detection ─────────────────────────────────────────── */
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const onMsg = (e: MessageEvent) => {
+      if (e.data?.type === 'SW_ACTIVATED') {
+        const ver = e.data.version || '';
+        const lastSeen = localStorage.getItem('civac_sw_seen') || '';
+        if (ver && ver !== lastSeen) {
+          setSwNewVersion(ver);
+          setSwUpdateReady(true);
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', onMsg);
+
+    const onCtrlChange = () => {
+      setSwUpdateReady(true);
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onCtrlChange);
+
+    /* Check for waiting worker on mount */
+    navigator.serviceWorker.getRegistration().then(reg => {
+      if (reg?.waiting) setSwUpdateReady(true);
+    });
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', onMsg);
+      navigator.serviceWorker.removeEventListener('controllerchange', onCtrlChange);
+    };
+  }, []);
+
+  const handleSwUpdate = () => {
+    localStorage.setItem('civac_sw_seen', swNewVersion);
+    setSwUpdateReady(false);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        if (reg?.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        else window.location.reload();
+      });
+    } else {
+      window.location.reload();
+    }
+  };
+
+  /* ── Unread chat badge ────────────────────────────────────────────────── */
+  useEffect(() => {
+    const countUnread = () => {
+      try {
+        const msgs = JSON.parse(localStorage.getItem('civac_chat_messages_v1') || '[]');
+        const unread = msgs.filter((m: any) => !m.read && m.fromId !== user?.id).length;
+        setUnreadChat(unread);
+      } catch {}
+    };
+    countUnread();
+    const id = setInterval(countUnread, 3000);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'civac_chat_messages_v1') countUnread();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => { clearInterval(id); window.removeEventListener('storage', onStorage); };
+  }, [user?.id]);
 
   // Apply plan-based CSS theme variables whenever the user or their plan changes
   useEffect(() => {
@@ -550,11 +618,11 @@ export function Layout({ children }: LayoutProps) {
 
   /* ── Bottom nav tabs — cada tab con identidad de color propia ─────────── */
   const bottomTabs = [
-    { href: '/',              Icon: LayoutDashboard, label: 'Inicio',   badge: undefined, c:'#FFD60A', g:'255,214,10'  },
-    { href: '/inventario',    Icon: Beef,            label: 'Ganado',   badge: undefined, c:'#39ff7e', g:'57,255,126'  },
-    { href: '/gps',           Icon: Navigation,      label: 'GPS',      badge: undefined, c:'#00c8ff', g:'0,200,255'   },
-    { href: '/alertas',       Icon: Bell,            label: 'Alertas',  badge: 4,         c:'#ff4d6d', g:'255,77,109'  },
-    { href: '/asesora',       Icon: MessageCircle,   label: 'IA',       badge: undefined, c:'#e879f9', g:'232,121,249' },
+    { href: '/',           Icon: LayoutDashboard, label: 'Inicio',   badge: undefined,                         c:'#FFD60A', g:'255,214,10'  },
+    { href: '/inventario', Icon: Beef,            label: 'Ganado',   badge: undefined,                         c:'#39ff7e', g:'57,255,126'  },
+    { href: '/gps',        Icon: Navigation,      label: 'GPS',      badge: undefined,                         c:'#00c8ff', g:'0,200,255'   },
+    { href: '/alertas',    Icon: Bell,            label: 'Alertas',  badge: 4 as number | undefined,           c:'#ff4d6d', g:'255,77,109'  },
+    { href: '/chat',       Icon: MessageCircle,   label: 'Chat',     badge: unreadChat > 0 ? unreadChat : undefined, c:'#25D366', g:'37,211,102'  },
   ];
 
   return (
@@ -570,7 +638,7 @@ export function Layout({ children }: LayoutProps) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <mod.icon size={12} strokeWidth={2.5} style={{ color: '#001a0a' }} />
+            <mod.icon size={12} strokeWidth={2.5} className="text-[#001a0a]" />
           </div>
           <span style={{
             fontSize: 11, fontWeight: 700, letterSpacing: '0.03em',
@@ -1049,6 +1117,38 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
         </header>
+
+        {/* ── SW Update Banner ─────────────────────────────────────────── */}
+        {swUpdateReady && !swDismissed && (
+          <div className="mx-3 mt-3 lg:mx-5 lg:mt-3 flex items-center gap-3 px-4 py-3 rounded-2xl border animate-in slide-in-from-top duration-300"
+            style={{
+              background: 'linear-gradient(135deg,rgba(0,245,212,0.10),rgba(255,214,10,0.08))',
+              border: '1px solid rgba(0,245,212,0.35)',
+              boxShadow: '0 0 24px rgba(0,245,212,0.12)',
+            }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 animate-spin-slow"
+              style={{ background: 'linear-gradient(135deg,#00f5d4,#FFD700)', color: '#020d1a' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-black text-white leading-tight">
+                Nueva versión disponible {swNewVersion && <span className="text-[10px] font-normal opacity-60 ml-1">{swNewVersion}</span>}
+              </p>
+              <p className="text-[10px] mt-0.5" style={{ color: 'rgba(0,245,212,0.6)' }}>
+                Actualización automática lista — no necesitas reinstalar
+              </p>
+            </div>
+            <button onClick={handleSwUpdate}
+              className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-black transition-all hover:scale-105"
+              style={{ background: 'linear-gradient(135deg,#00f5d4,#FFD700)', color: '#020d1a', boxShadow: '0 0 16px rgba(0,245,212,0.4)' }}>
+              Actualizar ahora
+            </button>
+            <button onClick={() => setSwDismissed(true)}
+              className="flex-shrink-0 w-7 h-7 rounded-xl flex items-center justify-center text-white/30 hover:text-white/60 hover:bg-white/5 transition-all">
+              <X size={13} />
+            </button>
+          </div>
+        )}
 
         {/* ── Page content ──────────────────────────────────────────────── */}
         <div className="flex-1 p-3 lg:p-5 overflow-x-hidden pb-20 lg:pb-5">

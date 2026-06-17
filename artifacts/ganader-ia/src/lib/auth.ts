@@ -148,7 +148,34 @@ export const PLAN_ICON: Record<PlanId, string> = {
 };
 
 /* ─── CIVAC Staff IDs — these have access to the Server Panel ─────────────── */
-export const CIVAC_STAFF_IDS: string[] = ['superadmin', 'developer', 'admin', 'ventas'];
+export const CIVAC_STAFF_IDS: string[] = ['superadmin', 'developer', 'admin', 'sales'];
+
+/* ─── Plan tier labels (Enterprise / Professional / Basic / Developer) ─────── */
+export const PLAN_LABEL_TIER: Record<string, string> = {
+  platino:    'Enterprise',
+  premium:    'Professional',
+  pro:        'PRO',
+  basico:     'Basic',
+};
+
+export const PLAN_LABEL_ROLE: Record<string, string> = {
+  superadmin: 'Enterprise',
+  admin:      'Enterprise',
+  developer:  'Developer',
+  sales:      'Sales',
+  vet:        'Professional',
+  field:      'Professional',
+  viewer:     'Basic',
+};
+
+export const PLAN_COLOR_TIER: Record<string, string> = {
+  Enterprise:   '#FFD700',
+  Professional: '#00f5d4',
+  Developer:    '#39ff7e',
+  Sales:        '#e879f9',
+  Basic:        '#94a3b8',
+  PRO:          '#00c8ff',
+};
 
 export const DEFAULT_ACCOUNTS: Account[] = [
   /* ── CIVAC STAFF — acceso Server Panel + badge ⬡ CIVAC ── */

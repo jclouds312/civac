@@ -115,18 +115,18 @@ artifacts/ganader-ia/
 
 | Nombre | Email | Password | Rol | Cargo |
 |--------|-------|----------|-----|-------|
-| Javier Hernando Sánchez Bernal | Softganventas@gmail.com | civac2026 | superadmin | CEO · Fundador & Propietario CIVAC |
-| Lizet Daza | lizet.daza@civac.co | lizet2026 | admin | Co-Fundadora · Directora Ejecutiva |
-| Johnatan Vallejo Marulanda | johnatanvallejomarulanda@gmail.com | dev2026 | developer | Arquitecto Principal · Dev PWA & IA |
-| Asesora CIVAC · Ventas | ventas@civac.co | ventas2026 | sales | Asesora Comercial Senior |
+| Super Administrador | super@civac.co | super2026 | superadmin | Control total · Auditoría · Config global |
+| Administrador General | admin@civac.co | admin | admin | Panel Admin completo · Gestión plataforma |
+| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola Dev · PWA · APIs · Deploy |
+| Asesora CIVAC · Ventas | ventas@civac.co | ventas2026 | sales | Asesora Comercial Senior · CRM |
 
-### Cuentas Demo / Cliente (acceso finca)
+### Cuentas Cliente (acceso finca — Plan Premium)
 
 | Nombre | Email | Password | Rol | Descripción |
 |--------|-------|----------|-----|-------------|
-| Dr. Carlos Ramírez | vet@ganader.ia | vet2026 | vet | Médico Veterinario — módulos clínicos |
-| Luis Patiño | luis@ganader.ia | campo2026 | field | Jefe de Campo — pesaje, GPS, potreros |
-| Propietario / Inversor | visor@ganader.ia | visor | viewer | Solo lectura / dashboards |
+| Dr. Carlos Ramírez | vet@civac.co | vet2026 | vet | Médico Veterinario — módulos clínicos |
+| Luis Patiño | luis@civac.co | campo2026 | field | Jefe de Campo — pesaje, GPS, potreros |
+| Propietario / Inversor | visor@civac.co | visor | viewer | Solo lectura / dashboards |
 
 **`CIVAC_STAFF_IDS`** = `['superadmin','developer','admin','sales']` — exportado de `auth.ts`. Estas cuentas muestran badge `⬡ CIVAC` en lugar del badge de plan y tienen acceso al Server Panel (`/server`).
 

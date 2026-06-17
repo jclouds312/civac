@@ -1645,7 +1645,8 @@ export default function Login() {
             TAB: CUENTAS — CIVAC Staff + Demo por Plan
         ═══════════════════════════════════════════════════════════════════ */}
         {tab === "cuentas" && (() => {
-          const planAccounts  = clientAccounts.filter(a => a.id.startsWith("demo_"));
+          const CLIENT_IDS = new Set(["demo_basico","demo_pro","demo_premium","demo_platino","vet_civac","field_civac","viewer_civac"]);
+          const planAccounts  = clientAccounts.filter(a => CLIENT_IDS.has(a.id));
 
           /* Plan card identity */
           const PLAN_IDENTITY: Record<PlanId, {
@@ -1771,9 +1772,9 @@ export default function Login() {
                             </button>
                           </div>
                           <div className="flex items-center justify-between gap-1">
-                            <span className="text-[9px] font-mono font-black" style={{ color:"rgba(57,255,126,0.75)" }}>demo2026</span>
+                            <span className="text-[9px] font-mono font-black" style={{ color:"rgba(57,255,126,0.75)" }}>{account.password}</span>
                             <button
-                              onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText("demo2026"); }}
+                              onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(account.password); }}
                               className="flex-shrink-0 text-[7px] font-black px-1.5 py-0.5 rounded-full transition-all hover:opacity-80"
                               style={{ background:"rgba(57,255,126,0.07)", color:"rgba(57,255,126,0.55)", border:"1px solid rgba(57,255,126,0.16)" }}>
                               copiar
@@ -1882,39 +1883,39 @@ export default function Login() {
                 {(() => {
                   const STAFF_MEMBERS = [
                     {
-                      emoji:"🔱", name:"Javier Sánchez", short:"Javier",
-                      cargo:"CEO · Fundador & Propietario",
-                      sub:"Control total · Auditoría · Config global · Server Panel",
-                      role:"superadmin", plan:"Platino",
+                      emoji:"🔱", name:"Super Admin", short:"Super Admin",
+                      cargo:"Super Administrador",
+                      sub:"Acceso total plataforma · Auditoría · Config global · Server Panel",
+                      role:"superadmin", plan:"Enterprise",
+                      email:"super@civac.co", pass:"super2026",
                       from:"#c0392b", to:"#e74c3c", glow:"192,57,43",
-                      img:"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&q=80&fit=crop&crop=face",
-                      tags:["⬡ Superadmin","🔱 CEO","🛡 Audit","⚙️ Config"],
+                      tags:["⬡ Superadmin","🔱 Total Access","🛡 Audit","⚙️ Config"],
                     },
                     {
-                      emoji:"👑", name:"Lizet Daza", short:"Lizet",
-                      cargo:"Co-Fundadora · Dir. Ejecutiva",
-                      sub:"Dirección ejecutiva · Panel Admin · Plataforma completa",
-                      role:"admin", plan:"Platino",
+                      emoji:"👑", name:"Admin General", short:"Admin",
+                      cargo:"Administrador General",
+                      sub:"Panel Admin completo (11 tabs) · Gestión plataforma",
+                      role:"admin", plan:"Enterprise",
+                      email:"admin@civac.co", pass:"admin",
                       from:"#d4a017", to:"#f0c040", glow:"212,160,23",
-                      img:"https://images.unsplash.com/photo-1494790108755-2616b612b1e6?w=120&q=80&fit=crop&crop=face",
-                      tags:["👑 Admin","📊 Panel","💼 Gestión"],
+                      tags:["👑 Admin","📊 Panel Admin","💼 Gestión"],
                     },
                     {
-                      emoji:"🛠️", name:"Johnatan Vallejo", short:"Johnatan",
+                      emoji:"🛠️", name:"Dev · Arquitecto", short:"Dev",
                       cargo:"Arquitecto Principal · Dev",
-                      sub:"PWA · APIs · Feature Flags · Deploy · Server Panel",
-                      role:"developer", plan:"Platino",
+                      sub:"Consola desarrollo (9 tabs) · PWA · APIs · Deploy",
+                      role:"developer", plan:"Developer",
+                      email:"dev@civac.co", pass:"dev2026",
                       from:"#00c853", to:"#00e676", glow:"0,200,83",
-                      img:"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&q=80&fit=crop&crop=face",
-                      tags:["🛠️ Dev","🚀 Deploy","🔧 APIs","⚡ PWA"],
+                      tags:["🛠️ Developer","🚀 Deploy","🔧 APIs","⚡ PWA"],
                     },
                     {
                       emoji:"📊", name:"Asesora Ventas", short:"Ventas",
                       cargo:"Asesora Comercial Senior",
                       sub:"CRM · Pipeline · Reportes · Gestión de cuentas",
                       role:"sales", plan:"Platino",
+                      email:"ventas@civac.co", pass:"ventas2026",
                       from:"#e879f9", to:"#a855f7", glow:"232,121,249",
-                      img:"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&q=80&fit=crop&crop=face",
                       tags:["📊 Ventas","💼 CRM","📈 Reportes"],
                     },
                   ];
@@ -1941,13 +1942,10 @@ export default function Login() {
                             <div className="p-3.5">
                               {/* Avatar + glow ring */}
                               <div className="relative w-14 h-14 mx-auto mb-3">
-                                <div className="absolute inset-0 rounded-2xl"
-                                  style={{ background:`linear-gradient(135deg,${m.from}40,${m.to}25)`, border:`1.5px solid rgba(${m.glow},0.35)`, boxShadow:`0 0 20px rgba(${m.glow},0.20)` }}/>
-                                <img src={m.img} alt={m.name}
-                                  className="relative w-full h-full rounded-2xl object-cover"
-                                  style={{ border:`1.5px solid rgba(${m.glow},0.45)` }}
-                                  onError={e => { (e.currentTarget as HTMLImageElement).style.display="none"; const p=e.currentTarget.parentElement; if(p){p.innerHTML=`<div style="width:56px;height:56px;border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,rgba(${m.glow},0.15),rgba(${m.glow},0.08));border:1.5px solid rgba(${m.glow},0.35)">${m.emoji}</div>`;} }}
-                                />
+                                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-[1.7rem]"
+                                  style={{ background:`linear-gradient(135deg,rgba(${m.glow},0.15),rgba(${m.glow},0.08))`, border:`1.5px solid rgba(${m.glow},0.35)`, boxShadow:`0 0 20px rgba(${m.glow},0.20)`, filter:`drop-shadow(0 0 8px rgba(${m.glow},0.5))` }}>
+                                  {m.emoji}
+                                </div>
                                 {/* Status dot */}
                                 <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
                                   style={{ background:"#39ff7e", border:"1.5px solid rgba(0,0,0,0.6)", boxShadow:"0 0 8px rgba(57,255,126,0.6)" }}/>

@@ -151,46 +151,45 @@ export const PLAN_ICON: Record<PlanId, string> = {
 export const CIVAC_STAFF_IDS: string[] = ['superadmin', 'developer', 'admin', 'ventas'];
 
 export const DEFAULT_ACCOUNTS: Account[] = [
-  /* ── CIVAC STAFF — propietarios y equipo ── */
+  /* ── CIVAC STAFF — acceso Server Panel + badge ⬡ CIVAC ── */
   {
     id: 'superadmin',
-    nombre: 'Javier Hernando Sánchez Bernal',
-    cargo: 'CEO · Fundador & Propietario CIVAC',
+    nombre: 'Super Administrador',
+    cargo: 'Super Administrador · Acceso Total Plataforma',
     finca: 'CIVAC HQ · Bogotá, Colombia',
-    email: 'Softganventas@gmail.com',
-    password: 'civac2026',
+    email: 'super@civac.co',
+    password: 'super2026',
     avatar: '🔱',
-    phone: '3187351262',
     gradient: 'from-[#1a0500] to-[#3d0f00]',
     role: 'superadmin',
     activo: true,
     plan: 'platino',
     planExpiry: '2099-12-31',
-    etiquetas: ['Propietario','CEO','Fundador CIVAC'],
+    etiquetas: ['Super Admin','Acceso Total','Enterprise'],
     permisos: ['*'],
   },
   {
     id: 'admin',
-    nombre: 'Lizet Daza',
-    cargo: 'Co-Fundadora · Directora Ejecutiva CIVAC',
+    nombre: 'Administrador General',
+    cargo: 'Administrador General · Panel Admin Completo',
     finca: 'CIVAC HQ · Bogotá, Colombia',
-    email: 'lizet.daza@civac.co',
-    password: 'lizet2026',
+    email: 'admin@civac.co',
+    password: 'admin',
     avatar: '👑',
     gradient: 'from-[#2d1b00] to-[#4a2e00]',
     role: 'admin',
     activo: true,
     plan: 'platino',
     planExpiry: '2099-12-31',
-    etiquetas: ['Co-Fundadora','Directora Ejecutiva'],
+    etiquetas: ['Admin General','Panel Admin','Enterprise'],
     permisos: ['*'],
   },
   {
     id: 'developer',
-    nombre: 'Johnatan Vallejo Marulanda',
+    nombre: 'Dev · Arquitecto CIVAC',
     cargo: 'Arquitecto Principal · Desarrollador PWA & IA',
     finca: 'CIVAC Labs · Colombia',
-    email: 'johnatanvallejomarulanda@gmail.com',
+    email: 'dev@civac.co',
     password: 'dev2026',
     avatar: '🛠️',
     gradient: 'from-[#001a14] to-[#003d2e]',
@@ -198,7 +197,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     activo: true,
     plan: 'platino',
     planExpiry: '2099-12-31',
-    etiquetas: ['Desarrollador','Arquitecto CIVAC'],
+    etiquetas: ['Developer','Arquitecto CIVAC','Developer Plan'],
     permisos: ['*'],
   },
   {
@@ -216,6 +215,70 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     planExpiry: '2099-12-31',
     etiquetas: ['Asesora','Ventas CIVAC'],
     permisos: ['ventas','planes','usuarios','dashboard','alertas','documentacion','manual','chat'],
+  },
+
+  /* ── CUENTAS CLIENTE — acceso módulos de finca por plan ── */
+  {
+    id: 'vet_civac',
+    nombre: 'Dr. Carlos Ramírez',
+    cargo: 'Médico Veterinario · Módulos Clínicos',
+    finca: 'Finca Demostrativa CIVAC · Colombia',
+    email: 'vet@civac.co',
+    password: 'vet2026',
+    avatar: '🩺',
+    gradient: 'from-[#001a10] to-[#003020]',
+    role: 'vet',
+    activo: true,
+    plan: 'premium',
+    planExpiry: '2099-12-31',
+    etiquetas: ['Veterinario','Módulos Clínicos','Professional'],
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'reproduccion','genetica','pesaje','ficha','alimentacion',
+      'gps','gps-chips','insumos','semen','costos','personal',
+      'multifinca','prediccion','asesora','sanidad','trazabilidad',
+      'pesaje-manual','co2','lotes','datos','drive','documentacion','manual',
+    ],
+  },
+  {
+    id: 'field_civac',
+    nombre: 'Luis Patiño',
+    cargo: 'Jefe de Campo · Pesaje, GPS, Potreros',
+    finca: 'Finca Demostrativa CIVAC · Colombia',
+    email: 'luis@civac.co',
+    password: 'campo2026',
+    avatar: '🌾',
+    gradient: 'from-[#0a1a00] to-[#182d00]',
+    role: 'field',
+    activo: true,
+    plan: 'premium',
+    planExpiry: '2099-12-31',
+    etiquetas: ['Campo','GPS · Pesaje · Potreros','Professional'],
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'pesaje','pesaje-manual','gps','gps-chips',
+      'alimentacion','insumos','lotes','costos','asesora',
+      'documentacion','manual',
+    ],
+  },
+  {
+    id: 'viewer_civac',
+    nombre: 'Propietario / Inversor',
+    cargo: 'Propietario · Solo Lectura / Dashboards',
+    finca: 'Finca Demostrativa CIVAC · Colombia',
+    email: 'visor@civac.co',
+    password: 'visor',
+    avatar: '📊',
+    gradient: 'from-[#1a2a3a] to-[#243040]',
+    role: 'viewer',
+    activo: true,
+    plan: 'basico',
+    planExpiry: '2099-12-31',
+    etiquetas: ['Visor','Solo Lectura','Basic'],
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'costos','prediccion','co2','multifinca','documentacion','manual',
+    ],
   },
 
   /* ── CUENTAS CLIENTE DEMO — ganaderos reales usando el sistema por plan ── */
@@ -323,7 +386,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '7.4.0';
+const ACCOUNTS_VERSION = '7.5.0';
 
 /* ─── Template backup — persiste siempre las cuentas demo originales ─────── */
 function saveTemplateBackup() {

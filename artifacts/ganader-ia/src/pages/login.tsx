@@ -1085,7 +1085,7 @@ export default function Login() {
               <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none"
                 style={{ background:"linear-gradient(135deg,#fbbf24,#ea580c)", color:"white", letterSpacing:"0.03em" }}>PRO Colombia</span>
               <span className="text-[8px] font-black px-2 py-0.5 rounded-md leading-none ml-1"
-                style={{ background:"linear-gradient(135deg,#00f5d4,#0891b2)", color:"#000", letterSpacing:"0.05em" }}>v2.1</span>
+                style={{ background:"linear-gradient(135deg,#FFD700,#f59e0b)", color:"#000", letterSpacing:"0.05em" }}>v2.3</span>
             </div>
           </div>
 
@@ -1096,53 +1096,29 @@ export default function Login() {
           {/* Live Sensor Strip — sensores en tiempo real */}
           <LiveSensorStrip />
 
-          {/* Tabs — 5 botones con identidad de color propia */}
+          {/* Tabs — 4 botones limpios con identidad de color */}
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {[
-              { id:"login"    as const, label:"Iniciar Sesión",  emoji:"🔐", c1:"#00f5d4", c2:"#00a896", g:"0,245,212"   },
-              { id:"registro" as const, label:"Registrarse",     emoji:"✨", c1:"#a855f7", c2:"#7c3aed", g:"168,85,247"  },
-              { id:"cuentas"  as const, label:"Cuentas Demo",    emoji:"👥", c1:"#39ff7e", c2:"#16a34a", g:"57,255,126"  },
-              { id:"planes"   as const, label:"Planes",          emoji:"💳", c1:"#fbbf24", c2:"#ea580c", g:"251,191,36"  },
-              { id:"ia"       as const, label:"Módulo IA",       emoji:"🤖", c1:"#e879f9", c2:"#a855f7", g:"232,121,249" },
+              { id:"login"    as const, label:"Acceder",     emoji:"🔑", c1:"#00f5d4", c2:"#00a896", g:"0,245,212"   },
+              { id:"registro" as const, label:"Registrarse", emoji:"✨", c1:"#a855f7", c2:"#7c3aed", g:"168,85,247"  },
+              { id:"planes"   as const, label:"Planes",      emoji:"💳", c1:"#fbbf24", c2:"#d97706", g:"251,191,36"  },
+              { id:"ia"       as const, label:"Asesora IA",  emoji:"🤖", c1:"#e879f9", c2:"#a855f7", g:"232,121,249" },
             ].map(t => {
               const isActive = tab === t.id;
               return (
                 <button key={t.id} onClick={() => setTab(t.id)}
-                  className="relative flex items-center gap-2 px-5 py-3 rounded-2xl text-[11px] sm:text-sm font-black transition-all duration-300 hover:scale-[1.05] active:scale-[0.97] overflow-hidden"
+                  className="relative flex items-center gap-2 px-5 py-2.5 rounded-2xl text-[11px] sm:text-sm font-black transition-all duration-300 hover:scale-[1.05] active:scale-[0.97] overflow-hidden"
                   style={isActive
-                    ? {
-                        background:`linear-gradient(135deg,${t.c1},${t.c2})`,
-                        color:"#000",
-                        boxShadow:`0 0 32px rgba(${t.g},0.65), 0 6px 20px rgba(0,0,0,0.4)`,
-                        border:`2px solid rgba(${t.g},0.8)`,
-                        transform:"scale(1.06)",
-                      }
-                    : {
-                        background:`rgba(${t.g},0.07)`,
-                        color:`rgba(${t.g},0.75)`,
-                        border:`1.5px solid rgba(${t.g},0.25)`,
-                        boxShadow:`0 0 10px rgba(${t.g},0.08)`,
-                      }
+                    ? { background:`linear-gradient(135deg,${t.c1},${t.c2})`, color:"#000",
+                        boxShadow:`0 0 28px rgba(${t.g},0.60), 0 5px 18px rgba(0,0,0,0.35)`,
+                        border:`2px solid rgba(${t.g},0.85)`, transform:"scale(1.05)" }
+                    : { background:`rgba(${t.g},0.07)`, color:`rgba(${t.g},0.78)`,
+                        border:`1.5px solid rgba(${t.g},0.22)`, boxShadow:`0 0 8px rgba(${t.g},0.08)` }
                   }
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = `rgba(${t.g},0.14)`;
-                      (e.currentTarget as HTMLElement).style.borderColor = `rgba(${t.g},0.45)`;
-                      (e.currentTarget as HTMLElement).style.boxShadow = `0 0 18px rgba(${t.g},0.25)`;
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = `rgba(${t.g},0.07)`;
-                      (e.currentTarget as HTMLElement).style.borderColor = `rgba(${t.g},0.25)`;
-                      (e.currentTarget as HTMLElement).style.boxShadow = `0 0 10px rgba(${t.g},0.08)`;
-                    }
-                  }}>
-                  {isActive && (
-                    <div className="absolute inset-0 pointer-events-none"
-                      style={{ background:`linear-gradient(135deg,rgba(255,255,255,0.12) 0%,transparent 60%)` }} />
-                  )}
-                  <span style={{ filter: isActive ? `drop-shadow(0 0 6px rgba(0,0,0,0.4))` : `drop-shadow(0 0 4px rgba(${t.g},0.5))` }}>{t.emoji}</span>
+                  onMouseEnter={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background=`rgba(${t.g},0.14)`;(e.currentTarget as HTMLElement).style.borderColor=`rgba(${t.g},0.42)`;(e.currentTarget as HTMLElement).style.boxShadow=`0 0 18px rgba(${t.g},0.22)`; } }}
+                  onMouseLeave={e => { if (!isActive) { (e.currentTarget as HTMLElement).style.background=`rgba(${t.g},0.07)`;(e.currentTarget as HTMLElement).style.borderColor=`rgba(${t.g},0.22)`;(e.currentTarget as HTMLElement).style.boxShadow=`0 0 8px rgba(${t.g},0.08)`; } }}>
+                  {isActive && <div className="absolute inset-0 pointer-events-none" style={{background:`linear-gradient(135deg,rgba(255,255,255,0.12) 0%,transparent 60%)`}}/>}
+                  <span style={{filter:isActive?`drop-shadow(0 0 6px rgba(0,0,0,0.4))`:`drop-shadow(0 0 4px rgba(${t.g},0.5))`}}>{t.emoji}</span>
                   <span>{t.label}</span>
                 </button>
               );

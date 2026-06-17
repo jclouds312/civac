@@ -3,7 +3,7 @@ import { useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS, type PlanId }
 import {
   User, Mail, Shield, Crown, CreditCard, LogOut, CheckCircle2,
   Clock, AlertTriangle, ExternalLink, Copy, RefreshCw, Zap,
-  Building2, Briefcase, Globe, Lock, Smartphone, Star, Camera, Upload, X,
+  Building2, Briefcase, Globe, Lock, Smartphone, Star, Camera, Upload, X, Edit2, Check,
 } from "lucide-react";
 
 const PLAN_FEATURES: Record<PlanId, string[]> = {
@@ -39,7 +39,7 @@ function PlanBadgeBig({ plan }: { plan: PlanId }) {
 }
 
 export default function MiCuenta() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
   const [serverUser, setServerUser]   = useState<{ estado?: string; googleFoto?: string; cargo?: string; finca?: string } | null>(null);
   const [loading, setLoading]         = useState(false);
   const [payRef, setPayRef]           = useState<string | null>(null);

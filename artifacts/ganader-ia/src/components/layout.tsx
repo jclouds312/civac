@@ -1038,9 +1038,12 @@ export function Layout({ children }: LayoutProps) {
                 className="flex items-center gap-1.5 pl-1 pr-2 py-1 rounded-xl hover:bg-white/5 transition-all"
                 style={{ borderRadius: 12 }}
               >
-                <div className={`w-7 h-7 rounded-full ${ROLE_COLORS[user?.role || 'admin']} flex items-center justify-center font-black text-[11px] shadow`}>
-                  {user?.nombre?.charAt(0) || 'C'}
-                </div>
+                {user?.foto
+                  ? <img src={user.foto} alt={user.nombre} className="w-7 h-7 rounded-full object-cover shadow" style={{border:"1.5px solid rgba(255,214,10,0.35)"}}/>
+                  : <div className={`w-7 h-7 rounded-full ${ROLE_COLORS[user?.role || 'admin']} flex items-center justify-center font-black text-[11px] shadow`}>
+                      {user?.nombre?.charAt(0) || 'C'}
+                    </div>
+                }
                 <span className="text-[13px] font-medium text-white/80 hidden sm:block max-w-[70px] truncate">
                   {user?.nombre?.split(' ')[0]}
                 </span>
@@ -1061,9 +1064,12 @@ export function Layout({ children }: LayoutProps) {
                   >
                     <div className="px-4 py-3 border-b" style={{ borderColor: `rgba(255,214,10,0.08)` }}>
                       <div className="flex items-center gap-2.5 mb-1">
-                        <div className={`w-9 h-9 rounded-full ${ROLE_COLORS[user?.role || 'admin']} flex items-center justify-center font-black text-sm`}>
-                          {user?.nombre?.charAt(0)}
-                        </div>
+                        {user?.foto
+                          ? <img src={user.foto} alt={user.nombre} className="w-9 h-9 rounded-full object-cover" style={{border:"2px solid rgba(255,214,10,0.38)"}}/>
+                          : <div className={`w-9 h-9 rounded-full ${ROLE_COLORS[user?.role || 'admin']} flex items-center justify-center font-black text-sm`}>
+                              {user?.nombre?.charAt(0)}
+                            </div>
+                        }
                         <div>
                           <p className="font-semibold text-sm text-white">{user?.nombre?.split(' ').slice(0, 2).join(' ')}</p>
                           <p className="text-[10px]" style={{ color: PIÑA }}>{ROLE_LABELS[user?.role || 'admin']}</p>

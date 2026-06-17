@@ -1,7 +1,9 @@
-# GanaderIA — CIVAC v1.0
+# GanaderIA — CIVAC PRO v2.2
 ## Control Inteligente de Valor Agropecuario · Colombia
 
-Sistema de gestión ganadera integral para Colombia. PWA instalable, 32+ módulos, multirol con 6 cuentas, dark/light mode, persistencia offline con IndexedDB + localStorage, rastreo GPS bovino en tiempo real, trazabilidad ICA, sanidad animal, asesora IA y backends Python (Analytics Flask + GPS Django).
+Sistema de gestión ganadera integral para Colombia. PWA instalable (v11, 33 rutas), 35+ módulos, multirol con 7 cuentas, dark/light mode, persistencia offline con IndexedDB + localStorage, rastreo GPS bovino en tiempo real, trazabilidad ICA, sanidad animal, asesora IA y backends Python (Analytics Flask + GPS Django).
+
+**Paleta v2.2:** Gold × Silver neon (`#FFD700` ↔ `#C8D4EC`) en todos los bordes de cards, badges, sidebar y módulos. Service Worker v11.
 
 ---
 
@@ -33,7 +35,7 @@ Todos los datos de la PWA viven en `AppStateContext` (React Context + localStora
 | Gráficos | Recharts (BarChart · AreaChart · PieChart) |
 | Iconos | lucide-react |
 | Estado | React Context + localStorage + IndexedDB |
-| PWA | Service Worker v8 · Web App Manifest · Background Sync · 33 rutas |
+| PWA | Service Worker v11 · Web App Manifest v2.2 · Background Sync · 33 rutas |
 | API Server | Node.js + Fastify (puerto 8080) |
 | Analytics | Python 3 Flask (puerto 8099) |
 | GPS Backend | Python 3 Django (puerto 8000) |
@@ -45,22 +47,23 @@ Todos los datos de la PWA viven en `AppStateContext` (React Context + localStora
 ```
 artifacts/ganader-ia/
 ├── public/
-│   ├── favicon.svg          — Logo SVG Holstein + chip IA teal
-│   ├── manifest.json        — PWA manifest v7 (8 shortcuts, share_target)
-│   ├── sw.js                — Service Worker v8 (33 rutas, GET_VERSION msg)
+│   ├── favicon.svg          — Logo SVG Holstein + chip IA teal, borde Gold×Silver
+│   ├── manifest.json        — PWA manifest v2.2 (8 shortcuts, WCO, launch_handler)
+│   ├── sw.js                — Service Worker v11 (33 rutas, GET_VERSION msg)
+│   ├── browserconfig.xml    — Windows tile config (tile color #FFD60A)
 │   ├── opengraph.jpg        — Imagen social / PWA screenshot
 │   └── robots.txt
 ├── src/
 │   ├── lib/
 │   │   ├── data.ts          — AppStateProvider + useAppState + seed data + localStorage
-│   │   ├── auth.ts          — AuthProvider + useAuth + CIVAC_STAFF_IDS + 6 cuentas
+│   │   ├── auth.ts          — AuthProvider + useAuth + CIVAC_STAFF_IDS + 7 cuentas
 │   │   ├── theme.ts         — ThemeProvider + useTheme (dark/light, persiste en localStorage)
 │   │   ├── print.ts         — printModule() helper para imprimir/PDF cualquier módulo
 │   │   ├── export.ts        — exportToCSV / exportToJSON helpers
 │   │   ├── drive.ts         — Google Drive backup helper
 │   │   └── utils.ts         — Utilidades generales
 │   ├── components/
-│   │   ├── layout.tsx       — Sidebar oscuro + topbar (tema, user-menu, instalar PWA)
+│   │   ├── layout.tsx       — Sidebar oscuro + topbar + PWA WCO titlebar
 │   │   └── civac-agent.tsx  — Asistente IA flotante (botón global en todas las páginas)
 │   ├── pages/
 │   │   ├── login.tsx             — 3 tabs: login / cuentas-demo / planes · pasarela Wompi
@@ -109,7 +112,7 @@ artifacts/ganader-ia/
 
 ---
 
-## Sistema de autenticación — Cuentas oficiales
+## Sistema de autenticación — Cuentas oficiales v7.5.0
 
 ### Cuentas CIVAC Staff (acceso Server Panel + badge ⬡ CIVAC)
 
@@ -134,7 +137,7 @@ artifacts/ganader-ia/
 
 ---
 
-## Módulos del sistema (32 módulos)
+## Módulos del sistema (35+ módulos)
 
 | # | Módulo | Ruta | Rol mínimo | Descripción |
 |---|--------|------|------------|-------------|
@@ -170,6 +173,7 @@ artifacts/ganader-ia/
 | 30 | Configuración | `/configuracion` | viewer | Finca/Apariencia/Seguridad/Datos |
 | 31 | Documentación | `/documentacion` | viewer | 24 secciones: todos los módulos |
 | 32 | Manual | `/manual` | viewer | Manual de usuario completo |
+| 33 | Básculas | `/basculas` | field | Gestión multi-báscula COM/BT |
 | — | Acerca de | `/acerca` | viewer | Info sistema, versión, créditos |
 | — | Server Login | `/server` | staff | Acceso panel servidor CIVAC |
 | — | Server Dashboard | `/server-dashboard` | staff | 11 secciones: deps, langs, integraciones |
@@ -189,7 +193,7 @@ artifacts/ganader-ia/
 
 ---
 
-## PWA — Service Worker v8
+## PWA — Service Worker v11
 
 | Estrategia | Recursos |
 |-----------|---------|
@@ -203,38 +207,48 @@ artifacts/ganader-ia/
 | Push Notifications | Alertas de partos, vacunación, stock |
 | Share Target | Acepta archivos .json para importar backup |
 
-**33 rutas pre-cacheadas** en `install`. Shell offline completo con mensaje CIVAC PRO v8.
+**33 rutas pre-cacheadas** en `install`. Shell offline completo con mensaje CIVAC PRO v11.
 
 Mensajes soportados: `SKIP_WAITING`, `CLEAR_CACHE`, `PRECACHE_ALL`, `GET_CACHE_SIZE`, `GET_VERSION`.
 
 ---
 
-## Decisiones de arquitectura
+## PWA Windows Desktop — Window Controls Overlay (WCO)
 
-- **Frontend puro** — todos los datos en React Context + localStorage. Sin backend obligatorio.
-- **AppStateContext** — fuente única de verdad. `useAppState()` en `src/lib/data.ts`.
-- **AuthContext** — autenticación localStorage con 6 cuentas. Sin JWT/servidor.
-- **ThemeContext** — toggle dark/light via clase `.dark` en `document.documentElement`.
-- **wouter** — router SPA ligero. Todas las rutas usan `import.meta.env.BASE_URL`.
-- **Sidebar siempre oscuro** — identidad de marca, independiente del tema.
-- **Recharts** — gráficos: BarChart preferido, AreaChart en dashboard, PieChart composición.
-- **printModule()** — helper global para imprimir/PDF cualquier módulo.
-- **CIVAC_STAFF_IDS** — array en `auth.ts` para identificar cuentas staff con acceso al Server Panel y badge `⬡ CIVAC`.
-- **AdminGate / AuthGate** — routing condicional por rol en App.tsx. Admin/superadmin → AdminGate (sin Layout de finca). Developer → Layout con todas las rutas.
+- **`display_override: ["window-controls-overlay"]`** en manifest.json v2.2
+- **CSS `@media (display-mode: window-controls-overlay)`** — titlebar drag region
+- **`env(titlebar-area-*)` CSS variables** — posición y dimensiones exactas del titlebar
+- **`.pwa-titlebar` div** en layout.tsx — muestra módulo activo en la barra de título
+- **`-webkit-app-region: drag`** — barra arrastrable; botones con `no-drag`
+- **`launch_handler: { client_mode: ["navigate-existing", "auto"] }`** — una sola ventana
+- **`handle_links: "preferred"`** — la app abre sus propios links internamente
+- **`theme_color: "#FFD60A"`** — color de la barra de Windows dorado neon
+- **`browserconfig.xml`** — tile de Windows con color PIÑA (#FFD60A)
+- **`msapplication-task`** — 4 tareas en jump-list de Windows (Dashboard, GPS, Pesaje, Inventario)
 
 ---
 
-## Diseño visual — v7.0
+## Diseño visual — v2.2 (Gold × Silver Neon)
+
+### Paleta Gold × Silver
+- **Dorado neon:** `#FFD700` / `rgba(255,210,0,x)`
+- **Plateado neon:** `#C8D4EC` / `rgba(196,208,228,x)`
+- **Animación:** `@keyframes civac-gs` — ciclo 5s ease-in-out gold ↔ silver
+- **Aplicado a:** `.kpi-card`, `.kpi-ultra`, `.card-lift`, `.neon-card`, `.lm-card*`, `.glass-card`, `.glass-panel`
+- **Clase utilitaria:** `.gs-border` — gradiente perfecto respetando border-radius
+- **Scrollbar:** gradiente gold→silver en dark mode
+- **Sidebar active line:** `linear-gradient(#FFD700, #C8D4EC)`
+- **Topbar border:** `rgba(255,210,0,0.12)`
 
 ### Dark mode (predeterminado)
 - Fondo: navy profundo `hsl(220 45% 16%)`
-- Paleta marina con acentos teal neón `#00f5d4`
-- Cards con gradientes oscuros y bordes con glow
+- Paleta marina con acentos gold×silver neon
+- Cards con gradientes oscuros y bordes gs animados
 
 ### Light mode
 - Fondo: crema cálido `hsl(38 22% 84%)`
 - Paleta granja: verdes, tierra, amarillo girasol
-- KPI cards con gradientes vividos y sombras de color
+- KPI cards con box-shadow gold suave
 
 ### Identidad por módulo
 | Módulo | Gradiente | Acento |
@@ -249,6 +263,7 @@ Mensajes soportados: `SKIP_WAITING`, `CLEAR_CACHE`, `PRECACHE_ALL`, `GET_CACHE_S
 | Trazabilidad | naranja ICA | `#f97316` |
 | Asesora IA | púrpura IA | `#e879f9` |
 | Server Panel | teal CIVAC | `#00f5d4` |
+| Dashboard | gold PIÑA | `#FFD60A` |
 
 ---
 
@@ -257,7 +272,7 @@ Mensajes soportados: `SKIP_WAITING`, `CLEAR_CACHE`, `PRECACHE_ALL`, `GET_CACHE_S
 ```
 Pantalla Login (/login implícito vía AuthGate)
   ├── Tab "🔑 Iniciar Sesión" — formulario email + contraseña
-  ├── Tab "👤 Cuentas Demo"  — acceso rápido a 6 cuentas (staff ven badge ⬡ CIVAC)
+  ├── Tab "👤 Cuentas Demo"  — cuentas cliente visibles; staff OCULTOS
   └── Tab "💳 Planes"        — Básico/PRO/Premium/Platino + modal pago Wompi/Nequi/PSE
 
 Server Panel (fuera del AuthGate)
@@ -271,17 +286,48 @@ Rutas públicas (sin auth)
 
 ---
 
+## Decisiones de arquitectura
+
+- **Frontend puro** — todos los datos en React Context + localStorage. Sin backend obligatorio.
+- **AppStateContext** — fuente única de verdad. `useAppState()` en `src/lib/data.ts`.
+- **AuthContext** — autenticación localStorage con 7 cuentas. Sin JWT/servidor.
+- **ThemeContext** — toggle dark/light via clase `.dark` en `document.documentElement`.
+- **wouter** — router SPA ligero. Todas las rutas usan `import.meta.env.BASE_URL`.
+- **Sidebar siempre oscuro** — identidad de marca, independiente del tema.
+- **Recharts** — gráficos: BarChart preferido, AreaChart en dashboard, PieChart composición.
+- **printModule()** — helper global para imprimir/PDF cualquier módulo.
+- **CIVAC_STAFF_IDS** — array en `auth.ts` para identificar cuentas staff con acceso al Server Panel y badge `⬡ CIVAC`.
+- **AdminGate / AuthGate** — routing condicional por rol en App.tsx. Admin/superadmin → AdminGate (sin Layout de finca). Developer → Layout con todas las rutas.
+
+---
+
+## Historial de versiones
+
+| Versión | Cambios principales |
+|---------|---------------------|
+| v2.2 (v11 SW) | **Gold × Silver Neon** borde animado global (`@keyframes civac-gs`) en todos los cards/KPIs/lm-cards · **PWA Windows WCO** titlebar drag region + env(titlebar-area-*) · **manifest.json v2.2** launch_handler, handle_links, file_handlers, WCO display_override · **browserconfig.xml** Windows tile gold · **SW v11** shell offline gold×silver · **viewport-fit=cover** + tema dorado en dark mode · favicon borde gold×silver · `msapplication-task` jump-list Windows · **cuentas v7.5.0** con 7 cuentas oficiales |
+| v2.1 (v10 SW) | **Seguridad login**: cuentas CIVAC Staff sin contraseña visible (badge 🔒 Acceso protegido) · Cuentas demo con credenciales visibles + botón copiar email/pass · Versión unificada v2.1 en toda la plataforma · API Server operativo con PostgreSQL real (seed completo 30 animales) · Build esbuild 0.27.7 estable |
+| v2.0 (v8 SW) | Bottom nav mobile multicolor neon · Login v2.0 badge · Feature badges actualizados · 8 drivers Windows COM · 11 controladores BT · 8 tipos GPS · Analytics Server v2.0 |
+| v7.0 | 32+ módulos · Server Panel 11 secciones · Sanidad + Trazabilidad ICA · GPS Chips MQTT · Ventas CRM · Asesora IA · Drive backup |
+| v5.0 | GPS real-time watchPosition · 6 cuentas de acceso · Admin/Developer dashboards · Pesaje PRO con IA engine |
+| v1.x | MVP inicial React + Vite |
+
+---
+
 ## Preferencias de desarrollo
 
 - Clone visual basado en: https://smart-ganader-ia-colombia.base44.app
 - Banners degradados por módulo con color identity único
-- KPI cards vividas con gradientes y glow
+- KPI cards vividas con gradientes, glow y animación gold×silver
 - Cabeceras de tabla verde oscuro `bg-[#1a4a2e]`
 - Badges de color para lote / categoría / estado / cargo
 - Barras horizontales para top-vacas en producción
 - BarChart (NO AreaChart) para producción/predicción/co2
 - NO importar `@workspace/api-client-react` — solo React state puro
-- Iconos: solo `lucide-react` (usar `Map`, NO `MapMap`)
+- Iconos: solo `lucide-react` (usar `Map`, NO `MapMap`; usar `Beef`, NO `Cow`)
+- Dark mode es el predeterminado de la app
+- Idioma: español colombiano en toda la UI
+- Nunca usar emojis en código salvo en strings de UI
 
 ---
 
@@ -293,27 +339,11 @@ Rutas públicas (sin auth)
 - Todas las rutas deben usar `BASE_URL` prefix (`import.meta.env.BASE_URL`).
 - La app corre en el workflow `GanaderIA Frontend` proxiado en `/`.
 - Dark mode: `@custom-variant dark (&:is(.dark *))` — clase `.dark` en `document.documentElement`.
-- NO usar `MapMap` de lucide-react → usar `Map`.
+- NO usar `MapMap` de lucide-react → usar `Map`. NO usar `Cow` → usar `Beef`.
 - Server Panel (`/server`, `/server-dashboard`) está **fuera del AuthGate** — acceso directo sin autenticación de finca.
 - `CIVAC_STAFF_IDS` en `auth.ts` controla quién ve el badge CIVAC y tiene acceso al Server Panel.
-
----
-
-## Historial de versiones
-
-| Versión | Cambios principales |
-|---------|---------------------|
-| v9.0 (v2.1) | **Seguridad login**: cuentas CIVAC Staff sin contraseña visible (badge 🔒 Acceso protegido) · Cuentas demo con credenciales visibles + botón copiar email/pass · Versión unificada v2.1 en toda la plataforma (footer, ticker, widgets, badges, rutas) · API Server operativo con PostgreSQL real (seed completo 30 animales) · Build esbuild 0.27.7 estable con symlink drizzle-zod + nodePaths pnpm store |
-| v8.0 (v2.0) | Bottom nav mobile multicolor neon por módulo (GPS · IA · Alertas · Ganado · Inicio) · Login v2.0 badge · Feature badges actualizados (34+ Módulos, IndexedDB v2, Serial·BT 8 drivers COM / 11 BLE) · 8 drivers Windows COM (+CDC-ACM, CH348, CP2102N, USB3) · 11 controladores BT (+Herd Manager, smaXtec, ID Tech, Agersens, CIVAC Scale v2) · 8 tipos de dispositivo GPS (podómetro, implante, solar, cámara-IA) · Analytics Server v2.0: +6 endpoints Python (sanidad, co2, gps, pesaje, clima) · Login: CIVAC Staff ocultos del tab Cuentas Demo · TypeScript 100% clean |
-| v7.0 | 32+ módulos · Server Panel 11 secciones · Sanidad + Trazabilidad ICA · GPS Chips MQTT · Ventas CRM · Asesora IA · Drive backup · SW v8 (33 rutas) · Manifest v7 (8 shortcuts) · Documentación 24 secciones regenerada |
-| v6.x | server-dashboard expandido (Dependencias, Lenguajes, Integraciones) · badge ⬡ CIVAC Staff · fix `use-toast.ts` React namespace |
-| v5.0 | GPS real-time watchPosition · 6 cuentas de acceso · Admin/Developer dashboards · Pesaje PRO con IA engine (BCS, GMD, 9 razas) · Login con planes y pasarela de pago · 28 módulos completos |
-| v4.0 | Visual overhaul dark/light · Logo Holstein teal · CSS variables paleta farm/marine |
-| v3.x | PWA Service Worker v6 · manifest shortcuts · offline shell |
-| v2.x | 16 módulos base · multicuentas · localStorage |
-| v1.x | MVP inicial React + Vite |
-
----
+- `Cow` no existe en lucide-react instalado → usar `Beef`. Verificar nuevos iconos antes de usarlos.
+- Gold × Silver paleta: `#FFD700` (dorado) ↔ `#C8D4EC` (plateado) — aplicar con `.gs-border` o `civac-gs` keyframes.
 
 ## User preferences
 

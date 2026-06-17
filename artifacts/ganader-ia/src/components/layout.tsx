@@ -559,6 +559,31 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen flex bg-background text-foreground" style={{ fontFamily: "'Space Grotesk','Sora',sans-serif" }}>
+
+      {/* ── PWA Window Controls Overlay Titlebar (visible en display-mode: window-controls-overlay) ── */}
+      <div className="pwa-titlebar">
+        <div className="flex items-center gap-2" style={{ height: '100%' }}>
+          <div style={{
+            width: 22, height: 22, borderRadius: 7,
+            background: `linear-gradient(135deg,${mod.from},${mod.to})`,
+            boxShadow: `0 0 10px rgba(${mod.glow},0.60)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <mod.icon size={12} strokeWidth={2.5} style={{ color: '#001a0a' }} />
+          </div>
+          <span style={{
+            fontSize: 11, fontWeight: 700, letterSpacing: '0.03em',
+            background: `linear-gradient(90deg,#FFD60A,#C8D4EC)`,
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}>CIVAC PRO</span>
+          <span style={{ fontSize: 10, color: `rgba(${mod.glow},0.55)`, fontWeight: 500 }}>
+            · {mod.label}
+          </span>
+        </div>
+      </div>
+
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
@@ -782,7 +807,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: `rgba(255,214,10,0.08)` }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: 'rgba(255,214,10,0.25)' }}>
-              <Wifi size={9} /><span>CIVAC PRO v2.1 · 35+ módulos · Offline PWA · Colombia</span>
+              <Wifi size={9} /><span>CIVAC PRO v2.2 · 35+ módulos · PWA v11 · Colombia</span>
             </div>
           )}
           {!collapsed && (

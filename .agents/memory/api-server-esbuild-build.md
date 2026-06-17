@@ -1,23 +1,13 @@
 ---
 name: API server esbuild build
-description: Why the api-server build fails and the permanent fix for drizzle-zod resolution with esbuild 0.27.7
+description: Durable rule — drizzle-zod resolution in esbuild requires symlink + nodePaths; esbuild version must be 0.27.7
 ---
 
 ## The rule
-`drizzle-zod` is a dependency of `@workspace/db` (lib/db) but NOT directly installed in `artifacts/api-server/node_modules/`. esbuild 0.27.7 cannot resolve it when processing aliased files from `lib/db/src/`. Two fixes are required:
+When esbuild resolves a path-aliased workspace package (e.g. `@workspace/db → lib/db/src/`), it resolves transitive deps from the aliased file's real directory, not the entry point. Any dep that only exists in that package's own `node_modules/` (not the root) will silently fail to resolve.
 
-1. **Symlink** — `artifacts/api-server/node_modules/drizzle-zod` must point to `../../../lib/db/node_modules/drizzle-zod`. The `build.mjs` `ensureSymlinks()` function creates it automatically before each build.
-2. **nodePaths** — esbuild config must include `node_modules/.pnpm/node_modules`, `lib/db/node_modules`, and `artifacts/api-server/node_modules` in `nodePaths` so all transitive deps resolve.
+**Why:** esbuild 0.27.7 follows real filesystem paths for module resolution. `drizzle-zod` lives in `lib/db/node_modules/` but is invisible from the api-server entry context without a symlink or explicit `nodePaths`.
 
-## Why
-esbuild 0.27.7 resolves packages from the aliased file's REAL directory. When `@workspace/db` alias → `lib/db/src/index.ts`, esbuild resolves deps from `lib/db/src/`, and `drizzle-zod` is only in `lib/db/node_modules/` (a pnpm symlink to the store). The symlink fix puts it where esbuild CAN find it from the entry point context.
+**How to apply:** Any workspace package added as an alias in the api-server build that brings its own dep tree needs either a symlink into `artifacts/api-server/node_modules/` or inclusion in `nodePaths`. The `build.mjs` `ensureSymlinks()` function handles this automatically — keep it.
 
-## pnpm override
-`pnpm-workspace.yaml` must have `esbuild: "0.27.7"` (not `"0.27.3"` — that version doesn't exist in the pnpm store and causes a broken esbuild symlink that silently deletes `dist/`).
-
-## How to apply
-- Before any rebuild, verify `artifacts/api-server/node_modules/drizzle-zod` exists.
-- If lost (e.g. after pnpm install): `ln -sf /home/runner/workspace/lib/db/node_modules/drizzle-zod /home/runner/workspace/artifacts/api-server/node_modules/drizzle-zod`
-- The `build.mjs` `ensureSymlinks()` function handles this automatically on each build run.
-- Workflow command: `PORT=8080 pnpm --filter @workspace/api-server run start` (runs `node dist/index.mjs`)
-- Rebuild: `pnpm --filter @workspace/api-server run build`
+**pnpm override:** `esbuild: "0.27.7"` in `pnpm-workspace.yaml` is required; other patch versions are not present in the local pnpm store and cause silent breakage.

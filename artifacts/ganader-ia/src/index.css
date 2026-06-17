@@ -1938,3 +1938,377 @@ body {
   box-shadow: 0 0 0 2px rgba(0,245,212,0.25), 0 0 20px rgba(0,245,212,0.1);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CIVAC v2.2 — GOLD × SILVER NEON BORDER RADIUS
+   Paleta metálica: dorado neon (#FFD700) ↔ plata neon (#D0D8EC)
+   Aplicado globalmente a cards, KPIs, módulos, banners
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ciclo dorado → plateado ── */
+@keyframes civac-gs {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(255,210,0,0.55),
+      0 0 10px rgba(255,210,0,0.28),
+      0 0 24px rgba(255,210,0,0.10),
+      0 6px 30px rgba(0,0,0,0.35);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(196,208,228,0.65),
+      0 0 10px rgba(196,208,228,0.30),
+      0 0 24px rgba(180,196,220,0.12),
+      0 6px 30px rgba(0,0,0,0.35);
+  }
+}
+
+@keyframes civac-gs-fast {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1.5px rgba(255,210,0,0.60),
+      0 0 12px rgba(255,210,0,0.32),
+      0 0 28px rgba(255,210,0,0.12),
+      0 4px 20px rgba(0,0,0,0.38);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1.5px rgba(200,212,232,0.70),
+      0 0 12px rgba(200,212,232,0.34),
+      0 0 28px rgba(185,200,222,0.14),
+      0 4px 20px rgba(0,0,0,0.38);
+  }
+}
+
+/* ── Gradient border via CSS mask (respeta border-radius exacto) ── */
+@keyframes gs-sweep {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* Clase utilitaria: borde gradiente gold×silver perfecto */
+.gs-border {
+  position: relative;
+  border: none !important;
+  isolation: isolate;
+}
+.gs-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    135deg,
+    rgba(255,215,0,0.85)  0%,
+    rgba(200,210,228,0.90) 28%,
+    rgba(255,215,0,0.65)  52%,
+    rgba(192,202,220,0.88) 76%,
+    rgba(255,215,0,0.85)  100%
+  );
+  background-size: 300% 300%;
+  animation: gs-sweep 5s linear infinite;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Aplicar efecto gs a todos los elementos clave en dark mode ── */
+.dark .kpi-card,
+.dark .kpi-ultra {
+  animation: civac-gs 5s ease-in-out infinite !important;
+}
+
+.dark .card-lift {
+  animation: civac-gs 6s ease-in-out infinite !important;
+  border-width: 1.5px !important;
+}
+
+.dark .neon-card {
+  animation: civac-gs 5s ease-in-out infinite !important;
+}
+
+.dark .lm-card,
+.dark .lm-card-alt,
+.dark .lm-card-blue,
+.dark .lm-card-green,
+.dark .lm-card-teal,
+.dark .lm-card-purple,
+.dark .lm-card-rose,
+.dark .lm-card-amber {
+  animation: civac-gs 6s ease-in-out infinite !important;
+  border-width: 1.5px !important;
+}
+
+/* ── Sidebar active items con gs glow ── */
+.dark .sidebar-glow-line::before {
+  background: linear-gradient(180deg, #FFD700, #C8D4EC);
+  box-shadow: 0 0 10px rgba(255,210,0,0.8), 0 0 20px rgba(200,210,228,0.4);
+}
+
+/* ── KPI badge en tarjetas usa paleta gs ── */
+.gs-label {
+  background: linear-gradient(90deg, rgba(255,210,0,0.12), rgba(196,208,228,0.10));
+  border: 1px solid rgba(255,210,0,0.40);
+  color: #FFD700;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 99px;
+  letter-spacing: 0.07em;
+  animation: civac-gs-fast 3.5s ease-in-out infinite;
+}
+
+/* ── Scrollbar con paleta gs ── */
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255,210,0,0.22), rgba(196,208,228,0.20)) !important;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255,210,0,0.45), rgba(196,208,228,0.40)) !important;
+}
+
+/* ── Text gradient gs ── */
+.text-gradient-gs {
+  background: linear-gradient(90deg, #FFD700 0%, #D8E0F0 50%, #FFD700 100%);
+  background-size: 200% 100%;
+  animation: gs-sweep 4s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Topbar / sidebar con acento gs ── */
+.dark .topbar-glass {
+  border-bottom: 1px solid rgba(255,210,0,0.12) !important;
+  box-shadow: 0 1px 0 rgba(255,210,0,0.06), 0 1px 28px rgba(0,0,0,0.4) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PWA APP FEEL — Windows Desktop + Mobile instalado
+   Window Controls Overlay · Safe Areas · Standalone improvements
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Base: overscroll y comportamiento app ── */
+html {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* ── Standalone (PWA instalada en cualquier dispositivo) ── */
+@media (display-mode: standalone) {
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Permitir selección en inputs y texto editable */
+  input, textarea, [contenteditable], code, pre,
+  .selectable, [data-selectable="true"] {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+  /* Safe area inferior (notch, home indicator) */
+  body > #root > * {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* Evitar bounce scroll en iOS al instalar */
+  html, body {
+    overscroll-behavior-y: none;
+    position: relative;
+  }
+  /* Sin cursor de texto en navegación */
+  nav, aside, header {
+    cursor: default;
+  }
+}
+
+/* ── Window Controls Overlay — PWA en Windows Desktop / macOS ── */
+@media (display-mode: window-controls-overlay) {
+  /* Barra de título drag region */
+  .pwa-titlebar {
+    display: flex !important;
+    position: fixed;
+    top: 0;
+    left:  env(titlebar-area-x,     0px);
+    width: env(titlebar-area-width,  100%);
+    height: env(titlebar-area-height, 38px);
+    background: linear-gradient(
+      90deg,
+      rgba(4,13,26,0.98) 0%,
+      rgba(6,18,36,0.97) 50%,
+      rgba(4,13,26,0.98) 100%
+    );
+    border-bottom: 1px solid rgba(255,210,0,0.15);
+    box-shadow: 0 1px 8px rgba(0,0,0,0.5), 0 0 20px rgba(255,210,0,0.04);
+    -webkit-app-region: drag;
+    app-region: drag;
+    z-index: 99999;
+    align-items: center;
+    padding: 0 16px;
+    gap: 10px;
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+  }
+  /* Botones dentro del titlebar NO son draggable */
+  .pwa-titlebar a,
+  .pwa-titlebar button,
+  .pwa-titlebar input,
+  .pwa-titlebar [role="button"] {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+  /* Empujar el contenido debajo del titlebar */
+  body {
+    padding-top: env(titlebar-area-height, 38px);
+  }
+  /* Ajustar sidebar para que no tape el titlebar */
+  aside {
+    top: env(titlebar-area-height, 38px) !important;
+    height: calc(100vh - env(titlebar-area-height, 38px)) !important;
+  }
+}
+
+/* ── Ocultar barra por defecto (no WCO) ── */
+.pwa-titlebar { display: none; }
+
+/* ── Safe area padding helper classes ── */
+.safe-top    { padding-top:    env(safe-area-inset-top,    0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.safe-left   { padding-left:   env(safe-area-inset-left,   0px); }
+.safe-right  { padding-right:  env(safe-area-inset-right,  0px); }
+
+/* ── Mobile app scrollbars (ultra delgados tipo app) ── */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar       { width: 2px; height: 2px; }
+  ::-webkit-scrollbar-thumb { border-radius: 2px; }
+}
+
+/* ── Touch targets mínimos para app instalada ── */
+@media (display-mode: standalone), (display-mode: window-controls-overlay) {
+  button, [role="button"], a, input[type="checkbox"], input[type="radio"] {
+    min-height: 40px;
+    min-width: 40px;
+  }
+  /* Cards con cursor default (no text) */
+  .kpi-card, .card-lift, .module-card, .neon-card {
+    cursor: default;
+  }
+}
+
+/* ── PWA splash-like loading state ── */
+.pwa-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: #0a1628;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  animation: pwa-hide 0.4s ease 1.2s forwards;
+}
+@keyframes pwa-hide {
+  to { opacity: 0; pointer-events: none; }
+}
+
+/* ── App icon border (PWA installed icon ring) ── */
+@keyframes civac-icon-ring {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(255,210,0,0.5),  0 0 16px rgba(255,210,0,0.25); }
+  50%       { box-shadow: 0 0 0 2px rgba(196,208,228,0.6), 0 0 16px rgba(196,208,228,0.25); }
+}
+.logo-cow-ring {
+  animation: civac-icon-ring 4s ease-in-out infinite !important;
+}
+
+/* ── Versión badge con paleta gs ── */
+.civac-version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px 2px 7px;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  background: linear-gradient(90deg, rgba(255,210,0,0.10), rgba(196,208,228,0.08));
+  border: 1px solid rgba(255,210,0,0.38);
+  color: #FFD700;
+  animation: civac-gs-fast 4s ease-in-out infinite;
+}
+
+/* ── Module banner gs accent line ── */
+.dark .module-banner-gs {
+  border-bottom: 1.5px solid transparent !important;
+  background-clip: padding-box !important;
+  position: relative;
+}
+.dark .module-banner-gs::after {
+  content: '';
+  position: absolute;
+  bottom: -1.5px;
+  left: 0; right: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255,210,0,0.60) 20%,
+    rgba(196,208,228,0.70) 50%,
+    rgba(255,210,0,0.60) 80%,
+    transparent
+  );
+  animation: gs-sweep 5s linear infinite;
+  background-size: 300% 100%;
+}
+
+/* ── Card interior highlight (borde superior luminoso) ── */
+.dark .kpi-card::after,
+.dark .kpi-ultra::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,210,0,0.22),
+    rgba(196,208,228,0.28),
+    rgba(255,210,0,0.22),
+    transparent
+  ) !important;
+  background-size: 200% 100%;
+  animation: gs-sweep 5s linear infinite;
+  height: 1px !important;
+}
+
+/* ── Responsive app feel para pantallas de escritorio con PWA ── */
+@media (min-width: 1024px) and (display-mode: standalone) {
+  /* App window min-width */
+  body { min-width: 320px; }
+  /* Cards con aspecto más cuadrado tipo app */
+  .kpi-card { border-radius: 20px !important; }
+  .card-lift { border-radius: 18px !important; }
+  .rounded-3xl { border-radius: 20px !important; }
+}
+
+/* ── Light mode: versión suave del gs border ── */
+:root:not(.dark) .kpi-card,
+:root:not(.dark) .card-lift {
+  box-shadow:
+    0 0 0 1px rgba(180,140,0,0.20),
+    0 0 8px rgba(180,140,0,0.08),
+    0 4px 20px rgba(0,0,0,0.08) !important;
+}
+:root:not(.dark) .kpi-card:hover,
+:root:not(.dark) .card-lift:hover {
+  box-shadow:
+    0 0 0 1.5px rgba(180,140,0,0.35),
+    0 0 14px rgba(180,140,0,0.14),
+    0 6px 28px rgba(0,0,0,0.12) !important;
+}
+
+/* ── Fin: CIVAC v2.2 Gold × Silver · PWA v11 ── */
+

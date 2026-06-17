@@ -1,9 +1,9 @@
-// CIVAC PRO — Service Worker v10
+// CIVAC PRO — Service Worker v11
 // Estrategia: Cache-first assets · Stale-while-revalidate nav · Network-first API
 // Memoria expandida: 50 MB quota + persistent storage · Offline shell completo
-// v10: +Básculas COM/BT · Google OAuth · Admin accounts · CSS3 modern effects
+// v11: Gold×Silver neon UI · PWA Windows WCO · manifest v2.2 · browserconfig · safe areas
 
-const CACHE_VER    = 'v10';
+const CACHE_VER    = 'v11';
 const CACHE_MAIN   = `civac-main-${CACHE_VER}`;
 const CACHE_STATIC = `civac-static-${CACHE_VER}`;
 const CACHE_API    = `civac-api-${CACHE_VER}`;
@@ -17,8 +17,10 @@ const APP_SHELL = [
   '/index.html',
   '/manifest.json',
   '/favicon.svg',
+  '/favicon.ico',
   '/sw.js',
   '/robots.txt',
+  '/browserconfig.xml',
 ];
 
 // Todas las rutas de navegación de la PWA para pre-caché offline completo
@@ -196,7 +198,7 @@ self.addEventListener('fetch', (e) => {
             await caches.match('/') ||
             await caches.match('/index.html') ||
             new Response(
-              `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>CIVAC PRO — Sin conexión</title><style>*{box-sizing:border-box}body{background:#020d09;color:#00f5d4;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:1rem}h1{font-size:1.4rem;margin:.5rem 0}p{color:rgba(255,255,255,.5);font-size:.9rem;margin:.25rem 0}.tag{display:inline-block;margin-top:1rem;padding:.3rem .8rem;border-radius:999px;border:1px solid rgba(0,245,212,.3);font-size:.75rem;color:rgba(0,245,212,.6)}</style></head><body><div><div style="font-size:3rem">📡</div><h1>CIVAC PRO — Offline</h1><p>Sin conexión a internet.</p><p>Los datos guardados siguen disponibles.</p><span class="tag">Service Worker v10 · CIVAC PRO v2.1</span></div></body></html>`,
+              `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><title>CIVAC PRO — Sin conexión</title><style>*{box-sizing:border-box}body{background:linear-gradient(135deg,#08152a,#0d1e38);color:#FFD60A;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:1rem}h1{font-size:1.5rem;margin:.5rem 0;background:linear-gradient(90deg,#FFD60A,#C8D4EC);-webkit-background-clip:text;-webkit-text-fill-color:transparent}p{color:rgba(255,255,255,.5);font-size:.9rem;margin:.25rem 0}.tag{display:inline-block;margin-top:1rem;padding:.3rem .8rem;border-radius:999px;border:1px solid rgba(255,210,0,.35);font-size:.75rem;color:rgba(255,210,0,.65);animation:gs 3s ease-in-out infinite}@keyframes gs{0%,100%{box-shadow:0 0 8px rgba(255,210,0,.3)}50%{box-shadow:0 0 8px rgba(196,208,228,.3)}}.icon{font-size:3.5rem;filter:drop-shadow(0 0 16px rgba(255,210,0,.5))}</style></head><body><div><div class="icon">🐄</div><h1>CIVAC PRO — Offline</h1><p>Sin conexión a internet.</p><p>Los datos guardados siguen disponibles.</p><span class="tag">SW v11 · CIVAC PRO v2.2</span></div></body></html>`,
               { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
             )
           );
@@ -265,7 +267,7 @@ self.addEventListener('message', async (e) => {
       break;
     }
     case 'GET_VERSION':
-      e.source?.postMessage?.({ type: 'VERSION', version: CACHE_VER, routes: NAV_ROUTES.length });
+      e.source?.postMessage?.({ type: 'VERSION', version: CACHE_VER, routes: NAV_ROUTES.length, build: 'v2.2.0' });
       break;
   }
 });

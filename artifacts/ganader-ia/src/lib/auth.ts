@@ -530,6 +530,7 @@ interface AuthContextType {
   logout: () => void;
   registerUser: (data: Omit<Account, 'id'> & { pendiente?: boolean }) => Account;
   updateUser: (id: string, data: Partial<Account>) => void;
+  updateProfile: (updates: Partial<Account>) => void;
   deleteUser: (id: string) => void;
   activatePlan: (userId: string, plan: PlanId, payment: Omit<WompiPayment,'id'|'fecha'|'hora'>) => void;
   assignPlan: (userId: string, plan: PlanId, dias: number, opts?: { sessionLimit?: number; maxAnimales?: number; maxUsuarios?: number; motivo?: string }) => void;
@@ -669,6 +670,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = (updates: Partial<Account>) => {
+    if (!user) return;
+    updateUser(user.id, updates);
+  };
+
   const deleteUser = (id: string) => {
     const target = accounts.find(a => a.id === id);
     if (!target) return;
@@ -775,7 +781,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     value: {
       user, accounts, wompiPayments, invoices, loginActivity,
       login, loginAs, loginWithOAuth, logout,
-      registerUser, updateUser, deleteUser,
+      registerUser, updateUser, updateProfile, deleteUser,
       activatePlan, assignPlan, redeemCode,
       addWompiPayment, addInvoice, updateInvoice,
     }

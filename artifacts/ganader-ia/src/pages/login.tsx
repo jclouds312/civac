@@ -759,6 +759,57 @@ function GoogleSignInButton({ onError }: { onError?: (msg: string) => void }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
+   LIVE SENSOR STRIP — sensores en vivo de la granja
+═══════════════════════════════════════════════════════════════════════════════ */
+function LiveSensorStrip() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 1800); return () => clearInterval(id); }, []);
+  const temp     = (22.4 + Math.sin(tick * 0.4) * 0.8).toFixed(1);
+  const humidity = (68   + Math.sin(tick * 0.5) * 2.5).toFixed(0);
+  const litros   = (84   + Math.sin(tick * 0.7) * 1.8).toFixed(0);
+  const batAvg   = (78   + Math.sin(tick * 0.3) * 2).toFixed(0);
+  const uptime   = (99.8 + Math.sin(tick * 0.2) * 0.05).toFixed(1);
+  const viento   = (12   + Math.sin(tick * 0.35) * 2).toFixed(1);
+
+  const sensors = [
+    { label:"Temperatura",  val:`${temp}°C`,      sub:"Zona Andina",      icon:<Thermometer size={15}/>, c:"#fbbf24", g:"251,191,36",  pulse:false },
+    { label:"Humedad",      val:`${humidity}%`,   sub:"Óptimo ganado",    icon:<Droplets size={15}/>,    c:"#60a5fa", g:"96,165,250",  pulse:false },
+    { label:"Producción",   val:`${litros}L/día`, sub:"↑ 3.2% vs ayer",  icon:<Activity size={15}/>,    c:"#00f5d4", g:"0,245,212",   pulse:true  },
+    { label:"GPS Online",   val:"13/13",           sub:"Collares activos", icon:<MapPin size={15}/>,      c:"#00c8ff", g:"0,200,255",   pulse:true  },
+    { label:"Bat. Collar",  val:`${batAvg}%`,     sub:"Promedio GPS",     icon:<Zap size={15}/>,         c:"#39ff7e", g:"57,255,126",  pulse:false },
+    { label:"Servidor",     val:`${uptime}%`,     sub:"Analytics · GPS",  icon:<Server size={15}/>,      c:"#e879f9", g:"232,121,249", pulse:true  },
+    { label:"Viento",       val:`${viento}m/s`,   sub:"Campo norte",      icon:<Wind size={15}/>,        c:"#a78bfa", g:"167,139,250", pulse:false },
+    { label:"Utilidad",     val:"$40.2M",          sub:"Mes actual COP",   icon:<TrendingUp size={15}/>,  c:"#f472b6", g:"244,114,182", pulse:false },
+  ];
+
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
+      {sensors.map((s, i) => (
+        <div key={i}
+          className="group flex items-center gap-2 px-3 py-2 rounded-2xl cursor-default select-none relative overflow-hidden transition-all duration-300 hover:scale-[1.07]"
+          style={{
+            background:`linear-gradient(135deg,rgba(${s.g},0.12),rgba(${s.g},0.05))`,
+            border:`1.5px solid rgba(${s.g},0.32)`,
+            boxShadow:`0 0 12px rgba(${s.g},0.14), inset 0 1px 0 rgba(255,255,255,0.05)`,
+          }}
+          onMouseEnter={e=>{const el=e.currentTarget as HTMLElement;el.style.boxShadow=`0 0 24px rgba(${s.g},0.50),0 4px 14px rgba(0,0,0,0.35)`;el.style.background=`linear-gradient(135deg,rgba(${s.g},0.20),rgba(${s.g},0.10))`;el.style.borderColor=`rgba(${s.g},0.65)`;}}
+          onMouseLeave={e=>{const el=e.currentTarget as HTMLElement;el.style.boxShadow=`0 0 12px rgba(${s.g},0.14),inset 0 1px 0 rgba(255,255,255,0.05)`;el.style.background=`linear-gradient(135deg,rgba(${s.g},0.12),rgba(${s.g},0.05))`;el.style.borderColor=`rgba(${s.g},0.32)`;}}>
+          {s.pulse && (
+            <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full"
+              style={{background:s.c,boxShadow:`0 0 6px ${s.c}`,animation:"ping-dot 1.5s ease-in-out infinite"}}/>
+          )}
+          <span style={{color:s.c,filter:`drop-shadow(0 0 5px ${s.c})`,flexShrink:0}}>{s.icon}</span>
+          <div>
+            <div className="text-[12px] font-black leading-none text-white">{s.val}</div>
+            <div className="text-[9px] font-semibold mt-0.5" style={{color:`rgba(${s.g},0.62)`}}>{s.label}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
    MAIN LOGIN COMPONENT
 ═══════════════════════════════════════════════════════════════════════════════ */
 export default function Login() {
@@ -1042,42 +1093,8 @@ export default function Login() {
             Control Inteligente de Valor Agropecuario · Colombia 🇨🇴
           </p>
 
-          {/* Feature badges — animated glow pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
-            {[
-              { icon:<Wifi size={13}/>,       label:"Offline PWA",    sub:"Service Worker v10", c:"0,245,212",   ac:"#00f5d4" },
-              { icon:<Zap size={13}/>,        label:"Serial · BT",    sub:"8 drivers COM · 11 BLE", c:"255,149,0", ac:"#ff9a3c" },
-              { icon:<Smartphone size={13}/>, label:"GPS Real-Time",  sub:"13 collares CIVAC",c:"0,200,255",   ac:"#00c8ff" },
-              { icon:<Star size={13}/>,       label:"IA Predictiva",  sub:"Asesora ganadero", c:"232,121,249", ac:"#e879f9" },
-              { icon:<Globe size={13}/>,      label:"35+ Módulos",    sub:"CRUD completo",    c:"57,255,126",  ac:"#39ff7e" },
-              { icon:<Cpu size={13}/>,        label:"IndexedDB v2",   sub:"100k registros",   c:"168,85,247",  ac:"#a855f7" },
-            ].map((p, i) => (
-              <span key={p.label}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-full text-[11px] font-bold transition-all duration-300 hover:scale-[1.08] cursor-default select-none"
-                style={{
-                  background:`linear-gradient(135deg,rgba(${p.c},0.13),rgba(${p.c},0.06))`,
-                  border:`1.5px solid rgba(${p.c},0.38)`,
-                  color:p.ac,
-                  boxShadow:`0 0 14px rgba(${p.c},0.18), inset 0 1px 0 rgba(255,255,255,0.06)`,
-                  animationDelay:`${i * 0.12}s`,
-                }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.boxShadow = `0 0 28px rgba(${p.c},0.55), 0 4px 16px rgba(0,0,0,0.35)`;
-                  el.style.background = `linear-gradient(135deg,rgba(${p.c},0.22),rgba(${p.c},0.12))`;
-                  el.style.borderColor = `rgba(${p.c},0.7)`;
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.boxShadow = `0 0 14px rgba(${p.c},0.18), inset 0 1px 0 rgba(255,255,255,0.06)`;
-                  el.style.background = `linear-gradient(135deg,rgba(${p.c},0.13),rgba(${p.c},0.06))`;
-                  el.style.borderColor = `rgba(${p.c},0.38)`;
-                }}>
-                <span style={{ filter:`drop-shadow(0 0 5px ${p.ac})` }}>{p.icon}</span>
-                <span>{p.label}</span>
-              </span>
-            ))}
-          </div>
+          {/* Live Sensor Strip — sensores en tiempo real */}
+          <LiveSensorStrip />
 
           {/* Tabs — 5 botones con identidad de color propia */}
           <div className="flex items-center justify-center gap-2 flex-wrap">

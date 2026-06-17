@@ -2,10 +2,9 @@ modules = ["nodejs-20", "python-3.11", "web"]
 
 [deployment]
 router = "application"
-deploymentTarget = "static"
+deploymentTarget = "autoscale"
 build = ["pnpm", "--filter", "@workspace/ganader-ia", "run", "build"]
 run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
-publicDir = "artifacts/ganader-ia/dist/public"
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]
@@ -44,7 +43,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=8080 pnpm --filter @workspace/api-server run start"
+args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
 waitForPort = 8080
 
 [[workflows.workflow]]

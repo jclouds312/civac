@@ -43,17 +43,37 @@
     <meta name="twitter:image" content="https://civac.pro/opengraph.jpg" />
 
     <!-- ── PWA ──────────────────────────────────────────────────────── -->
-    <meta name="theme-color" content="#00f5d4" />
+    <!-- Theme color: dark mode gold neon · light mode teal -->
+    <meta name="theme-color" content="#FFD60A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#00f5d4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#FFD60A" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="CIVAC PRO" />
     <meta name="application-name" content="CIVAC PRO" />
-    <meta name="msapplication-TileColor" content="#020d09" />
+    <!-- Windows PWA / Edge / PWABuilder -->
+    <meta name="msapplication-TileColor" content="#FFD60A" />
+    <meta name="msapplication-TileImage" content="/favicon.svg" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="msapplication-navbutton-color" content="#FFD60A" />
+    <meta name="msapplication-starturl" content="/" />
+    <meta name="msapplication-tooltip" content="CIVAC PRO — Gestión Ganadera Colombia" />
+    <meta name="msapplication-task" content="name=Dashboard;action-uri=/;icon-uri=/favicon.svg" />
+    <meta name="msapplication-task" content="name=GPS Bovino;action-uri=/gps;icon-uri=/favicon.svg" />
+    <meta name="msapplication-task" content="name=Pesaje BT;action-uri=/pesaje;icon-uri=/favicon.svg" />
+    <meta name="msapplication-task" content="name=Inventario;action-uri=/inventario;icon-uri=/favicon.svg" />
+    <!-- Window Controls Overlay — Desktop PWA -->
+    <meta name="wco-overlay-color" content="#0a1628" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
+    <link rel="apple-touch-startup-image" href="/opengraph.jpg" />
     <link rel="manifest" href="/manifest.json" />
+    <!-- Preload de iconos para faster PWA install -->
+    <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml" />
 
     <!-- ── FONTS ─────────────────────────────────────────────────────── -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

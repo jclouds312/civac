@@ -27,3 +27,8 @@ scripts
 *.log
 .env
 .env.local
+
+# El root .gitignore tiene "dist" que excluiría el build output del frontend.
+# Esta negación le dice a Vercel que SÍ incluya el directorio de salida de Vite.
+!artifacts/ganader-ia/dist
+!artifacts/ganader-ia/dist/public

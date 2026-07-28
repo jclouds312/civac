@@ -3,8 +3,8 @@ modules = ["nodejs-20", "python-3.12", "web", "postgresql-16"]
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
-build = ["pnpm", "--filter", "@workspace/ganader-ia", "run", "build"]
-run = ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
+build = ["bash", "-c", "pnpm --filter @workspace/ganader-ia run build && pnpm --filter @workspace/api-server run build"]
+run = ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]

@@ -319,13 +319,14 @@ Rutas públicas (sin auth)
 ## Preferencias de desarrollo
 
 - Clone visual basado en: https://smart-ganader-ia-colombia.base44.app
+- **Referencia de diseño Base44:** la app original en base44.app es la guía visual de referencia; este proyecto es la implementación completa en código propio.
 - Banners degradados por módulo con color identity único
 - KPI cards vividas con gradientes, glow y animación gold×silver
 - Cabeceras de tabla verde oscuro `bg-[#1a4a2e]`
 - Badges de color para lote / categoría / estado / cargo
 - Barras horizontales para top-vacas en producción
 - BarChart (NO AreaChart) para producción/predicción/co2
-- NO importar `@workspace/api-client-react` — solo React state puro
+- `@workspace/api-client-react` se usa SOLO en `main.tsx` para `setBaseUrl`. En el resto de la app usar solo React state puro.
 - Iconos: solo `lucide-react` (usar `Map`, NO `MapMap`; usar `Beef`, NO `Cow`)
 - Dark mode es el predeterminado de la app
 - Idioma: español colombiano en toda la UI

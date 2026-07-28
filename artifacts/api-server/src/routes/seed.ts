@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { randomUUID } from "crypto";
 import { db, animalsTable, potrerosTable, insumosTable, personalTable,
   reproduccionTable, alertasTable, gpsUbicacionesTable, pesajesTable,
-  plansTable, fincaConfigTable, usuariosTable } from "@workspace/db";
+  plansTable, fincaConfigTable, usuariosTable, licenciasTable } from "@workspace/db";
 
 const router = Router();
 
@@ -39,14 +40,14 @@ const ANIMALS = [
 ];
 
 const POTREROS = [
-  { nombre:"Potrero Norte",     pasto:"Kikuyo",       hectareas:4.5, estado:"Ocupado",      diasOcupado:6,  diasRotacion:30, animales:22 },
-  { nombre:"Potrero Sur",       pasto:"Raigrás",      hectareas:3.8, estado:"Descanso",     diasDescanso:8, diasRotacion:22, animales:0  },
-  { nombre:"Potrero Central",   pasto:"Brachiaria",   hectareas:5.1, estado:"Ocupado",      diasOcupado:14, diasRotacion:34, animales:20 },
-  { nombre:"Potrero Este",      pasto:"Estrella",     hectareas:4.2, estado:"Rotar pronto", diasRestantes:3,diasRotacion:28, animales:26 },
-  { nombre:"Potrero Ladera",    pasto:"Pasto nativo", hectareas:6.0, estado:"Disponible",   diasDescanso:21,diasRotacion:35, animales:0  },
-  { nombre:"Potrero Bajo",      pasto:"Kikuyo",       hectareas:3.5, estado:"Ocupado",      diasOcupado:18, diasRotacion:23, animales:22 },
-  { nombre:"Potrero Alto",      pasto:"Penisetum",    hectareas:4.8, estado:"Descanso",     diasDescanso:15,diasRotacion:30, animales:0  },
-  { nombre:"Potrero Maternidad",pasto:"Kikuyo",       hectareas:2.2, estado:"Ocupado",      diasOcupado:4,  diasRotacion:15, animales:8  },
+  { nombre:"Potrero Norte",      pasto:"Kikuyo",       hectareas:4.5, estado:"Ocupado",      diasOcupado:6,  diasRotacion:30, animales:22 },
+  { nombre:"Potrero Sur",        pasto:"Raigrás",      hectareas:3.8, estado:"Descanso",     diasDescanso:8, diasRotacion:22, animales:0  },
+  { nombre:"Potrero Central",    pasto:"Brachiaria",   hectareas:5.1, estado:"Ocupado",      diasOcupado:14, diasRotacion:34, animales:20 },
+  { nombre:"Potrero Este",       pasto:"Estrella",     hectareas:4.2, estado:"Rotar pronto", diasRestantes:3,diasRotacion:28, animales:26 },
+  { nombre:"Potrero Ladera",     pasto:"Pasto nativo", hectareas:6.0, estado:"Disponible",   diasDescanso:21,diasRotacion:35, animales:0  },
+  { nombre:"Potrero Bajo",       pasto:"Kikuyo",       hectareas:3.5, estado:"Ocupado",      diasOcupado:18, diasRotacion:23, animales:22 },
+  { nombre:"Potrero Alto",       pasto:"Penisetum",    hectareas:4.8, estado:"Descanso",     diasDescanso:15,diasRotacion:30, animales:0  },
+  { nombre:"Potrero Maternidad", pasto:"Kikuyo",       hectareas:2.2, estado:"Ocupado",      diasOcupado:4,  diasRotacion:15, animales:8  },
 ];
 
 const INSUMOS = [
@@ -130,22 +131,59 @@ const PESAJES = [
 ];
 
 const USUARIOS = [
-  { id:"u-admin",  nombre:"Administrador General", cargo:"Administrador",  finca:"Finca El Rancho Verde", email:"admin@ganader.ia",  password:"admin",    role:"admin",     planCode:"pro",      permisos:"[]", activo:true },
-  { id:"u-vet",    nombre:"Dr. Carlos Ramírez",    cargo:"Veterinario",    finca:"Finca El Rancho Verde", email:"vet@ganader.ia",    password:"vet2026",  role:"vet",       planCode:"pro",      permisos:"[]", activo:true },
-  { id:"u-field",  nombre:"Luis Patiño",           cargo:"Operario campo", finca:"Finca El Rancho Verde", email:"luis@ganader.ia",   password:"campo2026",role:"field",     planCode:"basic",    permisos:"[]", activo:true },
-  { id:"u-viewer", nombre:"Propietario / Inversor",cargo:"Propietario",    finca:"Finca El Rancho Verde", email:"visor@ganader.ia",  password:"visor",    role:"viewer",    planCode:"basic",    permisos:"[]", activo:true },
-  { id:"u-dev",    nombre:"Dev · Arquitecto CIVAC",cargo:"Desarrollador",  finca:"CIVAC HQ",             email:"dev@civac.co",      password:"dev2026",  role:"developer", planCode:"platinum", permisos:"[]", activo:true },
-  { id:"u-super",  nombre:"Super Administrador",   cargo:"Super Admin",    finca:"CIVAC HQ",             email:"super@civac.co",    password:"super2026",role:"superadmin",planCode:"platinum", permisos:"[]", activo:true },
+  { id:"u-admin",  nombre:"Administrador General",  cargo:"Administrador",         finca:"Finca El Rancho Verde", email:"admin@ganader.ia",  password:"admin",    role:"admin",     planCode:"pro",      permisos:"[]", activo:true, estado:"activo" },
+  { id:"u-vet",    nombre:"Dr. Carlos Ramírez",      cargo:"Médico Veterinario",    finca:"Finca El Rancho Verde", email:"vet@ganader.ia",    password:"vet2026",  role:"vet",       planCode:"pro",      permisos:"[]", activo:true, estado:"activo" },
+  { id:"u-field",  nombre:"Luis Patiño",             cargo:"Jefe de Campo",         finca:"Finca El Rancho Verde", email:"luis@ganader.ia",   password:"campo2026",role:"field",     planCode:"basico",   permisos:"[]", activo:true, estado:"activo" },
+  { id:"u-viewer", nombre:"Propietario / Inversor",  cargo:"Propietario",           finca:"Finca El Rancho Verde", email:"visor@ganader.ia",  password:"visor",    role:"viewer",    planCode:"basico",   permisos:"[]", activo:true, estado:"activo" },
+  { id:"u-dev",    nombre:"Dev · Arquitecto CIVAC",  cargo:"Arquitecto Principal",  finca:"CIVAC Labs · Colombia", email:"dev@civac.co",      password:"dev2026",  role:"developer", planCode:"platino",  permisos:"[]", activo:true, estado:"activo" },
+  { id:"u-super",  nombre:"Super Administrador",     cargo:"CEO · Fundador CIVAC",  finca:"CIVAC HQ · Bogotá",    email:"super@civac.co",    password:"super2026",role:"superadmin",planCode:"platino",  permisos:"[]", activo:true, estado:"activo" },
 ];
 
 const PLANS = [
-  { code:"basic",      name:"Básico",    nameLong:"Plan Básico CIVAC",     priceMonthly:0,      maxAnimals:50,    maxUsers:1,  maxGpsCollars:2,  features:JSON.stringify(["Inventario","Producción","Alertas","Pesaje manual","App PWA"]),                                                                          colorPrimary:"#00f5d4", colorSecondary:"#00c8ff", colorAccent:"#39ff7e",  badgeLabel:"GRATIS",     active:true },
+  { code:"basico",     name:"Básico",    nameLong:"Plan Básico CIVAC",     priceMonthly:0,      maxAnimals:50,    maxUsers:1,  maxGpsCollars:2,  features:JSON.stringify(["Inventario","Producción","Alertas","Pesaje manual","App PWA"]),                                                                          colorPrimary:"#00f5d4", colorSecondary:"#00c8ff", colorAccent:"#39ff7e",  badgeLabel:"GRATIS",     active:true },
   { code:"pro",        name:"PRO",       nameLong:"Plan PRO CIVAC",        priceMonthly:89000,  maxAnimals:300,   maxUsers:5,  maxGpsCollars:10, features:JSON.stringify(["Todo Básico","GPS Bovino","Reproducción","Genética","Pesaje BT","Multi-Finca","Predicción IA","Huella CO₂","Fotos animales"]),        colorPrimary:"#00c8ff", colorSecondary:"#7c3aed", colorAccent:"#a855f7",  badgeLabel:"POPULAR",    active:true },
-  { code:"platinum",   name:"Platino",   nameLong:"Plan Platino CIVAC",    priceMonthly:189000, maxAnimals:2000,  maxUsers:20, maxGpsCollars:50, features:JSON.stringify(["Todo PRO","API pública","Reportes BI","Backup automático","Soporte 24/7","White-label"]),                                              colorPrimary:"#ff9500", colorSecondary:"#fbbf24", colorAccent:"#f59e0b",  badgeLabel:"PREMIUM",    active:true },
+  { code:"platino",    name:"Platino",   nameLong:"Plan Platino CIVAC",    priceMonthly:189000, maxAnimals:2000,  maxUsers:20, maxGpsCollars:50, features:JSON.stringify(["Todo PRO","API pública","Reportes BI","Backup automático","Soporte 24/7","White-label"]),                                              colorPrimary:"#ff9500", colorSecondary:"#fbbf24", colorAccent:"#f59e0b",  badgeLabel:"PREMIUM",    active:true },
   { code:"enterprise", name:"Enterprise",nameLong:"Plan Enterprise CIVAC", priceMonthly:490000, maxAnimals:99999, maxUsers:999,maxGpsCollars:999,features:JSON.stringify(["Todo Platino","Servidores dedicados","SLA 99.9%","Consultoría agro","Integración ERP"]),                                               colorPrimary:"#e2e8f0", colorSecondary:"#94a3b8", colorAccent:"#cbd5e1",  badgeLabel:"CORPORATIVO",active:true },
 ];
 
-// POST /api/seed — inserts all initial data; force=true to reset
+// Finca demo
+const FINCA_CONFIG = {
+  nombre:           "Finca El Rancho Verde",
+  nit:              "900.123.456-7",
+  municipio:        "Ubaté",
+  departamento:     "Cundinamarca",
+  telefono:         "+57 310 555 0100",
+  email:            "finca@rancho.co",
+  direccion:        "Vía Ubaté-Lenguazaque km 8",
+  planCode:         "pro",
+  themeMode:        "dark",
+  primaryColor:     "#00f5d4",
+  hectareasTotales: 27.1,
+  capacidadTotal:   130,
+};
+
+// Una licencia PRO (1 año) para las cuentas de demo principales
+function makeLicencia(userId: string, email: string, nombre: string, planCode: string) {
+  return {
+    id:          randomUUID(),
+    userId,
+    userEmail:   email,
+    userNombre:  nombre,
+    planCode,
+    diasValidos: 365,
+    sessionLimit:planCode === "platino" ? 10 : planCode === "pro" ? 5 : 2,
+    maxAnimales: planCode === "platino" ? 2000 : planCode === "pro" ? 300 : 50,
+    maxUsuarios: planCode === "platino" ? 20 : planCode === "pro" ? 5 : 1,
+    permisos:    JSON.stringify(["*"]),
+    signature:   randomUUID(),
+    estado:      "activa",
+    generadaPor: "seed",
+    notas:       "Licencia demo generada por seed inicial",
+    expiresAt:   new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+  };
+}
+
+// ── POST /api/seed — inserta todos los datos iniciales; force=true para reset ──
 router.post("/seed", async (req, res) => {
   try {
     const force = req.body?.force === true;
@@ -153,6 +191,7 @@ router.post("/seed", async (req, res) => {
     const isEmpty = force || existingAnimals.length === 0;
 
     if (isEmpty) {
+      // Limpiar tablas existentes
       await db.delete(animalsTable);
       await db.delete(potrerosTable);
       await db.delete(insumosTable);
@@ -162,7 +201,10 @@ router.post("/seed", async (req, res) => {
       await db.delete(gpsUbicacionesTable);
       await db.delete(pesajesTable);
       await db.delete(plansTable);
+      await db.delete(fincaConfigTable);
+      await db.delete(licenciasTable);
 
+      // Insertar datos base
       await db.insert(animalsTable).values(ANIMALS);
       await db.insert(potrerosTable).values(POTREROS);
       await db.insert(insumosTable).values(INSUMOS);
@@ -172,14 +214,33 @@ router.post("/seed", async (req, res) => {
       await db.insert(gpsUbicacionesTable).values(GPS);
       await db.insert(pesajesTable).values(PESAJES);
       await db.insert(plansTable).values(PLANS);
+      await db.insert(fincaConfigTable).values(FINCA_CONFIG);
 
-      // Seed usuarios (upsert by id)
+      // Usuarios (upsert)
       for (const u of USUARIOS) {
         try { await db.insert(usuariosTable).values(u).onConflictDoNothing(); } catch { /* skip */ }
       }
+
+      // Licencias demo para cada usuario de DB
+      const licencias = USUARIOS.map(u =>
+        makeLicencia(u.id, u.email, u.nombre, u.planCode)
+      );
+      for (const lic of licencias) {
+        try { await db.insert(licenciasTable).values(lic); } catch { /* skip */ }
+      }
     }
 
-    res.json({ ok: true, seeded: isEmpty });
+    const counts = {
+      animals:    (await db.select().from(animalsTable)).length,
+      potreros:   (await db.select().from(potrerosTable)).length,
+      insumos:    (await db.select().from(insumosTable)).length,
+      personal:   (await db.select().from(personalTable)).length,
+      planes:     (await db.select().from(plansTable)).length,
+      licencias:  (await db.select().from(licenciasTable)).length,
+      fincaConfig:(await db.select().from(fincaConfigTable)).length,
+    };
+
+    res.json({ ok: true, seeded: isEmpty, counts });
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }

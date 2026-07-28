@@ -1,0 +1,29 @@
+# Python / analytics backends (no desplegados en Vercel)
+artifacts/analytics-server
+artifacts/gps-server
+backend-analytics
+*.py
+pyproject.toml
+uv.lock
+.pythonlibs
+
+# API server (se despliega por separado, no en Vercel)
+artifacts/api-server/dist
+artifacts/api-server/node_modules
+
+# Base de datos local / SQLite
+*.sqlite3
+civac-accounts-backup.json
+
+# Assets adjuntos grandes
+attached_assets
+
+# Herramientas de desarrollo y CI
+scripts
+.agents
+.local
+
+# Logs y temporales
+*.log
+.env
+.env.local

@@ -348,6 +348,44 @@ Rutas públicas (sin auth)
 - `Cow` no existe en lucide-react instalado → usar `Beef`. Verificar nuevos iconos antes de usarlos.
 - Gold × Silver paleta: `#FFD700` (dorado) ↔ `#C8D4EC` (plateado) — aplicar con `.gs-border` o `civac-gs` keyframes.
 
+---
+
+## Despliegue en Vercel
+
+El frontend (React/Vite SPA) está listo para desplegarse en Vercel como sitio estático. El `vercel.json` en la raíz configura todo automáticamente.
+
+### Pasos para desplegar el frontend en Vercel
+
+1. **Conectar repositorio** en vercel.com → "Add New Project" → importar desde GitHub.
+2. **Vercel detecta `vercel.json` automáticamente** — no cambiar nada en la UI de Vercel.
+3. **Configurar variables de entorno** en Vercel → Settings → Environment Variables:
+
+| Variable | Requerida | Descripción |
+|----------|-----------|-------------|
+| `VITE_API_BASE_URL` | ✅ Sí | URL del API server desplegado (ej: `https://civac-api.railway.app`) |
+| `VITE_GOOGLE_API_KEY` | Opcional | API Key de Google AI Studio (Gemini) + Google Drive |
+| `VITE_GOOGLE_CLIENT_ID` | Opcional | Client ID de Google OAuth (para Drive backup) |
+| `VITE_WOMPI_PUBLIC_KEY` | Opcional | Llave pública Wompi (pagos Colombia) |
+
+4. **Deploy** → el build corre `pnpm --filter @workspace/ganader-ia run build` y publica `artifacts/ganader-ia/dist/public`.
+
+### Despliegue del API Server (por separado)
+
+El API server (Express + PostgreSQL) **no va en Vercel**. Opciones recomendadas:
+- **Railway**: `railway up` desde `artifacts/api-server/`
+- **Render**: Web Service apuntando a `artifacts/api-server/`, buildCommand `pnpm run build`, startCommand `pnpm run start`
+- **Replit Deploy**: el mismo Replit con el workflow `API Server` ya funciona
+
+### Google AI Studio (Gemini) — CivacAgent
+
+La integración está en `artifacts/ganader-ia/src/lib/gemini.ts`:
+- Modelo: `gemini-1.5-flash`
+- Obtén tu API key en: https://aistudio.google.com/app/apikey
+- Configura `VITE_GOOGLE_API_KEY` en Vercel o en `.env.local` localmente
+- El mismo `VITE_GOOGLE_API_KEY` sirve para Google Drive y Gemini
+
+---
+
 ## User preferences
 
 - Dark mode es el predeterminado de la app

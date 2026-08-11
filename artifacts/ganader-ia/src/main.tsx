@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import App from "./App";
 import "./index.css";
 import { initProtection } from "./lib/protection";
@@ -13,4 +14,9 @@ if (apiBaseUrl) {
 
 initProtection();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <>
+    <App />
+    <SpeedInsights />
+  </>,
+);

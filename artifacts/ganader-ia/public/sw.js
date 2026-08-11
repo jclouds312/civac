@@ -1,9 +1,9 @@
-// CIVAC PRO — Service Worker v11
+// CIVAC PRO — Service Worker v12
 // Estrategia: Cache-first assets · Stale-while-revalidate nav · Network-first API
 // Memoria expandida: 50 MB quota + persistent storage · Offline shell completo
-// v11: Gold×Silver neon UI · PWA Windows WCO · manifest v2.2 · browserconfig · safe areas
+// v12: evita cachear módulos fuente y dependencias Vite durante desarrollo
 
-const CACHE_VER    = 'v11';
+const CACHE_VER    = 'v12';
 const CACHE_MAIN   = `civac-main-${CACHE_VER}`;
 const CACHE_STATIC = `civac-static-${CACHE_VER}`;
 const CACHE_API    = `civac-api-${CACHE_VER}`;
@@ -174,12 +174,17 @@ self.addEventListener('fetch', (e) => {
   }
 
   // ── Vite dev deps y HMR — NUNCA cachear (evitar conflictos de React) ─────
-  if (url.pathname.startsWith('/node_modules/') || url.pathname.startsWith('/@') || url.pathname.startsWith('/__')) {
+  if (
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/__') ||
+    url.pathname.startsWith('/src/')
+  ) {
     return;
   }
 
   // ── Assets estáticos: cache-first ───────────────────────────────────────
-  if (url.pathname.match(/\.(js|css|woff2?|png|jpg|jpeg|webp|svg|ico|ts|map)$/)) {
+   if (url.pathname.match(/\.(js|css|woff2?|png|jpg|jpeg|webp|svg|ico|map)$/)) {
     e.respondWith(
       caches.open(CACHE_STATIC).then(async cache => {
         const cached = await cache.match(e.request);

@@ -12,7 +12,7 @@ import { fileURLToPath } from "url";
 import * as sqliteSchema from "./sqlite-schema.js";
 
 type BetterSqlite3 = typeof import("better-sqlite3");
-type DatabaseInstance = InstanceType<BetterSqlite3["default"]>;
+type DatabaseInstance = InstanceType<BetterSqlite3>;
 
 // Ruta absoluta al archivo de base de datos (junto al workspace root)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -22,7 +22,7 @@ const DB_PATH   = process.env.SQLITE_DB_PATH
 let _sqliteClient: ReturnType<typeof drizzle> | null = null;
 let _raw: DatabaseInstance | null = null;
 
-function loadBetterSqlite3(): BetterSqlite3["default"] {
+function loadBetterSqlite3(): BetterSqlite3 {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = (typeof require !== "undefined" ? require : null);
@@ -54,7 +54,7 @@ export function getSqliteDb(): ReturnType<typeof drizzle<typeof sqliteSchema>> {
   return _sqliteClient as ReturnType<typeof drizzle<typeof sqliteSchema>>;
 }
 
-export function getRawSqlite(): Database.Database {
+export function getRawSqlite(): DatabaseInstance {
   if (!_raw) getSqliteDb();
   return _raw!;
 }
@@ -83,7 +83,7 @@ export function getSqliteInfo(): {
 }
 
 /** Crea todas las tablas SQLite usando CREATE TABLE IF NOT EXISTS */
-function initSchema(db: Database.Database): void {
+function initSchema(db: DatabaseInstance): void {
   db.exec(`
     CREATE TABLE IF NOT EXISTS animals (
       id TEXT PRIMARY KEY,

@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { injectSpeedInsights } from "@vercel/speed-insights";
 import App from "./App";
 import "./index.css";
 import { initProtection } from "./lib/protection";
@@ -15,8 +15,11 @@ if (apiBaseUrl) {
 initProtection();
 
 createRoot(document.getElementById("root")!).render(
-  <>
-    <App />
-    <SpeedInsights />
-  </>,
+  <App />,
 );
+
+// This is a Vite/React SPA, not a Next.js app. The framework-agnostic API
+// avoids adding another React runtime while still enabling Vercel metrics.
+if (import.meta.env.PROD) {
+  injectSpeedInsights({ framework: "react" });
+}

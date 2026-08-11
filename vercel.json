@@ -1,8 +1,9 @@
 {
+  "version": 2,
   "buildCommand": "pnpm --filter @workspace/ganader-ia run build",
   "outputDirectory": "artifacts/ganader-ia/dist/public",
-  "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": null,
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "vite",
   "rewrites": [
     { "source": "/:path*", "destination": "/index.html" }
   ],

@@ -15,6 +15,15 @@ export interface AuthRequest extends Request {
   token?: string;
 }
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthRequest["user"];
+      token?: string;
+    }
+  }
+}
+
 const activeSessions = new Map<string, any>();
 
 /**
@@ -53,7 +62,7 @@ export function authMiddleware(req: AuthRequest, res: Response, next: NextFuncti
   };
   req.token = token;
 
-  next();
+  return next();
 }
 
 /**
@@ -78,7 +87,7 @@ export function moduleAccessMiddleware(allowedModules: string[]) {
       });
     }
 
-    next();
+    return next();
   };
 }
 
@@ -94,7 +103,7 @@ export function adminOnlyMiddleware(req: AuthRequest, res: Response, next: NextF
     return res.status(403).json({ error: 'Admin access required' });
   }
 
-  next();
+  return next();
 }
 
 /**
@@ -109,7 +118,7 @@ export function devOnlyMiddleware(req: AuthRequest, res: Response, next: NextFun
     return res.status(403).json({ error: 'Developer access required' });
   }
 
-  next();
+  return next();
 }
 
 /**

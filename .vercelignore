@@ -1,0 +1,13 @@
+# Keep the Python sources used by api/index.py in the serverless bundle.
+# Local-only generated files and development tooling are safe to omit.
+node_modules
+**/node_modules
+**/dist
+*.sqlite3
+.pythonlibs
+.agents
+.local
+scripts
+*.log
+.env
+.env.local

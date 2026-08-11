@@ -128,4 +128,4 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
-packages = ["glibcLocales", "openssl", "postgresql"]
+packages = ["glibcLocales", "iana-etc", "openssl", "postgresql"]

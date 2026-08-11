@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST='{"app/civac-app.tsx -> ../artifacts/ganader-ia/src/App":{"id":98331,"files":["static/chunks/170.01ad8cf60701bfba.js","static/chunks/331.5e75c35a102e134f.js"]}}';

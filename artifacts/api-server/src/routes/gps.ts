@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { dispositivosGpsTable, gpsTracksTable, geofenceAlertsTable } from '@/lib/db/src/schema/gps';
 
@@ -10,13 +11,13 @@ const router = Router();
  */
 router.get('/dispositivos', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const devices = await db
       .select()
       .from(dispositivosGpsTable)
-      .where((t) => t.userId.eq(userId));
+      .where(eq(dispositivosGpsTable.userId, userId));
 
     res.json({ devices });
   } catch (err) {
@@ -30,7 +31,7 @@ router.get('/dispositivos', async (req, res) => {
  */
 router.post('/dispositivos', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { imei, tipo, fabricante, modelo, protocolo, potreroId } = req.body;
@@ -64,7 +65,7 @@ router.post('/dispositivos', async (req, res) => {
  */
 router.patch('/dispositivos/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
@@ -73,7 +74,10 @@ router.patch('/dispositivos/:id', async (req, res) => {
     const updated = await db
       .update(dispositivosGpsTable)
       .set({ animalId, potreroId, estado, bateria, updatedAt: new Date() })
-      .where((t) => t.id.eq(parseInt(id)).and(t.userId.eq(userId)))
+      .where(and(
+        eq(dispositivosGpsTable.id, parseInt(id)),
+        eq(dispositivosGpsTable.userId, userId),
+      ))
       .returning();
 
     res.json({ device: updated[0] });
@@ -88,13 +92,16 @@ router.patch('/dispositivos/:id', async (req, res) => {
  */
 router.delete('/dispositivos/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
     await db
       .delete(dispositivosGpsTable)
-      .where((t) => t.id.eq(parseInt(id)).and(t.userId.eq(userId)));
+      .where(and(
+        eq(dispositivosGpsTable.id, parseInt(id)),
+        eq(dispositivosGpsTable.userId, userId),
+      ));
 
     res.json({ message: 'Device deleted' });
   } catch (err) {
@@ -108,7 +115,7 @@ router.delete('/dispositivos/:id', async (req, res) => {
  */
 router.post('/tracks', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { dispositivoId, lat, lng, speed, altitude, precision, potreroId, rawData } = req.body;
@@ -142,7 +149,7 @@ router.post('/tracks', async (req, res) => {
  */
 router.get('/tracks/:deviceId', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { deviceId } = req.params;
@@ -152,8 +159,8 @@ router.get('/tracks/:deviceId', async (req, res) => {
     const tracks = await db
       .select()
       .from(gpsTracksTable)
-      .where((t) => t.dispositivoId.eq(parseInt(deviceId)))
-      .orderBy((t) => ({ timestamp: t.timestamp }))
+      .where(eq(gpsTracksTable.dispositivoId, parseInt(deviceId)))
+      .orderBy(gpsTracksTable.timestamp)
       .limit(limit)
       .offset(offset);
 

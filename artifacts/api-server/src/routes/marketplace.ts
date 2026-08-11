@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { and, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { marketplaceListingsTable, marketplaceDealsTable, marketplaceMessagesTable, marketplaceCommissionLedgerTable } from '@/lib/db/src/schema/marketplace';
 
@@ -14,14 +15,23 @@ router.get('/listings', async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 500);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    let query = db.select().from(marketplaceListingsTable);
+    const filters = [
+      categoria
+        ? eq(marketplaceListingsTable.categoria, categoria as string)
+        : undefined,
+      departamento
+        ? eq(marketplaceListingsTable.departamento, departamento as string)
+        : undefined,
+      condicion
+        ? eq(marketplaceListingsTable.condicion, condicion as string)
+        : undefined,
+    ].filter((condition): condition is NonNullable<typeof condition> => Boolean(condition));
 
-    if (categoria) query = query.where((t) => t.categoria.eq(categoria as string));
-    if (departamento) query = query.where((t) => t.departamento.eq(departamento as string));
-    if (condicion) query = query.where((t) => t.condicion.eq(condicion as string));
-
-    const listings = await query
-      .orderBy((t) => ({ createdAt: t.createdAt }))
+    const listings = await db
+      .select()
+      .from(marketplaceListingsTable)
+      .where(filters.length > 0 ? and(...filters) : undefined)
+      .orderBy(marketplaceListingsTable.createdAt)
       .limit(limit)
       .offset(offset);
 
@@ -37,7 +47,7 @@ router.get('/listings', async (req, res) => {
  */
 router.post('/listings', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { titulo, descripcion, categoria, marca, modelo, precioCop, condicion, departamento, municipio, fotosJson } = req.body;
@@ -76,7 +86,7 @@ router.post('/listings', async (req, res) => {
  */
 router.patch('/listings/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
@@ -85,7 +95,10 @@ router.patch('/listings/:id', async (req, res) => {
     const updated = await db
       .update(marketplaceListingsTable)
       .set({ titulo, descripcion, precioCop, condicion, estado, updatedAt: new Date() })
-      .where((t) => t.id.eq(parseInt(id)).and(t.userId.eq(userId)))
+      .where(and(
+        eq(marketplaceListingsTable.id, parseInt(id)),
+        eq(marketplaceListingsTable.userId, userId),
+      ))
       .returning();
 
     res.json({ listing: updated[0] });
@@ -100,13 +113,16 @@ router.patch('/listings/:id', async (req, res) => {
  */
 router.delete('/listings/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
     await db
       .delete(marketplaceListingsTable)
-      .where((t) => t.id.eq(parseInt(id)).and(t.userId.eq(userId)));
+      .where(and(
+        eq(marketplaceListingsTable.id, parseInt(id)),
+        eq(marketplaceListingsTable.userId, userId),
+      ));
 
     res.json({ message: 'Listing deleted' });
   } catch (err) {
@@ -120,7 +136,7 @@ router.delete('/listings/:id', async (req, res) => {
  */
 router.post('/deals', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { listingId, sellerId, buyerId, precioAcordado, comisionPct = 3 } = req.body;
@@ -156,7 +172,7 @@ router.post('/deals', async (req, res) => {
  */
 router.patch('/deals/:id/close', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
@@ -164,7 +180,7 @@ router.patch('/deals/:id/close', async (req, res) => {
     const updated = await db
       .update(marketplaceDealsTable)
       .set({ estado: 'cerrado', closedAt: new Date() })
-      .where((t) => t.id.eq(parseInt(id)))
+      .where(eq(marketplaceDealsTable.id, parseInt(id)))
       .returning();
 
     res.json({ deal: updated[0] });
@@ -179,7 +195,7 @@ router.patch('/deals/:id/close', async (req, res) => {
  */
 router.post('/messages', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = Number(req.user?.userId);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { dealId, listingId, toUserId, mensaje } = req.body;

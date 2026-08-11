@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm run build:vercel",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "rewrites": [
+    { "source": "/api/analytics/:path*", "destination": "/api/index.py" },
+    { "source": "/api/python/:path*", "destination": "/api/index.py" },
+    { "source": "/api/devices/:path*", "destination": "/api/index.py" },
+    { "source": "/api/tramas/:path*", "destination": "/api/index.py" },
+    { "source": "/api/config/:path*", "destination": "/api/index.py" },
+    { "source": "/api/status", "destination": "/api/index.py" },
+    { "source": "/api/health", "destination": "/api/index.py" },
+    { "source": "/api/:path*", "destination": "/api/node.ts" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*\\.js|.*\\.css|.*\\.woff2?|.*\\.png|.*\\.jpg|.*\\.svg|.*\\.ico)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

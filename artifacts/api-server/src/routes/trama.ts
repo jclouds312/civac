@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { animalTramaTable } from '@/lib/db/src/schema/trama';
 
@@ -10,7 +11,7 @@ const router = Router();
  */
 router.post('/', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const {
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { animalId, operadorId, fecha } = req.query;
@@ -70,8 +71,8 @@ router.get('/', async (req, res) => {
 
     let query = db.select().from(animalTramaTable);
 
-    if (animalId) query = query.where((t) => t.animalId.eq(parseInt(animalId as string)));
-    if (operadorId) query = query.where((t) => t.operadorId.eq(parseInt(operadorId as string)));
+    if (animalId) query = query.where(eq(animalTramaTable.animalId, parseInt(animalId as string)));
+    if (operadorId) query = query.where(eq(animalTramaTable.operadorId, parseInt(operadorId as string)));
 
     const tramas = await query
       .orderBy((t) => ({ createdAt: t.createdAt }))
@@ -90,14 +91,14 @@ router.get('/', async (req, res) => {
  */
 router.get('/:id/receipt', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
     const trama = await db
       .select()
       .from(animalTramaTable)
-      .where((t) => t.id.eq(parseInt(id)));
+      .where(eq(animalTramaTable.id, parseInt(id)));
 
     if (!trama[0]) return res.status(404).json({ error: 'Trama not found' });
 

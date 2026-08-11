@@ -2,6 +2,42 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/lib/db": [
+        "lib/db/src/index.ts"
+      ],
+      "@/lib/db/*": [
+        "lib/db/src/*"
+      ],
+      "@/lib/db/src/schema/gps": [
+        "lib/db/src/schema/gps.ts"
+      ],
+      "@/lib/db/src/schema/marketplace": [
+        "lib/db/src/schema/marketplace.ts"
+      ],
+      "@/lib/db/src/schema/trama": [
+        "lib/db/src/schema/trama.ts"
+      ],
+      "@/*": [
+        "artifacts/ganader-ia/src/*"
+      ]
+    },
+    "allowJs": true,
+    "strict": false,
+    "noImplicitReturns": false,
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
   "references": [
     {
       "path": "./lib/db"
@@ -12,5 +48,14 @@
     {
       "path": "./lib/api-zod"
     }
+  ],
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

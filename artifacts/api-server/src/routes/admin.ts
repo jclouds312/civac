@@ -171,7 +171,7 @@ router.get("/admin/users", async (_req, res) => {
 /* ── PUT /api/admin/users/:id/plan — update user plan ───────────────────── */
 router.put("/admin/users/:id/plan", async (req, res) => {
   try {
-    const id = Number(req.params["id"]);
+    const id = req.params["id"];
     const { plan } = req.body as { plan: string };
     if (!["basico","pro","premium","platino"].includes(plan))
       return res.status(400).json({ ok: false, message: "Invalid plan" });

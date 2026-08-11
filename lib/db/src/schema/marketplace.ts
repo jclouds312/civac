@@ -32,7 +32,7 @@ export const marketplaceDealsTable = pgTable('marketplace_deals', {
   sellerId: integer('seller_id').notNull(),
   buyerId: integer('buyer_id').notNull(),
   precioAcordado: decimal('precio_acordado', { precision: 12, scale: 2 }).notNull(),
-  comisionPct: decimal('comision_pct', { precision: 5, scale: 2 }).default(3),
+  comisionPct: decimal('comision_pct', { precision: 5, scale: 2 }).default('3'),
   comisionCop: decimal('comision_cop', { precision: 12, scale: 2 }),
   estado: varchar('estado', { length: 50 }).default('abierto'),
   pdfReceiptUrl: varchar('pdf_receipt_url', { length: 500 }),

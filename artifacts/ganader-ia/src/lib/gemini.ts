@@ -4,10 +4,11 @@
    ───────────────────────────────────────────────────────────────────────── */
 
 import { GoogleGenerativeAI, type GenerationConfig } from "@google/generative-ai";
+import { publicEnv } from "./runtime-env";
 
 // ── Configuración ─────────────────────────────────────────────────────────────
 
-const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY ?? "";
+const API_KEY = publicEnv("VITE_GOOGLE_API_KEY", "NEXT_PUBLIC_GOOGLE_API_KEY");
 
 /** Verdadero cuando la API Key de Gemini está configurada */
 export function isGeminiConfigured(): boolean {

@@ -15,6 +15,7 @@ import {
   FolderOpen, CloudOff, Lock, TrendingUp, ChevronRight, Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { publicEnv } from "../lib/runtime-env";
 
 function fmtDate(iso: string | null) {
   if (!iso) return "—";
@@ -1019,7 +1020,7 @@ function SyncBD({ user, stateMap }: { user: ReturnType<typeof useAuth>['user']; 
             </div>
           ))}
         </div>
-        <p className="text-[9px] text-white/20 mt-3">Servidor: {import.meta.env.VITE_SYNC_SERVER_URL ?? 'https://api.civac.co/sync/v1'} · Schema: civac-sync-v1</p>
+        <p className="text-[9px] text-white/20 mt-3">Servidor: {publicEnv("VITE_SYNC_SERVER_URL", "NEXT_PUBLIC_SYNC_SERVER_URL") || 'https://api.civac.co/sync/v1'} · Schema: civac-sync-v1</p>
       </div>
     </div>
   );

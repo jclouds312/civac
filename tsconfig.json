@@ -2,6 +2,12 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["artifacts/ganader-ia/src/*"]
+    }
+  },
   "references": [
     {
       "path": "./lib/db"

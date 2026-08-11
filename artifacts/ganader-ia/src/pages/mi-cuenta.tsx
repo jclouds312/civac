@@ -5,6 +5,7 @@ import {
   Clock, AlertTriangle, ExternalLink, Copy, RefreshCw, Zap,
   Building2, Briefcase, Globe, Lock, Smartphone, Star, Camera, Upload, X, Edit2, Check,
 } from "lucide-react";
+import { publicEnv } from "../lib/runtime-env";
 
 const PLAN_FEATURES: Record<PlanId, string[]> = {
   basico:  ["50 animales","1 usuario","Dashboard","Inventario","Producción","Alertas"],
@@ -25,7 +26,7 @@ const PLAN_GLOW: Record<PlanId, string> = {
   basico: "148,163,184", pro: "0,245,212", premium: "251,191,36", platino: "205,127,50",
 };
 
-const WOMPI_KEY = import.meta.env.VITE_WOMPI_PUBLIC_KEY ?? "pub_test_civac_demo_key";
+const WOMPI_KEY = publicEnv("VITE_WOMPI_PUBLIC_KEY", "NEXT_PUBLIC_WOMPI_PUBLIC_KEY") || "pub_test_civac_demo_key";
 
 function PlanBadgeBig({ plan }: { plan: PlanId }) {
   const c = PLAN_COLOR[plan];

@@ -1,11 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "pnpm --filter @workspace/ganader-ia run build",
-  "outputDirectory": "public",
+  "buildCommand": "pnpm run build:vercel",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "vite",
+  "framework": "nextjs",
   "rewrites": [
-    { "source": "/:path*", "destination": "/index.html" }
+    { "source": "/api/analytics/:path*", "destination": "/api/index.py" },
+    { "source": "/api/python/:path*", "destination": "/api/index.py" },
+    { "source": "/api/devices/:path*", "destination": "/api/index.py" },
+    { "source": "/api/tramas/:path*", "destination": "/api/index.py" },
+    { "source": "/api/config/:path*", "destination": "/api/index.py" },
+    { "source": "/api/status", "destination": "/api/index.py" },
+    { "source": "/api/health", "destination": "/api/index.py" },
+    { "source": "/api/:path*", "destination": "/api/node.ts" }
   ],
   "headers": [
     {

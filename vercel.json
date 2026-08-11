@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "pnpm --filter @workspace/ganader-ia run build && rm -rf public && cp -R artifacts/ganader-ia/dist/public public",
+  "buildCommand": "pnpm --filter @workspace/ganader-ia run build",
   "outputDirectory": "public",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "vite",

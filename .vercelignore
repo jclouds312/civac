@@ -1,6 +1,4 @@
-# Python / Flask / Django: se mantienen para workflows locales,
-# pero nunca forman parte del proyecto Next.js de Vercel.
-api/index.py
+# Python / Flask / Django: se mantienen para workflows locales.
 main.py
 **/*.py
 artifacts/analytics-server/
@@ -10,6 +8,10 @@ requirements.txt
 pyproject.toml
 uv.lock
 .pythonlibs/
+
+# El monolito Flask es la función desplegada en Vercel y monta analytics.
+!artifacts/api-server/api/index.py
+!artifacts/analytics-server/app.py
 
 # API server (se despliega por separado, no en Vercel)
 artifacts/api-server/dist

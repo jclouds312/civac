@@ -74,7 +74,12 @@ export default defineConfig({
     // Vercel's project settings expect a root-level `public` output directory.
     // Keep the static artifact at the workspace root so it works even when
     // Vercel uses its dashboard Build Command instead of vercel.json.
-    outDir: path.resolve(__dirname, "..", "..", "public"),
+    outDir: path.resolve(
+      __dirname,
+      "..",
+      "..",
+      process.env.VITE_VERCEL_OUT_DIR ?? "public",
+    ),
     emptyOutDir: true,
   },
   server: {

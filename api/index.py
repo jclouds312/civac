@@ -1,8 +1,10 @@
 """Unified Flask entrypoint for Vercel Python Functions.
 
-The browser-facing Next.js app calls the same-origin /api routes.  This
-function keeps the existing analytics and scale services together without
-requiring separate always-on Python servers in Vercel.
+The Flask monolith in ``artifacts/api-server/api/index.py`` is the migration
+target for the CIVAC API.  This small WSGI dispatcher keeps the hardware-only
+scale service isolated while the migrated domain and analytics routes run in
+the same serverless function.  Routes not migrated yet are intentionally left
+on the Node function through explicit Vercel rewrites.
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from flask import Flask, jsonify
 ROOT = Path(__file__).resolve().parents[1]
 ANALYTICS_DIR = ROOT / "artifacts" / "analytics-server"
 SCALE_DIR = ROOT / "artifacts" / "api-server" / "src"
+FLASK_MONOLITH = ROOT / "artifacts" / "api-server" / "api" / "index.py"
 
 # The existing scale service imports ``services.scale_service`` as a top-level
 # package, so make both Python service roots importable before loading it.
@@ -38,16 +41,22 @@ def load_flask_app(name: str, file_path: Path) -> Flask:
     return app
 
 
-analytics_app = load_flask_app(
-    "civac_vercel_analytics",
-    ANALYTICS_DIR / "app.py",
-)
-scale_app = load_flask_app(
-    "civac_vercel_scale",
-    SCALE_DIR / "app.py",
-)
+class LazyFlaskApp:
+    """Load a Python service only when one of its routes is requested."""
+
+    def __init__(self, name: str, file_path: Path) -> None:
+        self.name = name
+        self.file_path = file_path
+        self._app: Callable | None = None
+
+    def __call__(self, environ, start_response):
+        if self._app is None:
+            self._app = load_flask_app(self.name, self.file_path)
+        return self._app(environ, start_response)
 
 
+flask_monolith = LazyFlaskApp("civac_vercel_monolith", FLASK_MONOLITH)
+scale_app = LazyFlaskApp("civac_vercel_scale", SCALE_DIR / "app.py")
 fallback_app = Flask("civac_vercel_gateway")
 
 
@@ -63,27 +72,25 @@ def health():
 
 
 class FlaskServiceRouter:
-    """Dispatch same-origin API paths to the existing Flask applications."""
+    """Dispatch migrated CIVAC routes and hardware routes independently."""
 
     def __init__(
         self,
-        analytics: Callable,
+        monolith: Callable,
         scale: Callable,
         fallback: Callable,
     ) -> None:
-        self.analytics = analytics
+        self.monolith = monolith
         self.scale = scale
         self.fallback = fallback
 
     def __call__(self, environ, start_response):
         path = environ.get("PATH_INFO", "")
-        if path.startswith("/api/python/"):
-            # Vercel may pass the original rewritten path to the Python
-            # runtime. Normalize the optional namespace before dispatching.
-            path = "/api/" + path.removeprefix("/api/python/")
+        # Be tolerant of Vercel passing the function filename after a rewrite.
+        # Normally PATH_INFO remains the original browser path.
+        if path.startswith("/api/index.py/"):
+            path = path.removeprefix("/api/index.py") or "/"
             environ["PATH_INFO"] = path
-        if path.startswith("/api/analytics"):
-            return self.analytics(environ, start_response)
         if path.startswith(
             (
                 "/api/devices",
@@ -94,7 +101,7 @@ class FlaskServiceRouter:
             )
         ):
             return self.scale(environ, start_response)
-        return self.fallback(environ, start_response)
+        return self.monolith(environ, start_response)
 
 
-app = FlaskServiceRouter(analytics_app, scale_app, fallback_app)
+app = FlaskServiceRouter(flask_monolith, scale_app, fallback_app)

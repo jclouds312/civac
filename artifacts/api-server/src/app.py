@@ -6,9 +6,9 @@ Provides HTTP endpoints for scale configuration, device management, and data str
 
 from flask import Flask, request, jsonify, stream_with_context, Response
 from flask_cors import CORS
-from flask_socketio import SocketIO, emit, join_room
 import json
 import logging
+import os
 from datetime import datetime
 from typing import Dict, List, Optional
 import threading
@@ -32,7 +32,39 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+
+# WebSockets are useful for a long-running local scale gateway, but Vercel
+# Python functions should not initialize the SocketIO server on every cold
+# start. Enable it explicitly for a persistent process with
+# CIVAC_ENABLE_SOCKETIO=1.
+if os.getenv("CIVAC_ENABLE_SOCKETIO") == "1":
+    try:
+        from flask_socketio import SocketIO, emit, join_room
+
+        socketio = SocketIO(app, cors_allowed_origins="*")
+    except ImportError:
+        socketio = None
+
+        def emit(*_args, **_kwargs):
+            return None
+
+        def join_room(*_args, **_kwargs):
+            return None
+else:
+    class _DisabledSocketIO:
+        def on(self, *_args, **_kwargs):
+            return lambda function: function
+
+        def emit(self, *_args, **_kwargs):
+            return None
+
+    socketio = _DisabledSocketIO()
+
+    def emit(*_args, **_kwargs):
+        return None
+
+    def join_room(*_args, **_kwargs):
+        return None
 
 # Global scale manager
 scale_manager = ScaleManager()

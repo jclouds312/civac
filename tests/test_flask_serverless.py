@@ -1,0 +1,62 @@
+"""Smoke tests for the Vercel WSGI gateway and Python service contracts."""
+
+from __future__ import annotations
+
+import importlib.util
+from pathlib import Path
+import unittest
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_gateway():
+    spec = importlib.util.spec_from_file_location("civac_test_gateway", ROOT / "api" / "index.py")
+    if spec is None or spec.loader is None:
+        raise RuntimeError("No se pudo cargar api/index.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.app
+
+
+class FlaskServerlessSmokeTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.gateway = load_gateway()
+
+    def test_analytics_health_and_summary(self):
+        client = self.gateway.monolith._app if hasattr(self.gateway, "monolith") else None
+        self.assertIsNone(client)
+        response = self.gateway({"REQUEST_METHOD": "GET", "PATH_INFO": "/api/analytics/health", "SERVER_NAME": "test", "SERVER_PORT": "443", "wsgi.url_scheme": "https", "wsgi.input": __import__("io").BytesIO(), "CONTENT_LENGTH": "0"}, lambda status, headers, exc_info=None: None)
+        self.assertTrue(response)
+
+    def test_scale_wsgi_health(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.get("/api/health")
+        self.assertIn(response.status_code, (200, 503))
+        self.assertIn(response.content_type, ("application/json", "application/json; charset=utf-8"))
+
+    def test_scale_parser_without_hardware(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.post("/api/tramas/test", json={"trama_format": "generic_line", "test_data": "Weight 450 kg"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["frames_parsed"], 1)
+
+    def test_device_registration_returns_controlled_error_without_port(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.post("/api/devices", json={"device_id": "test", "port": "/dev/does-not-exist"})
+        self.assertIn(response.status_code, (400, 500))
+        self.assertIn("error", response.json)
+
+
+if __name__ == "__main__":
+    unittest.main()

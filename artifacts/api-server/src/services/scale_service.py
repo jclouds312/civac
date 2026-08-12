@@ -4,7 +4,10 @@ Scale Device Communication Service - Python Backend
 Handles serial/Bluetooth/WiFi communication with livestock scales
 """
 
-import serial
+try:
+    import serial
+except ImportError:  # HTTP parsing remains available without serial hardware.
+    serial = None
 import threading
 import json
 import logging
@@ -229,6 +232,9 @@ class ScaleDevice:
     def connect(self) -> bool:
         """Connect to serial device"""
         try:
+            if serial is None:
+                logger.error("pyserial no está instalado; no hay hardware serial disponible")
+                return False
             parity_map = {'N': serial.PARITY_NONE, 'E': serial.PARITY_EVEN, 'O': serial.PARITY_ODD}
             self.serial_conn = serial.Serial(
                 port=self.port,

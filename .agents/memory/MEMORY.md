@@ -1,4 +1,5 @@
 - [CIVAC Server Panel](civac-server-panel.md) — separate /server login + /server-dashboard for CIVAC staff; CIVAC_STAFF_IDS in auth.ts controls access; client demos stay on main login
+- [GitHub/Vercel sync](github-vercel-sync.md) — preserve the active branch before switching to GitHub's default; Vite output must point Vercel to the artifact's dist/public directory
 - [React namespace in .ts files](react-namespace-ts-files.md) — `import * as React` becomes null during Vite HMR in .ts files; use named imports only.
 - [lucide-react missing icons](lucide-react-missing.md) — `Cow` does not exist in the installed lucide-react; use `Beef` instead. Always verify new icons with `node -e "const lr=require('./node_modules/lucide-react'); console.log('X' in lr)"` before using them.
 - [CustomTrama type and testCustomTrama](custom-trama-api.md) — CustomTrama requires 10 fields; testCustomTrama returns number[] not {ok,peso,error}. See topic file for details.

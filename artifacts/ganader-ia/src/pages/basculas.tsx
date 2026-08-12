@@ -55,6 +55,7 @@ interface TelemetryItem {
   ts: string;
   type: string;
   event: string;
+  deviceId?: string;
   deviceName?: string;
   severity: string;
   data?: Record<string, unknown>;

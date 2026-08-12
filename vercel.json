@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "pnpm --filter @workspace/ganader-ia run build",
-  "outputDirectory": "public",
+  "buildCommand": "pnpm run build:vercel",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "vite",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
   "rewrites": [
-    { "source": "/:path*", "destination": "/index.html" }
+    { "source": "/api/:path*", "destination": "/api/node.ts" }
   ],
   "headers": [
     {

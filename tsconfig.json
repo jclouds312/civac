@@ -2,6 +2,26 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "artifacts/ganader-ia/src/*"
+      ]
+    },
+    "allowJs": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
   "references": [
     {
       "path": "./lib/db"
@@ -12,5 +32,22 @@
     {
       "path": "./lib/api-zod"
     }
+  ],
+  "include": [
+    "next-env.d.ts",
+    "vite-env.d.ts",
+    ".next/types/**/*.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "artifacts/ganader-ia/src/**/*.ts",
+    "artifacts/ganader-ia/src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "api",
+    "artifacts/api-server",
+    "artifacts/analytics-server",
+    "artifacts/gps-server",
+    "backend-analytics"
   ]
 }

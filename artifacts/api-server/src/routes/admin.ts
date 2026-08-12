@@ -110,7 +110,7 @@ router.patch("/admin/users/:id", async (req, res) => {
       estado?: string; planCode?: string; activo?: boolean;
       nombre?: string; cargo?: string; finca?: string; role?: string;
     };
-    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    const updates: Partial<typeof usuariosTable.$inferInsert> = { updatedAt: new Date() };
     if (estado   !== undefined) updates["estado"]   = estado;
     if (planCode !== undefined) updates["planCode"] = planCode;
     if (activo   !== undefined) updates["activo"]   = activo;
@@ -119,7 +119,7 @@ router.patch("/admin/users/:id", async (req, res) => {
     if (finca    !== undefined) updates["finca"]    = finca;
     if (role     !== undefined) updates["role"]     = role;
 
-    const [row] = await db.update(usuariosTable).set(updates as Parameters<typeof db.update>[0])
+    const [row] = await db.update(usuariosTable).set(updates)
       .where(eq(usuariosTable.id, id)).returning();
     if (!row) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
     return res.json({ ok: true, user: row });
@@ -145,7 +145,7 @@ router.post("/admin/users/:id/demo", async (req, res) => {
       activo: true,
       estado: "demo",
       updatedAt: new Date(),
-    } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, id)).returning();
+    }).where(eq(usuariosTable.id, id)).returning();
 
     return res.json({
       ok: true,
@@ -179,7 +179,7 @@ router.post("/admin/users/:id/activate", async (req, res) => {
       estado: "activo",
       demoExpiry: null,
       updatedAt: new Date(),
-    } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, id)).returning();
+    }).where(eq(usuariosTable.id, id)).returning();
 
     return res.json({
       ok: true,
@@ -210,7 +210,7 @@ router.post("/admin/users/:id/extend", async (req, res) => {
       ? { demoExpiry: newExpiry, demoDias: (user.demoDias ?? 0) + dias }
       : { planExpiry: newExpiry, planDias: (user.planDias ?? 0) + dias };
 
-    const [row] = await db.update(usuariosTable).set({ ...updates, updatedAt: new Date() } as Parameters<typeof db.update>[0])
+    const [row] = await db.update(usuariosTable).set({ ...updates, updatedAt: new Date() })
       .where(eq(usuariosTable.id, id)).returning();
 
     return res.json({ ok: true, message: `${dias} días añadidos`, user: row, newExpiry: newExpiry.toISOString() });
@@ -269,7 +269,7 @@ router.put("/admin/users/:id/plan", async (req, res) => {
     if (!["basico","pro","premium","platino"].includes(plan))
       return res.status(400).json({ ok: false, message: "Plan inválido" });
     const [row] = await db.update(usuariosTable)
-      .set({ planCode: plan, updatedAt: new Date() } as Parameters<typeof db.update>[0])
+      .set({ planCode: plan, updatedAt: new Date() })
       .where(eq(usuariosTable.id, id)).returning();
     return res.json({ ok: true, user: row });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
@@ -383,7 +383,7 @@ router.post("/admin/versions", async (req, res) => {
 router.put("/admin/versions/:id", async (req, res) => {
   try {
     const [row] = await db.update(appVersionsTable)
-      .set(req.body as Parameters<typeof db.update>[0])
+      .set(req.body as Partial<typeof appVersionsTable.$inferInsert>)
       .where(eq(appVersionsTable.id, Number(req.params["id"]))).returning();
     return res.json({ ok: true, version: row });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }

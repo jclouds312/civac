@@ -1,4 +1,5 @@
 - [CIVAC Server Panel](civac-server-panel.md) — separate /server login + /server-dashboard for CIVAC staff; CIVAC_STAFF_IDS in auth.ts controls access; client demos stay on main login
+- [GitHub/Vercel sync](github-vercel-sync.md) — preserve the active branch before switching to GitHub's default; Vite output must point Vercel to the artifact's dist/public directory
 - [React namespace in .ts files](react-namespace-ts-files.md) — `import * as React` becomes null during Vite HMR in .ts files; use named imports only.
 - [lucide-react missing icons](lucide-react-missing.md) — `Cow` does not exist in the installed lucide-react; use `Beef` instead. Always verify new icons with `node -e "const lr=require('./node_modules/lucide-react'); console.log('X' in lr)"` before using them.
 - [CustomTrama type and testCustomTrama](custom-trama-api.md) — CustomTrama requires 10 fields; testCustomTrama returns number[] not {ok,peso,error}. See topic file for details.
@@ -9,3 +10,4 @@
 - [better-sqlite3 Replit build](better-sqlite3-replit.md) — pnpm blocks build scripts by default; add onlyBuiltDependencies to package.json, then compile with `make -C <pkg>/build better_sqlite3` using PATH with Nix g++. Also install in consumer package (api-server) since it's external in esbuild bundle.
 - [API server route prefix](api-server-route-prefix.md) — app.ts mounts router at /api, so route files must NOT include /api prefix. Real health path is /api/healthz not /api/health.
 - [API server esbuild build](api-server-esbuild-build.md) — drizzle-zod not in api-server node_modules by default; build.mjs must symlink it + use nodePaths for pnpm virtual store. esbuild override must be 0.27.7 (not 0.27.3 which doesn't exist).
+- [GitHub branch sync and build](github-branch-sync-build.md) — preserve divergent local commits before aligning a requested branch; validate artifact workflows after checkout changes.

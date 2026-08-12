@@ -367,7 +367,7 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <AppStateProvider>
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <WouterRouter base="/">
                 <Switch>
                   <Route path="/plan/:planId" component={PlanLanding} />
                   <Route path="/invite/:token" component={InvitePage} />

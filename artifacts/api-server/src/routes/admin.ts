@@ -110,7 +110,7 @@ router.patch("/admin/users/:id", async (req, res) => {
       estado?: string; planCode?: string; activo?: boolean;
       nombre?: string; cargo?: string; finca?: string; role?: string;
     };
-    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    const updates: Partial<typeof usuariosTable.$inferInsert> = { updatedAt: new Date() };
     if (estado   !== undefined) updates["estado"]   = estado;
     if (planCode !== undefined) updates["planCode"] = planCode;
     if (activo   !== undefined) updates["activo"]   = activo;
@@ -119,7 +119,7 @@ router.patch("/admin/users/:id", async (req, res) => {
     if (finca    !== undefined) updates["finca"]    = finca;
     if (role     !== undefined) updates["role"]     = role;
 
-    const [row] = await db.update(usuariosTable).set(updates as Parameters<typeof db.update>[0])
+    const [row] = await db.update(usuariosTable).set(updates)
       .where(eq(usuariosTable.id, id)).returning();
     if (!row) return res.status(404).json({ ok: false, message: "Usuario no encontrado" });
     return res.json({ ok: true, user: row });

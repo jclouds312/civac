@@ -11,6 +11,7 @@ uv.lock
 
 # El monolito Flask es la función desplegada en Vercel y monta analytics.
 !artifacts/api-server/api/index.py
+!artifacts/analytics-server/
 !artifacts/analytics-server/app.py
 
 # API server (se despliega por separado, no en Vercel)

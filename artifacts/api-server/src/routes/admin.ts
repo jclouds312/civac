@@ -145,7 +145,7 @@ router.post("/admin/users/:id/demo", async (req, res) => {
       activo: true,
       estado: "demo",
       updatedAt: new Date(),
-    } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, id)).returning();
+    }).where(eq(usuariosTable.id, id)).returning();
 
     return res.json({
       ok: true,
@@ -179,7 +179,7 @@ router.post("/admin/users/:id/activate", async (req, res) => {
       estado: "activo",
       demoExpiry: null,
       updatedAt: new Date(),
-    } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, id)).returning();
+    }).where(eq(usuariosTable.id, id)).returning();
 
     return res.json({
       ok: true,
@@ -210,7 +210,7 @@ router.post("/admin/users/:id/extend", async (req, res) => {
       ? { demoExpiry: newExpiry, demoDias: (user.demoDias ?? 0) + dias }
       : { planExpiry: newExpiry, planDias: (user.planDias ?? 0) + dias };
 
-    const [row] = await db.update(usuariosTable).set({ ...updates, updatedAt: new Date() } as Parameters<typeof db.update>[0])
+    const [row] = await db.update(usuariosTable).set({ ...updates, updatedAt: new Date() })
       .where(eq(usuariosTable.id, id)).returning();
 
     return res.json({ ok: true, message: `${dias} días añadidos`, user: row, newExpiry: newExpiry.toISOString() });
@@ -269,7 +269,7 @@ router.put("/admin/users/:id/plan", async (req, res) => {
     if (!["basico","pro","premium","platino"].includes(plan))
       return res.status(400).json({ ok: false, message: "Plan inválido" });
     const [row] = await db.update(usuariosTable)
-      .set({ planCode: plan, updatedAt: new Date() } as Parameters<typeof db.update>[0])
+      .set({ planCode: plan, updatedAt: new Date() })
       .where(eq(usuariosTable.id, id)).returning();
     return res.json({ ok: true, user: row });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
@@ -383,7 +383,7 @@ router.post("/admin/versions", async (req, res) => {
 router.put("/admin/versions/:id", async (req, res) => {
   try {
     const [row] = await db.update(appVersionsTable)
-      .set(req.body as Parameters<typeof db.update>[0])
+      .set(req.body as Partial<typeof appVersionsTable.$inferInsert>)
       .where(eq(appVersionsTable.id, Number(req.params["id"]))).returning();
     return res.json({ ok: true, version: row });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }

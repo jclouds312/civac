@@ -26,6 +26,7 @@ export const animalsTable = sqliteTable("animals", {
   numeroRegistro:  text("numero_registro").notNull().default(""),
   valorKilo:       real("valor_kilo").notNull().default(0),
   foto:            text("foto").default(""),
+  gpsCollarId:     text("gps_collar_id").default(""),
   createdAt:       text("created_at").default(sql`(datetime('now'))`),
   updatedAt:       text("updated_at").default(sql`(datetime('now'))`),
 });

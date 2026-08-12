@@ -8,6 +8,7 @@ import {
   TrendingUp, Search, Plus, Bluetooth, Trash2,
   Link2, Loader2, LocateFixed, Play, Pause, Radio,
   Satellite, ChevronRight, Info, Zap, Eye,
+  Edit, ShoppingBag, Download, ChevronLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +25,9 @@ import {
 ───────────────────────────────────────────────────────────────────────────── */
 interface GpsDevice {
   id: string; nombre: string;
-  tipo: 'collar-gps' | 'collar-bt' | 'bolus' | 'oreja';
+  tipo: 'collar-gps' | 'collar-bt' | 'bolus' | 'oreja' | 'pedometro' | 'implante' | 'panel-solar' | 'camara-ia';
   imei: string; animalId: string; animalNom: string;
+  fabricante?: string; modelo?: string; protocolo?: string;
   vinculado: boolean; fechaVin: string;
   lat?: number; lng?: number; precision?: number;
   bateria: number; activo: boolean;
@@ -35,6 +37,17 @@ interface GpsDevice {
 }
 
 interface LivePos { lat: number; lng: number; acc: number; ts: number; }
+interface DeviceCatalogEntry {
+  id: string; fabricante: string; modelo: string;
+  tipo: GpsDevice['tipo']; protocolo: string; rango_m: number;
+  bateria_dias: number; precio_USD: number; disponible_CO: boolean;
+  descripcion: string;
+}
+interface RemoteTrack {
+  id: number; dispositivoId: number; lat: number; lng: number;
+  speed?: number | null; altitude?: number | null; precision?: number | null;
+  potreroId?: number | null; timestamp: string;
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    CONSTANTS
@@ -48,6 +61,33 @@ const TIPOS = [
   { id:'implante',      label:'Implante subcutáneo',    emoji:'💉', desc:'Digital Angel · AVID · Trovan',                 color:'#f87171', glow:'248,113,113' },
   { id:'panel-solar',   label:'Collar Solar LTE',       emoji:'☀️', desc:'Ceres Tag · SenseHub · Quantified Ag',          color:'#f59e0b', glow:'245,158,11'  },
   { id:'camara-ia',     label:'Cámara IA potrero',      emoji:'🎥', desc:'CattleEye · IdentiGEN · AKVA group',            color:'#e879f9', glow:'232,121,249' },
+];
+
+const DEVICE_CATALOG: DeviceCatalogEntry[] = [
+  {id:'allflex-srs2',fabricante:'Allflex',modelo:'SRS2 RFID + GPS',tipo:'oreja',protocolo:'ISO 11784/11785',rango_m:50,bateria_dias:730,precio_USD:89,disponible_CO:true,descripcion:'Caravana EID robusta para identificación y trazabilidad.'},
+  {id:'allflex-fdx',fabricante:'Allflex',modelo:'FDX-B Ultra',tipo:'oreja',protocolo:'ISO FDX-B',rango_m:20,bateria_dias:365,precio_USD:42,disponible_CO:true,descripcion:'Caravana electrónica para lectura animal y eventos.'},
+  {id:'nedap-lifetags',fabricante:'Nedap',modelo:'SmartTag GPS',tipo:'collar-gps',protocolo:'LTE-M / GNSS',rango_m:10000,bateria_dias:180,precio_USD:249,disponible_CO:true,descripcion:'Collar LTE con posición, actividad y alertas de zona.'},
+  {id:'herddogg-m2',fabricante:'HerdDogg',modelo:'Smart Tag M2',tipo:'collar-gps',protocolo:'LoRaWAN / GPS',rango_m:5000,bateria_dias:365,precio_USD:199,disponible_CO:true,descripcion:'Tag de hato con gateway para fincas extensivas.'},
+  {id:'herddogg-bt',fabricante:'HerdDogg',modelo:'DoggTag BLE',tipo:'collar-bt',protocolo:'Bluetooth 5.0',rango_m:300,bateria_dias:180,precio_USD:79,disponible_CO:true,descripcion:'Seguimiento BLE de bajo consumo para corrales y mangas.'},
+  {id:'smaxtec-bolus',fabricante:'SmaXtec',modelo:'pH Plus Bolus',tipo:'bolus',protocolo:'LoRaWAN / BLE',rango_m:1000,bateria_dias:365,precio_USD:310,disponible_CO:true,descripcion:'Bolo ruminal para temperatura, actividad y pH.'},
+  {id:'smaxtec-sensor',fabricante:'SmaXtec',modelo:'Classic Bolus',tipo:'bolus',protocolo:'LoRaWAN',rango_m:1500,bateria_dias:240,precio_USD:245,disponible_CO:true,descripcion:'Monitoreo ruminal y detección temprana de salud.'},
+  {id:'quantified-ag',fabricante:'Quantified Ag',modelo:'CattleEye Ear Tag',tipo:'oreja',protocolo:'LTE / GNSS',rango_m:10000,bateria_dias:300,precio_USD:179,disponible_CO:true,descripcion:'Caravana inteligente con actividad y ubicación.'},
+  {id:'scr-cowmanager',fabricante:'CowManager SCR',modelo:'SenseHub Tag',tipo:'oreja',protocolo:'868 MHz / Gateway',rango_m:800,bateria_dias:730,precio_USD:145,disponible_CO:true,descripcion:'Actividad, rumia y celo con plataforma de hato.'},
+  {id:'scr-afitag',fabricante:'SCR',modelo:'AfiTag II',tipo:'pedometro' as GpsDevice['tipo'],protocolo:'RF 433 MHz',rango_m:500,bateria_dias:730,precio_USD:112,disponible_CO:true,descripcion:'Podómetro de actividad para reproducción y salud.'},
+  {id:'zee-tag-gps',fabricante:'Zee Tag',modelo:'Zee GPS Collar',tipo:'collar-gps',protocolo:'2G/4G / GNSS',rango_m:10000,bateria_dias:120,precio_USD:159,disponible_CO:true,descripcion:'Collar GPS con batería intercambiable y app móvil.'},
+  {id:'gallagher-smartscale',fabricante:'Gallagher',modelo:'SmartScale GPS',tipo:'collar-gps',protocolo:'4G / GNSS',rango_m:10000,bateria_dias:90,precio_USD:229,disponible_CO:true,descripcion:'Seguimiento para manejo de ganado y báscula conectada.'},
+  {id:'moocall-scout',fabricante:'Moocall',modelo:'Scout GPS',tipo:'collar-gps',protocolo:'LTE-M / GNSS',rango_m:10000,bateria_dias:150,precio_USD:219,disponible_CO:true,descripcion:'Alertas de actividad, partos y ubicación.'},
+  {id:'moocall-collar',fabricante:'Moocall',modelo:'MooTag BLE',tipo:'collar-bt',protocolo:'Bluetooth 5.0',rango_m:250,bateria_dias:240,precio_USD:99,disponible_CO:true,descripcion:'Tag BLE para localización de proximidad.'},
+  {id:'trutest-xrs2i',fabricante:'Tru-Test',modelo:'XRS2i + GPS Link',tipo:'collar-bt',protocolo:'Bluetooth / EID',rango_m:100,bateria_dias:365,precio_USD:185,disponible_CO:true,descripcion:'Lector EID y vínculo de animales en manga.'},
+  {id:'trutest-xr3000',fabricante:'Tru-Test',modelo:'XR3000 Reader',tipo:'collar-bt',protocolo:'Bluetooth / EID',rango_m:80,bateria_dias:300,precio_USD:149,disponible_CO:true,descripcion:'Lector portátil para identificación y pesaje.'},
+  {id:'sensehub-advance',fabricante:'MSD SenseHub',modelo:'SenseHub Feedlot',tipo:'collar-gps',protocolo:'868 MHz / Gateway',rango_m:1200,bateria_dias:365,precio_USD:265,disponible_CO:true,descripcion:'Actividad y alimentación con gateway de finca.'},
+  {id:'ceres-tag',fabricante:'Ceres Tag',modelo:'Ceres Tag Solar',tipo:'panel-solar' as GpsDevice['tipo'],protocolo:'LTE-M / GNSS',rango_m:10000,bateria_dias:1000,precio_USD:299,disponible_CO:true,descripcion:'Collar solar de larga duración para pastoreo.'},
+  {id:'afimilk-afiact',fabricante:'Afimilk',modelo:'AfiAct II',tipo:'pedometro' as GpsDevice['tipo'],protocolo:'868 MHz',rango_m:900,bateria_dias:730,precio_USD:128,disponible_CO:true,descripcion:'Actividad, rumia y celo integrado con sala.'},
+  {id:'boumatic-heatime',fabricante:'BouMatic',modelo:'Heatime HR-LD',tipo:'collar-bt',protocolo:'RF / BLE',rango_m:700,bateria_dias:540,precio_USD:135,disponible_CO:true,descripcion:'Detección de celo y actividad para lechería.'},
+  {id:'digital-angel',fabricante:'Digital Angel',modelo:'Bio-Thermo Implant',tipo:'implante' as GpsDevice['tipo'],protocolo:'RFID / NFC',rango_m:5,bateria_dias:3650,precio_USD:65,disponible_CO:true,descripcion:'Identificación subcutánea para trazabilidad.'},
+  {id:'avid-mini',fabricante:'AVID',modelo:'MiniTracker RFID',tipo:'implante' as GpsDevice['tipo'],protocolo:'ISO RFID',rango_m:3,bateria_dias:3650,precio_USD:24,disponible_CO:true,descripcion:'Microchip de identificación permanente.'},
+  {id:'cattlemax-lte',fabricante:'CattleMax',modelo:'LTE Pasture Tag',tipo:'collar-gps',protocolo:'4G / GNSS',rango_m:10000,bateria_dias:210,precio_USD:189,disponible_CO:true,descripcion:'Tag LTE para potreros y alertas de salida.'},
+  {id:'rumitag-pro',fabricante:'RumiTag',modelo:'Pro Bolus',tipo:'bolus',protocolo:'LoRaWAN',rango_m:2000,bateria_dias:400,precio_USD:280,disponible_CO:true,descripcion:'Bolo de temperatura y rumia para ganado de leche.'},
 ];
 
 const POTREROS_COLORS: Record<number, string> = {
@@ -94,6 +134,14 @@ function BattIcon({pct}:{pct:number}) {
 }
 function battColor(pct:number) { return pct>50?'#4ade80':pct>20?'#fbbf24':'#f87171'; }
 
+async function gpsRequest(path: string, init: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('civac_session_token') || '';
+  const headers = new Headers(init.headers);
+  headers.set('Content-Type', 'application/json');
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return fetch(path, { ...init, headers });
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    MAIN COMPONENT
 ───────────────────────────────────────────────────────────────────────────── */
@@ -101,11 +149,11 @@ export default function Gps() {
   const { gpsUbicaciones, animals, potreros } = useAppState();
   const { user } = useAuth();
 
-  /* ── Devices state — cargado desde localStorage (offline-first) ── */
+  /* ── Devices state — DB is authoritative online; local cache is offline fallback ── */
   const [devices, setDevices] = useState<GpsDevice[]>(
     () => loadGpsDevices<GpsDevice>() ?? INITIAL_DEVICES
   );
-  const [activeTab, setActiveTab] = useState<'mapa'|'geovallado'|'lista'|'vincular'>('mapa');
+  const [activeTab, setActiveTab] = useState<'mapa'|'geovallado'|'lista'|'vincular'|'catalogo'>('mapa');
 
   /* ── Map interaction ── */
   const [selectedDevId, setSelectedDevId] = useState<string|null>(null);
@@ -136,13 +184,23 @@ export default function Gps() {
 
   /* ── Manual form ── */
   const [showForm, setShowForm]           = useState(false);
-  const [form, setForm]                   = useState({ nombre:'', tipo:'collar-gps' as GpsDevice['tipo'], imei:'', animalId:'' });
+  const [form, setForm]                   = useState({ nombre:'', tipo:'collar-gps' as GpsDevice['tipo'], imei:'', animalId:'', potreroId:1, fabricante:'Manual', modelo:'Dispositivo GPS', protocolo:'GPS/LTE' });
   const [formSaved, setFormSaved]         = useState(false);
+  const [wizardStep, setWizardStep]       = useState<1|2|3>(1);
+  const [wizardCatalogId, setWizardCatalogId] = useState<string|null>(null);
+  const [wizardBusy, setWizardBusy]       = useState(false);
 
   /* ── Device detail dialog ── */
   const [detailDev, setDetailDev]         = useState<GpsDevice|null>(null);
+  const [editDev, setEditDev]             = useState<GpsDevice|null>(null);
+  const [editForm, setEditForm]           = useState({ nombre:'', animalId:'', potreroId:1, estado:'activo', bateria:100 });
+  const [remoteTracks, setRemoteTracks]   = useState<RemoteTrack[]>([]);
+  const [trackPage, setTrackPage]         = useState(0);
+  const [trackTotal, setTrackTotal]       = useState(0);
+  const [trackLoading, setTrackLoading]   = useState(false);
+  const [apiError, setApiError]           = useState<string|null>(null);
 
-  /* ── Django GPS sync ── */
+  /* ── Server sync ── */
   const [djangoSynced, setDjangoSynced]   = useState(false);
   const [djangoStatus, setDjangoStatus]   = useState<'ok'|'error'|'loading'>('loading');
 
@@ -150,58 +208,75 @@ export default function Gps() {
   const [refreshing, setRefreshing]       = useState(false);
   const [lastUpdate, setLastUpdate]       = useState(new Date());
   const tickRef                           = useRef<ReturnType<typeof setInterval>|null>(null);
+  const devicesRef                        = useRef<GpsDevice[]>(devices);
+  const svgPositionsRef                   = useRef(svgPositions);
+  const lastTrackPushRef                  = useRef(0);
 
-  /* ── Sync devices from Django GPS Server ── */
-  useEffect(() => {
-    const syncFromDjango = async () => {
-      try {
-        const res = await fetch('/api/gps/devices/?plan=pro', { signal: AbortSignal.timeout(5000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.ok && Array.isArray(data.devices) && data.devices.length > 0) {
-          const mapped: GpsDevice[] = data.devices.map((d: Record<string, unknown>, i: number) => ({
-            id: `DEV-${String(i + 1).padStart(3, '0')}`,
-            nombre: String(d.nombre ?? ''),
-            tipo: (['collar-gps','collar-bt','bolus','oreja'].includes(String(d.tipo)) ? d.tipo : 'collar-gps') as GpsDevice['tipo'],
-            imei: String(d.imei ?? ''),
-            animalId: String(d.animal_id ?? ''),
-            animalNom: String(d.animal_nombre ?? ''),
-            vinculado: Boolean(d.vinculado),
-            fechaVin: String(d.fecha_vinculo ?? '2026-01-01'),
-            lat: typeof d.lat === 'number' ? d.lat : undefined,
-            lng: typeof d.lng === 'number' ? d.lng : undefined,
-            precision: typeof d.precision === 'number' ? d.precision : undefined,
-            bateria: typeof d.bateria === 'number' ? d.bateria : 100,
-            activo: Boolean(d.activo),
-            ultimaActualizacion: d.ultima_actualizacion
-              ? new Date(String(d.ultima_actualizacion)).getTime()
-              : Date.now() - 60000,
-            velocidad: typeof d.velocidad === 'number' ? d.velocidad : 0,
-            altitud: typeof d.altitud === 'number' ? d.altitud : undefined,
-            potreroId: typeof d.potrero_id === 'number' ? d.potrero_id : 1,
-          }));
-          setDevices(mapped);
-          setDjangoStatus('ok');
-          setDjangoSynced(true);
-          // Build SVG positions from potrero bounds
-          const newPos: Record<string, {x:number;y:number}> = {};
-          mapped.forEach((d, i) => {
-            const pb = POTREROS_BOUNDS[d.potreroId || 1] || POTREROS_BOUNDS[1];
-            newPos[d.id] = {
-              x: pb.x + 2 + (i % 3) * (pb.w / 3.5),
-              y: pb.y + 2 + Math.floor(i / 3) * (pb.h / 2.5),
-            };
-          });
-          setSvgPositions(newPos);
-        }
-      } catch {
-        setDjangoStatus('error');
-      }
+  useEffect(() => { devicesRef.current = devices; }, [devices]);
+  useEffect(() => { svgPositionsRef.current = svgPositions; }, [svgPositions]);
+
+  const mapApiDevice = useCallback((d: Record<string, unknown>, index: number): GpsDevice => {
+    const rawTipo = String(d.tipo ?? 'collar-gps');
+    const tipo = (TIPOS.some(t => t.id === rawTipo) ? rawTipo : 'collar-gps') as GpsDevice['tipo'];
+    const animalId = d.animalId == null ? '' : String(d.animalId);
+    const animal = animals.find(a => a.id === animalId);
+    const lastSignal = d.ultimaSenial ? new Date(String(d.ultimaSenial)).getTime() : Date.now() - 60000;
+    return {
+      id: String(d.id ?? `DEV-${String(index + 1).padStart(3, '0')}`),
+      nombre: String(d.nombre ?? d.modelo ?? 'Dispositivo GPS'),
+      tipo,
+      imei: String(d.imei ?? ''),
+      fabricante: String(d.fabricante ?? 'Manual'),
+      modelo: String(d.modelo ?? 'Dispositivo GPS'),
+      protocolo: d.protocolo ? String(d.protocolo) : undefined,
+      animalId,
+      animalNom: animal?.nombre ?? (animalId ? animalId : 'Sin asignar'),
+      vinculado: Boolean(animalId),
+      fechaVin: d.createdAt ? new Date(String(d.createdAt)).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10),
+      lat: d.lat == null ? undefined : Number(d.lat),
+      lng: d.lng == null ? undefined : Number(d.lng),
+      precision: d.precision == null ? undefined : Number(d.precision),
+      bateria: d.bateria == null ? 100 : Number(d.bateria),
+      activo: String(d.estado ?? 'activo') === 'activo',
+      ultimaActualizacion: Number.isNaN(lastSignal) ? Date.now() - 60000 : lastSignal,
+      velocidad: d.speed == null ? 0 : Number(d.speed),
+      altitud: d.altitude == null ? undefined : Number(d.altitude),
+      potreroId: d.potreroId == null ? 1 : Number(d.potreroId),
     };
-    syncFromDjango();
-    const id = setInterval(syncFromDjango, 15000);
+  }, [animals]);
+
+  const loadDevicesFromApi = useCallback(async () => {
+    try {
+      const res = await gpsRequest('/api/gps/dispositivos', { signal: AbortSignal.timeout(7000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { devices?: Record<string, unknown>[] };
+      const mapped = (data.devices ?? []).map(mapApiDevice);
+      setDevices(mapped);
+      setDjangoStatus('ok');
+      setDjangoSynced(true);
+      setApiError(null);
+      const newPos: Record<string, {x:number;y:number}> = {};
+      mapped.forEach((d, i) => {
+        const pb = POTREROS_BOUNDS[d.potreroId || 1] || POTREROS_BOUNDS[1];
+        newPos[d.id] = d.lat != null && d.lng != null
+          ? { x: pb.x + 2 + (i % 3) * (pb.w / 3.5), y: pb.y + 2 + Math.floor(i / 3) * (pb.h / 2.5) }
+          : { x: pb.x + 2 + (i % 3) * (pb.w / 3.5), y: pb.y + 2 + Math.floor(i / 3) * (pb.h / 2.5) };
+      });
+      setSvgPositions(newPos);
+    } catch (error) {
+      setDjangoStatus('error');
+      setApiError('No se pudo sincronizar con la base de datos; mostrando la última copia local.');
+      if (!localStorage.getItem('civac_session_token')) return;
+      console.warn('[GPS] API unavailable', error);
+    }
+  }, [mapApiDevice]);
+
+  /* ── Sync devices from PostgreSQL API ── */
+  useEffect(() => {
+    loadDevicesFromApi();
+    const id = setInterval(loadDevicesFromApi, 15000);
     return () => clearInterval(id);
-  }, []);
+  }, [loadDevicesFromApi]);
 
   /* ── Derived ── */
   const selectedDev = devices.find(d => d.id === selectedDevId) || null;
@@ -217,13 +292,27 @@ export default function Gps() {
     return matchSearch && matchActive && d.vinculado;
   });
 
+  const pushTracks = useCallback(async (tracks: Array<Record<string, unknown>>) => {
+    if (tracks.length === 0 || !localStorage.getItem('civac_session_token')) return;
+    try {
+      const res = await gpsRequest('/api/gps/tracks', {
+        method: 'POST',
+        body: JSON.stringify({ tracks }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setApiError(null);
+    } catch (error) {
+      console.warn('[GPS] track upload failed', error);
+    }
+  }, []);
+
   /* ─── Simulated movement (animals drift slightly every 4s) ─── */
   useEffect(() => {
     tickRef.current = setInterval(() => {
       setSvgPositions(prev => {
         const next = { ...prev };
         Object.keys(next).forEach(id => {
-          const dev = devices.find(d => d.id === id);
+          const dev = devicesRef.current.find(d => d.id === id);
           if (!dev?.activo) return;
           // Small Gaussian drift (±0.3 SVG units)
           const dx = (Math.random() - 0.5) * 0.6;
@@ -235,6 +324,7 @@ export default function Gps() {
             y: Math.max(pb.y + 1, Math.min(pb.y + pb.h - 1, next[id].y + dy)),
           };
         });
+        svgPositionsRef.current = next;
         return next;
       });
       // Slow battery drain
@@ -243,10 +333,25 @@ export default function Gps() {
         bateria: d.activo ? Math.max(0, d.bateria - 0.01) : d.bateria,
         ultimaActualizacion: d.activo ? Date.now() - Math.floor(Math.random()*120)*1000 : d.ultimaActualizacion,
       })));
+      if (Date.now() - lastTrackPushRef.current >= 30000) {
+        lastTrackPushRef.current = Date.now();
+        const tracks = devicesRef.current
+          .filter(d => d.activo && /^\d+$/.test(d.id) && d.lat != null && d.lng != null)
+          .map(d => ({
+            dispositivoId: Number(d.id),
+            lat: d.lat,
+            lng: d.lng,
+            speed: d.velocidad ?? 0,
+            altitude: d.altitud,
+            precision: d.precision,
+            potreroId: d.potreroId,
+          }));
+        void pushTracks(tracks);
+      }
       setLastUpdate(new Date());
     }, 4000);
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
-  }, [devices.length]);
+  }, [pushTracks]);
 
   /* ─── Real geolocation watch ─── */
   const startTracking = useCallback(() => {
@@ -261,7 +366,20 @@ export default function Gps() {
           speed: pos.coords.speed ?? undefined, alt: pos.coords.altitude ?? undefined,
         };
         setLivePos(p);
-        setGpsTrack(appendGpsPosition(p));  // persiste en localStorage
+         setGpsTrack(appendGpsPosition(p));  // offline cache for the operator's phone
+         const target = devicesRef.current.find(d => d.id === selectedDevId && /^\d+$/.test(d.id))
+           ?? devicesRef.current.find(d => d.activo && /^\d+$/.test(d.id));
+         if (target) {
+           void pushTracks([{
+             dispositivoId: Number(target.id),
+             lat: p.lat,
+             lng: p.lng,
+             speed: p.speed,
+             altitude: p.alt,
+             precision: p.acc,
+             potreroId: target.potreroId,
+           }]);
+         }
         setGeoPermission('granted');
         setGeoError(null);
       },
@@ -270,7 +388,7 @@ export default function Gps() {
       },
       { enableHighAccuracy:true, timeout:15000, maximumAge:5000 }
     );
-  }, []);
+  }, [pushTracks, selectedDevId]);
 
   const stopTracking = useCallback(() => {
     setTracking(false);
@@ -328,46 +446,193 @@ export default function Gps() {
 
   const linkScanned = async (bt:{id:string;nombre:string;rssi:number;tipo:string}) => {
     setLinking(bt.id);
-    await new Promise(r => setTimeout(r, 1200));
-    const newDev: GpsDevice = {
-      id:`DEV-${Date.now()}`, nombre:bt.nombre, tipo:bt.tipo as GpsDevice['tipo'],
-      imei:bt.id, animalId:'', animalNom:'Sin asignar', vinculado:true,
-      fechaVin:new Date().toISOString().slice(0,10),
-      lat:livePos?.lat, lng:livePos?.lng, precision:bt.rssi*-1,
-      bateria:100, activo:true, ultimaActualizacion:Date.now(), potreroId:1,
-    };
-    setDevices(prev=>[...prev,newDev]);
-    setSvgPositions(prev=>({...prev,[newDev.id]:{x:18+Math.random()*10,y:18+Math.random()*10}}));
-    setScanResults(prev=>prev.filter(r=>r.id!==bt.id));
-    setLinking(null);
+    const catalog = DEVICE_CATALOG.find(item => bt.nombre.toLowerCase().includes(item.fabricante.toLowerCase()));
+    try {
+      if (localStorage.getItem('civac_session_token')) {
+        const res = await gpsRequest('/api/gps/dispositivos', {
+          method: 'POST',
+          body: JSON.stringify({
+            imei: bt.id,
+            nombre: bt.nombre,
+            tipo: bt.tipo,
+            fabricante: catalog?.fabricante ?? 'Bluetooth',
+            modelo: catalog?.modelo ?? bt.nombre,
+            protocolo: catalog?.protocolo ?? 'Bluetooth',
+            animalId: '',
+            potreroId: 1,
+          }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await loadDevicesFromApi();
+      } else {
+        const newDev: GpsDevice = {
+          id:`DEV-${Date.now()}`, nombre:bt.nombre, tipo:bt.tipo as GpsDevice['tipo'],
+          imei:bt.id, animalId:'', animalNom:'Sin asignar', vinculado:false,
+          fabricante:catalog?.fabricante ?? 'Bluetooth', modelo:catalog?.modelo ?? bt.nombre,
+          fechaVin:new Date().toISOString().slice(0,10),
+          lat:livePos?.lat, lng:livePos?.lng, precision:bt.rssi*-1,
+          bateria:100, activo:true, ultimaActualizacion:Date.now(), potreroId:1,
+        };
+        setDevices(prev=>[...prev,newDev]);
+      }
+      setScanResults(prev=>prev.filter(r=>r.id!==bt.id));
+      setFormSaved(true);
+      setTimeout(()=>setFormSaved(false),3000);
+    } catch {
+      setApiError('No se pudo guardar el dispositivo Bluetooth en la base de datos.');
+    } finally {
+      setLinking(null);
+    }
   };
 
-  const addManualDevice = () => {
+  const addManualDevice = async () => {
     if (!form.nombre || !form.imei) return;
     const animal = animals.find(a => a.id === form.animalId);
-    const newDev: GpsDevice = {
-      id:`DEV-${Date.now()}`, nombre:form.nombre, tipo:form.tipo,
-      imei:form.imei, animalId:form.animalId, animalNom:animal?.nombre||'Sin asignar',
-      vinculado:true, fechaVin:new Date().toISOString().slice(0,10),
-      lat:livePos?.lat, lng:livePos?.lng, precision:livePos?.acc,
-      bateria:100, activo:true, ultimaActualizacion:Date.now(), potreroId:1,
-    };
-    setDevices(prev=>[...prev,newDev]);
-    setSvgPositions(prev=>({...prev,[newDev.id]:{x:18+Math.random()*12,y:18+Math.random()*12}}));
-    setForm({nombre:'',tipo:'collar-gps',imei:'',animalId:''});
-    setShowForm(false); setFormSaved(true);
-    setTimeout(()=>setFormSaved(false),3000);
+    setWizardBusy(true);
+    try {
+      if (localStorage.getItem('civac_session_token')) {
+        const res = await gpsRequest('/api/gps/dispositivos', {
+          method: 'POST',
+          body: JSON.stringify({
+            nombre: form.nombre, imei: form.imei, tipo: form.tipo,
+            fabricante: form.fabricante, modelo: form.modelo, protocolo: form.protocolo,
+            animalId: form.animalId || null, potreroId: form.potreroId,
+            bateria: 100,
+          }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error ?? `HTTP ${res.status}`);
+        }
+        await loadDevicesFromApi();
+      } else {
+        const newDev: GpsDevice = {
+          id:`DEV-${Date.now()}`, nombre:form.nombre, tipo:form.tipo,
+          imei:form.imei, animalId:form.animalId, animalNom:animal?.nombre||'Sin asignar',
+          fabricante:form.fabricante, modelo:form.modelo, protocolo:form.protocolo,
+          vinculado:Boolean(form.animalId), fechaVin:new Date().toISOString().slice(0,10),
+          lat:livePos?.lat, lng:livePos?.lng, precision:livePos?.acc,
+          bateria:100, activo:true, ultimaActualizacion:Date.now(), potreroId:form.potreroId,
+        };
+        setDevices(prev=>[...prev,newDev]);
+      }
+      setForm({nombre:'',tipo:'collar-gps',imei:'',animalId:'',potreroId:1,fabricante:'Manual',modelo:'Dispositivo GPS',protocolo:'GPS/LTE'});
+      setWizardStep(1); setWizardCatalogId(null); setShowForm(false); setFormSaved(true);
+      setTimeout(()=>setFormSaved(false),3000);
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : 'No se pudo guardar el dispositivo.');
+    } finally {
+      setWizardBusy(false);
+    }
   };
 
-  const removeDevice = (id:string) => {
+  const removeDevice = async (id:string) => {
+    if (/^\d+$/.test(id) && localStorage.getItem('civac_session_token')) {
+      try {
+        const res = await gpsRequest(`/api/gps/dispositivos/${id}`, { method:'DELETE' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      } catch {
+        setApiError('No se pudo eliminar el dispositivo en la base de datos.');
+        return;
+      }
+    }
     setDevices(prev=>prev.filter(d=>d.id!==id));
     if (selectedDevId===id) setSelectedDevId(null);
+    if (detailDev?.id===id) setDetailDev(null);
   };
 
   const refresh = async () => {
     setRefreshing(true);
-    await new Promise(r=>setTimeout(r,800));
+    await loadDevicesFromApi();
     setLastUpdate(new Date()); setRefreshing(false);
+  };
+
+  const beginEdit = (device: GpsDevice) => {
+    setEditDev(device);
+    setEditForm({
+      nombre: device.nombre,
+      animalId: device.animalId,
+      potreroId: device.potreroId ?? 1,
+      estado: device.activo ? 'activo' : 'inactivo',
+      bateria: Math.round(device.bateria),
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editDev) return;
+    try {
+      if (/^\d+$/.test(editDev.id) && localStorage.getItem('civac_session_token')) {
+        const res = await gpsRequest(`/api/gps/dispositivos/${editDev.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(editForm),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error ?? `HTTP ${res.status}`);
+        }
+        await loadDevicesFromApi();
+      } else {
+        const animal = animals.find(a => a.id === editForm.animalId);
+        setDevices(prev => prev.map(d => d.id === editDev.id ? {
+          ...d,
+          nombre: editForm.nombre,
+          animalId: editForm.animalId,
+          animalNom: animal?.nombre ?? 'Sin asignar',
+          vinculado: Boolean(editForm.animalId),
+          potreroId: editForm.potreroId,
+          activo: editForm.estado === 'activo',
+          bateria: editForm.bateria,
+        } : d));
+      }
+      setEditDev(null);
+    } catch (error) {
+      setApiError(error instanceof Error ? error.message : 'No se pudo actualizar el dispositivo.');
+    }
+  };
+
+  const loadTrackHistory = async (device: GpsDevice, page = 0) => {
+    if (!/^\d+$/.test(device.id) || !localStorage.getItem('civac_session_token')) {
+      setRemoteTracks([]);
+      setTrackTotal(0);
+      setTrackPage(0);
+      return;
+    }
+    setTrackLoading(true);
+    try {
+      const res = await gpsRequest(`/api/gps/tracks/${device.id}?limit=25&offset=${page * 25}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json() as { tracks?: RemoteTrack[]; total?: number };
+      setRemoteTracks(data.tracks ?? []);
+      setTrackTotal(data.total ?? 0);
+      setTrackPage(page);
+    } catch {
+      setApiError('No se pudo cargar el historial de posiciones.');
+    } finally {
+      setTrackLoading(false);
+    }
+  };
+
+  const exportDeviceTracks = async () => {
+    if (!detailDev || !/^\d+$/.test(detailDev.id) || !localStorage.getItem('civac_session_token')) {
+      const csv = exportGpsTrack();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `civac_gps_track_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      return;
+    }
+    try {
+      const res = await gpsRequest(`/api/gps/tracks/${detailDev.id}?format=csv&limit=1000`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const csv = await res.text();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `civac_${detailDev.animalNom || detailDev.imei}_gps.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      setApiError('No se pudo exportar el historial remoto.');
+    }
   };
 
   /* ── Render ── */
@@ -465,9 +730,25 @@ export default function Gps() {
               className="gap-1.5 font-bold">
               <Plus size={13}/> Vincular GPS
             </Button>
+            <Link href="/marketplace">
+              <Button size="sm"
+                style={{background:'rgba(167,139,250,0.12)',border:'1px solid rgba(167,139,250,0.35)',color:'#c4b5fd'}}
+                className="gap-1.5 font-bold">
+                <ShoppingBag size={13}/> Equipos
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
+
+      {apiError&&(
+        <div className="rounded-2xl px-4 py-3 flex items-center gap-3 text-xs"
+          style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)',color:'#fbbf24'}}>
+          <AlertTriangle size={14} className="flex-shrink-0"/>
+          <span className="flex-1">{apiError}</span>
+          <button onClick={()=>setApiError(null)} className="text-white/40 hover:text-white">✕</button>
+        </div>
+      )}
 
       {/* ── Track History Panel ── */}
       {showTrackPanel && (
@@ -560,6 +841,7 @@ export default function Gps() {
           {id:'geovallado'as const, icon:<AlertTriangle size={13}/>,label:'Geovallado'},
           {id:'lista'     as const, icon:<List size={13}/>,         label:'Dispositivos'},
           {id:'vincular'  as const, icon:<Link2 size={13}/>,        label:'Vincular nuevo'},
+            {id:'catalogo'  as const, icon:<ShoppingBag size={13}/>,   label:'Catálogo 24 modelos'},
         ].map(t=>(
           <button key={t.id} onClick={()=>setActiveTab(t.id)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-2xl text-sm font-bold transition-all"
@@ -570,6 +852,60 @@ export default function Gps() {
           </button>
         ))}
       </div>
+
+      {activeTab==='catalogo'&&(
+        <div className="space-y-4">
+          <div className="rounded-2xl p-5 relative overflow-hidden"
+            style={{background:'linear-gradient(135deg,rgba(15,23,52,0.96),rgba(23,37,84,0.9))',border:'1px solid rgba(167,139,250,0.28)'}}>
+            <div className="absolute right-0 top-0 w-64 h-full pointer-events-none opacity-20"
+              style={{background:'radial-gradient(ellipse at right,#a78bfa,transparent 70%)'}}/>
+            <div className="relative flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-violet-300"><ShoppingBag size={14}/> Catálogo de dispositivos ganaderos</div>
+                <h2 className="text-xl font-black text-white mt-1">24 modelos listos para Colombia</h2>
+                <p className="text-xs text-white/45 mt-1 max-w-2xl">Compara protocolo, autonomía, rango y disponibilidad antes de registrar un collar, bolo, caravana o podómetro.</p>
+              </div>
+              <Link href="/marketplace">
+                <Button size="sm" className="gap-2 font-bold" style={{background:'linear-gradient(135deg,#a78bfa,#7c3aed)',color:'#fff'}}>
+                  <ShoppingBag size={14}/> Ver marketplace
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">
+              {[
+                {label:'Modelos',value:DEVICE_CATALOG.length,icon:'📦'},
+                {label:'Disponibles CO',value:DEVICE_CATALOG.filter(d=>d.disponible_CO).length,icon:'🇨🇴'},
+                {label:'Tipos',value:TIPOS.length,icon:'📡'},
+                {label:'Desde USD',value:Math.min(...DEVICE_CATALOG.map(d=>d.precio_USD)),icon:'💵'},
+              ].map(k=><div key={k.label} className="rounded-xl p-3" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)'}}>
+                <div className="text-lg">{k.icon}</div><div className="text-lg font-black text-white">{k.value}</div><div className="text-[9px] text-white/35">{k.label}</div>
+              </div>)}
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {DEVICE_CATALOG.map(item=>{
+              const type = TIPOS.find(t=>t.id===item.tipo);
+              return <div key={item.id} className="rounded-2xl p-4 transition-all hover:-translate-y-0.5"
+                style={{background:'rgba(4,13,26,0.95)',border:`1px solid ${item.disponible_CO?'rgba(167,139,250,0.2)':'rgba(255,255,255,0.07)'}`}}>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{background:`${type?.color ?? '#a78bfa'}18`,border:`1px solid ${type?.color ?? '#a78bfa'}35`}}>{type?.emoji ?? '📡'}</div>
+                  <div className="flex-1 min-w-0"><div className="text-sm font-black text-white truncate">{item.modelo}</div><div className="text-[10px] text-violet-300">{item.fabricante}</div><p className="text-[10px] text-white/40 mt-1 leading-relaxed">{item.descripcion}</p></div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-3 text-center">
+                  <div><div className="text-xs font-black text-white">{item.bateria_dias}d</div><div className="text-[8px] text-white/30">batería</div></div>
+                  <div><div className="text-xs font-black text-white">{item.rango_m>=1000?`${Math.round(item.rango_m/1000)}km`:`${item.rango_m}m`}</div><div className="text-[8px] text-white/30">rango</div></div>
+                  <div><div className="text-xs font-black text-white">${item.precio_USD}</div><div className="text-[8px] text-white/30">USD</div></div>
+                </div>
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-[9px] text-white/35">{item.protocolo}</span>
+                  <button onClick={()=>{setForm(f=>({...f,nombre:`${item.fabricante} ${item.modelo}`,tipo:item.tipo, fabricante:item.fabricante,modelo:item.modelo,protocolo:item.protocolo}));setWizardCatalogId(item.id);setWizardStep(2);setActiveTab('vincular');}}
+                    className="px-2.5 py-1 rounded-lg text-[9px] font-black" style={{background:'rgba(0,245,212,0.12)',border:'1px solid rgba(0,245,212,0.3)',color:'#00f5d4'}}>Usar modelo</button>
+                </div>
+              </div>;
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════
           TAB: MAPA
@@ -987,6 +1323,36 @@ export default function Gps() {
           {formSaved&&<div className="rounded-2xl p-3 flex items-center gap-2" style={{background:'rgba(74,222,128,0.1)',border:'1px solid rgba(74,222,128,0.3)',color:'#4ade80'}}>
             <CheckCircle2 size={14}/> Dispositivo vinculado correctamente
           </div>}
+
+          {/* ── Three-step registration wizard ── */}
+          <div className="rounded-2xl overflow-hidden" style={{background:'linear-gradient(135deg,rgba(4,18,35,0.98),rgba(8,30,55,0.94))',border:'1px solid rgba(0,245,212,0.25)'}}>
+            <div className="px-4 py-3 border-b flex items-center justify-between gap-3 flex-wrap" style={{borderColor:'rgba(255,255,255,0.07)'}}>
+              <div><div className="text-sm font-black text-white">Asistente de alta de dispositivo</div><div className="text-[10px] text-white/35">Registra el equipo en PostgreSQL y asígnalo a un animal y potrero.</div></div>
+              <div className="flex items-center gap-1">
+                {[['1','Modelo'],['2','Identificación'],['3','Asignación']].map(([n,label])=><button key={n} onClick={()=>setWizardStep(Number(n) as 1|2|3)} className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[9px] font-bold" style={wizardStep===Number(n)?{background:'rgba(0,245,212,0.16)',color:'#00f5d4',border:'1px solid rgba(0,245,212,0.35)'}:{color:'rgba(255,255,255,0.3)',border:'1px solid rgba(255,255,255,0.08)'}}><span className="w-4 h-4 rounded-full flex items-center justify-center" style={{background:wizardStep===Number(n)?'#00f5d4':'rgba(255,255,255,0.08)',color:wizardStep===Number(n)?'#062b2b':'rgba(255,255,255,0.45)'}}>{n}</span>{label}</button>)}
+              </div>
+            </div>
+            <div className="p-4">
+              {wizardStep===1&&<div className="space-y-3">
+                <div className="flex items-center justify-between"><div className="text-xs font-bold text-white">Elige un modelo del catálogo</div><button onClick={()=>setActiveTab('catalogo')} className="text-[10px] text-blue-300">Ver los 24 modelos →</button></div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {DEVICE_CATALOG.slice(0,8).map(item=>{const type=TIPOS.find(t=>t.id===item.tipo);const selected=wizardCatalogId===item.id;return <button key={item.id} onClick={()=>{setWizardCatalogId(item.id);setForm(f=>({...f,nombre:`${item.fabricante} ${item.modelo}`,tipo:item.tipo,fabricante:item.fabricante,modelo:item.modelo,protocolo:item.protocolo}));}} className="text-left rounded-xl p-2.5 transition-all" style={{background:selected?'rgba(0,245,212,0.12)':'rgba(255,255,255,0.035)',border:`1px solid ${selected?'rgba(0,245,212,0.55)':'rgba(255,255,255,0.08)'}`}}><div className="text-lg">{type?.emoji||'📡'}</div><div className="text-[10px] font-black text-white truncate">{item.modelo}</div><div className="text-[9px] text-white/35">{item.fabricante}</div></button>})}
+                </div>
+                <div className="flex justify-end"><Button onClick={()=>setWizardStep(2)} disabled={!wizardCatalogId} size="sm" className="gap-1.5" style={{background:'rgba(0,245,212,0.15)',border:'1px solid rgba(0,245,212,0.35)',color:'#00f5d4'}}>Continuar <ChevronRight size={12}/></Button></div>
+              </div>}
+              {wizardStep===2&&<div className="grid md:grid-cols-2 gap-3">
+                <div><label className="text-[9px] uppercase tracking-wider text-white/35 block mb-1">Nombre visible</label><input value={form.nombre} onChange={e=>setForm(f=>({...f,nombre:e.target.value}))} className="w-full px-3 py-2 rounded-xl text-xs text-white" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',outline:'none'}} placeholder="Ej. Collar Rosaura"/></div>
+                <div><label className="text-[9px] uppercase tracking-wider text-white/35 block mb-1">IMEI / código único *</label><input value={form.imei} onChange={e=>setForm(f=>({...f,imei:e.target.value}))} className="w-full px-3 py-2 rounded-xl text-xs text-white font-mono" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)',outline:'none'}} placeholder="354071230987654"/></div>
+                <div className="md:col-span-2 flex items-center justify-between gap-2"><button onClick={()=>setWizardStep(1)} className="text-xs text-white/45 flex items-center gap-1"><ChevronLeft size={12}/> Atrás</button><Button onClick={()=>setWizardStep(3)} disabled={!form.nombre||!form.imei} size="sm" className="gap-1.5" style={{background:'rgba(0,245,212,0.15)',border:'1px solid rgba(0,245,212,0.35)',color:'#00f5d4'}}>Asignar animal <ChevronRight size={12}/></Button></div>
+              </div>}
+              {wizardStep===3&&<div className="grid md:grid-cols-3 gap-3">
+                <div><label className="text-[9px] uppercase tracking-wider text-white/35 block mb-1">Animal vinculado</label><select value={form.animalId} onChange={e=>setForm(f=>({...f,animalId:e.target.value}))} className="w-full px-2 py-2 rounded-xl text-xs text-white" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}><option value="" style={{background:'#0e1e38'}}>Sin asignar</option>{animals.map(a=><option key={a.id} value={a.id} style={{background:'#0e1e38'}}>{a.nombre} · {a.id}</option>)}</select></div>
+                <div><label className="text-[9px] uppercase tracking-wider text-white/35 block mb-1">Potrero / geozona</label><select value={form.potreroId} onChange={e=>setForm(f=>({...f,potreroId:Number(e.target.value)}))} className="w-full px-2 py-2 rounded-xl text-xs text-white" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.1)'}}>{potreros.map(p=><option key={p.id} value={p.id} style={{background:'#0e1e38'}}>{p.nombre}</option>)}</select></div>
+                <div className="flex items-end"><Button onClick={addManualDevice} disabled={wizardBusy} className="w-full gap-1.5" style={{background:'linear-gradient(135deg,#00f5d4,#00a896)',color:'#032b2a'}}>{wizardBusy?<Loader2 size={13} className="animate-spin"/>:<CheckCircle2 size={13}/>} {wizardBusy?'Guardando…':'Guardar dispositivo'}</Button></div>
+                <div className="md:col-span-3 flex items-center justify-between"><button onClick={()=>setWizardStep(2)} className="text-xs text-white/45 flex items-center gap-1"><ChevronLeft size={12}/> Atrás</button><span className="text-[9px] text-white/30">{form.fabricante} · {form.modelo} · {form.protocolo}</span></div>
+              </div>}
+            </div>
+          </div>
 
           <div className="grid sm:grid-cols-3 gap-3">
             {/* Section 1: Real GPS */}

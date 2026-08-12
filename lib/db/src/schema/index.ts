@@ -17,6 +17,7 @@ export const animalsTable = pgTable("animals", {
   registro:        text("registro").notNull().default("NO"),
   numeroRegistro:  text("numero_registro").notNull().default(""),
   valorKilo:       real("valor_kilo").notNull().default(0),
+  gpsCollarId:     text("gps_collar_id").default(""),
   foto:            text("foto").default(""),
   createdAt:       timestamp("created_at").defaultNow(),
   updatedAt:       timestamp("updated_at").defaultNow(),
@@ -469,3 +470,8 @@ export const oauthCuentasTable = pgTable("oauth_cuentas", {
 export const insertOauthCuentaSchema = createInsertSchema(oauthCuentasTable).omit({ id: true, createdAt: true, lastUsedAt: true });
 export type InsertOauthCuenta = z.infer<typeof insertOauthCuentaSchema>;
 export type OauthCuenta = typeof oauthCuentasTable.$inferSelect;
+
+// GPS device registry, breadcrumb history and geofence events.
+// Kept in a focused module but re-exported here so Drizzle includes it in the
+// canonical PostgreSQL schema used by the API and migrations.
+export * from "./gps.js";

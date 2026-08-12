@@ -80,7 +80,7 @@ importers:
   .:
     devDependencies:
       '@tailwindcss/postcss':
-        specifier: ^4.1.14
+        specifier: ^4.3.3
         version: 4.3.3
       next:
         specifier: ^15.5.0

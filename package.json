@@ -16,14 +16,17 @@
       "esbuild": ">=0.25.0",
       "@esbuild-kit/core-utils>esbuild": ">=0.25.0"
     },
-    "onlyBuiltDependencies": ["better-sqlite3", "esbuild"]
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "next": "^15.5.0",
-    "@tailwindcss/postcss": "^4.1.14",
+    "prettier": "^3.8.1",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "typescript": "~5.9.2",
-    "prettier": "^3.8.1"
+    "typescript": "~5.9.2"
   }
 }

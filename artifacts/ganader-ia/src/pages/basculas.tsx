@@ -61,6 +61,29 @@ interface TelemetryItem {
   data?: Record<string, unknown>;
 }
 
+/* ── Web hardware API types ───────────────────────────────────────────────
+ * These APIs are not included in TypeScript's standard DOM lib yet. Keep the
+ * small surface used by this page local so the app typechecks without making
+ * the whole project depend on browser-specific ambient declarations.
+ */
+interface SerialPortLike {
+  open(options: {
+    baudRate: number;
+    dataBits: 7 | 8;
+    stopBits: 1 | 2;
+    parity: "none" | "even" | "odd";
+  }): Promise<void>;
+  readable?: ReadableStream<Uint8Array> | null;
+  close?: () => Promise<void>;
+}
+
+interface BluetoothDeviceLike {
+  name?: string;
+  gatt?: {
+    connect: () => Promise<unknown>;
+  };
+}
+
 /* ── Controladores ───────────────────────────────────────────────────────── */
 const BT_MODELS = [
   { id:"civac-scale-bt",    nombre:"CIVAC Scale v2",     marca:"CIVAC",        color:"#FFD60A", glow:"255,214,10",   icon:"🇨🇴", desc:"Protocolo CIVAC-9B · ±20 g",    services:["6e400001-b5a3-f393-e0a9-e50e24dcca9e"], nameFilters:["CIVAC","SoftGan","CSCL"] },
@@ -214,7 +237,7 @@ export default function Basculas() {
     setComScanning(true);
     try {
       if (!hasSerial) { setComPorts(["COM1","COM3","COM4"]); setComScanning(false); return; }
-      const ports = await (navigator as unknown as { serial: { getPorts: () => Promise<SerialPort[]> } }).serial.getPorts();
+      const ports = await (navigator as unknown as { serial: { getPorts: () => Promise<SerialPortLike[]> } }).serial.getPorts();
       const labels = ports.map((_p, i) => `COM${i+1}`);
       setComPorts(labels.length > 0 ? labels : ["No hay puertos COM autorizados"]);
       sendTelemetry({ type:"usage", event:"scan_com_ports", severity:"info", data:{ count:ports.length } });
@@ -236,7 +259,7 @@ export default function Basculas() {
     if (!dev) return;
     updateDevice(deviceId, { status:"connecting" });
     try {
-      const serial = (navigator as unknown as { serial: { requestPort: (o?: unknown) => Promise<SerialPort> } }).serial;
+      const serial = (navigator as unknown as { serial: { requestPort: (o?: unknown) => Promise<SerialPortLike> } }).serial;
       const port = await serial.requestPort();
       await (port as { open: (o: unknown) => Promise<void> }).open({
         baudRate:  dev.baudRate  ?? 9600,
@@ -249,7 +272,7 @@ export default function Basculas() {
       addSession({ id:`sess_${Date.now()}`, deviceId, deviceNombre:dev.nombre, tipo:"serial", inicio:new Date().toISOString(), pesajes:0, errores:0, estado:"activa" });
       sendTelemetry({ type:"connection", event:"serial_connected", severity:"info", deviceId, deviceName:dev.nombre });
       // Start reading
-      startSerialRead(deviceId, port as SerialPort);
+      startSerialRead(deviceId, port);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       updateDevice(deviceId, { status:"error", lastError:msg });
@@ -258,7 +281,7 @@ export default function Basculas() {
   };
 
   /* ── Serial read loop ── */
-  const startSerialRead = async (deviceId: string, port: SerialPort) => {
+  const startSerialRead = async (deviceId: string, port: SerialPortLike) => {
     try {
       const conn = connsRef.current.get(deviceId);
       if (!conn) return;
@@ -314,7 +337,7 @@ export default function Basculas() {
     setBtScanResult("Escaneando…");
     try {
       const dev = deviceId ? devices.find(d => d.id === deviceId) : null;
-      const bt = (navigator as unknown as { bluetooth: { requestDevice: (o: unknown) => Promise<BluetoothDevice> } }).bluetooth;
+      const bt = (navigator as unknown as { bluetooth: { requestDevice: (o: unknown) => Promise<BluetoothDeviceLike> } }).bluetooth;
       const btDev = await bt.requestDevice({
         filters: dev?.nameFilters?.map(n => ({ namePrefix:n })) ?? [{ namePrefix:"" }],
         optionalServices: dev?.serviceUUIDs ?? ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],

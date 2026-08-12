@@ -67,7 +67,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=8099 /home/runner/workspace/.pythonlibs/bin/python3 artifacts/analytics-server/app.py"
+args = "PYTHONPATH=/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages PORT=8099 /home/runner/workspace/.pythonlibs/bin/python3 artifacts/analytics-server/app.py"
 waitForPort = 8099
 
 [[workflows.workflow]]
@@ -79,7 +79,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd artifacts/gps-server && /home/runner/workspace/.pythonlibs/bin/python3 manage.py migrate --run-syncdb --no-input 2>/dev/null; /home/runner/workspace/.pythonlibs/bin/python3 manage.py runserver 0.0.0.0:8000 --noreload"
+args = "cd artifacts/gps-server && PYTHONPATH=/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages /home/runner/workspace/.pythonlibs/bin/python3 manage.py migrate --run-syncdb --no-input 2>/dev/null; /home/runner/workspace/.pythonlibs/bin/python3 manage.py runserver 0.0.0.0:8000 --noreload"
 waitForPort = 8000
 
 [agent]

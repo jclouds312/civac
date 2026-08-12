@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 from pathlib import Path
 import unittest
 
@@ -25,10 +26,17 @@ class FlaskServerlessSmokeTest(unittest.TestCase):
         cls.gateway = load_gateway()
 
     def test_analytics_health_and_summary(self):
-        client = self.gateway.monolith._app if hasattr(self.gateway, "monolith") else None
-        self.assertIsNone(client)
-        response = self.gateway({"REQUEST_METHOD": "GET", "PATH_INFO": "/api/analytics/health", "SERVER_NAME": "test", "SERVER_PORT": "443", "wsgi.url_scheme": "https", "wsgi.input": __import__("io").BytesIO(), "CONTENT_LENGTH": "0"}, lambda status, headers, exc_info=None: None)
-        self.assertTrue(response)
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.get("/api/analytics/health")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json["ok"])
+
+        summary = client.get("/api/analytics/summary")
+        self.assertEqual(summary.status_code, 200)
+        self.assertIn("kpis", summary.json)
 
     def test_scale_wsgi_health(self):
         from werkzeug.test import Client

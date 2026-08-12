@@ -14,6 +14,7 @@ uv.lock
 # API server (se despliega por separado, no en Vercel)
 artifacts/api-server/dist
 artifacts/api-server/node_modules
+
 artifacts/api-server/src/app.py
 artifacts/api-server/src/services/*.py
 

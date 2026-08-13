@@ -13,6 +13,8 @@ path silently falls back to an in-memory database.
 from __future__ import annotations
 
 import importlib.util
+import hashlib
+import hmac
 import json
 import os
 import re
@@ -108,11 +110,9 @@ TABLES: dict[str, dict[str, Any]] = {
     "pesajes": {"table": "pesajes", "id": "id", "omit": {"id", "created_at"}},
     "usuarios": {"table": "usuarios_sistema", "id": "id", "omit": {"password", "created_at", "updated_at"}},
     "lotes": {"table": "movimientos_lote", "id": "id", "omit": {"id", "created_at"}},
-    "plans": {"table": "plans_config", "id": "id", "omit": {"id", "created_at"}},
-    "licenses": {"table": "licencias", "id": "id", "omit": {"created_at", "updated_at"}},
-    "codigos": {"table": "codigos_activacion", "id": "id", "omit": {"id", "created_at"}},
-    "tramas": {"table": "trama_logs", "id": "id", "omit": {"id", "created_at"}},
-    "audit": {"table": "audit_log", "id": "id", "omit": {"id", "created_at"}},
+    # Plans, licenses, activation codes, tramas and audit have custom
+    # contracts below. They are intentionally not exposed through the
+    # generic CRUD factory.
 }
 
 
@@ -130,25 +130,28 @@ def _table_columns(conn, table: str) -> set[str]:
 
 
 def _select_rows(resource: str, item_id: str | None = None):
-    config = TABLES[resource]
-    with _db() as conn:
-        columns = _table_columns(conn, config["table"])
-        if not columns:
-            return _error(f"Tabla no disponible: {config['table']}", 503)
-        query = f'SELECT * FROM "{config["table"]}"'
-        params: list[Any] = []
-        if item_id is not None:
-            query += f' WHERE "{config["id"]}" = %s'
-            params.append(item_id if config["id"] == "id" and resource == "animals" else int(item_id))
-        query += f' ORDER BY "{config["id"]}"'
-        with conn.cursor() as cur:
-            cur.execute(query, params)
-            rows = cur.fetchall()
-        if item_id is not None:
-            if not rows:
-                return _error("Not found", 404)
-            return jsonify(_json_row(rows[0], config["omit"]))
-        return jsonify(_json_rows(rows, config["omit"]))
+    try:
+        config = TABLES[resource]
+        with _db() as conn:
+            columns = _table_columns(conn, config["table"])
+            if not columns:
+                return _error(f"Tabla no disponible: {config['table']}", 503)
+            query = f'SELECT * FROM "{config["table"]}"'
+            params: list[Any] = []
+            if item_id is not None:
+                query += f' WHERE "{config["id"]}" = %s'
+                params.append(item_id if resource == "animals" else int(item_id))
+            query += f' ORDER BY "{config["id"]}"'
+            with conn.cursor() as cur:
+                cur.execute(query, params)
+                rows = cur.fetchall()
+            if item_id is not None:
+                if not rows:
+                    return _error("Not found", 404)
+                return jsonify(_json_row(rows[0], config["omit"]))
+            return jsonify(_json_rows(rows, config["omit"]))
+    except Exception as exc:
+        return _error(str(exc))
 
 
 @app.get("/api/health")
@@ -162,6 +165,7 @@ def healthz():
 
 
 @app.get("/api/db-status")
+@app.get("/api/db/status")
 def db_status():
     try:
         with _db() as conn:
@@ -503,13 +507,486 @@ def admin_stats():
         return _error(str(exc))
 
 
+DEFAULT_PLANS = [
+    {
+        "code": "basic", "name": "Básico", "name_long": "Plan Básico CIVAC",
+        "price_monthly": 0, "max_animals": 50, "max_users": 1,
+        "max_gps_collars": 2, "features": json.dumps(["Inventario", "Producción", "Alertas", "Pesaje manual", "App PWA"]),
+        "color_primary": "#00f5d4", "color_secondary": "#00c8ff", "color_accent": "#39ff7e",
+        "badge_label": "GRATIS", "active": True,
+    },
+    {
+        "code": "pro", "name": "PRO", "name_long": "Plan PRO CIVAC",
+        "price_monthly": 89000, "max_animals": 300, "max_users": 5,
+        "max_gps_collars": 10, "features": json.dumps(["Todo Básico", "GPS Bovino", "Reproducción", "Genética", "Pesaje BT", "Multi-Finca", "Predicción IA", "Huella CO₂", "Fotos animales"]),
+        "color_primary": "#00c8ff", "color_secondary": "#7c3aed", "color_accent": "#a855f7",
+        "badge_label": "POPULAR", "active": True,
+    },
+    {
+        "code": "platino", "name": "Platino", "name_long": "Plan Platino CIVAC",
+        "price_monthly": 189000, "max_animals": 2000, "max_users": 20,
+        "max_gps_collars": 50, "features": json.dumps(["Todo PRO", "API pública", "Reportes BI", "Backup automático", "Soporte prioritario 24/7", "White-label"]),
+        "color_primary": "#ff9500", "color_secondary": "#fbbf24", "color_accent": "#f59e0b",
+        "badge_label": "PREMIUM", "active": True,
+    },
+    {
+        "code": "enterprise", "name": "Enterprise", "name_long": "Plan Enterprise CIVAC",
+        "price_monthly": 490000, "max_animals": 99999, "max_users": 999,
+        "max_gps_collars": 999, "features": json.dumps(["Todo Platino", "Servidores dedicados", "SLA 99.9%", "Consultoría agro", "Integración ERP"]),
+        "color_primary": "#e2e8f0", "color_secondary": "#94a3b8", "color_accent": "#cbd5e1",
+        "badge_label": "CORPORATIVO", "active": True,
+    },
+]
+
+
+def _fetch_table(table: str, limit: int = 500, omit: set[str] | None = None):
+    """Read a known table and consistently convert DB failures to JSON."""
+    with _db() as conn:
+        columns = _table_columns(conn, table)
+        if not columns:
+            raise RuntimeError(f"Tabla no disponible: {table}")
+        with conn.cursor() as cur:
+            cur.execute(f'SELECT * FROM "{table}" ORDER BY id DESC LIMIT %s', (limit,))
+            return _json_rows(cur.fetchall(), omit)
+
+
+def _insert_known(table: str, payload: dict[str, Any], omit: set[str] | None = None):
+    with _db() as conn:
+        columns = _table_columns(conn, table)
+        values = _allowed_values(payload, columns, omit or {"id", "created_at", "updated_at"})
+        if not values:
+            raise ValueError("No hay campos válidos")
+        names = list(values)
+        quoted = ", ".join(f'"{name}"' for name in names)
+        placeholders = ", ".join(["%s"] * len(names))
+        with conn.cursor() as cur:
+            cur.execute(
+                f'INSERT INTO "{table}" ({quoted}) VALUES ({placeholders}) RETURNING *',
+                [values[name] for name in names],
+            )
+            row = cur.fetchone()
+        conn.commit()
+        return row
+
+
+def _ensure_plans():
+    with _db() as conn:
+        columns = _table_columns(conn, "plans_config")
+        if not columns:
+            raise RuntimeError("Tabla no disponible: plans_config")
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) AS count FROM plans_config")
+            if cur.fetchone()["count"] == 0:
+                for plan in DEFAULT_PLANS:
+                    values = {key: value for key, value in plan.items() if key in columns}
+                    names = list(values)
+                    cur.execute(
+                        f'INSERT INTO plans_config ({", ".join(f"""\"{name}\"""" for name in names)}) VALUES ({", ".join(["%s"] * len(names))})',
+                        [values[name] for name in names],
+                    )
+        conn.commit()
+
+
+@app.get("/api/plans")
+def list_plans():
+    try:
+        _ensure_plans()
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM plans_config WHERE active = TRUE ORDER BY id")
+                return jsonify(_json_rows(cur.fetchall(), {"created_at"}))
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.get("/api/plans/<code>")
+def get_plan(code: str):
+    try:
+        _ensure_plans()
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM plans_config WHERE code = %s LIMIT 1", (code,))
+                row = cur.fetchone()
+        return jsonify(_json_row(row, {"created_at"})) if row else _error("Plan no encontrado", 404)
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.get("/api/images")
+def list_images():
+    try:
+        filters = []
+        params: list[Any] = []
+        if request.args.get("entityType"):
+            filters.append("entity_type = %s")
+            params.append(request.args["entityType"])
+        if request.args.get("entityId"):
+            filters.append("entity_id = %s")
+            params.append(request.args["entityId"])
+        where = f" WHERE {' AND '.join(filters)}" if filters else " WHERE FALSE"
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    f"SELECT id, entity_type, entity_id, filename, mimetype, size_bytes, width, height, created_at FROM images{where} ORDER BY id DESC",
+                    params,
+                )
+                return jsonify(_json_rows(cur.fetchall()))
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.get("/api/images/<image_id>")
+def get_image(image_id: str):
+    try:
+        image_id_int = int(image_id)
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM images WHERE id = %s LIMIT 1", (image_id_int,))
+                row = cur.fetchone()
+        return jsonify(_json_row(row)) if row else _error("No encontrada", 404)
+    except ValueError:
+        return _error("ID inválido", 400)
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.post("/api/images")
+def create_image():
+    payload = _body()
+    if not payload.get("entityType") or not payload.get("entityId") or not payload.get("dataUrl"):
+        return _error("entityType, entityId y dataUrl son requeridos", 400)
+    if len(str(payload["dataUrl"])) > 4_200_000:
+        return _error("Imagen demasiado grande (máx 4 MB)", 413)
+    try:
+        row = _insert_known(
+            "images",
+            {
+                **payload,
+                "filename": payload.get("filename", "foto.jpg"),
+                "mimetype": payload.get("mimetype", "image/jpeg"),
+                "sizeBytes": payload.get("sizeBytes", round(len(str(payload["dataUrl"])) * 0.75)),
+            },
+        )
+        return jsonify(_json_row(row, {"data_url"})), 201
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.delete("/api/images/<image_id>")
+def delete_image(image_id: str):
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM images WHERE id = %s", (int(image_id),))
+            conn.commit()
+        return jsonify({"ok": True})
+    except ValueError:
+        return _error("ID inválido", 400)
+    except Exception as exc:
+        return _error(str(exc))
+
+
+_crm_contacts: list[dict[str, Any]] = []
+
+
+@app.route("/api/crm/contacts", methods=["GET", "POST"])
+def crm_contacts():
+    if request.method == "POST":
+        payload = _body()
+        data = payload.get("data")
+        if not isinstance(data, list):
+            return jsonify({"ok": False, "message": "data debe ser un array"}), 400
+        now = datetime.now(timezone.utc).isoformat()
+        for contact in data:
+            if not isinstance(contact, dict) or not contact.get("id"):
+                continue
+            record = {**contact, "deviceId": payload.get("deviceId"), "syncedAt": now}
+            existing = next((i for i, item in enumerate(_crm_contacts) if item["id"] == record["id"]), None)
+            if existing is None:
+                _crm_contacts.append(record)
+            else:
+                _crm_contacts[existing] = record
+        return jsonify({"ok": True, "upserted": len(data), "total": len(_crm_contacts)})
+    return jsonify({"ok": True, "total": len(_crm_contacts), "contacts": _crm_contacts})
+
+
+@app.get("/api/crm/stats")
+def crm_stats():
+    buyers = [c for c in _crm_contacts if c.get("estado") == "comprador"]
+    pipeline = [c for c in _crm_contacts if c.get("estado") not in ("comprador", "no_interesado")]
+    return jsonify({
+        "ok": True, "total": len(_crm_contacts), "compradores": len(buyers),
+        "pipeline": len(pipeline), "lista_espera": sum(c.get("estado") == "lista_espera" for c in _crm_contacts),
+        "ingresosCOP": sum(c.get("valor", 0) or 0 for c in buyers),
+        "pipelineCOP": sum(c.get("valor", 0) or 0 for c in pipeline),
+        "conversion": round(len(buyers) / len(_crm_contacts) * 100) if _crm_contacts else 0,
+    })
+
+
+_telemetry_events: list[dict[str, Any]] = []
+_sync_history: list[dict[str, Any]] = []
+
+
+def _add_telemetry(event: dict[str, Any]) -> dict[str, Any]:
+    entry = {
+        **event,
+        "id": f"tel_{uuid.uuid4().hex[:12]}",
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "severity": event.get("severity", "info"),
+    }
+    _telemetry_events.insert(0, entry)
+    del _telemetry_events[1000:]
+    return entry
+
+
 @app.route("/api/telemetry", methods=["GET", "POST", "DELETE"])
 def telemetry():
     if request.method == "POST":
-        return jsonify({"ok": True, "accepted": _body()})
+        payload = _body()
+        if not payload.get("type") or not payload.get("event"):
+            return _error("type y event son requeridos", 400)
+        return jsonify({"ok": True, "id": _add_telemetry(payload)["id"]})
     if request.method == "DELETE":
+        count = len(_telemetry_events)
+        _telemetry_events.clear()
+        return jsonify({"ok": True, "removed": count})
+    events = _telemetry_events
+    for key in ("type", "userId", "severity", "module"):
+        if request.args.get(key):
+            events = [item for item in events if item.get(key) == request.args[key]]
+    if request.args.get("since"):
+        events = [item for item in events if item["ts"] >= request.args["since"]]
+    limit = min(max(int(request.args.get("limit", 100)), 1), 500)
+    return jsonify({"ok": True, "events": events[:limit], "total": len(events)})
+
+
+@app.post("/api/telemetry/batch")
+def telemetry_batch():
+    items = _body().get("items")
+    if not isinstance(items, list):
+        return _error("items debe ser array", 400)
+    entries = [_add_telemetry(item) for item in items[:50] if isinstance(item, dict)]
+    return jsonify({"ok": True, "count": len(entries), "ids": [item["id"] for item in entries]})
+
+
+@app.get("/api/telemetry/stats")
+def telemetry_stats():
+    by_type: dict[str, int] = {}
+    by_severity: dict[str, int] = {}
+    by_module: dict[str, int] = {}
+    by_user: dict[str, int] = {}
+    for item in _telemetry_events:
+        by_type[item.get("type", "unknown")] = by_type.get(item.get("type", "unknown"), 0) + 1
+        by_severity[item.get("severity", "info")] = by_severity.get(item.get("severity", "info"), 0) + 1
+        if item.get("module"):
+            by_module[item["module"]] = by_module.get(item["module"], 0) + 1
+        if item.get("userId"):
+            by_user[item["userId"]] = by_user.get(item["userId"], 0) + 1
+    errors = [item for item in _telemetry_events if item.get("severity") == "error"]
+    return jsonify({
+        "ok": True, "total": len(_telemetry_events), "byType": by_type,
+        "bySeverity": by_severity, "byModule": by_module, "byUser": by_user,
+        "topModules": sorted(by_module.items(), key=lambda x: x[1], reverse=True)[:10],
+        "topUsers": sorted(by_user.items(), key=lambda x: x[1], reverse=True)[:10],
+        "recentErrors": errors[:20], "lastEvent": _telemetry_events[0] if _telemetry_events else None,
+    })
+
+
+@app.get("/api/db/info")
+def db_info():
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT current_database() AS database, version() AS version")
+                row = cur.fetchone()
+        return jsonify({"ok": True, "mode": "postgresql", **row})
+    except Exception as exc:
+        return _error(str(exc), 503)
+
+
+@app.post("/api/db/reconnect")
+def db_reconnect():
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
+        return jsonify({"ok": True, "success": True, "mode": "postgresql"})
+    except Exception as exc:
+        return jsonify({"ok": True, "success": False, "mode": "unavailable", "message": str(exc)})
+
+
+@app.get("/api/db/sync-queue")
+def db_sync_queue():
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id, operacion, tabla, entidad_id, intentos, estado, created_at FROM sync_queue WHERE estado = 'pendiente' ORDER BY id LIMIT 100")
+                rows = cur.fetchall()
+        return jsonify({"ok": True, "mode": "postgresql", "pendientes": len(rows), "items": _json_rows(rows)})
+    except Exception as exc:
+        return _error(str(exc), 503)
+
+
+@app.get("/api/db/meta")
+def db_meta():
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT key, value, updated_at FROM db_meta")
+                rows = cur.fetchall()
+        return jsonify({"ok": True, "mode": "postgresql", "meta": {row["key"]: row["value"] for row in rows}})
+    except Exception as exc:
+        return _error(str(exc), 503)
+
+
+def _sync_insert(resource: str, rows: list[dict[str, Any]]) -> None:
+    if resource not in TABLES or not rows:
+        return
+    config = TABLES[resource]
+    with _db() as conn:
+        columns = _table_columns(conn, config["table"])
+        with conn.cursor() as cur:
+            for item in rows:
+                values = _allowed_values(item, columns, {"created_at", "updated_at"})
+                if not values:
+                    continue
+                names = list(values)
+                cur.execute(
+                    f'INSERT INTO "{config["table"]}" ({", ".join(f"""\"{name}\"""" for name in names)}) VALUES ({", ".join(["%s"] * len(names))}) ON CONFLICT DO NOTHING',
+                    [values[name] for name in names],
+                )
+        conn.commit()
+
+
+@app.post("/api/sync/v1/ingest")
+def sync_ingest():
+    payload = _body()
+    if payload.get("schema") != "civac-sync-v1":
+        return jsonify({"ok": False, "code": "INVALID_SCHEMA", "message": "Se requiere schema 'civac-sync-v1'"}), 400
+    data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+    counts = {resource: len(data.get(resource) or []) for resource in TABLES}
+    try:
+        for resource, rows in data.items():
+            if isinstance(rows, list):
+                _sync_insert(resource, rows)
+        total = sum(len(rows) for rows in data.values() if isinstance(rows, list))
+        entry = {"deviceId": payload.get("deviceId", "unknown"), "totalRecords": total, "syncedAt": datetime.now(timezone.utc).isoformat(), "status": "ok"}
+        _sync_history.insert(0, entry)
+        return jsonify({"ok": True, "syncId": f"SYNC-{uuid.uuid4().hex[:10].upper()}", "syncedAt": entry["syncedAt"], "totalRecords": total, "counts": counts, "message": f"Sync OK — {total} registros procesados"})
+    except Exception as exc:
+        return jsonify({"ok": False, "message": str(exc)}), 500
+
+
+@app.get("/api/sync/v1/status")
+def sync_status():
+    return jsonify({"ok": True, "server": "CIVAC Flask Sync Server", "version": "2.0.0", "totalSyncs": len(_sync_history), "latestSync": _sync_history[0] if _sync_history else None})
+
+
+@app.get("/api/sync/v1/history")
+def sync_history():
+    return jsonify({"ok": True, "total": len(_sync_history), "entries": _sync_history[:50]})
+
+
+def _license_signature(payload: dict[str, Any]) -> str:
+    secret = os.getenv("LICENSE_SECRET", "civac_license_secret_2026").encode()
+    raw = json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode()
+    return hmac.new(secret, raw, hashlib.sha256).hexdigest()[:32]
+
+
+@app.post("/api/licenses/generate")
+def generate_license():
+    payload = _body()
+    user_id, plan_code = payload.get("userId"), payload.get("planCode")
+    if not user_id or not plan_code:
+        return _error("userId y planCode requeridos", 400)
+    days = int(payload.get("diasValidos", 30))
+    license_id = str(uuid.uuid4())
+    limits = {"sesiones": int(payload.get("sessionLimit", 1)), "animales": int(payload.get("maxAnimales", 50)), "usuarios": int(payload.get("maxUsuarios", 1))}
+    signature = _license_signature({"id": license_id, "userId": user_id, "planCode": plan_code, "diasValidos": days, "sessionLimit": limits["sesiones"], "maxAnimales": limits["animales"], "maxUsuarios": limits["usuarios"]})
+    expiry = datetime.now(timezone.utc) + timedelta(days=days)
+    license_data = {"id": license_id, "tipo": "civac_license_v2", "version": "2.0", "userId": user_id, "userEmail": payload.get("userEmail", user_id), "userNombre": payload.get("userNombre", user_id), "plan": {"code": plan_code, "dias": days}, "limites": limits, "expira": expiry.date().isoformat(), "signature": signature, "issuer": "CIVAC Colombia"}
+    try:
+        _insert_known("licencias", {**payload, "id": license_id, "userId": user_id, "planCode": plan_code, "diasValidos": days, "signature": signature, "estado": "activa", "expiresAt": expiry})
+    except Exception:
+        app.logger.info("License generated without persistence")
+    return jsonify({"ok": True, "license": license_data, "id": license_id})
+
+
+@app.post("/api/licenses/validate")
+def validate_license():
+    license_data = _body().get("license")
+    if not isinstance(license_data, dict) or not license_data.get("id") or not license_data.get("signature"):
+        return _error("Licencia inválida", 400)
+    plan = license_data.get("plan") or {}
+    limits = license_data.get("limites") or {}
+    expected = _license_signature({"id": license_data["id"], "userId": license_data.get("userId"), "planCode": plan.get("code"), "diasValidos": plan.get("dias"), "sessionLimit": limits.get("sesiones"), "maxAnimales": limits.get("animales"), "maxUsuarios": limits.get("usuarios")})
+    if not hmac.compare_digest(expected, license_data["signature"]):
+        return jsonify({"ok": False, "error": "Firma de licencia inválida"}), 403
+    return jsonify({"ok": True, "valid": True, "plan": plan.get("code")})
+
+
+@app.get("/api/licenses")
+def list_licenses():
+    try:
+        return jsonify({"ok": True, "licenses": _fetch_table("licencias", 100, {"created_at"})})
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.get("/api/licenses/user/<user_id>")
+def list_user_licenses(user_id: str):
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM licencias WHERE user_id = %s ORDER BY created_at DESC LIMIT 20", (user_id,))
+                rows = cur.fetchall()
+        return jsonify({"ok": True, "licenses": _json_rows(rows)})
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.post("/api/licenses/revoke/<license_id>")
+def revoke_license(license_id: str):
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE licencias SET estado = 'revocada', revoked_at = NOW(), revoked_por = %s WHERE id = %s", (_body().get("revokedPor", "admin"), license_id))
+            conn.commit()
         return jsonify({"ok": True})
-    return jsonify({"ok": True, "events": []})
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.route("/api/audit", methods=["GET", "POST"])
+def audit():
+    try:
+        if request.method == "POST":
+            row = _insert_known("audit_log", _body())
+            return jsonify(_json_row(row)), 201
+        return jsonify(_fetch_table("audit_log", 200))
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.get("/api/audit/user/<user_id>")
+def audit_user(user_id: str):
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM audit_log WHERE user_id = %s ORDER BY created_at DESC LIMIT 200", (user_id,))
+                rows = cur.fetchall()
+        return jsonify(_json_rows(rows))
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.errorhandler(Exception)
+def api_exception(error):
+    """Never turn an API failure into an HTML page."""
+    if request.path.startswith("/api/"):
+        app.logger.exception("API request failed: %s", error)
+        return jsonify({"error": str(error), "service": "civac-flask-monolith"}), 500
+    raise error
 
 
 def _mount_analytics():
@@ -538,6 +1015,39 @@ def _mount_analytics():
         app.logger.warning("Analytics no disponible: %s", exc)
 
 
+def _mount_scale():
+    """Expose the hardware-independent scale routes in the Flask monolith.
+
+    Serial devices and Socket.IO remain opt-in. The parser, configuration and
+    device-status HTTP contracts are safe to load on Replit and Vercel.
+    """
+    scale_file = ROOT / "src" / "app.py"
+    if not scale_file.exists():
+        return
+    sys.path.insert(0, str(scale_file.parent))
+    spec = importlib.util.spec_from_file_location("civac_scale", scale_file)
+    if not spec or not spec.loader:
+        return
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+        scale_app = module.app
+        allowed = ("/api/devices", "/api/tramas/test", "/api/tramas/custom-test", "/api/config")
+        for rule in scale_app.url_map.iter_rules():
+            if not rule.rule.startswith(allowed):
+                continue
+            view = scale_app.view_functions[rule.endpoint]
+            app.add_url_rule(
+                rule.rule,
+                endpoint=f"scale_{rule.endpoint}",
+                view_func=view,
+                methods=sorted(rule.methods - {"HEAD", "OPTIONS"}),
+            )
+    except Exception as exc:
+        app.logger.warning("Servicio de básculas no disponible: %s", exc)
+
+
+_mount_scale()
 _mount_analytics()
 
 
@@ -556,4 +1066,4 @@ def frontend(path: str):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")))
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "8080")))

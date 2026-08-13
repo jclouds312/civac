@@ -26,14 +26,6 @@ args = "API Server"
 task = "workflow.run"
 args = "GanaderIA Frontend"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Analytics Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "GPS Server"
-
 [[workflows.workflow]]
 name = "API Server"
 author = "agent"
@@ -43,7 +35,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
+args = "PYTHONPATH=/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages PORT=8080 /home/runner/workspace/.pythonlibs/bin/python3 artifacts/api-server/api/index.py"
 waitForPort = 8080
 
 [[workflows.workflow]]
@@ -57,30 +49,6 @@ outputType = "webview"
 task = "shell.exec"
 args = "PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ganader-ia run dev"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Analytics Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "PYTHONPATH=/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages PORT=8099 /home/runner/workspace/.pythonlibs/bin/python3 artifacts/analytics-server/app.py"
-waitForPort = 8099
-
-[[workflows.workflow]]
-name = "GPS Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "console"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd artifacts/gps-server && PYTHONPATH=/home/runner/workspace/.pythonlibs/lib/python3.12/site-packages /home/runner/workspace/.pythonlibs/bin/python3 manage.py migrate --run-syncdb --no-input 2>/dev/null; /home/runner/workspace/.pythonlibs/bin/python3 manage.py runserver 0.0.0.0:8000 --noreload"
-waitForPort = 8000
 
 [agent]
 stack = "FLASK_VANILLA_JS"

@@ -228,7 +228,7 @@ function LoginStatsFooter() {
             <p className="text-[11px] font-semibold mt-0.5" style={{ color:"rgba(255,255,255,0.45)" }}>
               Colombia {new Date().getFullYear()}
               <span className="mx-1.5 text-white/20">·</span>
-              Universal Business Technology
+              SoftGan SAS · NIT 900.205.856-3
             </p>
           </div>
           {/* Badges */}
@@ -1304,7 +1304,7 @@ export default function Login() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-xl leading-none flex-shrink-0">🇨🇴</span>
                     <div className="min-w-0">
-                      <div className="text-[10px] font-black text-white leading-tight">100% Colombia · Universal Business Technology</div>
+                      <div className="text-[10px] font-black text-white leading-tight">100% Colombia · SoftGan SAS</div>
                       <div className="text-[8px] truncate" style={{ color:"rgba(252,209,22,0.5)" }}>
                         GanaderIA CIVAC PRO v2.1 · Control Inteligente de Valor Agropecuario
                       </div>

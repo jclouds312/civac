@@ -384,7 +384,7 @@ export default function InvitePage() {
             style={{ background:`rgba(${plan.glow},0.12)`, color:plan.color }}>v2.1</span>
         </div>
         <p className="text-[10px] text-white/20">Control Inteligente de Valor Agropecuario · Colombia 🇨🇴</p>
-        <p className="text-[9px] text-white/15 mt-1">Universal Business Technology · SoftGan Colombia · CIVAC®</p>
+        <p className="text-[9px] text-white/15 mt-1">SoftGan SAS · NIT 900.205.856-3 · CIVAC®</p>
       </footer>
     </div>
   );

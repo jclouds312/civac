@@ -383,11 +383,11 @@ app.run(debug=True, port=5002)
 
 **CIVAC PRO** © 2026
 
-- **Propietario exclusivo y distribuidor de licencias**: SoftGan Colombia
-- **Desarrollador y proveedor técnico**: Universal Business Technology
-- **Soporte técnico**: Universal Business Technology
+- **Titular único y vendedor de licencias**: SoftGan SAS · NIT 900.205.856-3
+- **Desarrollador y creador**: Universal Business Technology
+- **Soporte y licenciamiento**: SoftGan SAS
 
-Todos los derechos reservados. Prohibida la redistribución, modificación o uso comercial sin autorización expresa de SoftGan Colombia.
+Todos los derechos reservados. Prohibida la redistribución, modificación o uso comercial sin autorización expresa de SoftGan SAS.
 
 ---
 

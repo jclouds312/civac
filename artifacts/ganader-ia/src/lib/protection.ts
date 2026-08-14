@@ -1,16 +1,18 @@
 /**
  * CIVAC PRO — Sistema de Protección Intelectual
- * Anti-phishing · Anti-copia · Licencia SoftGan Colombia
- * Propietario: Johnatan Vallejo Marulanda
- * © Universal Business Technology — Todos los derechos reservados
+ * Anti-phishing · Anti-copia · Licencia SoftGan SAS
+ * Titular único: SoftGan SAS · NIT 900.205.856-3
+ * © SoftGan SAS — Todos los derechos reservados
  */
 
 export const CIVAC_LICENSE = {
   producto:    'CIVAC PRO — Control Inteligente de Valor Agropecuario',
   version:     'v7.0',
-  propietario: 'Johnatan Vallejo Marulanda',
-  empresa:     'Universal Business Technology',
-  licenciante: 'SoftGan Colombia',
+  propietario: 'SoftGan SAS',
+  nit:         '900.205.856-3',
+  empresa:     'SoftGan SAS',
+  desarrollador: 'Universal Business Technology',
+  licenciante: 'SoftGan SAS',
   marca:       'CIVAC®',
   sitio:       'https://civac.pro',
   soporte:     'soporte@softgan.com.co',
@@ -57,7 +59,7 @@ export function applyWatermark(): void {
   wm.id = 'civac-watermark';
   wm.setAttribute('aria-hidden', 'true');
   wm.style.cssText = 'position:fixed;opacity:0;pointer-events:none;user-select:none;font-size:0;z-index:-9999';
-  wm.textContent = `CIVAC PRO | SoftGan Colombia | Propietario: Johnatan Vallejo Marulanda | © Universal Business Technology ${CIVAC_LICENSE.año} | ID: ${getInstanceFingerprint()}`;
+  wm.textContent = `CIVAC PRO | SoftGan SAS | NIT 900.205.856-3 | Titular único | Desarrollador: Universal Business Technology | © ${CIVAC_LICENSE.año} | ID: ${getInstanceFingerprint()}`;
   document.body.appendChild(wm);
 
   // CSS watermark on print
@@ -65,7 +67,7 @@ export function applyWatermark(): void {
   style.textContent = `
     @media print {
       body::before {
-        content: "© CIVAC PRO — SoftGan Colombia — Johnatan Vallejo Marulanda — USO INTERNO AUTORIZADO";
+        content: "© CIVAC PRO — SoftGan SAS — NIT 900.205.856-3 — USO AUTORIZADO POR EL TITULAR";
         position: fixed; top: 50%; left: 50%;
         transform: translate(-50%, -50%) rotate(-35deg);
         font-size: 32px; color: rgba(0,0,0,0.08);
@@ -102,8 +104,8 @@ export function checkDomainAndWarn(): void {
   if (!isDomainAuthorized()) {
     console.warn(
       `%c⚠️ CIVAC PRO — DOMINIO NO AUTORIZADO\n` +
-      `%cEste software es propiedad de Universal Business Technology.\n` +
-      `Licenciante: SoftGan Colombia\nPropietario: Johnatan Vallejo Marulanda\n` +
+      `%cEste software es propiedad de SoftGan SAS — NIT 900.205.856-3.\n` +
+      `Desarrollador y creador: Universal Business Technology\nTitular y licenciante: SoftGan SAS\n` +
       `Uso no autorizado es ilegal. Contacto: soporte@softgan.com.co`,
       'color:#ff4d6d;font-size:16px;font-weight:bold',
       'color:#fbbf24;font-size:12px'
@@ -116,9 +118,9 @@ export function printConsoleBranding(): void {
   console.log(
     `%c🐄 CIVAC PRO v2.1%c\n` +
     `%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `Propietario: Johnatan Vallejo Marulanda\n` +
-    `Empresa: Universal Business Technology\n` +
-    `Licencias: SoftGan Colombia\n` +
+    `Titular único: SoftGan SAS — NIT 900.205.856-3\n` +
+    `Desarrollador y creador: Universal Business Technology\n` +
+    `Licencias: SoftGan SAS\n` +
     `Marca: CIVAC® — Registro pendiente\n` +
     `© ${CIVAC_LICENSE.año} Todos los derechos reservados\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +

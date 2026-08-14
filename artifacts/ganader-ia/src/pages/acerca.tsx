@@ -1,7 +1,7 @@
 /**
  * Acerca de CIVAC PRO — Créditos, Licencias y Propietario
- * Universal Business Technology · SoftGan Colombia
- * Propietario: Johnatan Vallejo Marulanda
+ * Universal Business Technology · SoftGan SAS
+ * SoftGan SAS · NIT 900.205.856-3 · Titular único
  */
 import { Shield, Award, Globe, Mail, Phone, Cpu, Code2,
   Database, Satellite, Zap, CheckCircle2, Star, Lock,
@@ -84,8 +84,8 @@ export default function Acerca() {
       {/* Grid layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-        {/* ── Propietario y Creador ─────────────────────────────────────────── */}
-        <Section title="Propietario y Creador" icon={User}>
+        {/* ── Desarrollador y Creador ───────────────────────────────────────── */}
+        <Section title="Desarrollador y Creador" icon={Code2}>
           <div className="rounded-2xl p-4 mb-3"
             style={{ background:'linear-gradient(135deg,rgba(0,245,212,0.08),rgba(0,200,255,0.05))', border:'1px solid rgba(0,245,212,0.2)' }}>
             <div className="flex items-center gap-3 mb-3">
@@ -94,25 +94,25 @@ export default function Acerca() {
                 👨‍💼
               </div>
               <div>
-                <p className="font-black text-white text-sm">Johnatan Vallejo Marulanda</p>
-                <p className="text-[9px] mt-0.5" style={{ color:'rgba(0,245,212,0.6)' }}>Fundador · Propietario · Creador</p>
-                <p className="text-[8px] text-white/30 mt-0.5">Universal Business Technology</p>
+                <p className="font-black text-white text-sm">Universal Business Technology</p>
+                <p className="text-[9px] mt-0.5" style={{ color:'rgba(0,245,212,0.6)' }}>Desarrollador · Creador original</p>
+                <p className="text-[8px] text-white/30 mt-0.5">Desarrollo técnico y creativo de CIVAC PRO</p>
               </div>
             </div>
             <div className="space-y-1">
-              <InfoRow label="Rol" value="Propietario único y exclusivo"/>
-              <InfoRow label="Derechos" value="Intelectuales y comerciales 100%"/>
+              <InfoRow label="Rol" value="Desarrollador y creador original"/>
+              <InfoRow label="Alcance" value="Desarrollo técnico y creativo"/>
               <InfoRow label="Empresa" value="Universal Business Technology"/>
               <InfoRow label="País" value="Colombia 🇨🇴"/>
             </div>
           </div>
           <div className="text-[9px] text-white/35 leading-relaxed" data-protected>
-            Johnatan Vallejo Marulanda es el creador, desarrollador original y propietario único de CIVAC PRO y toda su propiedad intelectual. Ninguna reproducción, copia, distribución o uso comercial está permitido sin autorización expresa y por escrito del propietario.
+            Universal Business Technology es el desarrollador y creador original de CIVAC PRO. La titularidad única del sistema y de sus derechos comerciales corresponde a SoftGan SAS.
           </div>
         </Section>
 
-        {/* ── Empresa y Licencias ─────────────────────────────────────────────── */}
-        <Section title="SoftGan Colombia — Proveedor de Licencias" icon={Building2}>
+        {/* ── Titular y Licencias ─────────────────────────────────────────────── */}
+        <Section title="SoftGan SAS — Titular Único y Licenciante" icon={Building2}>
           <div className="rounded-2xl p-4 mb-3"
             style={{ background:'linear-gradient(135deg,rgba(168,85,247,0.08),rgba(124,58,237,0.05))', border:'1px solid rgba(168,85,247,0.2)' }}>
             <div className="flex items-center gap-3 mb-3">
@@ -121,13 +121,15 @@ export default function Acerca() {
                 🏢
               </div>
               <div>
-                <p className="font-black text-white text-sm">SoftGan Colombia</p>
-                <p className="text-[9px] mt-0.5" style={{ color:'rgba(168,85,247,0.7)' }}>Proveedor exclusivo de licencias CIVAC</p>
-                <p className="text-[8px] text-white/30 mt-0.5">Software Ganadero · Agtech Colombia</p>
+                <p className="font-black text-white text-sm">SoftGan SAS</p>
+                <p className="text-[9px] mt-0.5" style={{ color:'rgba(168,85,247,0.7)' }}>Titular único · Vendedor de licencias CIVAC</p>
+                <p className="text-[8px] text-white/30 mt-0.5">NIT 900.205.856-3 · Software Ganadero</p>
               </div>
             </div>
             <div className="space-y-1">
               <InfoRow label="Marca" value="CIVAC® (Registro pendiente)"/>
+              <InfoRow label="NIT" value="900.205.856-3"/>
+              <InfoRow label="Rol" value="Titular único y licenciante"/>
               <InfoRow label="Modelo" value="SaaS · Licencias anuales/mensuales"/>
               <InfoRow label="Contacto" value="soporte@softgan.com.co"/>
               <InfoRow label="Mercado" value="Colombia · Latinoamérica"/>
@@ -154,9 +156,9 @@ export default function Acerca() {
         <Section title="Propiedad Intelectual y Protección" icon={Shield}>
           <div className="space-y-2">
             {[
-              { ico:'©', label:'Copyright', val:`${year} Universal Business Technology · Todos los derechos reservados` },
+              { ico:'©', label:'Copyright', val:`${year} SoftGan SAS · NIT 900.205.856-3 · Todos los derechos reservados` },
               { ico:'®', label:'Marca CIVAC', val:'Nombre comercial protegido · Registro en trámite Colombia' },
-              { ico:'🔐', label:'Código fuente', val:'Propiedad exclusiva de Johnatan Vallejo Marulanda' },
+              { ico:'🔐', label:'Código fuente', val:'Propiedad exclusiva de SoftGan SAS' },
               { ico:'📜', label:'Licencia', val:'Software propietario · No open source' },
               { ico:'🌐', label:'Territorialidad', val:'Colombia · Legislación Ley 23/1982 y Decisión 351 CAN' },
               { ico:'⚖️', label:'Uso no autorizado', val:'Constituye infracción penal y civil bajo ley colombiana' },
@@ -221,8 +223,8 @@ export default function Acerca() {
           CIVAC PRO® — Software de Gestión Ganadera Colombia
         </p>
         <p className="text-[9px] text-white/40 leading-relaxed max-w-xl mx-auto">
-          © {year} <strong className="text-white/60">Universal Business Technology</strong> · Propietario: <strong className="text-white/60">Johnatan Vallejo Marulanda</strong><br/>
-          Proveedor de licencias: <strong className="text-white/60">SoftGan Colombia</strong> · Marca: <strong className="text-white/60">CIVAC®</strong><br/>
+          © {year} <strong className="text-white/60">SoftGan SAS</strong> · NIT 900.205.856-3 · Titular único del sistema<br/>
+          Desarrollador y creador: <strong className="text-white/60">Universal Business Technology</strong> · Licenciante: <strong className="text-white/60">SoftGan SAS</strong> · Marca: <strong className="text-white/60">CIVAC®</strong><br/>
           Todos los derechos de propiedad intelectual, comercial e industrial reservados.<br/>
           La reproducción, distribución, ingeniería inversa o uso no autorizado de este software<br/>constituye una violación a la Ley 23 de 1982 y la Decisión 351 de la CAN.
         </p>

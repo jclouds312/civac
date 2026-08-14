@@ -844,7 +844,7 @@ export default function Manual() {
             <Globe size={9}/> civac.pro
           </div>
           <div className="flex items-center gap-1.5 text-[9px] text-white/30">
-            <Zap size={9}/> SoftGan Colombia
+            <Zap size={9}/> SoftGan SAS · NIT 900.205.856-3
           </div>
           <div className="flex items-center gap-1.5 text-[9px] text-white/30">
             <CheckCircle2 size={9}/> Actualizado 2026

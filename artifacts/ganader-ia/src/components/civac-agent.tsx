@@ -1,7 +1,7 @@
 /**
  * CIVAC IA — Agente de IA conversacional para GanaderIA PRO
  * Botón flotante + panel de chat • conecta con Flask /api/analytics/chat
- * Propietario: Johnatan Vallejo Marulanda · SoftGan Colombia
+ * Titular único: SoftGan SAS · NIT 900.205.856-3
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
@@ -267,7 +267,7 @@ export default function CivacAgent() {
               </div>
             </div>
             <p className="text-[9px] mt-0.5" style={{ color:'rgba(0,245,212,0.45)' }}>
-              Asistente ganadero · SoftGan Colombia
+              Asistente ganadero · SoftGan SAS
             </p>
           </div>
           {/* WhatsApp soporte humano */}
@@ -339,7 +339,7 @@ export default function CivacAgent() {
             </button>
           </div>
           <p className="text-[8px] text-center mt-1.5" style={{ color:'rgba(255,255,255,0.15)' }}>
-            CIVAC IA · Johnatan Vallejo Marulanda · SoftGan Colombia
+            CIVAC IA · SoftGan SAS · NIT 900.205.856-3
           </p>
         </form>
       </div>

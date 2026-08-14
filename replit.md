@@ -352,9 +352,11 @@ Rutas públicas (sin auth)
 
 ## Despliegue en Vercel
 
-El frontend (React/Vite SPA) está listo para desplegarse en Vercel como sitio estático. El `vercel.json` en la raíz configura todo automáticamente.
+La rama de despliegue usa Next.js como contenedor del frontend React y una
+única función Python Flask para todo `/api/*`. El `vercel.json` en la raíz
+configura el build Next, el bundle de los módulos Flask y el rewrite del API.
 
-### Pasos para desplegar el frontend en Vercel
+### Pasos para desplegar la aplicación completa en Vercel
 
 1. **Conectar repositorio** en vercel.com → "Add New Project" → importar desde GitHub.
 2. **Vercel detecta `vercel.json` automáticamente** — no cambiar nada en la UI de Vercel.
@@ -362,19 +364,22 @@ El frontend (React/Vite SPA) está listo para desplegarse en Vercel como sitio e
 
 | Variable | Requerida | Descripción |
 |----------|-----------|-------------|
-| `VITE_API_BASE_URL` | ✅ Sí | URL del API server desplegado (ej: `https://civac-api.railway.app`) |
+| `DATABASE_URL` | ✅ Para datos persistentes | PostgreSQL para el backend Flask de Vercel |
+| `POSTGRES_URL` | Alternativa | Alias aceptado por el backend Flask |
+| `VITE_API_BASE_URL` | Solo desarrollo | URL externa si se ejecuta el frontend Vite separado |
 | `VITE_GOOGLE_API_KEY` | Opcional | API Key de Google AI Studio (Gemini) + Google Drive |
 | `VITE_GOOGLE_CLIENT_ID` | Opcional | Client ID de Google OAuth (para Drive backup) |
 | `VITE_WOMPI_PUBLIC_KEY` | Opcional | Llave pública Wompi (pagos Colombia) |
 
-4. **Deploy** → el build corre `pnpm --filter @workspace/ganader-ia run build` y publica `artifacts/ganader-ia/dist/public`.
+4. **Deploy** → el build corre `pnpm run build:vercel` y publica `.next`.
 
-### Despliegue del API Server (por separado)
+La función `api/index.py` carga el monolito Flask y sus módulos de analytics
+y básculas. Configura `DATABASE_URL` (o `POSTGRES_URL`) en Vercel para activar
+las rutas persistentes; las rutas de salud y analytics calculadas funcionan
+sin conexión a la base de datos.
 
-El API server (Express + PostgreSQL) **no va en Vercel**. Opciones recomendadas:
-- **Railway**: `railway up` desde `artifacts/api-server/`
-- **Render**: Web Service apuntando a `artifacts/api-server/`, buildCommand `pnpm run build`, startCommand `pnpm run start`
-- **Replit Deploy**: el mismo Replit con el workflow `API Server` ya funciona
+El API Express de `artifacts/api-server` se conserva para desarrollo local y
+hardware persistente. No es necesario desplegarlo en Vercel.
 
 ### Google AI Studio (Gemini) — CivacAgent
 

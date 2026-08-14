@@ -83,13 +83,21 @@ def _restore_rewritten_path(environ) -> None:
         environ["PATH_INFO"] = forwarded[0]
 
 
-def app(environ, start_response):
-    """Vercel WSGI handler used for every ``/api/*`` request."""
+class VercelFlaskGateway:
+    """Callable WSGI object used as Vercel's Python function export."""
 
-    _restore_rewritten_path(environ)
-    try:
-        return flask_monolith(environ, start_response)
-    except Exception:
-        # Keep a valid WSGI response if an import fails during a cold start.
-        # The real exception remains visible in Vercel's function logs.
-        return fallback_app(environ, start_response)
+    def __call__(self, environ, start_response):
+        _restore_rewritten_path(environ)
+        if flask_monolith._app is None:
+            try:
+                flask_monolith._app = load_flask_app(
+                    flask_monolith.name, flask_monolith.file_path
+                )
+            except Exception:
+                # Keep a valid WSGI response if an import fails during a cold
+                # start. The original exception remains in Vercel logs.
+                return fallback_app(environ, start_response)
+        return flask_monolith._app(environ, start_response)
+
+
+app = VercelFlaskGateway()

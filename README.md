@@ -52,9 +52,30 @@ python app.py  # puerto 5001
 # Build completo con typechecking
 pnpm run build
 
+# Build de la aplicación desplegable (Next.js + Flask en Vercel)
+pnpm run build:vercel
+
 # Servir frontend localmente (preview)
 pnpm --filter @workspace/ganader-ia run serve
 ```
+
+### Despliegue Vercel: Next.js + Flask
+
+La rama `backup/vercel-public-output-fix-2026-08-12` encapsula la PWA React
+dentro de Next.js y expone todo `/api/*` mediante una única función Flask en
+`api/index.py`. El monolito Flask monta el API de dominio, analytics y
+básculas sin inicializar hardware serial en serverless.
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run build:vercel
+```
+
+En Vercel configura `DATABASE_URL` (o `POSTGRES_URL`) para las rutas
+persistentes. `/api/health`, `/api/healthz` y `/api/analytics/health` no
+requieren base de datos. El frontend usa rutas same-origin `/api/*`, por lo
+que `VITE_API_BASE_URL` solo es necesario cuando se ejecuta la SPA Vite
+separada en desarrollo.
 
 ---
 
@@ -70,8 +91,9 @@ pnpm --filter @workspace/ganader-ia run serve
 | **Iconos** | lucide-react | latest |
 | **Estado** | React Context + localStorage | — |
 | **Async** | @tanstack/react-query | latest |
-| **Backend** | Express · Node.js | 5.x · 24 |
-| **Analytics** | Flask · Python | 3.10+ |
+| **Backend Vercel** | Flask · Python | 3.10+ |
+| **Backend local** | Express · Node.js | 5.x · 24 |
+| **Analytics** | Flask + pandas | 3.10+ |
 | **Base de datos** | PostgreSQL · Drizzle ORM | 15+ · latest |
 | **PWA** | Service Worker v6 · Web App Manifest | — |
 | **Forms** | React Hook Form · Zod | 7.55+ · latest |

@@ -2,23 +2,21 @@
 
 ## Arquitectura actual
 
-`api/index.py` es el punto de entrada Python de Vercel. Carga de forma
-diferida el monolito Flask en `artifacts/api-server/api/index.py` para las
-rutas migradas y el servicio de básculas para las rutas de hardware.
+`api/index.py` es el único punto de entrada Python de Vercel. Carga de forma
+diferida el monolito Flask en `artifacts/api-server/api/index.py`, que monta
+los contratos de dominio, analytics y básculas en una sola función WSGI.
+Next.js sirve el frontend y el rewrite de `vercel.json` conserva la ruta
+original en `__path` para que Flask pueda resolver `/api/<recurso>`.
 
-Los rewrites de `vercel.json` mantienen explícitamente en Node los dominios
-que todavía no tienen equivalencia completa en Flask:
+La función Flask cubre:
 
-- `/api/gps/*`: requiere autenticación, geocercas y operaciones de tracks.
-- `/api/sync/*`: sincronización multi-entidad completa.
-- `/api/images/*`: almacenamiento de imágenes.
-- `/api/admin/*` excepto `/api/admin/stats`: operaciones administrativas
-  adicionales.
-
-El resto de los dominios principales (auth, animales, potreros, insumos,
-personal, reproducción, alertas, pesajes, lotes, finca, planes, usuarios,
-licencias, códigos, tramas, auditoría, analytics y estado de base de datos)
-se sirve desde Flask y PostgreSQL mediante `DATABASE_URL`.
+- auth, animales, potreros, insumos, personal, reproducción, alertas,
+  pesajes, lotes, finca, planes, usuarios, licencias, códigos y auditoría;
+- `/api/analytics/*`, incluyendo chat, KPIs, clima y panel administrativo;
+- `/api/devices`, `/api/status`, `/api/tramas/*` y `/api/config/*` para
+  básculas sin inicializar hardware serial en serverless;
+- sincronización, telemetría, imágenes y los endpoints administrativos que
+  están definidos en el monolito.
 
 ## Básculas y serverless
 
@@ -30,10 +28,12 @@ de conexión sin puerto serial devuelve un error JSON controlado.
 ## Prueba local
 
 ```bash
-python -m unittest tests.test_flask_serverless
+python -m compileall -q api artifacts/api-server/api artifacts/api-server/src artifacts/analytics-server
 pnpm run build:vercel
 ```
 
-La prueba de base de datos (`/api/db-status`) requiere `DATABASE_URL`. Los
-endpoints de datos devuelven `503` explícito si PostgreSQL no está disponible;
-no inventan un almacenamiento en memoria.
+Las rutas de salud (`/api/health`, `/api/healthz`, `/api/analytics/health`)
+no requieren base de datos. Las rutas persistentes requieren `DATABASE_URL`
+o `POSTGRES_URL` apuntando a PostgreSQL y devuelven JSON controlado cuando la
+conexión o una tabla no está disponible; no inventan almacenamiento en
+memoria para los datos de producción.

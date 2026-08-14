@@ -26,6 +26,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from werkzeug.exceptions import HTTPException
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
@@ -984,6 +985,16 @@ def audit_user(user_id: str):
 def api_exception(error):
     """Never turn an API failure into an HTML page."""
     if request.path.startswith("/api/"):
+        if isinstance(error, HTTPException):
+            return (
+                jsonify(
+                    {
+                        "error": error.description,
+                        "service": "civac-flask-monolith",
+                    }
+                ),
+                error.code or 500,
+            )
         app.logger.exception("API request failed: %s", error)
         return jsonify({"error": str(error), "service": "civac-flask-monolith"}), 500
     raise error
@@ -1032,7 +1043,13 @@ def _mount_scale():
     try:
         spec.loader.exec_module(module)
         scale_app = module.app
-        allowed = ("/api/devices", "/api/tramas/test", "/api/tramas/custom-test", "/api/config")
+        allowed = (
+            "/api/devices",
+            "/api/status",
+            "/api/tramas/test",
+            "/api/tramas/custom-test",
+            "/api/config",
+        )
         for rule in scale_app.url_map.iter_rules():
             if not rule.rule.startswith(allowed):
                 continue

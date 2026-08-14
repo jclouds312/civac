@@ -5,6 +5,8 @@ dist
 .next
 tmp
 out-tsc
+artifacts/api-server/public/assets/
+public/assets/
 *.tsbuildinfo
 .expo
 .expo-shared

@@ -1,18 +1,18 @@
-# Python / Flask / Django: se mantienen para workflows locales.
+# Python / Flask / Django: se mantienen para el runtime Flask de Vercel.
 main.py
 **/*.py
 artifacts/analytics-server/
 artifacts/gps-server/
 backend-analytics/
-requirements.txt
-pyproject.toml
-uv.lock
 .pythonlibs/
 
 # El monolito Flask es la función desplegada en Vercel y monta analytics.
 !artifacts/api-server/api/index.py
 !artifacts/analytics-server/
 !artifacts/analytics-server/app.py
+!requirements.txt
+!pyproject.toml
+!uv.lock
 
 # API server (se despliega por separado, no en Vercel)
 artifacts/api-server/dist

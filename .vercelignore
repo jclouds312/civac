@@ -8,8 +8,12 @@ backend-analytics/
 
 # El monolito Flask es la función desplegada en Vercel y monta analytics.
 !artifacts/api-server/api/index.py
+!artifacts/api-server/src/app.py
+!artifacts/api-server/src/services/
+!artifacts/api-server/src/services/*.py
 !artifacts/analytics-server/
 !artifacts/analytics-server/app.py
+!api/index.py
 !requirements.txt
 !pyproject.toml
 !uv.lock

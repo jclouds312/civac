@@ -1,32 +1,17 @@
 # Python / Flask / Django: se mantienen para el runtime Flask de Vercel.
 main.py
-**/*.py
-artifacts/analytics-server/
 artifacts/gps-server/
 backend-analytics/
 .pythonlibs/
 
-# El monolito Flask es la función desplegada en Vercel y monta analytics.
-!artifacts/api-server/api/index.py
-!artifacts/api-server/src/app.py
-!artifacts/api-server/src/services/
-!artifacts/api-server/src/services/*.py
-!artifacts/analytics-server/
-!artifacts/analytics-server/app.py
-!api/index.py
-!requirements.txt
-!pyproject.toml
-!uv.lock
+# El monolito Flask y analytics se incluyen en la función Python mediante
+# `functions.includeFiles` en vercel.json.
 
-# API server (se despliega por separado, no en Vercel)
+# Dependencias y artefactos locales no necesarios en Vercel.
 artifacts/api-server/dist
 artifacts/api-server/node_modules
-
-artifacts/api-server/src/app.py
-artifacts/api-server/src/services/*.py
-
-# Base de datos local / SQLite
 *.sqlite3
+artifacts/**/civac_gps.sqlite3
 civac-accounts-backup.json
 
 # Herramientas de desarrollo y CI

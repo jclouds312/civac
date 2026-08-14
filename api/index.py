@@ -1,35 +1,26 @@
-"""Unified Flask entrypoint for Vercel Python Functions.
+"""Single Flask entrypoint for the Next.js/Vercel deployment.
 
-The Flask monolith in ``artifacts/api-server/api/index.py`` is the migration
-target for the CIVAC API.  This small WSGI dispatcher keeps the hardware-only
-scale service isolated while the migrated domain and analytics routes run in
-the same serverless function.  Routes not migrated yet are intentionally left
-on the Node function through explicit Vercel rewrites.
+The production deployment intentionally has one backend runtime: Flask. The
+monolith owns the database-backed API and mounts the analytics and scale
+contracts during startup. Keeping this file as a small WSGI adapter makes
+Vercel's Python function discoverable without duplicating API handlers.
 """
 
 from __future__ import annotations
 
 import importlib.util
-import sys
 from pathlib import Path
-from typing import Callable
+from urllib.parse import parse_qs
 
 from flask import Flask, jsonify
 
 ROOT = Path(__file__).resolve().parents[1]
-ANALYTICS_DIR = ROOT / "artifacts" / "analytics-server"
-SCALE_DIR = ROOT / "artifacts" / "api-server" / "src"
 FLASK_MONOLITH = ROOT / "artifacts" / "api-server" / "api" / "index.py"
-
-# The existing scale service imports ``services.scale_service`` as a top-level
-# package, so make both Python service roots importable before loading it.
-for service_dir in (ANALYTICS_DIR, SCALE_DIR):
-    service_path = str(service_dir)
-    if service_path not in sys.path:
-        sys.path.insert(0, service_path)
 
 
 def load_flask_app(name: str, file_path: Path) -> Flask:
+    """Load a Flask app from a source file without starting a server."""
+
     spec = importlib.util.spec_from_file_location(name, file_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"No se pudo cargar el servicio Flask: {file_path}")
@@ -42,12 +33,12 @@ def load_flask_app(name: str, file_path: Path) -> Flask:
 
 
 class LazyFlaskApp:
-    """Load a Python service only when one of its routes is requested."""
+    """Load the Flask application once per warm serverless instance."""
 
     def __init__(self, name: str, file_path: Path) -> None:
         self.name = name
         self.file_path = file_path
-        self._app: Callable | None = None
+        self._app: Flask | None = None
 
     def __call__(self, environ, start_response):
         if self._app is None:
@@ -56,7 +47,6 @@ class LazyFlaskApp:
 
 
 flask_monolith = LazyFlaskApp("civac_vercel_monolith", FLASK_MONOLITH)
-scale_app = LazyFlaskApp("civac_vercel_scale", SCALE_DIR / "app.py")
 fallback_app = Flask("civac_vercel_gateway")
 
 
@@ -65,43 +55,41 @@ def health():
     return jsonify(
         {
             "ok": True,
-            "service": "civac-python-gateway",
-            "services": ["analytics", "scale"],
+            "service": "civac-python-gateway-fallback",
+            "backend": "flask",
         }
     )
 
 
-class FlaskServiceRouter:
-    """Dispatch migrated CIVAC routes and hardware routes independently."""
+def _restore_rewritten_path(environ) -> None:
+    """Restore the browser path after Vercel rewrites ``/api/*``.
 
-    def __init__(
-        self,
-        monolith: Callable,
-        scale: Callable,
-        fallback: Callable,
-    ) -> None:
-        self.monolith = monolith
-        self.scale = scale
-        self.fallback = fallback
+    Depending on the Vercel runtime version, a rewrite can reach the Python
+    function with either the original ``PATH_INFO`` or ``/api/index.py``.
+    ``vercel.json`` also forwards ``__path`` so the latter case remains
+    lossless. This is WSGI-level code so Flask sees normal routes and URL
+    parameters.
+    """
 
-    def __call__(self, environ, start_response):
-        path = environ.get("PATH_INFO", "")
-        # Be tolerant of Vercel passing the function filename after a rewrite.
-        # Normally PATH_INFO remains the original browser path.
-        if path.startswith("/api/index.py/"):
-            path = path.removeprefix("/api/index.py") or "/"
-            environ["PATH_INFO"] = path
-        if path.startswith(
-            (
-                "/api/devices",
-                "/api/tramas",
-                "/api/config",
-                "/api/status",
-                "/api/health",
-            )
-        ):
-            return self.scale(environ, start_response)
-        return self.monolith(environ, start_response)
+    path = environ.get("PATH_INFO", "") or "/"
+    if path.startswith("/api/index.py/"):
+        environ["PATH_INFO"] = path.removeprefix("/api/index.py") or "/"
+        return
+    if path != "/api/index.py":
+        return
+
+    forwarded = parse_qs(environ.get("QUERY_STRING", "")).get("__path", [])
+    if forwarded and forwarded[0].startswith("/"):
+        environ["PATH_INFO"] = forwarded[0]
 
 
-app = FlaskServiceRouter(flask_monolith, scale_app, fallback_app)
+def app(environ, start_response):
+    """Vercel WSGI handler used for every ``/api/*`` request."""
+
+    _restore_rewritten_path(environ)
+    try:
+        return flask_monolith(environ, start_response)
+    except Exception:
+        # Keep a valid WSGI response if an import fails during a cold start.
+        # The real exception remains visible in Vercel's function logs.
+        return fallback_app(environ, start_response)

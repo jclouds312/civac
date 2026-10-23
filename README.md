@@ -1,8 +1,8 @@
-# CIVAC PRO v5.1 — 2026
+# CIVAC PRO — Ganadería Inteligente
 
 **Control Inteligente de Valor Agropecuario · Colombia**
 
-PWA ganadero integral para Colombia. 28 módulos completados, multirol con 6 cuentas, dark/light mode, persistencia offline y rastreo GPS bovino en tiempo real.
+PWA ganadera integral para Colombia, con acceso multirol, persistencia offline y rastreo GPS bovino en tiempo real.
 
 ---
 
@@ -10,10 +10,10 @@ PWA ganadero integral para Colombia. 28 módulos completados, multirol con 6 cue
 
 ### Requisitos previos
 
-- **Node.js** 24+ (verificar: `node --version`)
+- **Node.js** 20+ (verificar: `node --version`)
 - **pnpm** 9+ (instalar: `npm install -g pnpm`)
-- **Python** 3.10+ (para backend analytics con Flask)
-- **PostgreSQL** 15+ (Replit DB configurado automáticamente)
+- **Python** 3.10+ (API Flask)
+- **PostgreSQL** 15+ para datos persistentes
 
 ### Instalación
 
@@ -35,47 +35,45 @@ pnpm run typecheck
 # Terminal 1: Frontend PWA (puerto 5000)
 pnpm --filter @workspace/ganader-ia run dev
 
-# Terminal 2: Backend API (puerto 8080)
-PORT=8080 pnpm --filter @workspace/api-server run dev
-
-# Terminal 3 (opcional): Flask Analytics Backend
-cd backend-analytics
-python3 -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py  # puerto 5001
+# Terminal 2: API unificada Flask (puerto 8000)
+PORT=8000 python3 artifacts/api-server/api/index.py
 ```
 
 ### Compilar para producción
 
 ```bash
-# Build completo con typechecking
-pnpm run build
-
 # Build de la aplicación desplegable (Next.js + Flask en Vercel)
 pnpm run build:vercel
-
-# Servir frontend localmente (preview)
-pnpm --filter @workspace/ganader-ia run serve
 ```
 
 ### Despliegue Vercel: Next.js + Flask
 
-La rama `backup/vercel-public-output-fix-2026-08-12` encapsula la PWA React
-dentro de Next.js y expone todo `/api/*` mediante una única función Flask en
-`api/index.py`. El monolito Flask monta el API de dominio, analytics y
-básculas sin inicializar hardware serial en serverless.
+Vercel debe desplegar este repositorio como **Next.js**. `vercel.json` fija
+`framework: nextjs` y `outputDirectory: .next`; Flask se ejecuta como función
+Python para las rutas `/api/*`, no como framework de despliegue. El monolito
+Flask reúne el API de dominio, analytics, básculas, autenticación y el
+asistente CIVAC IA.
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm run build:vercel
 ```
 
-En Vercel configura `DATABASE_URL` (o `POSTGRES_URL`) para las rutas
-persistentes. `/api/health`, `/api/healthz` y `/api/analytics/health` no
-requieren base de datos. El frontend usa rutas same-origin `/api/*`, por lo
-que `VITE_API_BASE_URL` solo es necesario cuando se ejecuta la SPA Vite
-separada en desarrollo.
+Configura estas variables en el entorno seguro del proveedor; no guardes sus
+valores en Git ni en el README:
+
+- `DATABASE_URL` (o `POSTGRES_URL`) para datos persistentes.
+- `SESSION_SECRET` para firmar el estado de Google OAuth.
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `CIVAC_PUBLIC_URL` para el
+  inicio de sesión con Google. Registra
+  `https://<dominio-publicado>/api/auth/google/callback` como URI de retorno
+  autorizada en Google Cloud.
+- `VITE_GOOGLE_CLIENT_ID` (público) para conectar Google Drive desde el módulo
+  de respaldos; no lo uses en lugar del secreto de servidor.
+- `GEMINI_API_KEY` para habilitar CIVAC IA en el servidor.
+
+`/api/health`, `/api/healthz` y `/api/analytics/health` no requieren base de
+datos. El frontend usa rutas same-origin `/api/*`.
 
 ---
 
@@ -170,16 +168,23 @@ Civac/
 
 ---
 
-## Sistema de autenticación — 6 cuentas con planes aplicados
+## Acceso y roles
 
-| Nombre | Email | Password | Rol | Acceso | Plan |
-|--------|-------|----------|-----|--------|------|
-| Administrador General | admin@civac.co | admin | admin | Panel Admin completo (11 tabs) | Enterprise |
-| Dr. Carlos Ramírez | vet@civac.co | vet2026 | vet | Módulos clínicos + lectura | Professional |
-| Luis Patiño | luis@civac.co | campo2026 | field | Campo: pesaje, GPS, potreros | Professional |
-| Propietario / Inversor | visor@civac.co | visor | viewer | Solo lectura / dashboards | Basic |
-| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola desarrollo (9 tabs) | Developer |
-| Super Administrador | super@civac.co | super2026 | superadmin | Acceso total plataforma | Enterprise |
+| Rol | Acceso |
+|-----|--------|
+| `superadmin` | Administración total de la plataforma |
+| `admin` | Gestión de usuarios, fincas y módulos administrativos |
+| `developer` | Herramientas técnicas y consola de desarrollo |
+| `sales` | Funciones comerciales y seguimiento de clientes |
+| `vet` | Módulos clínicos y consulta veterinaria |
+| `field` | Operación de campo, pesaje, GPS y potreros |
+| `viewer` | Consulta y dashboards de solo lectura |
+
+Los usuarios se crean o activan desde la administración de CIVAC. Google OAuth
+vincula el correo autenticado con la cuenta y su rol; las cuentas nuevas quedan
+pendientes de activación. Por seguridad, este README no contiene contraseñas,
+claves de acceso ni listas de contraseñas de prueba. Usa el proceso de alta o
+restablecimiento de cuenta para asignar credenciales.
 
 ---
 
@@ -379,13 +384,13 @@ app.run(debug=True, port=5002)
 
 ---
 
-## Licencia y Propiedad
+## Producto, propiedad y soporte
 
 **CIVAC PRO** © 2026
 
-- **Titular único y vendedor de licencias**: SoftGan SAS · NIT 900.205.856-3
+- **Producto y titular**: CIVAC es un producto de SoftGan SAS · NIT 900.205.856-3
 - **Desarrollador y creador**: Universal Business Technology
-- **Soporte y licenciamiento**: SoftGan SAS
+- **Soporte técnico oficial**: Universal Business Technology · soporte@civac.co
 
 Todos los derechos reservados. Prohibida la redistribución, modificación o uso comercial sin autorización expresa de SoftGan SAS.
 
@@ -394,6 +399,6 @@ Todos los derechos reservados. Prohibida la redistribución, modificación o uso
 ## Contacto
 
 📧 **Email (SoftGan)**: contacto@softgan.com  
-📧 **Email (Soporte técnico)**: soporte@civac.co  
+📧 **Soporte técnico oficial (Universal Business Technology)**: soporte@civac.co
 📱 **WhatsApp**: +57 318 248 2261  
 🌐 **Web**: https://civac--aaplicativo676.replit.app

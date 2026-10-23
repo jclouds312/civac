@@ -837,14 +837,15 @@ export default function Manual() {
         </div>
         <p className="text-[10px] text-white/35 leading-relaxed">
           ¿Necesita ayuda adicional? Consulte la <strong className="text-white/55">Asesora IA</strong> para preguntas técnicas
-          o escriba a <strong className="text-white/55">soporte@softgan.com.co</strong>
+          o escriba al soporte técnico oficial de Universal Business Technology:
+          <strong className="text-white/55"> soporte@civac.co</strong>
         </p>
         <div className="flex items-center justify-center gap-4 mt-3">
           <div className="flex items-center gap-1.5 text-[9px] text-white/30">
             <Globe size={9}/> civac.pro
           </div>
           <div className="flex items-center gap-1.5 text-[9px] text-white/30">
-            <Zap size={9}/> SoftGan SAS · NIT 900.205.856-3
+            <Zap size={9}/> CIVAC de SoftGan SAS · NIT 900.205.856-3
           </div>
           <div className="flex items-center gap-1.5 text-[9px] text-white/30">
             <CheckCircle2 size={9}/> Actualizado 2026

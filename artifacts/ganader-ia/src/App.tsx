@@ -232,7 +232,7 @@ function AdminGate() {
         <div className="px-2.5 pb-3 pt-2 border-t space-y-1 flex-shrink-0" style={{ borderColor: "rgba(255,149,0,0.08)" }}>
           {!collapsed && (
             <div className="flex items-center gap-1.5 px-2 py-1 text-[9px]" style={{ color: "rgba(255,149,0,0.25)" }}>
-              <Shield size={9}/> <span>CIVAC Platform v7.0 · 32 módulos · Admin</span>
+              <Shield size={9}/> <span>CIVAC de SoftGan SAS · NIT 900.205.856-3</span>
             </div>
           )}
           <button onClick={logout}

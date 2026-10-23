@@ -4305,7 +4305,7 @@ export default function AdminDashboard({
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {[
               {emoji:"💬",label:"WhatsApp Soporte",sub:"+57 300 CIVAC 00",color:"#25D366",g:"37,211,102"},
-              {emoji:"📧",label:"Email Soporte",   sub:"soporte@softgan.com.co",color:"#0ea5e9",g:"14,165,233"},
+              {emoji:"📧",label:"Soporte oficial · Universal Business Technology",   sub:"soporte@civac.co",color:"#0ea5e9",g:"14,165,233"},
               {emoji:"📞",label:"Línea Directa",   sub:"01-8000-CIVAC-CO",color:"#f472b6",g:"244,114,182"},
             ].map(c=>(
               <div key={c.label} className="rounded-2xl p-4 text-center" style={{background:`rgba(${c.g},0.07)`,border:`1px solid rgba(${c.g},0.2)`}}>

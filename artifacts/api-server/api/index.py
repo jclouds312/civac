@@ -27,9 +27,10 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 from werkzeug.exceptions import HTTPException
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory
 from flask_cors import CORS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -515,6 +516,200 @@ def ai_chat():
     if not answer:
         return jsonify({"ok": False, "error": "CIVAC IA no pudo generar una respuesta. Reformula la pregunta.", "code": "AI_EMPTY_RESPONSE"}), 502
     return jsonify({"ok": True, "respuesta": answer, "model": model})
+
+
+def _google_oauth_is_configured() -> bool:
+    return bool(
+        os.getenv("GOOGLE_CLIENT_ID")
+        and os.getenv("GOOGLE_CLIENT_SECRET")
+        and os.getenv("SESSION_SECRET")
+        and (os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL"))
+    )
+
+
+def _public_origin() -> str:
+    configured_origin = os.getenv("CIVAC_PUBLIC_URL", "").strip().rstrip("/")
+    if configured_origin:
+        return configured_origin
+    replit_domain = os.getenv("REPLIT_DEV_DOMAIN", "").strip()
+    if replit_domain:
+        return f"https://{replit_domain}"
+    vercel_domain = os.getenv("VERCEL_URL", "").strip()
+    if vercel_domain:
+        return f"https://{vercel_domain}"
+    return request.url_root.rstrip("/")
+
+
+def _new_google_state() -> str:
+    secret = os.environ["SESSION_SECRET"].encode("utf-8")
+    payload = f"{int(time.time())}.{secrets.token_urlsafe(24)}"
+    signature = hmac.new(secret, payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{payload}.{signature}"
+
+
+def _valid_google_state(state: str) -> bool:
+    parts = state.split(".")
+    if len(parts) != 3:
+        return False
+    timestamp, nonce, signature = parts
+    if not timestamp.isdigit() or not nonce:
+        return False
+    issued_at = int(timestamp)
+    if issued_at > time.time() or time.time() - issued_at > 600:
+        return False
+    payload = f"{timestamp}.{nonce}"
+    expected = hmac.new(
+        os.environ["SESSION_SECRET"].encode("utf-8"),
+        payload.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected)
+
+
+@app.get("/api/auth/google/status")
+def google_auth_status():
+    return jsonify({"configured": _google_oauth_is_configured()})
+
+
+@app.get("/api/auth/google")
+def google_auth_start():
+    if not _google_oauth_is_configured():
+        return redirect(f"{_public_origin()}/?google_error=no_config")
+
+    callback_url = f"{_public_origin()}/api/auth/google/callback"
+    params = urlencode(
+        {
+            "client_id": os.environ["GOOGLE_CLIENT_ID"],
+            "redirect_uri": callback_url,
+            "response_type": "code",
+            "scope": "openid email profile",
+            "access_type": "online",
+            "prompt": "select_account",
+            "state": _new_google_state(),
+        }
+    )
+    return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{params}")
+
+
+@app.get("/api/auth/google/callback")
+def google_auth_callback():
+    frontend_url = _public_origin()
+    if request.args.get("error"):
+        return redirect(f"{frontend_url}/?google_error=cancelled")
+    if not _google_oauth_is_configured():
+        return redirect(f"{frontend_url}/?google_error=no_config")
+    code = request.args.get("code", "").strip()
+    state = request.args.get("state", "")
+    if not code or not _valid_google_state(state):
+        return redirect(f"{frontend_url}/?google_error=state_invalid")
+
+    callback_url = f"{frontend_url}/api/auth/google/callback"
+    try:
+        token_request = urllib.request.Request(
+            "https://oauth2.googleapis.com/token",
+            data=urlencode(
+                {
+                    "code": code,
+                    "client_id": os.environ["GOOGLE_CLIENT_ID"],
+                    "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+                    "redirect_uri": callback_url,
+                    "grant_type": "authorization_code",
+                }
+            ).encode("utf-8"),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            method="POST",
+        )
+        with urllib.request.urlopen(token_request, timeout=10) as response:
+            token_data = json.loads(response.read().decode("utf-8"))
+        access_token = token_data.get("access_token")
+        if not access_token:
+            return redirect(f"{frontend_url}/?google_error=token_failed")
+
+        profile_request = urllib.request.Request(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
+        with urllib.request.urlopen(profile_request, timeout=10) as response:
+            google_user = json.loads(response.read().decode("utf-8"))
+        email = str(google_user.get("email", "")).strip().lower()
+        if not email or not google_user.get("id"):
+            return redirect(f"{frontend_url}/?google_error=userinfo_failed")
+        if not google_user.get("verified_email"):
+            return redirect(f"{frontend_url}/?google_error=email_unverified")
+
+        token = secrets.token_urlsafe(32)
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM usuarios_sistema WHERE lower(email) = %s LIMIT 1",
+                    (email,),
+                )
+                existing = cur.fetchone()
+                if existing and existing.get("estado") == "bloqueado":
+                    return redirect(f"{frontend_url}/?google_error=blocked")
+
+                if existing:
+                    cur.execute(
+                        "UPDATE usuarios_sistema SET google_id = %s, google_foto = %s, "
+                        "login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), "
+                        "updated_at = NOW() WHERE id = %s RETURNING *",
+                        (str(google_user["id"]), google_user.get("picture"), existing["id"]),
+                    )
+                else:
+                    cur.execute(
+                        "INSERT INTO usuarios_sistema "
+                        "(id,nombre,cargo,finca,email,password,role,permisos,plan_code,activo,"
+                        "google_id,google_foto,estado) "
+                        "VALUES (%s,%s,'Usuario Google','Sin asignar',%s,'','viewer',"
+                        "'[\"dashboard\",\"alertas\"]','basico',false,%s,%s,'pendiente') "
+                        "RETURNING *",
+                        (
+                            f"g_{uuid.uuid4().hex[:8]}",
+                            str(google_user.get("name") or email),
+                            email,
+                            str(google_user["id"]),
+                            google_user.get("picture"),
+                        ),
+                    )
+                user_row = cur.fetchone()
+                if not user_row:
+                    raise RuntimeError("No se pudo cargar la cuenta de Google")
+
+                public_user = _json_row(
+                    user_row, {"password", "created_at", "updated_at"}
+                )
+                public_user.setdefault(
+                    "planCode", public_user.pop("plan_code", "basico")
+                )
+                cur.execute(
+                    "INSERT INTO user_sessions "
+                    "(id,user_id,user_email,user_role,user_name,plan_code,ip_address,"
+                    "user_agent,expires_at) "
+                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,NOW()+INTERVAL '7 days')",
+                    (
+                        token,
+                        public_user["id"],
+                        public_user["email"],
+                        public_user["role"],
+                        public_user.get("nombre", ""),
+                        public_user.get("planCode", "basico"),
+                        request.remote_addr or "",
+                        request.user_agent.string or "",
+                    ),
+                )
+            conn.commit()
+
+        _memory_sessions[token] = {
+            "user": public_user,
+            "expires_at": time.time() + 7 * 86400,
+        }
+        return redirect(f"{frontend_url}/?civac_token={token}&google=1")
+    except (urllib.error.URLError, TimeoutError, ValueError, KeyError) as exc:
+        app.logger.warning("Falló la autenticación Google: %s", exc)
+        return redirect(f"{frontend_url}/?google_error=server_error")
+    except Exception:
+        app.logger.exception("Falló la autenticación Google")
+        return redirect(f"{frontend_url}/?google_error=server_error")
 
 
 @app.post("/api/auth/login")

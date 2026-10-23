@@ -366,9 +366,12 @@ configura el build Next, el bundle de los módulos Flask y el rewrite del API.
 |----------|-----------|-------------|
 | `DATABASE_URL` | ✅ Para datos persistentes | PostgreSQL para el backend Flask de Vercel |
 | `POSTGRES_URL` | Alternativa | Alias aceptado por el backend Flask |
-| `VITE_API_BASE_URL` | Solo desarrollo | URL externa si se ejecuta el frontend Vite separado |
-| `VITE_GOOGLE_API_KEY` | Opcional | API Key de Google AI Studio (Gemini) + Google Drive |
-| `VITE_GOOGLE_CLIENT_ID` | Opcional | Client ID de Google OAuth (para Drive backup) |
+| `SESSION_SECRET` | ✅ Para Google OAuth | Secreto privado de sesión, nunca `VITE_` |
+| `GOOGLE_CLIENT_ID` | Para Google OAuth | Client ID de servidor |
+| `GOOGLE_CLIENT_SECRET` | Para Google OAuth | Secreto privado de servidor |
+| `CIVAC_PUBLIC_URL` | Para Google OAuth | Origen publicado y URI base del callback |
+| `GEMINI_API_KEY` | Opcional | Clave privada de Gemini usada por Flask para CIVAC IA |
+| `VITE_GOOGLE_CLIENT_ID` | Opcional | Client ID público para Google Drive en el navegador |
 | `VITE_WOMPI_PUBLIC_KEY` | Opcional | Llave pública Wompi (pagos Colombia) |
 
 4. **Deploy** → el build corre `pnpm run build:vercel` y publica `.next`.
@@ -383,11 +386,10 @@ hardware persistente. No es necesario desplegarlo en Vercel.
 
 ### Google AI Studio (Gemini) — CivacAgent
 
-La integración está en `artifacts/ganader-ia/src/lib/gemini.ts`:
-- Modelo: `gemini-1.5-flash`
-- Obtén tu API key en: https://aistudio.google.com/app/apikey
-- Configura `VITE_GOOGLE_API_KEY` en Vercel o en `.env.local` localmente
-- El mismo `VITE_GOOGLE_API_KEY` sirve para Google Drive y Gemini
+El asistente CIVAC IA está disponible en los accesos de administración,
+desarrollo, ventas y usuarios de finca. El chat se procesa en Flask y requiere
+`GEMINI_API_KEY` configurada como secreto del servidor. No uses una variable
+`VITE_` para esta clave ni la guardes en el repositorio.
 
 ---
 

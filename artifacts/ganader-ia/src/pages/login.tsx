@@ -228,7 +228,7 @@ function LoginStatsFooter() {
             <p className="text-[11px] font-semibold mt-0.5" style={{ color:"rgba(255,255,255,0.45)" }}>
               Colombia {new Date().getFullYear()}
               <span className="mx-1.5 text-white/20">·</span>
-              SoftGan SAS · NIT 900.205.856-3
+              CIVAC de SoftGan SAS · NIT 900.205.856-3 · Soporte oficial: Universal Business Technology
             </p>
           </div>
           {/* Badges */}
@@ -856,6 +856,8 @@ export default function Login() {
       const msgs: Record<string,string> = {
         cancelled:       "Inicio con Google cancelado.",
         no_config:       "Google OAuth no está configurado. Contacta al administrador.",
+        state_invalid:   "La solicitud de Google expiró o no es válida. Intenta de nuevo.",
+        email_unverified:"Google no confirmó que el correo esté verificado.",
         token_failed:    "Error al verificar con Google. Intenta de nuevo.",
         blocked:         "Tu cuenta ha sido bloqueada. Contacta al administrador.",
         userinfo_failed: "No se pudo obtener información de tu cuenta Google.",

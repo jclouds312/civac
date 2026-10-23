@@ -1,7 +1,7 @@
 /**
  * Acerca de CIVAC PRO — Créditos, Licencias y Propietario
- * Universal Business Technology · SoftGan SAS
- * SoftGan SAS · NIT 900.205.856-3 · Titular único
+ * CIVAC es un producto de SoftGan SAS · NIT 900.205.856-3
+ * Universal Business Technology · Desarrollo, creación y soporte oficial
  */
 import { Shield, Award, Globe, Mail, Phone, Cpu, Code2,
   Database, Satellite, Zap, CheckCircle2, Star, Lock,
@@ -85,7 +85,7 @@ export default function Acerca() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
         {/* ── Desarrollador y Creador ───────────────────────────────────────── */}
-        <Section title="Desarrollador y Creador" icon={Code2}>
+        <Section title="Desarrollo y soporte técnico oficial" icon={Code2}>
           <div className="rounded-2xl p-4 mb-3"
             style={{ background:'linear-gradient(135deg,rgba(0,245,212,0.08),rgba(0,200,255,0.05))', border:'1px solid rgba(0,245,212,0.2)' }}>
             <div className="flex items-center gap-3 mb-3">
@@ -95,24 +95,24 @@ export default function Acerca() {
               </div>
               <div>
                 <p className="font-black text-white text-sm">Universal Business Technology</p>
-                <p className="text-[9px] mt-0.5" style={{ color:'rgba(0,245,212,0.6)' }}>Desarrollador · Creador original</p>
-                <p className="text-[8px] text-white/30 mt-0.5">Desarrollo técnico y creativo de CIVAC PRO</p>
+                <p className="text-[9px] mt-0.5" style={{ color:'rgba(0,245,212,0.6)' }}>Desarrollador · Creador · Soporte oficial</p>
+                <p className="text-[8px] text-white/30 mt-0.5">Soporte técnico oficial de CIVAC</p>
               </div>
             </div>
             <div className="space-y-1">
-              <InfoRow label="Rol" value="Desarrollador y creador original"/>
-              <InfoRow label="Alcance" value="Desarrollo técnico y creativo"/>
+              <InfoRow label="Rol" value="Desarrollador, creador y soporte técnico oficial"/>
+              <InfoRow label="Contacto oficial" value="soporte@civac.co"/>
               <InfoRow label="Empresa" value="Universal Business Technology"/>
               <InfoRow label="País" value="Colombia 🇨🇴"/>
             </div>
           </div>
           <div className="text-[9px] text-white/35 leading-relaxed" data-protected>
-            Universal Business Technology es el desarrollador y creador original de CIVAC PRO. La titularidad única del sistema y de sus derechos comerciales corresponde a SoftGan SAS.
+            CIVAC es un producto de SoftGan SAS. Universal Business Technology es su desarrollador, creador y responsable del soporte técnico oficial.
           </div>
         </Section>
 
         {/* ── Titular y Licencias ─────────────────────────────────────────────── */}
-        <Section title="SoftGan SAS — Titular Único y Licenciante" icon={Building2}>
+        <Section title="CIVAC — Producto de SoftGan SAS" icon={Building2}>
           <div className="rounded-2xl p-4 mb-3"
             style={{ background:'linear-gradient(135deg,rgba(168,85,247,0.08),rgba(124,58,237,0.05))', border:'1px solid rgba(168,85,247,0.2)' }}>
             <div className="flex items-center gap-3 mb-3">
@@ -122,16 +122,16 @@ export default function Acerca() {
               </div>
               <div>
                 <p className="font-black text-white text-sm">SoftGan SAS</p>
-                <p className="text-[9px] mt-0.5" style={{ color:'rgba(168,85,247,0.7)' }}>Titular único · Vendedor de licencias CIVAC</p>
+                <p className="text-[9px] mt-0.5" style={{ color:'rgba(168,85,247,0.7)' }}>Empresa titular del producto CIVAC</p>
                 <p className="text-[8px] text-white/30 mt-0.5">NIT 900.205.856-3 · Software Ganadero</p>
               </div>
             </div>
             <div className="space-y-1">
-              <InfoRow label="Marca" value="CIVAC® (Registro pendiente)"/>
+              <InfoRow label="Producto" value="CIVAC PRO"/>
               <InfoRow label="NIT" value="900.205.856-3"/>
-              <InfoRow label="Rol" value="Titular único y licenciante"/>
+              <InfoRow label="Rol" value="Titular del producto"/>
               <InfoRow label="Modelo" value="SaaS · Licencias anuales/mensuales"/>
-              <InfoRow label="Contacto" value="soporte@softgan.com.co"/>
+              <InfoRow label="Soporte técnico oficial" value="Universal Business Technology · soporte@civac.co"/>
               <InfoRow label="Mercado" value="Colombia · Latinoamérica"/>
             </div>
           </div>
@@ -223,8 +223,8 @@ export default function Acerca() {
           CIVAC PRO® — Software de Gestión Ganadera Colombia
         </p>
         <p className="text-[9px] text-white/40 leading-relaxed max-w-xl mx-auto">
-          © {year} <strong className="text-white/60">SoftGan SAS</strong> · NIT 900.205.856-3 · Titular único del sistema<br/>
-          Desarrollador y creador: <strong className="text-white/60">Universal Business Technology</strong> · Licenciante: <strong className="text-white/60">SoftGan SAS</strong> · Marca: <strong className="text-white/60">CIVAC®</strong><br/>
+          CIVAC es un producto de <strong className="text-white/60">SoftGan SAS</strong> · NIT 900.205.856-3<br/>
+          Desarrollador, creador y soporte técnico oficial: <strong className="text-white/60">Universal Business Technology</strong> · <strong className="text-white/60">soporte@civac.co</strong><br/>
           Todos los derechos de propiedad intelectual, comercial e industrial reservados.<br/>
           La reproducción, distribución, ingeniería inversa o uso no autorizado de este software<br/>constituye una violación a la Ley 23 de 1982 y la Decisión 351 de la CAN.
         </p>

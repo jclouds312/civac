@@ -96,7 +96,7 @@ externalPort = 3000
 
 [nix]
 channel = "stable-25_05"
-packages = ["glibcLocales", "iana-etc", "openssl", "postgresql"]
+packages = ["glibcLocales", "iana-etc", "openssl", "postgresql", "python312Packages.flask", "python312Packages.flask-cors", "python312Packages.numpy", "python312Packages.pandas", "python312Packages.psycopg"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-31a0990b-4900-4cdb-9c3f-b8a7326677af"

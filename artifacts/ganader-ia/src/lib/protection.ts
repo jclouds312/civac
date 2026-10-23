@@ -1,7 +1,7 @@
 /**
  * CIVAC PRO — Sistema de Protección Intelectual
  * Anti-phishing · Anti-copia · Licencia SoftGan SAS
- * Titular único: SoftGan SAS · NIT 900.205.856-3
+ * Producto de SoftGan SAS · NIT 900.205.856-3
  * © SoftGan SAS — Todos los derechos reservados
  */
 
@@ -15,7 +15,7 @@ export const CIVAC_LICENSE = {
   licenciante: 'SoftGan SAS',
   marca:       'CIVAC®',
   sitio:       'https://civac.pro',
-  soporte:     'soporte@softgan.com.co',
+  soporte:     'soporte@civac.co',
   año:         2026,
 };
 
@@ -59,7 +59,7 @@ export function applyWatermark(): void {
   wm.id = 'civac-watermark';
   wm.setAttribute('aria-hidden', 'true');
   wm.style.cssText = 'position:fixed;opacity:0;pointer-events:none;user-select:none;font-size:0;z-index:-9999';
-  wm.textContent = `CIVAC PRO | SoftGan SAS | NIT 900.205.856-3 | Titular único | Desarrollador: Universal Business Technology | © ${CIVAC_LICENSE.año} | ID: ${getInstanceFingerprint()}`;
+  wm.textContent = `CIVAC PRO de SoftGan SAS | NIT 900.205.856-3 | Desarrollo, creación y soporte técnico oficial: Universal Business Technology | © ${CIVAC_LICENSE.año} | ID: ${getInstanceFingerprint()}`;
   document.body.appendChild(wm);
 
   // CSS watermark on print
@@ -105,8 +105,8 @@ export function checkDomainAndWarn(): void {
     console.warn(
       `%c⚠️ CIVAC PRO — DOMINIO NO AUTORIZADO\n` +
       `%cEste software es propiedad de SoftGan SAS — NIT 900.205.856-3.\n` +
-      `Desarrollador y creador: Universal Business Technology\nTitular y licenciante: SoftGan SAS\n` +
-      `Uso no autorizado es ilegal. Contacto: soporte@softgan.com.co`,
+      `CIVAC es un producto de SoftGan SAS\nDesarrollo, creación y soporte técnico oficial: Universal Business Technology\n` +
+      `Uso no autorizado es ilegal. Contacto oficial: soporte@civac.co`,
       'color:#ff4d6d;font-size:16px;font-weight:bold',
       'color:#fbbf24;font-size:12px'
     );
@@ -118,9 +118,9 @@ export function printConsoleBranding(): void {
   console.log(
     `%c🐄 CIVAC PRO v2.1%c\n` +
     `%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `Titular único: SoftGan SAS — NIT 900.205.856-3\n` +
-    `Desarrollador y creador: Universal Business Technology\n` +
-    `Licencias: SoftGan SAS\n` +
+    `Producto: CIVAC de SoftGan SAS — NIT 900.205.856-3\n` +
+    `Desarrollador, creador y soporte técnico oficial: Universal Business Technology\n` +
+    `Contacto oficial: soporte@civac.co\n` +
     `Marca: CIVAC® — Registro pendiente\n` +
     `© ${CIVAC_LICENSE.año} Todos los derechos reservados\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +

@@ -466,7 +466,7 @@ export default function PlanLanding() {
           <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
             style={{ background: `rgba(${plan.glow},0.12)`, color: plan.color }}>v2.1</span>
         </div>
-        <p className="text-[10px] text-white/20 mb-4">Control Inteligente de Valor Agropecuario · Colombia 🇨🇴 · SoftGan SAS · NIT 900.205.856-3</p>
+        <p className="text-[10px] text-white/20 mb-4">CIVAC de SoftGan SAS · NIT 900.205.856-3 · Desarrollo y soporte técnico oficial: Universal Business Technology</p>
         <div className="flex flex-wrap justify-center gap-3">
           <Link href="/" className="text-[11px] text-white/30 hover:text-white/60 transition-colors">Abrir App</Link>
           {(["basico","pro","premium","platino"] as PlanKey[]).map(p => (

@@ -27,6 +27,15 @@ La función Flask cubre:
   Gemini desde Flask y requiere `GEMINI_API_KEY` configurada en el entorno de
   Vercel. La clave no se entrega al navegador y la función tiene un máximo de
   ejecución de 30 segundos para completar la solicitud al modelo.
+- `/api/auth/google`, `/api/auth/google/callback` y
+  `/api/auth/google/status` para Google OAuth en el mismo runtime Flask que
+  recibe las rutas `/api/*`. Requiere `GOOGLE_CLIENT_ID`,
+  `GOOGLE_CLIENT_SECRET`, `SESSION_SECRET`, una base PostgreSQL y
+  `CIVAC_PUBLIC_URL` apuntando al origen publicado.
+
+Las cuentas Google que aún no existen se registran como `viewer` pendientes de
+activación. Un administrador debe asignarles el rol y activar el acceso; Google
+OAuth no eleva permisos automáticamente.
 
 ## Básculas y serverless
 

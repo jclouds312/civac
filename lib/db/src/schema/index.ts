@@ -474,4 +474,4 @@ export type OauthCuenta = typeof oauthCuentasTable.$inferSelect;
 // GPS device registry, breadcrumb history and geofence events.
 // Kept in a focused module but re-exported here so Drizzle includes it in the
 // canonical PostgreSQL schema used by the API and migrations.
-export * from "./gps.js";
+export * from "./gps";

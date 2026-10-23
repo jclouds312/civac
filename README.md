@@ -36,7 +36,7 @@ pnpm run typecheck
 pnpm --filter @workspace/ganader-ia run dev
 
 # Terminal 2: API unificada Flask (puerto 8000)
-PORT=8000 python3 artifacts/api-server/api/index.py
+PORT=8000 bash scripts/run-flask-server.sh
 ```
 
 ### Compilar para producción
@@ -72,59 +72,29 @@ valores en Git ni en el README:
   de respaldos; no lo uses en lugar del secreto de servidor.
 - `GEMINI_API_KEY` para habilitar CIVAC IA en el servidor.
 
+Antes de abrir el sitio al público, rota o desactiva las credenciales de prueba
+que aún existen en el backend y retira el archivo histórico de cuentas del
+repositorio. No publiques contraseñas en este README.
+
 `/api/health`, `/api/healthz` y `/api/analytics/health` no requieren base de
 datos. El frontend usa rutas same-origin `/api/*`.
 
 ---
 
-## Stack tecnológico
+## Stack y arquitectura
 
-| Capa | Tecnología | Versión |
-|------|-----------|----------|
-| **Runtime** | Node.js · pnpm workspaces | 24 · 9+ |
-| **Frontend** | React · Vite · TypeScript | 18 · 6 · 5.9 |
-| **Routing** | wouter (SPA ligero) | 3.3.5 |
-| **UI** | shadcn/ui · Tailwind CSS · Radix UI | v4 · 1.x |
-| **Gráficos** | Recharts | 2.15+ |
-| **Iconos** | lucide-react | latest |
-| **Estado** | React Context + localStorage | — |
-| **Async** | @tanstack/react-query | latest |
-| **Backend Vercel** | Flask · Python | 3.10+ |
-| **Backend local** | Express · Node.js | 5.x · 24 |
-| **Analytics** | Flask + pandas | 3.10+ |
-| **Base de datos** | PostgreSQL · Drizzle ORM | 15+ · latest |
-| **PWA** | Service Worker v6 · Web App Manifest | — |
-| **Forms** | React Hook Form · Zod | 7.55+ · latest |
+| Capa | Tecnología |
+|------|------------|
+| Sitio publicado | Next.js, fijado como framework en `vercel.json` |
+| Interfaz | React, Vite y TypeScript |
+| API serverless | Flask/Python mediante `api/index.py` |
+| API de desarrollo | Express/Node.js en el workflow local |
+| Datos | PostgreSQL |
+| Aplicación | PWA con modo offline |
 
----
-
-## Lenguajes y dependencias complementarias
-
-### TypeScript (92%)
-- **tsconfig.json**: `strict: true` · `target: ES2020` · `module: ESNext`
-- **Validación**: Zod para schemas de runtime
-- **Herramientas**: `tsx` para scripts, `esbuild` para builds
-
-### Python (5.1%)
-- **Flask** 3.0+ — Backend de analytics IA
-- **Requirements**:
-  ```bash
-  flask==3.0.0
-  flask-cors==4.0.0
-  python-dotenv==1.0.0
-  psycopg2-binary==2.9.0  # PostgreSQL driver
-  ```
-- **Ubicación**: `backend-analytics/` (CIVAC IA conversacional)
-
-### CSS & Tailwind (1.8%)
-- **Tailwind CSS v4** — Atomic styling
-- **PostCSS** — Transformación de estilos
-- **Plugins**: `@tailwindcss/typography`, `@tailwindcss/vite`
-
-### Otros (1.1%)
-- **Bash scripts** (`build.mjs`) — Bundling con esbuild
-- **JSON** — Configuración de proyectos y manifests
-- **SQL** — Migrations de Drizzle ORM
+En Vercel, Next.js construye y publica el sitio; las rutas `/api/*` se
+redirigen a la función Flask. El servidor Express se conserva para desarrollo
+local y no es el framework del despliegue de Vercel.
 
 ---
 
@@ -133,36 +103,18 @@ datos. El frontend usa rutas same-origin `/api/*`.
 ```
 Civac/
 ├── artifacts/
-│   ├── ganader-ia/          ← Frontend PWA (Vite + React, puerto 5000)
-│   │   ├── public/
-│   │   │   ├── favicon.svg  ← Logo Holstein + chip IA teal
-│   │   │   ├── manifest.json
-│   │   │   └── sw.js        ← Service Worker v6
-│   │   └── src/
-│   │       ├── lib/
-│   │       │   ├── data.ts  ← AppStateProvider + useAppState + localStorage
-│   │       │   ├── auth.ts  ← AuthProvider + 6 cuentas predefinidas
-│   │       │   └── theme.ts ← ThemeProvider dark/light
-│   │       ├── components/
-│   │       │   ├── layout.tsx
-│   │       │   ├── civac-agent.tsx     ← IA Agent (PRINCIPAL - mantener)
-│   │       │   └── civac-bot.tsx       ← Knowledge Base Bot (DEPRECADO)
-│   │       ├── pages/       ← 28 módulos completados
-│   │       └── App.tsx      ← 28 rutas + providers
-│   ├── api-server/          ← Backend Express (puerto 8080)
-│   │   └── src/
-│   │       ├── index.ts
-│   │       └── routes/
-│   │           ├── animals.ts, potreros.ts, insumos.ts
-│   │           ├── personal.ts, usuarios.ts, finca.ts
-│   │           └── seed.ts, health.ts
-├── backend-analytics/       ← Flask Analytics Backend (puerto 5001)
-│   ├── app.py
-│   ├── requirements.txt
-│   └── venv/                ← Python virtual environment
-├── lib/
-│   └── db/                  ← Drizzle ORM schema + migrations
-│       └── src/schema/index.ts
+│   ├── ganader-ia/          ← Frontend React/Vite
+│   ├── api-server/
+│   │   ├── api/index.py    ← Monolito Flask usado por Vercel
+│   │   └── src/            ← API Express para desarrollo
+│   └── analytics-server/   ← Servicios Flask de analytics
+├── api/index.py            ← Entrada WSGI de Vercel
+├── artifacts/              ← Incluido por el build serverless
+├── docs/                   ← Documentación de despliegue
+├── lib/db/                 ← Esquema y acceso PostgreSQL
+├── requirements.txt        ← Dependencias Python de Vercel
+├── scripts/run-flask-server.sh
+├── vercel.json             ← Framework Next.js y rewrites Flask
 └── README.md
 ```
 
@@ -249,37 +201,19 @@ restablecimiento de cuenta para asignar credenciales.
 | GET/POST | `/api/alertas` | Centro de alertas |
 | GET/POST | `/api/pesajes` | Historial de pesajes |
 | GET/POST | `/api/gps` | Collares GPS |
-| **POST** | **`/api/analytics/chat`** | **CIVAC IA conversacional (Flask)** |
+| GET/POST | `/api/ai/status`, `/api/ai/chat` | Estado y chat de CIVAC IA |
+| GET | `/api/admin/users` | Usuarios, solo con sesión admin/superadmin |
+| PATCH/POST | `/api/admin/users/:id` | Actualización, demo y activación de cuenta |
+| GET | `/api/auth/google/status` | Estado de configuración de Google OAuth |
 
 ---
 
 ## CIVAC IA — Arquitectura de componentes
 
-### CivacAgent (Principal) ✅
-- **Componente**: `civac-agent.tsx`
-- **Botón flotante**: Gradiente teal/rojo dinámico
-- **Conexión backend**: POST `/api/analytics/chat` → Flask
-- **Funcionalidades**:
-  - Conversación contextual con historial
-  - Acciones rápidas (Producción, Inventario, GPS, etc)
-  - Offline fallback inteligente
-  - Online/offline status indicator
-  - Unread message badge
-- **Disponibilidad**: Todos los roles (excepto login)
-- **Puerto backend**: 5001 (Flask)
-
-### CivacBot (Deprecado) ⚠️
-- **Componente**: `civac-bot.tsx`
-- **Tipo**: Knowledge Base estática (65 keywords)
-- **Limitación**: Solo responde pre-escritas, sin IA real
-- **Estado**: REMOVIDO de App.tsx (líneas 289, 337)
-- **Alternativa**: Usar CivacAgent + Flask backend
-
-### Consolidación realizada:
-- ✅ Removidas importaciones de `CivacBot` en `App.tsx`
-- ✅ Solo `CivacAgent` render activo en todas las rutas
-- ✅ Un solo botón flotante IA (sin duplicados)
-- ✅ Conocimiento base integrado en Flask `/api/analytics/chat`
+El asistente `CivacAgent` aparece en las vistas autenticadas de administración,
+desarrollo, ventas y finca. Envía el chat a `/api/ai/chat` en Flask y requiere
+una sesión de servidor y `GEMINI_API_KEY`. La clave permanece en el servidor;
+sin configurarla, la API informa que el proveedor no está disponible.
 
 ---
 
@@ -301,24 +235,26 @@ El seed carga: 30 animales, 8 potreros, 18 insumos, 9 empleados, 9 registros rep
 
 ## Variables de entorno
 
-```bash
-# Backend Express (puerto 8080)
-DATABASE_URL=postgresql://...   # PostgreSQL (Replit DB — configurado automáticamente)
-PORT=8080                        # API server port
-NODE_ENV=development             # development | production
+Para Vercel configura los valores desde sus ajustes de entorno; para Replit usa
+Secrets. No guardes claves ni contraseñas en Git o en el README.
 
-# Flask Backend (puerto 5001)
-FLASK_ENV=development
-FLASK_APP=app.py
-DATABASE_URL=postgresql://...   # Compartida con Express
-API_SECRET_KEY=your-secret-key  # Para validar requests desde frontend
-```
+| Variable | Uso |
+|----------|-----|
+| `DATABASE_URL` o `POSTGRES_URL` | PostgreSQL para cuentas y datos |
+| `SESSION_SECRET` | Firma del estado de sesión/OAuth |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Acceso OAuth con Google |
+| `CIVAC_PUBLIC_URL` | Origen público y URL de retorno OAuth |
+| `GEMINI_API_KEY` | Habilita el chat del asistente |
+| `VITE_GOOGLE_CLIENT_ID` | Google Drive desde el navegador; no es secreto de servidor |
+
+Para el desarrollo local de Flask en Replit se usa
+`PORT=8000 bash scripts/run-flask-server.sh`.
 
 ---
 
 ## PWA — Offline
 
-Service Worker v6 con cache-first para assets, stale-while-revalidate para navegación HTML, network-first para `/api/*`. Las 28 rutas se pre-cachean en `install`.
+Service Worker con cache-first para assets, stale-while-revalidate para navegación HTML y network-first para `/api/*`.
 
 ---
 
@@ -330,7 +266,7 @@ Service Worker v6 con cache-first para assets, stale-while-revalidate para naveg
 - Dark mode: clase `.dark` en `document.documentElement`.
 - NO importar `@workspace/api-client-react` en el frontend.
 - **IA**: Usar solo `CivacAgent` — removido `CivacBot`.
-- **Backend IA**: Implementar en Flask `/api/analytics/chat` (no hardcoded).
+- **Backend IA**: Implementar en Flask `/api/ai/chat`; requiere sesión y `GEMINI_API_KEY`.
 - **Validación**: Todos los schemas deben usar Zod en `@workspace/api-zod`.
 
 ---
@@ -355,10 +291,9 @@ pnpm install
 pnpm run typecheck
 ```
 
-### Error: "Flask port 5001 conflict"
+### Error: "Flask port 8000 conflict"
 ```bash
-# Cambiar puerto en backend-analytics/app.py:
-app.run(debug=True, port=5002)
+PORT=8001 bash scripts/run-flask-server.sh
 ```
 
 ### PostgreSQL connection failed
@@ -397,8 +332,4 @@ Todos los derechos reservados. Prohibida la redistribución, modificación o uso
 ---
 
 ## Contacto
-
-📧 **Email (SoftGan)**: contacto@softgan.com  
-📧 **Soporte técnico oficial (Universal Business Technology)**: soporte@civac.co
-📱 **WhatsApp**: +57 318 248 2261  
-🌐 **Web**: https://civac--aaplicativo676.replit.app
+**Soporte técnico oficial — Universal Business Technology:** soporte@civac.co

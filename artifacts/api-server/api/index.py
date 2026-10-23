@@ -400,6 +400,166 @@ def _ai_authenticated_user():
     return _session_user(token.strip())
 
 
+def _admin_api_authorization():
+    user = _ai_authenticated_user()
+    if not user:
+        return None, _error("Inicia sesión para administrar usuarios", 401)
+    if user.get("role") not in {"admin", "superadmin"}:
+        return None, _error("No tienes permisos para administrar usuarios", 403)
+    return user, None
+
+
+@app.get("/api/admin/users")
+def admin_list_users():
+    _, authorization_error = _admin_api_authorization()
+    if authorization_error:
+        return authorization_error
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM usuarios_sistema ORDER BY created_at DESC"
+                )
+                rows = cur.fetchall()
+        users = _json_rows(rows, {"password", "updated_at"})
+        return jsonify({"ok": True, "total": len(users), "users": users})
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.patch("/api/admin/users/<user_id>")
+def admin_update_user(user_id: str):
+    admin, authorization_error = _admin_api_authorization()
+    if authorization_error:
+        return authorization_error
+
+    payload = _body()
+    allowed = {
+        "estado": {"column": "estado", "values": {"pendiente", "activo", "bloqueado", "demo"}},
+        "planCode": {"column": "plan_code", "values": {"basico", "pro", "premium", "platino"}},
+        "activo": {"column": "activo"},
+        "nombre": {"column": "nombre"},
+        "cargo": {"column": "cargo"},
+        "finca": {"column": "finca"},
+        "role": {"column": "role", "values": {"superadmin", "admin", "developer", "sales", "vet", "field", "viewer"}},
+    }
+    updates: dict[str, Any] = {}
+    for key, rule in allowed.items():
+        if key not in payload:
+            continue
+        value = payload[key]
+        permitted_values = rule.get("values")
+        if permitted_values and value not in permitted_values:
+            return _error(f"Valor no válido para {key}", 400)
+        if key == "activo" and not isinstance(value, bool):
+            return _error("El estado activo debe ser booleano", 400)
+        updates[rule["column"]] = value
+    if not updates:
+        return _error("No hay campos válidos para actualizar", 400)
+
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, role FROM usuarios_sistema WHERE id = %s LIMIT 1",
+                    (user_id,),
+                )
+                current = cur.fetchone()
+                if not current:
+                    return _error("Usuario no encontrado", 404)
+                if (
+                    "role" in updates
+                    and updates["role"] in {"admin", "superadmin"}
+                    and admin.get("role") != "superadmin"
+                ):
+                    return _error("Solo un superadministrador puede asignar ese rol", 403)
+                if current["role"] == "superadmin" and admin.get("role") != "superadmin":
+                    return _error("Solo un superadministrador puede editar esta cuenta", 403)
+
+                assignments = ", ".join(f'"{column}" = %s' for column in updates)
+                cur.execute(
+                    f'UPDATE usuarios_sistema SET {assignments}, updated_at = NOW() '
+                    "WHERE id = %s RETURNING *",
+                    [*updates.values(), user_id],
+                )
+                row = cur.fetchone()
+            conn.commit()
+        if not row:
+            return _error("Usuario no encontrado", 404)
+        return jsonify({"ok": True, "user": _json_row(row, {"password", "updated_at"})})
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.post("/api/admin/users/<user_id>/demo")
+def admin_grant_demo(user_id: str):
+    _, authorization_error = _admin_api_authorization()
+    if authorization_error:
+        return authorization_error
+    days = _body().get("dias", 7)
+    if not isinstance(days, int) or isinstance(days, bool) or not 1 <= days <= 365:
+        return _error("Días inválidos (1-365)", 400)
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE usuarios_sistema SET demo_expiry = NOW() + (%s * INTERVAL '1 day'), "
+                    "demo_dias = %s, activo = true, estado = 'demo', updated_at = NOW() "
+                    "WHERE id = %s RETURNING *",
+                    (days, days, user_id),
+                )
+                row = cur.fetchone()
+            conn.commit()
+        if not row:
+            return _error("Usuario no encontrado", 404)
+        user = _json_row(row, {"password", "updated_at"})
+        return jsonify({
+            "ok": True,
+            "message": f"Demo de {days} días otorgado",
+            "user": user,
+            "demoExpiry": user.get("demoExpiry"),
+        })
+    except Exception as exc:
+        return _error(str(exc))
+
+
+@app.post("/api/admin/users/<user_id>/activate")
+def admin_activate_user(user_id: str):
+    _, authorization_error = _admin_api_authorization()
+    if authorization_error:
+        return authorization_error
+    payload = _body()
+    plan = payload.get("planCode", "pro")
+    days = payload.get("dias", 30)
+    if plan not in {"basico", "pro", "premium", "platino"}:
+        return _error("Plan inválido", 400)
+    if not isinstance(days, int) or isinstance(days, bool) or not 1 <= days <= 365:
+        return _error("Días inválidos (1-365)", 400)
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE usuarios_sistema SET plan_code = %s, "
+                    "plan_expiry = NOW() + (%s * INTERVAL '1 day'), plan_dias = %s, "
+                    "activo = true, estado = 'activo', demo_expiry = NULL, updated_at = NOW() "
+                    "WHERE id = %s RETURNING *",
+                    (plan, days, days, user_id),
+                )
+                row = cur.fetchone()
+            conn.commit()
+        if not row:
+            return _error("Usuario no encontrado", 404)
+        user = _json_row(row, {"password", "updated_at"})
+        return jsonify({
+            "ok": True,
+            "message": f"Cuenta activada con plan {plan} por {days} días",
+            "user": user,
+            "planExpiry": user.get("planExpiry"),
+        })
+    except Exception as exc:
+        return _error(str(exc))
+
+
 def _ai_system_instruction(role: str) -> str:
     role_guidance = AI_ROLE_GUIDANCE.get(role, AI_ROLE_GUIDANCE["viewer"])
     return (

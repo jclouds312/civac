@@ -884,6 +884,7 @@ export default function Login() {
           return;
         }
         localStorage.setItem("civac_server_token", token);
+        localStorage.setItem("civac_session_token", token);
         loginAs({
           id: u.id, nombre: u.nombre, email: u.email, password: "",
           role: u.role as Account["role"], cargo: u.cargo, finca: u.finca,

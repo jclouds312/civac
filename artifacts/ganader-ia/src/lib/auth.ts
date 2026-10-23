@@ -643,12 +643,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email: account.email, password: account.password }),
     }).then(r => r.ok ? r.json() : null).then(data => {
       if (data?.token) {
-        try { localStorage.setItem('civac_session_token', data.token); } catch {}
+        try {
+          localStorage.setItem('civac_server_token', data.token);
+          localStorage.setItem('civac_session_token', data.token);
+        } catch {}
       }
     }).catch(() => { /* offline — token stays empty */ });
   };
 
   const logout = () => {
+    try {
+      const token = localStorage.getItem('civac_server_token') || localStorage.getItem('civac_session_token');
+      if (token) {
+        void fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+      localStorage.removeItem('civac_server_token');
+      localStorage.removeItem('civac_session_token');
+    } catch {}
     setUser(null);
     try { localStorage.removeItem('ganader_user'); } catch {}
   };

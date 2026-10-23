@@ -11,3 +11,5 @@
 - [API server route prefix](api-server-route-prefix.md) — app.ts mounts router at /api, so route files must NOT include /api prefix. Real health path is /api/healthz not /api/health.
 - [API server esbuild build](api-server-esbuild-build.md) — drizzle-zod not in api-server node_modules by default; build.mjs must symlink it + use nodePaths for pnpm virtual store. esbuild override must be 0.27.7 (not 0.27.3 which doesn't exist).
 - [GitHub branch sync and build](github-branch-sync-build.md) — preserve divergent local commits before aligning a requested branch; validate artifact workflows after checkout changes.
+- [CIVAC brand attribution](civac-branding-attribution.md) — CIVAC belongs to SoftGan SAS; Universal Business Technology is developer, creator, and official technical support.
+- [Python Nix site-packages](python-nix-site-packages.md) — Replit Nix-installed Python packages need a version-matched site-packages path in PYTHONPATH.

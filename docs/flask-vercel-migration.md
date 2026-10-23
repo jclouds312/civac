@@ -37,6 +37,11 @@ Las cuentas Google que aún no existen se registran como `viewer` pendientes de
 activación. Un administrador debe asignarles el rol y activar el acceso; Google
 OAuth no eleva permisos automáticamente.
 
+La lista, aprobación, activación y cambio de rol de cuentas del panel de
+administración también se atienden en Flask. Estas rutas requieren un token de
+sesión válido y un perfil `admin` o `superadmin`; solo un superadministrador
+puede conceder roles administrativos.
+
 ## Básculas y serverless
 
 El procesamiento HTTP y de tramas no requiere WebSocket ni hardware conectado.

@@ -39,6 +39,15 @@ interface PayLinkResult {
 const API = "/api";
 const DEMO_DIAS_OPTIONS = [3, 7, 14, 30];
 
+function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  let token: string | null = null;
+  try { token = localStorage.getItem("civac_server_token"); } catch {}
+  return {
+    ...extra,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 function diasRestantes(expiry: string | null | undefined): number | null {
   if (!expiry) return null;
   const ms = new Date(expiry).getTime() - Date.now();
@@ -89,7 +98,7 @@ export default function GoogleUsersPanel() {
   const load = useCallback(async () => {
     setLoading(true); setError("");
     try {
-      const r = await fetch(`${API}/admin/users`);
+      const r = await fetch(`${API}/admin/users`, { headers: authHeaders() });
       const d = await r.json() as { ok: boolean; users: DbUser[] };
       if (d.ok) setUsers(d.users ?? []);
       else setError("Error cargando usuarios");
@@ -103,7 +112,7 @@ export default function GoogleUsersPanel() {
     setBusy(u.id);
     try {
       const r = await fetch(`${API}/admin/users/${u.id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
+        method: "PATCH", headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ estado, activo: estado === "activo" }),
       });
       const d = await r.json() as { ok: boolean };
@@ -119,7 +128,7 @@ export default function GoogleUsersPanel() {
     setBusy(u.id);
     try {
       const r = await fetch(`${API}/admin/users/${u.id}`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
+        method: "PATCH", headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ planCode: plan }),
       });
       const d = await r.json() as { ok: boolean };
@@ -136,7 +145,7 @@ export default function GoogleUsersPanel() {
     setBusy(u.id);
     try {
       const r = await fetch(`${API}/admin/users/${u.id}/demo`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ dias }),
       });
       const d = await r.json() as { ok: boolean; message?: string; demoExpiry?: string };
@@ -154,7 +163,7 @@ export default function GoogleUsersPanel() {
     setBusy(u.id);
     try {
       const r = await fetch(`${API}/admin/users/${u.id}/activate`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ planCode: plan, dias }),
       });
       const d = await r.json() as { ok: boolean; message?: string; planExpiry?: string };
@@ -171,7 +180,9 @@ export default function GoogleUsersPanel() {
   const getPayLink = async (u: DbUser, plan: string) => {
     setBusy(u.id);
     try {
-      const r = await fetch(`${API}/admin/payment-link/${u.id}?plan=${plan}`);
+      const r = await fetch(`${API}/admin/payment-link/${u.id}?plan=${plan}`, {
+        headers: authHeaders(),
+      });
       const d = await r.json() as { ok: boolean } & PayLinkResult;
       if (d.ok) { setPayLink(d); setPayUser(u); }
       else showNotif("Error generando enlace de pago", false);

@@ -1,7 +1,7 @@
-# GanaderIA — CIVAC PRO v2.3
+# GanaderIA — CIVAC PRO
 ## Control Inteligente de Valor Agropecuario · Colombia
 
-Sistema de gestión ganadera integral para Colombia. PWA instalable (v11, 34 rutas), 35+ módulos, multirol con 6 cuentas, dark/light mode, persistencia offline con IndexedDB + localStorage, rastreo GPS bovino en tiempo real, trazabilidad ICA, sanidad animal, asesora IA y backends Python (Analytics Flask + GPS Django).
+Sistema de gestión ganadera para Colombia, con interfaz React/PWA, acceso multirol, trabajo offline, GPS, trazabilidad ICA, sanidad y asistente IA. En Vercel, Next.js publica la interfaz y Flask atiende las rutas `/api/*`; Express se conserva para desarrollo local.
 
 **Paleta v2.3:** Gold × Silver neon (`#FFD700` ↔ `#C8D4EC`) en todos los bordes de cards, badges, sidebar y módulos. Service Worker v11 con auto-update broadcast.
 
@@ -12,17 +12,20 @@ Sistema de gestión ganadera integral para Colombia. PWA instalable (v11, 34 rut
 ## Inicio rápido
 
 ```bash
-# Arrancar el frontend PWA (puerto 5000)
+# Arrancar el frontend (puerto 5000)
 PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ganader-ia run dev
 
-# Arrancar el API Server Node.js (puerto 8080)
+# Arrancar el monolito Flask (puerto 8000)
+PORT=8000 bash scripts/run-flask-server.sh
+
+# Opcional: API Express local (puerto 8080)
 PORT=8080 pnpm --filter @workspace/api-server run dev
 
 # Typecheck completo del workspace
 pnpm run typecheck
 ```
 
-Todos los datos de la PWA viven en `AppStateContext` (React Context + localStorage). No se requiere backend para el frontend.
+La interfaz conserva datos de trabajo offline en `AppStateContext`, localStorage e IndexedDB. Las cuentas y datos persistentes usan la API y PostgreSQL.
 
 ---
 
@@ -31,16 +34,17 @@ Todos los datos de la PWA viven en `AppStateContext` (React Context + localStora
 | Capa | Tecnología |
 |------|-----------|
 | Runtime | Node.js 24 · pnpm workspaces |
-| Frontend | React 18 · Vite 6 · TypeScript 5.9 |
+| Frontend de desarrollo | React · Vite · TypeScript |
+| Framework de Vercel | Next.js |
 | Routing | wouter (SPA ligero, sin React Router) |
 | UI | shadcn/ui · Tailwind CSS v4 |
 | Gráficos | Recharts (BarChart · AreaChart · PieChart) |
 | Iconos | lucide-react |
 | Estado | React Context + localStorage + IndexedDB |
-| PWA | Service Worker v11 · Web App Manifest v2.2 · Background Sync · 33 rutas |
-| API Server | Node.js + Fastify (puerto 8080) |
-| Analytics | Python 3 Flask (puerto 8099) |
-| GPS Backend | Python 3 Django (puerto 8000) |
+| PWA | Service Worker · Web App Manifest · Background Sync |
+| API serverless | Flask · Python |
+| API de desarrollo | Express · Node.js |
+| Datos | PostgreSQL |
 
 ---
 
@@ -114,28 +118,32 @@ artifacts/ganader-ia/
 
 ---
 
-## Sistema de autenticación — Cuentas oficiales v7.5.0
+## Sistema de autenticación y roles
 
 ### Cuentas CIVAC Staff (acceso Server Panel + badge ⬡ CIVAC)
 
-| Nombre | Email | Password | Rol | Cargo |
-|--------|-------|----------|-----|-------|
-| Super Administrador | super@civac.co | super2026 | superadmin | Control total · Auditoría · Config global |
-| Administrador General | admin@civac.co | admin | admin | Panel Admin completo · Gestión plataforma |
-| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola Dev · PWA · APIs · Deploy |
-| Asesora CIVAC · Ventas | ventas@civac.co | ventas2026 | sales | Asesora Comercial Senior · CRM |
+| Nombre | Email | Rol | Cargo |
+|--------|-------|-----|-------|
+| Super Administrador | super@civac.co | superadmin | Control total · Auditoría · Config global |
+| Administrador General | admin@civac.co | admin | Panel Admin completo · Gestión plataforma |
+| Dev · Arquitecto CIVAC | dev@civac.co | developer | Consola Dev · PWA · APIs · Deploy |
+| Asesora CIVAC · Ventas | ventas@civac.co | sales | Asesora Comercial Senior · CRM |
 
 ### Cuentas Cliente (acceso finca — Plan Premium)
 
-| Nombre | Email | Password | Rol | Descripción |
-|--------|-------|----------|-----|-------------|
-| Dr. Carlos Ramírez | vet@civac.co | vet2026 | vet | Médico Veterinario — módulos clínicos |
-| Luis Patiño | luis@civac.co | campo2026 | field | Jefe de Campo — pesaje, GPS, potreros |
-| Propietario / Inversor | visor@civac.co | visor | viewer | Solo lectura / dashboards |
+| Nombre | Email | Rol | Descripción |
+|--------|-------|-----|-------------|
+| Dr. Carlos Ramírez | vet@civac.co | vet | Médico Veterinario — módulos clínicos |
+| Luis Patiño | luis@civac.co | field | Jefe de Campo — pesaje, GPS, potreros |
+| Propietario / Inversor | visor@civac.co | viewer | Solo lectura / dashboards |
 
 **`CIVAC_STAFF_IDS`** = `['superadmin','developer','admin','sales']` — exportado de `auth.ts`. Estas cuentas muestran badge `⬡ CIVAC` en lugar del badge de plan y tienen acceso al Server Panel (`/server`).
 
-**Respaldo oficial:** `civac-accounts-backup.json` — contiene todas las cuentas staff, demo por plan y cuentas cliente con passwords, precios, permisos y configuración de días demo.
+Las cuentas nuevas de Google ingresan como `viewer` pendientes. Un administrador
+autenticado activa el acceso y asigna el rol correspondiente. No documentar
+contraseñas en Markdown. El archivo histórico `civac-accounts-backup.json`
+contiene datos de acceso; debe rotarse y retirarse del repositorio antes de un
+despliegue público.
 
 ---
 
@@ -290,9 +298,12 @@ Rutas públicas (sin auth)
 
 ## Decisiones de arquitectura
 
-- **Frontend puro** — todos los datos en React Context + localStorage. Sin backend obligatorio.
-- **AppStateContext** — fuente única de verdad. `useAppState()` en `src/lib/data.ts`.
-- **AuthContext** — autenticación localStorage con 7 cuentas. Sin JWT/servidor.
+- **Frontend** — React/Vite en desarrollo; Next.js es el framework configurado para Vercel.
+- **API Vercel** — todos los rewrites `/api/*` llegan al gateway Flask de `api/index.py`.
+- **API local** — Express se conserva para desarrollo; Flask atiende IA, GPS y rutas serverless.
+- **AppStateContext** — estado de interfaz y modo offline en React Context/localStorage; datos persistentes usan API y PostgreSQL.
+- **AuthContext** — estado de usuario en el cliente; el token del servidor habilita rutas protegidas.
+- **Google OAuth** — Flask valida el correo y crea cuentas nuevas como `viewer` pendientes.
 - **ThemeContext** — toggle dark/light via clase `.dark` en `document.documentElement`.
 - **wouter** — router SPA ligero. Todas las rutas usan `import.meta.env.BASE_URL`.
 - **Sidebar siempre oscuro** — identidad de marca, independiente del tema.
@@ -308,11 +319,11 @@ Rutas públicas (sin auth)
 | Versión | Cambios principales |
 |---------|---------------------|
 | v2.2 (v11 SW) | **Gold × Silver Neon** borde animado global (`@keyframes civac-gs`) en todos los cards/KPIs/lm-cards · **PWA Windows WCO** titlebar drag region + env(titlebar-area-*) · **manifest.json v2.2** launch_handler, handle_links, file_handlers, WCO display_override · **browserconfig.xml** Windows tile gold · **SW v11** shell offline gold×silver · **viewport-fit=cover** + tema dorado en dark mode · favicon borde gold×silver · `msapplication-task` jump-list Windows · **cuentas v7.5.0** con 7 cuentas oficiales |
-| v2.1 (v10 SW) | **Seguridad login**: cuentas CIVAC Staff sin contraseña visible (badge 🔒 Acceso protegido) · Cuentas demo con credenciales visibles + botón copiar email/pass · Versión unificada v2.1 en toda la plataforma · API Server operativo con PostgreSQL real (seed completo 30 animales) · Build esbuild 0.27.7 estable |
-| v2.0 (v8 SW) | Bottom nav mobile multicolor neon · Login v2.0 badge · Feature badges actualizados · 8 drivers Windows COM · 11 controladores BT · 8 tipos GPS · Analytics Server v2.0 |
-| v7.0 | 32+ módulos · Server Panel 11 secciones · Sanidad + Trazabilidad ICA · GPS Chips MQTT · Ventas CRM · Asesora IA · Drive backup |
-| v5.0 | GPS real-time watchPosition · 6 cuentas de acceso · Admin/Developer dashboards · Pesaje PRO con IA engine |
-| v1.x | MVP inicial React + Vite |
+| v2.1 (v10 SW) |
+| v2.0 (v8 SW) |
+| v7.0 |
+| v5.0 |
+| v1.x |
 
 ---
 
@@ -343,7 +354,7 @@ Rutas públicas (sin auth)
 - La app corre en el workflow `GanaderIA Frontend` proxiado en `/`.
 - Dark mode: `@custom-variant dark (&:is(.dark *))` — clase `.dark` en `document.documentElement`.
 - NO usar `MapMap` de lucide-react → usar `Map`. NO usar `Cow` → usar `Beef`.
-- Server Panel (`/server`, `/server-dashboard`) está **fuera del AuthGate** — acceso directo sin autenticación de finca.
+- Server Panel (`/server`, `/server-dashboard`) tiene una pantalla de acceso separada para personal CIVAC.
 - `CIVAC_STAFF_IDS` en `auth.ts` controla quién ve el badge CIVAC y tiene acceso al Server Panel.
 - `Cow` no existe en lucide-react instalado → usar `Beef`. Verificar nuevos iconos antes de usarlos.
 - Gold × Silver paleta: `#FFD700` (dorado) ↔ `#C8D4EC` (plateado) — aplicar con `.gs-border` o `civac-gs` keyframes.
@@ -370,9 +381,9 @@ configura el build Next, el bundle de los módulos Flask y el rewrite del API.
 | `GOOGLE_CLIENT_ID` | Para Google OAuth | Client ID de servidor |
 | `GOOGLE_CLIENT_SECRET` | Para Google OAuth | Secreto privado de servidor |
 | `CIVAC_PUBLIC_URL` | Para Google OAuth | Origen publicado y URI base del callback |
-| `GEMINI_API_KEY` | Opcional | Clave privada de Gemini usada por Flask para CIVAC IA |
-| `VITE_GOOGLE_CLIENT_ID` | Opcional | Client ID público para Google Drive en el navegador |
-| `VITE_WOMPI_PUBLIC_KEY` | Opcional | Llave pública Wompi (pagos Colombia) |
+| `GEMINI_API_KEY` | Opcional |
+| `VITE_GOOGLE_CLIENT_ID` | Opcional |
+| `VITE_WOMPI_PUBLIC_KEY` | Opcional |
 
 4. **Deploy** → el build corre `pnpm run build:vercel` y publica `.next`.
 

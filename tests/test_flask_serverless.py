@@ -50,6 +50,14 @@ class FlaskServerlessSmokeTest(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json["code"], "SESSION_REQUIRED")
 
+    def test_gps_locations_route_is_registered_in_flask(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.get("/api/gps")
+        self.assertNotEqual(response.status_code, 404)
+
     def test_scale_wsgi_health(self):
         from werkzeug.test import Client
         from werkzeug.wrappers import Response

@@ -8,15 +8,16 @@ los contratos de dominio, analytics y básculas en una sola función WSGI.
 Next.js sirve el frontend y el rewrite de `vercel.json` conserva la ruta
 original en `__path` para que Flask pueda resolver `/api/<recurso>`.
 
-En desarrollo de Replit, `/api/ai/*` se dirige al servicio Flask local y las
-demás rutas continúan usando temporalmente el servidor Node existente para
-evitar cambiar contratos aún no validados en la vista previa. En Vercel, todos
-los rewrites `/api/*` llegan al gateway Flask.
+En desarrollo de Replit, `/api/ai/*` y `/api/gps*` se dirigen al servicio Flask
+local; las demás rutas continúan usando temporalmente el servidor Node existente
+para evitar cambiar contratos aún no validados en la vista previa. En Vercel,
+todos los rewrites `/api/*` llegan al gateway Flask.
 
 La función Flask cubre:
 
 - auth, animales, potreros, insumos, personal, reproducción, alertas,
-  pesajes, lotes, finca, planes, usuarios, licencias, códigos y auditoría;
+  pesajes, ubicaciones GPS (`/api/gps`), lotes, finca, planes, usuarios,
+  licencias, códigos y auditoría;
 - `/api/analytics/*`, incluyendo chat, KPIs, clima y panel administrativo;
 - `/api/devices`, `/api/status`, `/api/tramas/*` y `/api/config/*` para
   básculas sin inicializar hardware serial en serverless;

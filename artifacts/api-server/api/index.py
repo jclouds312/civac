@@ -111,6 +111,7 @@ TABLES: dict[str, dict[str, Any]] = {
     "reproduccion": {"table": "reproduccion", "id": "id", "omit": {"id", "created_at", "updated_at"}},
     "alertas": {"table": "alertas", "id": "id", "omit": {"id", "created_at"}},
     "pesajes": {"table": "pesajes", "id": "id", "omit": {"id", "created_at"}},
+    "gps": {"table": "gps_ubicaciones", "id": "id", "omit": {"created_at", "updated_at"}},
     "usuarios": {"table": "usuarios_sistema", "id": "id", "omit": {"password", "created_at", "updated_at"}},
     "lotes": {"table": "movimientos_lote", "id": "id", "omit": {"id", "created_at"}},
     # Plans, licenses, activation codes, tramas and audit have custom

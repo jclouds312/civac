@@ -1,16 +1,17 @@
 /**
  * CIVAC IA — Agente de IA conversacional para GanaderIA PRO
- * Botón flotante + panel de chat • conecta con Flask /api/analytics/chat
+ * Botón flotante + panel de chat • conecta con Flask /api/ai/chat
  * Titular único: SoftGan SAS · NIT 900.205.856-3
  */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useLocation } from "wouter";
 import {
-  Bot, X, Send, Mic, ChevronDown, Satellite, Zap,
+  Bot, X, Send, Mic, ChevronDown, Satellite, Zap, BookOpen,
   TrendingUp, AlertTriangle, Beef, Droplets, DollarSign,
   RefreshCw, MapPin, Loader2, Wifi, WifiOff, MessageCircle, Phone,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { getToken } from "@/lib/api";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 interface ChatMsg {
@@ -23,17 +24,94 @@ interface ChatMsg {
   loading?: boolean;
 }
 
-/* ── Quick action chips ──────────────────────────────────────────────────── */
-const QUICK_ACTIONS = [
-  { label:'🥛 Producción hoy',     msg:'¿cuál es la producción de hoy?' },
-  { label:'🐄 Inventario',         msg:'¿cuántos animales tengo en el hato?' },
-  { label:'🚨 Alertas activas',    msg:'¿qué alertas tengo activas?' },
-  { label:'📡 GPS collares',       msg:'¿cuál es el estado de los GPS?' },
-  { label:'💰 Costos del mes',     msg:'¿cómo están los costos y finanzas?' },
-  { label:'💡 Recomendaciones',    msg:'dame recomendaciones para mejorar' },
-  { label:'🌿 Potreros',           msg:'¿cómo están los potreros?' },
-  { label:'💵 Precio leche',       msg:'¿cuál es el precio de la leche hoy?' },
-];
+/* ── Guía y ejemplos por perfil ──────────────────────────────────────────── */
+interface RoleGuide {
+  title: string;
+  summary: string;
+  steps: string[];
+  prompt: string;
+  suggestions: { label: string; msg: string }[];
+}
+
+const ROLE_GUIDES: Record<string, RoleGuide> = {
+  admin: {
+    title: "Administración CIVAC",
+    summary: "Usa CIVAC IA para preparar respuestas, orientar cuentas y entender los pasos de operación. La IA no cambia usuarios ni planes por sí sola.",
+    steps: ["Describe la consulta del cliente sin incluir contraseñas ni datos sensibles.", "Pide una respuesta clara o una lista de pasos.", "Confirma cualquier cambio en el módulo administrativo correspondiente."],
+    prompt: "Ayúdame a redactar una respuesta clara para un cliente que necesita activar su cuenta.",
+    suggestions: [
+      { label: "Atención a clientes", msg: "Ayúdame a redactar una respuesta clara para un cliente que necesita activar su cuenta." },
+      { label: "Explicar una función", msg: "Explícame cómo orientar a un cliente para registrar un pesaje." },
+      { label: "Pasos de soporte", msg: "Dame una lista de verificación para atender un reporte de error de acceso." },
+    ],
+  },
+  superadmin: {
+    title: "Dirección CIVAC",
+    summary: "Consulta cómo explicar funciones y organizar procesos de soporte. La IA no consulta ni modifica cuentas, licencias o información privada.",
+    steps: ["Indica el objetivo de la consulta o proceso.", "Pide un resumen, respuesta o lista de verificación.", "Valida la información y ejecuta cualquier acción desde el panel CIVAC."],
+    prompt: "Prepara una lista de verificación para revisar la activación de una cuenta CIVAC.",
+    suggestions: [
+      { label: "Revisar una cuenta", msg: "Prepara una lista de verificación para revisar la activación de una cuenta CIVAC." },
+      { label: "Atención al cliente", msg: "Ayúdame a contestar a un cliente que no puede ingresar a su finca." },
+      { label: "Explicar planes", msg: "Ayúdame a explicar las diferencias entre un plan básico y uno PRO sin inventar precios." },
+    ],
+  },
+  developer: {
+    title: "Soporte técnico",
+    summary: "Comparte el mensaje de error y la ruta afectada, nunca claves ni tokens. CIVAC IA puede sugerir diagnósticos, pero no ejecuta despliegues.",
+    steps: ["Copia el error sin secretos ni datos de clientes.", "Indica si ocurre en desarrollo, Vercel o el servidor.", "Prueba la solución propuesta y valida el resultado en los logs."],
+    prompt: "Ayúdame a diagnosticar un error 503 de Flask en Vercel. ¿Qué logs y configuraciones reviso primero?",
+    suggestions: [
+      { label: "Error Flask", msg: "Ayúdame a diagnosticar un error 503 de Flask en Vercel. ¿Qué logs y configuraciones reviso primero?" },
+      { label: "Despliegue", msg: "Dame una lista de comprobación para revisar una función Flask serverless." },
+      { label: "Depurar API", msg: "¿Qué información segura debo reunir para depurar una ruta de API que falla?" },
+    ],
+  },
+  sales: {
+    title: "Asesoría comercial",
+    summary: "Prepara explicaciones y materiales de atención. Confirma precios, disponibilidad y condiciones directamente en los sistemas CIVAC antes de compartirlos.",
+    steps: ["Indica el perfil y necesidad del prospecto, sin datos personales.", "Pide una explicación o borrador de mensaje.", "Verifica precios y condiciones vigentes antes de enviarlo."],
+    prompt: "Ayúdame a preparar una explicación breve de cómo CIVAC apoya el registro de animales y pesajes.",
+    suggestions: [
+      { label: "Presentar CIVAC", msg: "Ayúdame a preparar una explicación breve de cómo CIVAC apoya el registro de animales y pesajes." },
+      { label: "Responder prospecto", msg: "Redacta una respuesta amable para un prospecto que pregunta cómo comenzar." },
+      { label: "Capacitación", msg: "Propón un guion corto para enseñar a un cliente a usar su cuenta por primera vez." },
+    ],
+  },
+  vet: {
+    title: "Perfil veterinario",
+    summary: "Solicita orientación general sobre manejo bovino y comparte solo los datos necesarios. La IA no sustituye una valoración veterinaria.",
+    steps: ["Describe el caso sin identificar al propietario.", "Incluye edad, signos, duración y datos medidos si los tienes.", "Usa la respuesta como apoyo y confirma diagnósticos o tratamientos con criterio profesional."],
+    prompt: "¿Qué datos debo registrar para hacer seguimiento a un animal con pérdida de apetito?",
+    suggestions: [
+      { label: "Datos clínicos", msg: "¿Qué datos debo registrar para hacer seguimiento a un animal con pérdida de apetito?" },
+      { label: "Reproducción", msg: "¿Qué información conviene revisar antes de evaluar un resultado reproductivo?" },
+      { label: "Registro sanitario", msg: "Sugiere un formato de registro de una visita sanitaria bovina." },
+    ],
+  },
+  field: {
+    title: "Trabajo de campo",
+    summary: "Pide pasos concretos para registrar pesajes, revisar potreros o documentar novedades. La IA no lee automáticamente los datos de tu finca.",
+    steps: ["Indica la tarea y el dato que necesitas registrar.", "Pide una guía breve o una lista de verificación.", "Guarda el registro en el módulo de CIVAC correspondiente."],
+    prompt: "Dame una lista de verificación para registrar el pesaje de un lote y evitar errores.",
+    suggestions: [
+      { label: "Registrar pesaje", msg: "Dame una lista de verificación para registrar el pesaje de un lote y evitar errores." },
+      { label: "Revisar potrero", msg: "¿Qué debo revisar al registrar el estado de un potrero?" },
+      { label: "Novedad de campo", msg: "Ayúdame a redactar una nota breve de una novedad de campo." },
+    ],
+  },
+  viewer: {
+    title: "Cuenta de consulta",
+    summary: "Pide explicaciones de conceptos, reportes o pasos de uso. CIVAC IA no ve los datos de tu finca y no realiza cambios.",
+    steps: ["Abre en CIVAC el reporte o módulo que deseas entender.", "Comparte solo los datos necesarios, sin información sensible.", "Pide una explicación o navega al módulo indicado para consultar la información."],
+    prompt: "Explícame qué datos conviene revisar en un reporte de producción de leche.",
+    suggestions: [
+      { label: "Entender reportes", msg: "Explícame qué datos conviene revisar en un reporte de producción de leche." },
+      { label: "Uso de la cuenta", msg: "¿Cómo puedo organizar la revisión semanal de los indicadores de una finca?" },
+      { label: "Conceptos ganaderos", msg: "Explícame qué significa el intervalo entre partos y cómo se interpreta." },
+    ],
+  },
+};
 
 /* ── Typing indicator ────────────────────────────────────────────────────── */
 function TypingDots() {
@@ -99,11 +177,14 @@ function Bubble({ msg, onNavigate }: { msg: ChatMsg; onNavigate: (href: string) 
 export default function CivacAgent() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const roleGuide = ROLE_GUIDES[user?.role ?? "viewer"] ?? ROLE_GUIDES.viewer;
   const [open,      setOpen]      = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [messages,  setMessages]  = useState<ChatMsg[]>([]);
   const [input,     setInput]     = useState('');
   const [loading,   setLoading]   = useState(false);
   const [online,    setOnline]    = useState(navigator.onLine);
+  const [aiStatus,  setAiStatus]  = useState<'checking' | 'ready' | 'unconfigured' | 'session' | 'offline'>('checking');
   const [pulse,     setPulse]     = useState(true);
   const [unread,    setUnread]    = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -118,18 +199,42 @@ export default function CivacAgent() {
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const token = getToken();
+    if (!token) {
+      setAiStatus('session');
+      return;
+    }
+    const controller = new AbortController();
+    setAiStatus('checking');
+    fetch('/api/ai/status', {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    }).then(async res => {
+      const data = await res.json().catch(() => ({}));
+      if (controller.signal.aborted) return;
+      if (res.status === 401) setAiStatus('session');
+      else if (!res.ok) setAiStatus('offline');
+      else setAiStatus(data.configured ? 'ready' : 'unconfigured');
+    }).catch(() => {
+      if (!controller.signal.aborted) setAiStatus('offline');
+    });
+    return () => controller.abort();
+  }, [open, user?.id]);
+
   // Initial greeting
   useEffect(() => {
     const greet: ChatMsg = {
       id: 'init', role: 'agent',
-      text: `¡Hola, ${user?.nombre?.split(' ')[0] || 'ganadero'}! 👋 Soy **CIVAC IA**, tu asistente ganadero inteligente.\n\nPuedo responder sobre producción, GPS, alertas, costos, animales y más. ¿En qué te ayudo hoy?`,
+      text: `¡Hola, ${user?.nombre?.split(' ')[0] || 'ganadero'}! Soy **CIVAC IA**. Puedo orientarte según tu perfil de ${roleGuide.title.toLowerCase()}.\n\nNo consulto automáticamente los datos de tu finca ni modifico cuentas. Abre **Guía** para ver ejemplos de uso.`,
       ts: new Date(),
     };
     setMessages([greet]);
     // Flash pulse to attract attention after 3s
     const t = setTimeout(() => setPulse(false), 8000);
     return () => clearTimeout(t);
-  }, []);
+  }, [user?.nombre, roleGuide.title]);
 
   // Auto-scroll
   useEffect(() => {
@@ -153,15 +258,30 @@ export default function CivacAgent() {
     try {
       // Offline fallback
       if (!navigator.onLine) {
-        throw new Error('Sin conexión');
+        throw new Error('No hay conexión a internet. CIVAC IA necesita conexión; no se consultaron ni modificaron datos.');
       }
 
-      const res = await fetch('/api/analytics/chat', {
+      const token = getToken();
+      if (!token) {
+        setAiStatus('session');
+        throw new Error('No encuentro una sesión válida del servidor. Cierra sesión y vuelve a ingresar para usar CIVAC IA.');
+      }
+      const history = messages
+        .filter(item => !item.loading && item.id !== 'init' && item.text.trim())
+        .slice(-12)
+        .map(item => ({ role: item.role === 'user' ? 'user' : 'model', text: item.text }));
+      const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, context: { user: user?.nombre, plan: user?.plan } }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ message: text.trim(), history }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (data.code === 'AI_NOT_CONFIGURED') setAiStatus('unconfigured');
+        if (data.code === 'SESSION_REQUIRED') setAiStatus('session');
+        throw new Error(data.error || 'No fue posible obtener una respuesta de CIVAC IA.');
+      }
+      setAiStatus('ready');
 
       const agentMsg: ChatMsg = {
         id: `a-${Date.now()}`, role: 'agent',
@@ -173,22 +293,18 @@ export default function CivacAgent() {
       setMessages(prev => [...prev.filter(m => !m.loading), agentMsg]);
       if (!open) setUnread(u => u + 1);
 
-    } catch {
-      // Offline/error fallback — smart local response
+    } catch (error) {
+      const errorText = error instanceof Error ? error.message : 'No fue posible conectar con CIVAC IA.';
       const offlineMsg: ChatMsg = {
         id: `err-${Date.now()}`, role: 'agent',
-        text: navigator.onLine
-          ? '⚠️ No pude conectar con el servidor. Intenta de nuevo en un momento.'
-          : '📵 Estás sin conexión.\n\n**Datos disponibles offline:**\n• 13 animales en inventario\n• Producción estimada: 84 L/día\n• 4 alertas activas\n• 6 potreros en rotación\n\nAl reconectarte los datos se sincronizarán automáticamente.',
+        text: errorText,
         ts: new Date(),
-        accion: navigator.onLine ? null : '/',
-        accion_label: navigator.onLine ? null : 'Ver dashboard offline',
       };
       setMessages(prev => [...prev.filter(m => !m.loading), offlineMsg]);
     } finally {
       setLoading(false);
     }
-  }, [loading, open, user]);
+  }, [loading, messages, open]);
 
   const handleNavigate = useCallback((href: string) => {
     navigate(href);
@@ -260,9 +376,9 @@ export default function CivacAgent() {
               <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
                 style={{ background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4' }}>v2.1</span>
               <div className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: online ? '#39ff7e' : '#ff4d6d' }}/>
-                <span className="text-[8px]" style={{ color: online ? '#39ff7e' : '#ff4d6d' }}>
-                  {online ? 'En línea' : 'Offline'}
+                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: aiStatus === 'ready' ? '#39ff7e' : aiStatus === 'unconfigured' || aiStatus === 'session' ? '#ffb84d' : '#ff4d6d' }}/>
+                <span className="text-[8px]" style={{ color: aiStatus === 'ready' ? '#39ff7e' : aiStatus === 'unconfigured' || aiStatus === 'session' ? '#ffb84d' : '#ff4d6d' }}>
+                  {aiStatus === 'ready' ? 'IA lista' : aiStatus === 'unconfigured' ? 'Config. pendiente' : aiStatus === 'session' ? 'Inicia sesión' : aiStatus === 'checking' ? 'Verificando' : online ? 'Sin servidor' : 'Offline'}
                 </span>
               </div>
             </div>
@@ -270,6 +386,17 @@ export default function CivacAgent() {
               Asistente ganadero · SoftGan SAS
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowGuide(value => !value)}
+            className="flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1 text-[8px] font-bold transition-all hover:bg-white/10"
+            style={{ color: '#00f5d4' }}
+            aria-label={showGuide ? 'Volver al chat' : 'Abrir guía de uso de IA'}
+            title={showGuide ? 'Volver al chat' : 'Guía de uso'}
+          >
+            {showGuide ? <MessageCircle size={15}/> : <BookOpen size={15}/>}
+            {showGuide ? 'Chat' : 'Guía'}
+          </button>
           {/* WhatsApp soporte humano */}
           {(() => {
             const waNum = typeof window !== 'undefined' ? (localStorage.getItem("civac_whatsapp_number") || "3187351262") : "3187351262";
@@ -291,57 +418,97 @@ export default function CivacAgent() {
           </button>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 min-h-0"
-          style={{ scrollbarWidth:'none' }}>
-          {messages.map(msg => (
-            <Bubble key={msg.id} msg={msg} onNavigate={handleNavigate}/>
-          ))}
-          <div ref={messagesEndRef}/>
-        </div>
-
-        {/* Quick actions */}
-        {messages.length <= 2 && (
-          <div className="px-4 pb-2 flex-shrink-0">
-            <p className="text-[8px] text-white/25 mb-1.5 uppercase tracking-widest">Acciones rápidas</p>
-            <div className="flex flex-wrap gap-1.5 max-h-20 overflow-hidden">
-              {QUICK_ACTIONS.slice(0, 6).map(qa => (
-                <button key={qa.label}
-                  onClick={() => sendMessage(qa.msg)}
-                  disabled={loading}
-                  className="px-2.5 py-1 rounded-xl text-[9px] font-bold transition-all hover:scale-[1.03] disabled:opacity-50"
-                  style={{ background:'rgba(0,245,212,0.06)', border:'1px solid rgba(0,245,212,0.2)', color:'rgba(0,245,212,0.8)' }}>
-                  {qa.label}
-                </button>
-              ))}
+        {showGuide ? (
+          <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0" style={{ scrollbarWidth:'none' }}>
+            <div className="rounded-2xl p-4" style={{ background:'rgba(0,245,212,0.06)', border:'1px solid rgba(0,245,212,0.16)' }}>
+              <p className="text-[9px] uppercase tracking-widest font-black" style={{ color:'#00f5d4' }}>Guía para tu perfil</p>
+              <h3 className="mt-1 text-sm font-black text-white">{roleGuide.title}</h3>
+              <p className="mt-2 text-[11px] leading-relaxed text-white/65">{roleGuide.summary}</p>
             </div>
+            <ol className="mt-4 space-y-3">
+              {roleGuide.steps.map((step, index) => (
+                <li key={step} className="flex gap-2.5 text-[10px] leading-relaxed text-white/75">
+                  <span className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 font-black text-[9px]"
+                    style={{ background:'rgba(0,245,212,0.13)', color:'#00f5d4' }}>{index + 1}</span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+            <div className="mt-4 rounded-xl p-3" style={{ background:'rgba(255,255,255,0.045)', border:'1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[8px] uppercase tracking-widest font-black text-white/35">Ejemplo para empezar</p>
+              <p className="mt-1.5 text-[10px] leading-relaxed text-white/75">“{roleGuide.prompt}”</p>
+              <button
+                type="button"
+                onClick={() => { setShowGuide(false); sendMessage(roleGuide.prompt); }}
+                disabled={loading}
+                className="mt-3 rounded-lg px-3 py-2 text-[9px] font-black disabled:opacity-50"
+                style={{ background:'linear-gradient(135deg,#00f5d4,#00a896)', color:'#001a14' }}
+              >
+                Probar ejemplo
+              </button>
+            </div>
+            {aiStatus === 'unconfigured' && (
+              <p className="mt-3 text-[9px] leading-relaxed text-amber-300/80">La guía está disponible, pero el administrador debe configurar la IA en el servidor para activar las respuestas.</p>
+            )}
           </div>
+        ) : (
+          <>
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 min-h-0"
+              style={{ scrollbarWidth:'none' }}>
+              {messages.map(msg => (
+                <Bubble key={msg.id} msg={msg} onNavigate={handleNavigate}/>
+              ))}
+              <div ref={messagesEndRef}/>
+            </div>
+
+            {/* Quick actions */}
+            {messages.length <= 2 && (
+              <div className="px-4 pb-2 flex-shrink-0">
+                <p className="text-[8px] text-white/25 mb-1.5 uppercase tracking-widest">Ejemplos para tu perfil</p>
+                <div className="flex flex-wrap gap-1.5 max-h-20 overflow-hidden">
+                  {roleGuide.suggestions.slice(0, 3).map(qa => (
+                    <button key={qa.label}
+                      onClick={() => sendMessage(qa.msg)}
+                      disabled={loading}
+                      className="px-2.5 py-1 rounded-xl text-[9px] font-bold transition-all hover:scale-[1.03] disabled:opacity-50"
+                      style={{ background:'rgba(0,245,212,0.06)', border:'1px solid rgba(0,245,212,0.2)', color:'rgba(0,245,212,0.8)' }}>
+                      {qa.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Input */}
-        <form onSubmit={handleSubmit} className="px-3 py-3 flex-shrink-0"
-          style={{ borderTop:'1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-2xl"
-            style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>
-            {online ? <Wifi size={13} style={{ color:'rgba(0,245,212,0.4)', flexShrink:0 }}/> : <WifiOff size={13} style={{ color:'rgba(255,77,109,0.5)', flexShrink:0 }}/>}
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              placeholder="Pregunta sobre tu finca…"
-              disabled={loading}
-              className="flex-1 bg-transparent outline-none text-xs text-white placeholder:text-white/25 min-w-0"
-            />
-            <button type="submit" disabled={!input.trim() || loading}
-              className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 disabled:opacity-40"
-              style={{ background: input.trim() ? 'linear-gradient(135deg,#00f5d4,#00a896)' : 'transparent', color: input.trim() ? '#000' : 'rgba(255,255,255,0.3)' }}>
-              {loading ? <Loader2 size={12} className="animate-spin"/> : <Send size={12}/>}
-            </button>
-          </div>
-          <p className="text-[8px] text-center mt-1.5" style={{ color:'rgba(255,255,255,0.15)' }}>
-            CIVAC IA · SoftGan SAS · NIT 900.205.856-3
-          </p>
-        </form>
+        {!showGuide && (
+          <form onSubmit={handleSubmit} className="px-3 py-3 flex-shrink-0"
+            style={{ borderTop:'1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex items-center gap-2 px-3 py-2 rounded-2xl"
+              style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}>
+              {online ? <Wifi size={13} style={{ color:'rgba(0,245,212,0.4)', flexShrink:0 }}/> : <WifiOff size={13} style={{ color:'rgba(255,77,109,0.5)', flexShrink:0 }}/>}
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                placeholder="Escribe una pregunta…"
+                disabled={loading}
+                maxLength={2000}
+                className="flex-1 bg-transparent outline-none text-xs text-white placeholder:text-white/25 min-w-0"
+              />
+              <button type="submit" disabled={!input.trim() || loading}
+                className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 disabled:opacity-40"
+                style={{ background: input.trim() ? 'linear-gradient(135deg,#00f5d4,#00a896)' : 'transparent', color: input.trim() ? '#000' : 'rgba(255,255,255,0.3)' }}>
+                {loading ? <Loader2 size={12} className="animate-spin"/> : <Send size={12}/>}
+              </button>
+            </div>
+            <p className="text-[8px] text-center mt-1.5" style={{ color:'rgba(255,255,255,0.15)' }}>
+              CIVAC IA · Evita incluir contraseñas o tokens
+            </p>
+          </form>
+        )}
       </div>
     </>
   );

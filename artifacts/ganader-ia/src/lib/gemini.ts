@@ -1,48 +1,11 @@
-/* ─────────────────────────────────────────────────────────────────────────
-   CIVAC PRO — Google AI Studio (Gemini) integration
-   Requiere: VITE_GOOGLE_API_KEY en variables de entorno
-   ───────────────────────────────────────────────────────────────────────── */
+/**
+ * CIVAC IA client.
+ *
+ * Gemini is called only by the authenticated Flask API. The browser never
+ * receives or embeds the provider API key.
+ */
 
-import { GoogleGenerativeAI, type GenerationConfig } from "@google/generative-ai";
-import { publicEnv } from "./runtime-env";
-
-// ── Configuración ─────────────────────────────────────────────────────────────
-
-const API_KEY = publicEnv("VITE_GOOGLE_API_KEY", "NEXT_PUBLIC_GOOGLE_API_KEY");
-
-/** Verdadero cuando la API Key de Gemini está configurada */
-export function isGeminiConfigured(): boolean {
-  return !!API_KEY;
-}
-
-/** Instancia singleton del cliente Gemini (lazy) */
-let _client: GoogleGenerativeAI | null = null;
-function getClient(): GoogleGenerativeAI {
-  if (!_client) {
-    if (!API_KEY) throw new Error("VITE_GOOGLE_API_KEY no está configurada");
-    _client = new GoogleGenerativeAI(API_KEY);
-  }
-  return _client;
-}
-
-// ── Modelo y configuración base ───────────────────────────────────────────────
-
-const DEFAULT_MODEL = "gemini-1.5-flash";
-
-const CIVAC_SYSTEM_PROMPT = `Eres CivacAgent, el asistente inteligente de CIVAC PRO — sistema ganadero colombiano.
-Tienes conocimiento experto en:
-- Ganadería bovina colombiana (razas Cebú, Holstein, Brahman, Simmental)
-- Manejo sanitario, vacunación y tratamientos veterinarios
-- Nutrición animal, pastos y suplementación
-- Reproducción bovina (IA, monta natural, detección de celo)
-- Economía ganadera colombiana (precios COP, mercados, subsidios FINAGRO)
-- Normativa ICA Colombia, trazabilidad SINIGAN
-- Producción de leche y carne en trópico bajo/alto colombiano
-
-Responde siempre en español colombiano. Sé conciso, práctico y usa unidades colombianas (kg, litros, COP).
-Cuando des precios, indica que son aproximados y varían por región y época.`;
-
-// ── API pública ────────────────────────────────────────────────────────────────
+import { getToken } from "./api";
 
 export interface GeminiMessage {
   role: "user" | "model";
@@ -55,61 +18,75 @@ export interface GeminiResponse {
   error?: string;
 }
 
-/**
- * Envía un mensaje al asistente CivacAgent (chat con historial).
- * @param userMessage  Texto del usuario
- * @param history      Historial previo de la conversación
- * @param config       Configuración opcional de generación
- */
+function authToken(): string | null {
+  try {
+    return typeof window === "undefined" ? null : getToken();
+  } catch {
+    return null;
+  }
+}
+
+/** Checks authenticated server configuration without exposing provider secrets. */
+export async function isGeminiConfigured(): Promise<boolean> {
+  const token = authToken();
+  if (!token) return false;
+  try {
+    const response = await fetch("/api/ai/status", {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return false;
+    const data = await response.json();
+    return data.configured === true;
+  } catch {
+    return false;
+  }
+}
+
+/** Sends a prompt and recent conversation history to the secured Flask route. */
 export async function askCivacAgent(
   userMessage: string,
   history: GeminiMessage[] = [],
-  config?: Partial<GenerationConfig>,
 ): Promise<GeminiResponse> {
-  if (!isGeminiConfigured()) {
-    return { ok: false, text: "", error: "API Key de Google AI no configurada" };
+  const token = authToken();
+  if (!token) {
+    return { ok: false, text: "", error: "Inicia sesión nuevamente para usar CIVAC IA." };
   }
 
   try {
-    const model = getClient().getGenerativeModel({
-      model: DEFAULT_MODEL,
-      systemInstruction: CIVAC_SYSTEM_PROMPT,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-        ...config,
+    const response = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
+      body: JSON.stringify({
+        message: userMessage,
+        history: history.slice(-12),
+      }),
+      signal: AbortSignal.timeout(30000),
     });
-
-    const chat = model.startChat({
-      history: history.map((m) => ({
-        role: m.role,
-        parts: [{ text: m.text }],
-      })),
-    });
-
-    const result = await chat.sendMessage(userMessage);
-    const text = result.response.text();
-    return { ok: true, text };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[CivacAgent Gemini error]", msg);
-    return { ok: false, text: "", error: msg };
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return {
+        ok: false,
+        text: "",
+        error: data.error || "No fue posible obtener una respuesta de CIVAC IA.",
+      };
+    }
+    return { ok: true, text: data.respuesta || "" };
+  } catch {
+    return { ok: false, text: "", error: "No fue posible conectar con CIVAC IA. Intenta nuevamente." };
   }
 }
 
-/**
- * Consulta rápida sin historial de chat (análisis puntual de datos ganaderos).
- * Ideal para análisis de tramas, recomendaciones de peso, alertas sanitarias, etc.
- */
-export async function analyzeCivac(prompt: string): Promise<GeminiResponse> {
-  return askCivacAgent(prompt, []);
+/** General question without prior conversation. */
+export function analyzeCivac(prompt: string): Promise<GeminiResponse> {
+  return askCivacAgent(prompt);
 }
 
-/**
- * Analiza datos de un animal y devuelve recomendaciones de manejo.
- */
-export async function analyzeAnimal(data: {
+/** Requests general, non-diagnostic livestock guidance based on supplied details. */
+export function analyzeAnimal(data: {
   nombre: string;
   raza: string;
   peso: number;
@@ -117,15 +94,14 @@ export async function analyzeAnimal(data: {
   produccionLeche?: number;
   estado?: string;
 }): Promise<GeminiResponse> {
-  const prompt = `Analiza este bovino y dame recomendaciones de manejo:
+  const prompt = `Ofrece orientación general de manejo para este bovino. No diagnostiques ni prescribas tratamientos.
 Nombre: ${data.nombre}
 Raza: ${data.raza}
 Peso: ${data.peso} kg
 ${data.edad ? `Edad estimada: ${data.edad}` : ""}
 ${data.produccionLeche ? `Producción de leche: ${data.produccionLeche} L/día` : ""}
-${data.estado ? `Estado actual: ${data.estado}` : ""}
+${data.estado ? `Estado informado: ${data.estado}` : ""}
 
-Proporciona: 1) Evaluación del peso/condición corporal  2) Recomendaciones nutricionales  3) Plan sanitario sugerido  4) Potencial productivo`;
-
+Separa observaciones, datos que faltan y próximos pasos seguros.`;
   return analyzeCivac(prompt);
 }

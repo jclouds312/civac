@@ -6,6 +6,7 @@
   "outputDirectory": ".next",
   "functions": {
     "api/index.py": {
+      "maxDuration": 30,
       "includeFiles": [
         "artifacts/api-server/api/index.py",
         "artifacts/api-server/src/**",
@@ -15,6 +16,7 @@
     }
   },
   "rewrites": [
+    { "source": "/api/ai/:path*", "destination": "/api/index.py?__path=/api/ai/:path*" },
     { "source": "/api/:path*", "destination": "/api/index.py?__path=/api/:path*" }
   ],
   "headers": [

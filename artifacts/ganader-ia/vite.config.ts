@@ -91,6 +91,10 @@ export default defineConfig({
       strict: true,
     },
     proxy: {
+      "/api/ai": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
       "/api": {
         target: "http://localhost:8080",
         changeOrigin: true,

@@ -38,6 +38,18 @@ class FlaskServerlessSmokeTest(unittest.TestCase):
         self.assertEqual(summary.status_code, 200)
         self.assertIn("kpis", summary.json)
 
+    def test_ai_route_is_forwarded_through_the_vercel_wsgi_rewrite(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.post(
+            "/api/index.py?__path=%2Fapi%2Fai%2Fchat",
+            json={"message": "Hola"},
+        )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json["code"], "SESSION_REQUIRED")
+
     def test_scale_wsgi_health(self):
         from werkzeug.test import Client
         from werkzeug.wrappers import Response

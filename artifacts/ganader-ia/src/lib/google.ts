@@ -6,7 +6,6 @@
 import { publicEnv } from "./runtime-env";
 
 export const GOOGLE_CLIENT_ID = publicEnv("VITE_GOOGLE_CLIENT_ID", "NEXT_PUBLIC_GOOGLE_CLIENT_ID");
-export const GOOGLE_API_KEY   = publicEnv("VITE_GOOGLE_API_KEY", "NEXT_PUBLIC_GOOGLE_API_KEY");
 
 export const DRIVE_SCOPES = [
   'https://www.googleapis.com/auth/drive.file',

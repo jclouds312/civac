@@ -9,6 +9,7 @@ Vercel's Python function discoverable without duplicating API handlers.
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -94,9 +95,18 @@ class VercelFlaskGateway:
                     flask_monolith.name, flask_monolith.file_path
                 )
             except Exception:
-                # Keep a valid WSGI response if an import fails during a cold
-                # start. The original exception remains in Vercel logs.
-                return fallback_app(environ, start_response)
+                fallback_app.logger.exception("No se pudo cargar el backend Flask")
+                body = json.dumps(
+                    {"ok": False, "error": "El backend Flask no pudo iniciar"}
+                ).encode("utf-8")
+                start_response(
+                    "503 Service Unavailable",
+                    [
+                        ("Content-Type", "application/json; charset=utf-8"),
+                        ("Content-Length", str(len(body))),
+                    ],
+                )
+                return [body]
         return flask_monolith._app(environ, start_response)
 
 

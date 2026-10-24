@@ -349,14 +349,4 @@ export default function Potreros() {
       </Tabs>
     </div>
   );
-
-  function getEstadoColor(estado: string) {
-    switch (estado) {
-      case 'Disponible': return 'text-green-400 border-green-400/40 bg-green-400/5';
-      case 'Ocupado': return 'text-orange-400 border-orange-400/40 bg-orange-400/5';
-      case 'Rotar pronto': return 'text-red-400 border-red-400/40 bg-red-400/5';
-      case 'Descanso': return 'text-blue-400 border-blue-400/40 bg-blue-400/5';
-      default: return 'text-muted-foreground border-border bg-muted/10';
-    }
-  }
 }

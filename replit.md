@@ -4,9 +4,11 @@ Sistema de gestión ganadera inteligente con 16+ módulos completos, multicuenta
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/ganader-ia run dev` — PWA frontend (wouter routing, auto-assigned port)
-- `pnpm run typecheck` — full typecheck across all packages
-- No backend required — todos los datos viven en `AppStateContext` (React Context + localStorage)
+- Install the app and API workspaces: `pnpm install --filter @workspace/ganader-ia... --filter @workspace/api-server... --frozen-lockfile`
+- `PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ganader-ia run dev` — PWA frontend for the Replit preview
+- `PORT=8080 NODE_ENV=development pnpm --filter @workspace/api-server run dev` — API server
+- `pnpm --filter @workspace/db run push` — apply schema changes to the development database only; do not use `push-force` for setup
+- App state starts in localStorage and syncs to PostgreSQL through the API when available
 
 ## Stack
 

@@ -61,6 +61,8 @@ class AiChatTest(unittest.TestCase):
     def test_status_and_chat_report_missing_provider_key(self):
         empty_keys = {
             "GEMINI_API_KEY": "",
+            "CLOUDFLARE_API_TOKEN": "",
+            "CLOUDFLARE_ACCOUNT_ID": "",
             "GROQ_API_KEY": "",
             "OPENAI_API_KEY": "",
             "ANTHROPIC_API_KEY": "",
@@ -83,6 +85,8 @@ class AiChatTest(unittest.TestCase):
     def test_status_lists_providers_without_exposing_keys(self):
         with patch.dict(os.environ, {
             "GEMINI_API_KEY": "hidden-test-key",
+            "CLOUDFLARE_API_TOKEN": "",
+            "CLOUDFLARE_ACCOUNT_ID": "",
             "GROQ_API_KEY": "",
             "OPENAI_API_KEY": "",
             "ANTHROPIC_API_KEY": "",
@@ -132,7 +136,8 @@ class AiChatTest(unittest.TestCase):
         self.assertEqual(body["contents"][-1]["parts"][0]["text"], "¿Qué registro primero?")
         self.assertEqual(response.json["provider"], "gemini")
 
-    def test_groq_free_provider_uses_openai_compatible_chat_api(self):
+    def test_groq_paid_provider_uses_openai_compatible_chat_api(self):
+        self.module._memory_sessions[self.token]["user"]["planCode"] = "premium"
         fake = FakeResponse({
             "choices": [{"message": {"content": "Registra la fecha y los signos observados."}}],
         })
@@ -149,11 +154,33 @@ class AiChatTest(unittest.TestCase):
                 )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["provider"], "groq")
-        self.assertEqual(response.json["tier"], "free")
+        self.assertEqual(response.json["tier"], "premium")
         self.assertIn("fecha", response.json["respuesta"])
         request = urlopen.call_args.args[0]
         self.assertEqual(request.full_url, "https://api.groq.com/openai/v1/chat/completions")
         self.assertEqual(request.get_header("Authorization"), "Bearer unit-test-groq-key")
+
+    def test_cloudflare_free_provider_uses_account_scoped_inference(self):
+        fake = FakeResponse({"result": {"response": "Registra la fecha y los signos observados."}})
+        account_id = "a" * 32
+        with patch.dict(os.environ, {
+            "GEMINI_API_KEY": "",
+            "CLOUDFLARE_API_TOKEN": "unit-test-cloudflare-token",
+            "CLOUDFLARE_ACCOUNT_ID": account_id,
+        }):
+            with patch("urllib.request.urlopen", return_value=fake) as urlopen:
+                response = self.client.post(
+                    "/api/ai/chat",
+                    headers={"Authorization": f"Bearer {self.token}"},
+                    json={"message": "¿Qué registro primero?", "provider": "cloudflare"},
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["provider"], "cloudflare")
+        self.assertEqual(response.json["tier"], "free")
+        self.assertIn("fecha", response.json["respuesta"])
+        request = urlopen.call_args.args[0]
+        self.assertIn(f"/accounts/{account_id}/ai/run/@cf/meta/llama-3.1-8b-instruct", request.full_url)
+        self.assertEqual(request.get_header("Authorization"), "Bearer unit-test-cloudflare-token")
 
     def test_paid_provider_is_denied_for_non_premium_plan(self):
         self.module._memory_sessions[self.token]["user"]["planCode"] = "basico"

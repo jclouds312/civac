@@ -11,3 +11,4 @@
 - [API server route prefix](api-server-route-prefix.md) — app.ts mounts router at /api, so route files must NOT include /api prefix. Real health path is /api/healthz not /api/health.
 - [API server esbuild build](api-server-esbuild-build.md) — drizzle-zod not in api-server node_modules by default; build.mjs must symlink it + use nodePaths for pnpm virtual store. esbuild override must be 0.27.7 (not 0.27.3 which doesn't exist).
 - [GitHub branch sync and build](github-branch-sync-build.md) — preserve divergent local commits before aligning a requested branch; validate artifact workflows after checkout changes.
+- [Drizzle schema sync](drizzle-schema-sync.md) — inspect source imports and schema drift; never force-push into an existing database without reviewing data-loss prompts.

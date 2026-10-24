@@ -24,6 +24,15 @@ interface ChatMsg {
   loading?: boolean;
 }
 
+interface AIProviderOption {
+  id: string;
+  label: string;
+  tier: 'free' | 'premium';
+  locked: boolean;
+  configured: boolean;
+  available: boolean;
+}
+
 /* ── Guía y ejemplos por perfil ──────────────────────────────────────────── */
 interface RoleGuide {
   title: string;
@@ -185,6 +194,8 @@ export default function CivacAgent() {
   const [loading,   setLoading]   = useState(false);
   const [online,    setOnline]    = useState(navigator.onLine);
   const [aiStatus,  setAiStatus]  = useState<'checking' | 'ready' | 'unconfigured' | 'session' | 'offline'>('checking');
+  const [aiProviders, setAiProviders] = useState<AIProviderOption[]>([]);
+  const [selectedProvider, setSelectedProvider] = useState('');
   const [pulse,     setPulse]     = useState(true);
   const [unread,    setUnread]    = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -216,7 +227,15 @@ export default function CivacAgent() {
       if (controller.signal.aborted) return;
       if (res.status === 401) setAiStatus('session');
       else if (!res.ok) setAiStatus('offline');
-      else setAiStatus(data.configured ? 'ready' : 'unconfigured');
+      else {
+        const providers = Array.isArray(data.providers) ? data.providers as AIProviderOption[] : [];
+        setAiProviders(providers);
+        setSelectedProvider(current => {
+          if (providers.some(provider => provider.id === current && provider.available)) return current;
+          return typeof data.defaultProvider === 'string' ? data.defaultProvider : '';
+        });
+        setAiStatus(data.configured ? 'ready' : 'unconfigured');
+      }
     }).catch(() => {
       if (!controller.signal.aborted) setAiStatus('offline');
     });
@@ -273,7 +292,12 @@ export default function CivacAgent() {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ message: text.trim(), history }),
+        body: JSON.stringify({
+          message: text.trim(),
+          history,
+          ...(selectedProvider ? { provider: selectedProvider } : {}),
+        }),
+        signal: AbortSignal.timeout(30000),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -304,7 +328,7 @@ export default function CivacAgent() {
     } finally {
       setLoading(false);
     }
-  }, [loading, messages, open]);
+  }, [loading, messages, open, selectedProvider]);
 
   const handleNavigate = useCallback((href: string) => {
     navigate(href);
@@ -416,6 +440,42 @@ export default function CivacAgent() {
             style={{ color:'rgba(255,255,255,0.3)' }}>
             <X size={14}/>
           </button>
+        </div>
+        <div className="px-3 py-2 flex-shrink-0" style={{ borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+          <label htmlFor="civac-ai-provider" className="sr-only">Proveedor de inteligencia artificial</label>
+          <select
+            id="civac-ai-provider"
+            value={selectedProvider}
+            onChange={event => setSelectedProvider(event.target.value)}
+            className="w-full rounded-xl px-3 py-2 text-[10px] font-bold outline-none"
+            style={{ background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.82)', border:'1px solid rgba(0,245,212,0.16)' }}
+          >
+            <option value="" style={{ background:'#071325', color:'#fff' }}>Selecciona un proveedor de IA</option>
+            {aiProviders.map(provider => {
+              const detail = provider.locked
+                ? 'requiere plan Premium'
+                : !provider.configured
+                  ? 'pendiente de configurar'
+                  : provider.tier === 'premium'
+                    ? 'Premium · puede generar cargos'
+                    : 'gratis · sujeto a límite del proveedor';
+              return (
+                <option
+                  key={provider.id}
+                  value={provider.id}
+                  disabled={!provider.available}
+                  style={{ background:'#071325', color:'#fff' }}
+                >
+                  {provider.label} · {detail}
+                </option>
+              );
+            })}
+          </select>
+          <p className="text-[8px] mt-1 px-1" style={{ color:'rgba(255,255,255,0.32)' }}>
+            {selectedProvider && aiProviders.find(provider => provider.id === selectedProvider)?.tier === 'premium'
+              ? 'El uso de modelos Premium puede tener costo según la tarifa de tu proveedor.'
+              : 'Las opciones gratuitas tienen límites definidos por cada proveedor.'}
+          </p>
         </div>
 
         {showGuide ? (

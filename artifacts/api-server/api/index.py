@@ -415,21 +415,286 @@ def _ai_system_instruction(role: str) -> str:
     )
 
 
-def _gemini_model() -> str:
-    model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
-    if not re.fullmatch(r"[A-Za-z0-9.-]+", model):
-        return "gemini-3.8-flash"
+AI_PROVIDERS: dict[str, dict[str, str]] = {
+    "gemini": {
+        "label": "Google Gemini",
+        "tier": "free",
+        "key_env": "GEMINI_API_KEY",
+        "model_env": "GEMINI_MODEL",
+        "default_model": "gemini-3.8-flash",
+    },
+    "cloudflare": {
+        "label": "Cloudflare Workers AI",
+        "tier": "free",
+        "key_env": "CLOUDFLARE_API_TOKEN",
+        "account_env": "CLOUDFLARE_ACCOUNT_ID",
+        "model_env": "CLOUDFLARE_AI_MODEL",
+        "default_model": "@cf/meta/llama-3.1-8b-instruct",
+    },
+    "groq": {
+        "label": "Groq",
+        "tier": "premium",
+        "key_env": "GROQ_API_KEY",
+        "model_env": "GROQ_MODEL",
+        "default_model": "openai/gpt-oss-20b",
+    },
+    "openai": {
+        "label": "OpenAI",
+        "tier": "premium",
+        "key_env": "OPENAI_API_KEY",
+        "model_env": "OPENAI_MODEL",
+        "default_model": "gpt-6-luna",
+    },
+    "anthropic": {
+        "label": "Anthropic Claude",
+        "tier": "premium",
+        "key_env": "ANTHROPIC_API_KEY",
+        "model_env": "ANTHROPIC_MODEL",
+        "default_model": "claude-sonnet-5-5",
+    },
+}
+
+AI_FREE_PROVIDER_IDS = ("gemini", "cloudflare")
+
+
+def _ai_provider_is_configured(provider_id: str) -> bool:
+    provider = AI_PROVIDERS[provider_id]
+    if not os.getenv(provider["key_env"], "").strip():
+        return False
+    account_env = provider.get("account_env")
+    if account_env:
+        account_id = os.getenv(account_env, "").strip()
+        return bool(re.fullmatch(r"[A-Fa-f0-9]{32}", account_id))
+    return True
+
+
+def _ai_plan_code(user: dict[str, Any]) -> str:
+    return str(user.get("planCode") or user.get("plan_code") or user.get("plan") or "basico").lower()
+
+
+def _ai_can_use_premium(user: dict[str, Any]) -> bool:
+    return _ai_plan_code(user) in {"premium", "platino"}
+
+
+def _ai_provider_model(provider_id: str) -> str:
+    provider = AI_PROVIDERS[provider_id]
+    model = os.getenv(provider["model_env"], provider["default_model"]).strip()
+    # Model identifiers come from trusted server configuration, but validate
+    # them so a bad value cannot alter provider URLs or request structure.
+    if not re.fullmatch(r"[A-Za-z0-9@._:/-]+", model):
+        return provider["default_model"]
     return model
+
+
+def _ai_provider_catalog(user: dict[str, Any]) -> list[dict[str, Any]]:
+    can_use_premium = _ai_can_use_premium(user)
+    providers = []
+    for provider_id, provider in AI_PROVIDERS.items():
+        allowed = provider["tier"] == "free" or can_use_premium
+        configured = _ai_provider_is_configured(provider_id) if allowed else False
+        providers.append({
+            "id": provider_id,
+            "label": provider["label"],
+            "tier": provider["tier"],
+            "locked": provider["tier"] == "premium" and not can_use_premium,
+            "configured": configured,
+            "available": configured and allowed,
+            "model": _ai_provider_model(provider_id) if configured and allowed else None,
+        })
+    return providers
+
+
+def _ai_history(payload: dict[str, Any], message: str) -> list[dict[str, str]]:
+    history: list[dict[str, str]] = []
+    raw_history = payload.get("history", [])
+    if isinstance(raw_history, list):
+        for item in raw_history[-12:]:
+            if not isinstance(item, dict):
+                continue
+            role = item.get("role")
+            text = item.get("text")
+            if role not in {"user", "model", "assistant"} or not isinstance(text, str):
+                continue
+            text = text.strip()[:2000]
+            if not text:
+                continue
+            normalized_role = "assistant" if role in {"model", "assistant"} else "user"
+            if history and history[-1]["role"] == normalized_role:
+                continue
+            if not history and normalized_role != "user":
+                continue
+            history.append({"role": normalized_role, "text": text})
+    if history and history[-1]["role"] == "user":
+        history.pop()
+    history.append({"role": "user", "text": message})
+    return history
+
+
+def _ai_provider_request(
+    provider_id: str,
+    api_key: str,
+    model: str,
+    messages: list[dict[str, str]],
+    role: str,
+) -> tuple[urllib.request.Request, str]:
+    system_instruction = _ai_system_instruction(role)
+    if provider_id == "gemini":
+        contents: list[dict[str, Any]] = []
+        for item in messages:
+            gemini_role = "model" if item["role"] == "assistant" else "user"
+            if contents and contents[-1]["role"] == gemini_role:
+                contents[-1]["parts"][0]["text"] += "\n\n" + item["text"]
+            else:
+                contents.append({"role": gemini_role, "parts": [{"text": item["text"]}]})
+        request_body = {
+            "systemInstruction": {"parts": [{"text": system_instruction}]},
+            "contents": contents,
+            "generationConfig": {
+                "temperature": 0.5,
+                "maxOutputTokens": 1024,
+                "thinkingConfig": {"thinkingLevel": "low"},
+            },
+        }
+        request = urllib.request.Request(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+            data=json.dumps(request_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+            method="POST",
+        )
+        return request, "gemini"
+
+    if provider_id == "groq":
+        request_body = {
+            "model": model,
+            "messages": [{"role": "system", "content": system_instruction}] + [
+                {"role": item["role"], "content": item["text"]} for item in messages
+            ],
+            "temperature": 0.5,
+            "max_tokens": 1024,
+        }
+        request = urllib.request.Request(
+            "https://api.groq.com/openai/v1/chat/completions",
+            data=json.dumps(request_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+            method="POST",
+        )
+        return request, "openai_compatible"
+
+    if provider_id == "cloudflare":
+        account_id = os.getenv("CLOUDFLARE_ACCOUNT_ID", "").strip()
+        request_body = {
+            "messages": [{"role": "system", "content": system_instruction}] + [
+                {"role": item["role"], "content": item["text"]} for item in messages
+            ],
+            "temperature": 0.5,
+            "max_tokens": 1024,
+        }
+        request = urllib.request.Request(
+            f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{model}",
+            data=json.dumps(request_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+            method="POST",
+        )
+        return request, "cloudflare"
+
+    if provider_id == "openai":
+        request_body = {
+            "model": model,
+            "instructions": system_instruction,
+            "input": [{"role": item["role"], "content": item["text"]} for item in messages],
+            "max_output_tokens": 1024,
+        }
+        request = urllib.request.Request(
+            "https://api.openai.com/v1/responses",
+            data=json.dumps(request_body).encode("utf-8"),
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+            method="POST",
+        )
+        return request, "openai_responses"
+
+    if provider_id == "anthropic":
+        request_body = {
+            "model": model,
+            "system": system_instruction,
+            "messages": [{"role": item["role"], "content": item["text"]} for item in messages],
+            "max_tokens": 1024,
+            "temperature": 0.5,
+        }
+        request = urllib.request.Request(
+            "https://api.anthropic.com/v1/messages",
+            data=json.dumps(request_body).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+            },
+            method="POST",
+        )
+        return request, "anthropic"
+
+    raise ValueError("Proveedor de IA no reconocido")
+
+
+def _ai_response_text(provider_kind: str, result: dict[str, Any]) -> str:
+    if provider_kind == "gemini":
+        candidates = result.get("candidates") or []
+        parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
+        return "\n".join(
+            part["text"] for part in parts
+            if isinstance(part, dict) and isinstance(part.get("text"), str)
+        ).strip()
+    if provider_kind == "openai_compatible":
+        choices = result.get("choices") or []
+        content = choices[0].get("message", {}).get("content", "") if choices else ""
+        if isinstance(content, str):
+            return content.strip()
+        if isinstance(content, list):
+            return "\n".join(
+                item["text"] for item in content
+                if isinstance(item, dict) and isinstance(item.get("text"), str)
+            ).strip()
+        return ""
+    if provider_kind == "openai_responses":
+        if isinstance(result.get("output_text"), str):
+            return result["output_text"].strip()
+        texts = []
+        for item in result.get("output", []):
+            if not isinstance(item, dict):
+                continue
+            for part in item.get("content", []):
+                if isinstance(part, dict) and part.get("type") in {"output_text", "text"}:
+                    text = part.get("text")
+                    if isinstance(text, str):
+                        texts.append(text)
+        return "\n".join(texts).strip()
+    if provider_kind == "cloudflare":
+        result_value = result.get("result", {})
+        if isinstance(result_value, dict) and isinstance(result_value.get("response"), str):
+            return result_value["response"].strip()
+        return ""
+    if provider_kind == "anthropic":
+        return "\n".join(
+            item["text"] for item in result.get("content", [])
+            if isinstance(item, dict) and item.get("type") == "text" and isinstance(item.get("text"), str)
+        ).strip()
+    return ""
 
 
 @app.get("/api/ai/status")
 def ai_status():
-    if not _ai_authenticated_user():
+    user = _ai_authenticated_user()
+    if not user:
         return jsonify({"ok": False, "error": "Sesión requerida", "code": "SESSION_REQUIRED"}), 401
+    providers = _ai_provider_catalog(user)
+    default_provider = next(
+        (provider["id"] for provider in providers if provider["available"] and provider["tier"] == "free"),
+        None,
+    )
     return jsonify({
         "ok": True,
-        "configured": bool(os.getenv("GEMINI_API_KEY")),
-        "model": _gemini_model(),
+        "configured": any(provider["available"] for provider in providers),
+        "defaultProvider": default_provider,
+        "providers": providers,
     })
 
 
@@ -447,74 +712,71 @@ def ai_chat():
     if len(message) > 2000:
         return jsonify({"ok": False, "error": "La pregunta supera el máximo de 2.000 caracteres.", "code": "MESSAGE_TOO_LONG"}), 413
 
-    api_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if not api_key:
+    requested_provider = payload.get("provider")
+    if requested_provider is not None and not isinstance(requested_provider, str):
+        return jsonify({"ok": False, "error": "Proveedor de IA inválido.", "code": "INVALID_PROVIDER"}), 400
+    provider_id = requested_provider or next(
+        (
+            provider_id for provider_id in AI_FREE_PROVIDER_IDS
+            if _ai_provider_is_configured(provider_id)
+        ),
+        None,
+    )
+    if provider_id not in AI_PROVIDERS:
         return jsonify({
             "ok": False,
-            "error": "CIVAC IA aún no está configurada en el servidor. El administrador debe añadir GEMINI_API_KEY.",
+            "error": "No hay un proveedor gratuito configurado. Selecciona un proveedor disponible o solicita su activación.",
+            "code": "AI_PROVIDER_REQUIRED",
+        }), 503
+
+    provider = AI_PROVIDERS[provider_id]
+    if provider["tier"] == "premium" and not _ai_can_use_premium(user):
+        return jsonify({
+            "ok": False,
+            "error": "Este proveedor requiere un plan Premium o Platino.",
+            "code": "AI_PREMIUM_REQUIRED",
+        }), 403
+
+    api_key = os.getenv(provider["key_env"], "").strip()
+    if not _ai_provider_is_configured(provider_id):
+        return jsonify({
+            "ok": False,
+            "error": f"{provider['label']} aún no está configurado en el servidor.",
             "code": "AI_NOT_CONFIGURED",
         }), 503
 
-    contents: list[dict[str, Any]] = []
-    raw_history = payload.get("history", [])
-    if isinstance(raw_history, list):
-        for item in raw_history[-12:]:
-            if not isinstance(item, dict):
-                continue
-            role = item.get("role")
-            text = item.get("text")
-            if role not in {"user", "model"} or not isinstance(text, str):
-                continue
-            text = text.strip()[:2000]
-            if not text:
-                continue
-            # Gemini expects the first turn to be from the user and turns to alternate.
-            if not contents and role != "user":
-                continue
-            if contents and contents[-1]["role"] == role:
-                continue
-            contents.append({"role": role, "parts": [{"text": text}]})
-    if contents and contents[-1]["role"] == "user":
-        contents.pop()
-    contents.append({"role": "user", "parts": [{"text": message}]})
-
-    model = _gemini_model()
-    request_body = {
-        "systemInstruction": {"parts": [{"text": _ai_system_instruction(str(user.get("role", "viewer")))}]},
-        "contents": contents,
-        "generationConfig": {
-            "temperature": 0.5,
-            "maxOutputTokens": 1024,
-            "thinkingConfig": {"thinkingLevel": "low"},
-        },
-    }
-    api_request = urllib.request.Request(
-        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-        data=json.dumps(request_body).encode("utf-8"),
-        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
-        method="POST",
+    model = _ai_provider_model(provider_id)
+    messages = _ai_history(payload, message)
+    api_request, provider_kind = _ai_provider_request(
+        provider_id,
+        api_key,
+        model,
+        messages,
+        str(user.get("role", "viewer")),
     )
     try:
         with urllib.request.urlopen(api_request, timeout=25) as response:
             result = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        app.logger.warning("Gemini devolvió HTTP %s", exc.code)
+        app.logger.warning("Proveedor de IA %s devolvió HTTP %s", provider_id, exc.code)
         if exc.code == 429:
-            return jsonify({"ok": False, "error": "CIVAC IA alcanzó temporalmente su límite de uso. Intenta más tarde.", "code": "AI_RATE_LIMIT"}), 429
+            return jsonify({"ok": False, "error": f"{provider['label']} alcanzó temporalmente su límite. Intenta más tarde o elige otro proveedor.", "code": "AI_RATE_LIMIT"}), 429
         return jsonify({"ok": False, "error": "El servicio de CIVAC IA no está disponible en este momento.", "code": "AI_PROVIDER_ERROR"}), 502
     except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
-        app.logger.warning("No se pudo completar la solicitud a Gemini: %s", type(exc).__name__)
+        app.logger.warning("No se pudo completar la solicitud de IA: proveedor=%s error=%s", provider_id, type(exc).__name__)
         return jsonify({"ok": False, "error": "No fue posible conectar con CIVAC IA. Intenta nuevamente.", "code": "AI_CONNECTION_ERROR"}), 502
 
-    candidates = result.get("candidates") or []
-    parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
-    answer = "\n".join(
-        part["text"] for part in parts
-        if isinstance(part, dict) and isinstance(part.get("text"), str)
-    ).strip()
+    answer = _ai_response_text(provider_kind, result)
     if not answer:
         return jsonify({"ok": False, "error": "CIVAC IA no pudo generar una respuesta. Reformula la pregunta.", "code": "AI_EMPTY_RESPONSE"}), 502
-    return jsonify({"ok": True, "respuesta": answer, "model": model})
+    return jsonify({
+        "ok": True,
+        "respuesta": answer,
+        "provider": provider_id,
+        "providerLabel": provider["label"],
+        "tier": provider["tier"],
+        "model": model,
+    })
 
 
 @app.post("/api/auth/login")

@@ -18,9 +18,14 @@ kind = "web"
   run = "pnpm --filter @workspace/ganader-ia run dev"
 
   [services.production]
-  build = [ "pnpm", "--filter", "@workspace/ganader-ia", "run", "build" ]
   publicDir = "artifacts/ganader-ia/dist/public"
   serve = "static"
+
+  [services.production.build]
+  args = [ "pnpm", "--filter", "@workspace/ganader-ia", "run", "build" ]
+
+  [services.production.build.env]
+  VITE_VERCEL_OUT_DIR = "artifacts/ganader-ia/dist/public"
 
   [[services.production.rewrites]]
   from = "/*"

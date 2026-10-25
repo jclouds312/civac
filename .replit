@@ -39,7 +39,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=8000 python3 artifacts/api-server/api/index.py"
+args = "PYTHONPATH=.pythonlibs/lib/python3.12/site-packages${PYTHONPATH:+:$PYTHONPATH} PORT=8000 python3 artifacts/api-server/api/index.py"
 waitForPort = 8000
 
 [[workflows.workflow]]

@@ -4,6 +4,7 @@
 - [lucide-react missing icons](lucide-react-missing.md) — `Cow` does not exist in the installed lucide-react; use `Beef` instead. Always verify new icons with `node -e "const lr=require('./node_modules/lucide-react'); console.log('X' in lr)"` before using them.
 - [CustomTrama type and testCustomTrama](custom-trama-api.md) — CustomTrama requires 10 fields; testCustomTrama returns number[] not {ok,peso,error}. See topic file for details.
 - [SW must not cache Vite dep URLs](sw-vite-deps-no-cache.md) — Service Worker cache-first on .js causes stale Vite dep chunks across re-optimizations → two React instances → null dispatcher crash. Fix: exclude /node_modules/ and /@ paths from SW cache.
+- [Real Bluetooth scale readings](bluetooth-weighing-authenticity.md) — Bluetooth weighing must never silently fall back to simulated weights that could be mistaken for real animal measurements.
 - [Hooks in conditional JSX](hooks-conditional-jsx.md) — useState/useEffect inside IIFE expressions in JSX are conditionally called and violate Rules of Hooks. Always extract to a named sub-component.
 - [WompiPayment field names](wompi-payment-fields.md) — WompiPayment type uses `userNombre` and `userEmail`, not `usuario`/`email`.
 - [CSS-in-JSX invalid props](css-invalid-props.md) — `divideColor` is not a valid React inline style; use Tailwind `divide-white/5` class. Always check CSS property names against React's style types.

@@ -961,7 +961,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden pb-28 sm:pb-0"
       style={{ fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
 
       <FarmBackground />

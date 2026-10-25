@@ -6,6 +6,30 @@ PWA ganadero integral para Colombia. 28 módulos completados, multirol con 6 cue
 
 ---
 
+## Ejecución local en Replit
+
+Instala las dependencias del monorepo desde la raíz:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run typecheck:libs
+```
+
+En Replit, inicia los workflows **GanaderIA Frontend**,
+**artifacts/api-server: API Server** (API de datos), **API Server** (servicios
+Flask de IA y GPS) y **artifacts/ganader-ia-mobile: expo**.
+Si los ejecutas manualmente, usa estos comandos en terminales separadas:
+
+```bash
+PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ganader-ia run dev
+PORT=8080 pnpm --filter @workspace/api-server run dev
+PYTHONPATH=.pythonlibs/lib/python3.12/site-packages PORT=8000 python3 artifacts/api-server/api/index.py
+PORT=8081 pnpm --filter @workspace/ganader-ia-mobile run dev
+```
+
+La base de datos y las claves de proveedores externos deben configurarse en
+Secrets de Replit; no guardes contraseñas ni claves privadas en este README.
+
 ## 🚀 Inicio rápido
 
 ### Requisitos previos

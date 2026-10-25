@@ -1129,10 +1129,12 @@ export default function Pesaje() {
         server.disconnect();
       } catch (err: unknown) {
         const e = err as {name?:string;message?:string};
-        if (e?.name!=="NotFoundError" && e?.name!=="NotAllowedError") { setBtError(`Error BT: ${e?.message||String(err)}`); setBtStatus("error"); return; }
+        if (e?.name==="NotFoundError" || e?.name==="NotAllowedError") { setBtStatus("idle"); return; }
+        setBtError(`Error BT: ${e?.message||String(err)}`); setBtStatus("error"); return;
       }
     }
-    setBtStatus("simulating"); startSimulation(selectedAnimal);
+    setBtStatus("error");
+    setBtError("No se pudo leer un peso real de la báscula. Comprueba que el dispositivo sea compatible con la controladora seleccionada; no se usarán datos simulados.");
   };
 
   const disconnectBluetooth = () => {

@@ -1,0 +1,1 @@
+- [Orval y React Query](orval-react-query.md) — configura explícitamente la versión v5; Orval reciente puede generar hooks v4 aunque el workspace use v5.

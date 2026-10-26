@@ -570,7 +570,7 @@ function CodigosTab() {
   const [williamCard, setWilliamCard] = useState<{ codigo:string; expiresAt:string; diasPlan:number }|null>(null);
   const [williamError, setWilliamError] = useState("");
 
-  const authHeaders = () => {
+  const authHeaders = (): Record<string, string> => {
     const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
     return token ? { Authorization: `Bearer ${token}` } : {};
   };

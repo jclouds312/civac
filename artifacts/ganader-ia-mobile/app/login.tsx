@@ -9,7 +9,7 @@ import { displayError } from '@/lib/api';
 import { useSession } from '@/lib/session';
 
 export default function LoginScreen() {
-  const { signIn, token, ready } = useSession();
+  const { signIn, activateCard, token, ready } = useSession();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +18,6 @@ export default function LoginScreen() {
   const [recovery, setRecovery] = useState(false);
   const [cardMode, setCardMode] = useState(false);
   const [cardCode, setCardCode] = useState('');
-  const { activateCard } = useSession();
   if (!ready) return <View style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.primary} /></View>;
   if (token) return <Redirect href="/(tabs)" />;
   const submit = async () => {

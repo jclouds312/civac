@@ -28,6 +28,7 @@ const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
 
 const PERMS_BY_ROLE: Record<string, string[]> = {
   admin:  ["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","costos","personal","prediccion","co2","alertas","multifinca","usuarios","configuracion","documentacion","pesaje","gps","planes","admin_pagos"],
+  cliente:["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","costos","personal","prediccion","co2","alertas","multifinca","documentacion","pesaje","gps"],
   vet:    ["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","prediccion","alertas","documentacion","pesaje","gps"],
   field:  ["inventario","produccion","potreros","alimentacion","insumos","alertas","pesaje"],
   viewer: ["inventario","produccion","costos","prediccion","co2","alertas","gps"],
@@ -57,11 +58,11 @@ const ALL_PERMS = [
 ];
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "Administrador", vet: "Veterinario",
+  admin: "Administrador", cliente: "Cliente Premium", vet: "Veterinario",
   field: "Campo", viewer: "Solo lectura",
 };
 const ROLE_COLOR: Record<string, string> = {
-  admin:"#00f5d4", vet:"#00c8ff", field:"#39ff7e", viewer:"#c084fc",
+  admin:"#00f5d4", cliente:"#fbbf24", vet:"#00c8ff", field:"#39ff7e", viewer:"#c084fc",
 };
 
 /* ── Sub-components ───────────────────────────────────────────────────────── */
@@ -442,7 +443,7 @@ export default function Usuarios() {
               <thead>
                 <tr style={{ background:"rgba(192,132,252,0.07)", borderBottom:"1px solid rgba(192,132,252,0.12)" }}>
                   <th className="px-4 py-2.5 text-left font-bold text-white/60">Módulo</th>
-                  {["admin","vet","field","viewer"].map(r => (
+              {["admin","cliente","vet","field","viewer"].map(r => (
                     <th key={r} className="px-3 py-2.5 text-center font-bold"
                       style={{ color:ROLE_COLOR[r] }}>
                       {ROLE_LABEL[r]}

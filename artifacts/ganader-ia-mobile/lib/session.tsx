@@ -6,6 +6,7 @@ import { apiRequest, SessionUser, setApiToken } from './api';
 type SessionContextValue = {
   token: string | null; user: SessionUser | null; ready: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  activateCard: (code: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -71,13 +72,22 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     await setStoredValue(USER_KEY, JSON.stringify(result.user));
     setApiToken(result.token); setToken(result.token); setUser(result.user);
   }, []);
+  const activateCard = useCallback(async (code: string) => {
+    const result = await apiRequest<{ token: string; user: SessionUser }>('/api/auth/card/activate', {
+      method: 'POST', body: JSON.stringify({ code: code.trim() }),
+    });
+    if (!result?.token || !result.user) throw new Error('La tarjeta no devolvió una sesión válida.');
+    await setStoredValue(TOKEN_KEY, result.token);
+    await setStoredValue(USER_KEY, JSON.stringify(result.user));
+    setApiToken(result.token); setToken(result.token); setUser(result.user);
+  }, []);
   const signOut = useCallback(async () => {
     try { await apiRequest('/api/auth/logout', { method: 'POST' }); } finally {
       setApiToken(null); setToken(null); setUser(null);
       await removeStoredValue(TOKEN_KEY); await removeStoredValue(USER_KEY);
     }
   }, []);
-  const value = useMemo(() => ({ token, user, ready, signIn, signOut }), [token, user, ready, signIn, signOut]);
+  const value = useMemo(() => ({ token, user, ready, signIn, activateCard, signOut }), [token, user, ready, signIn, activateCard, signOut]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 export function useSession() {

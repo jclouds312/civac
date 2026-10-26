@@ -109,9 +109,10 @@ const ROLE_COLORS: Record<string, string> = {
   field:  'bg-[#39ff7e] text-black',
   viewer: 'bg-[#c084fc] text-black',
   sales:  'bg-[#e879f9] text-black',
+  cliente:'bg-[#fbbf24] text-black',
 };
 const ROLE_LABELS: Record<string, string> = {
-  admin:'Admin', vet:'Veterinario', field:'Campo', viewer:'Visor', sales:'Ventas CRM'
+  admin:'Admin', vet:'Veterinario', field:'Campo', viewer:'Visor', sales:'Ventas CRM', cliente:'Cliente Premium'
 };
 
 /* ─── Logo vaca moderna GanaderIA ─────────────────────────────────────────── */

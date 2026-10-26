@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { eq, or } from "drizzle-orm";
-import { randomUUID } from "crypto";
-import { db, usuariosTable, userSessionsTable } from "@workspace/db";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { createHash, randomBytes, randomUUID } from "crypto";
+import { db, codigosActivacionTable, usuariosTable, userSessionsTable } from "@workspace/db";
 
 const router = Router();
 
@@ -32,7 +32,7 @@ router.post("/auth/login", async (req, res) => {
     try {
       const rows = await db.select().from(usuariosTable)
         .where(eq(usuariosTable.email, email.toLowerCase().trim())).limit(1);
-      if (rows[0] && rows[0].password === password) {
+      if (rows[0] && !rows[0].password.startsWith("CARD_ONLY:") && rows[0].password === password) {
         dbRow = rows[0];
 
         if (rows[0].estado === "bloqueado")
@@ -116,6 +116,114 @@ router.post("/auth/login", async (req, res) => {
       },
     });
   } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+/* ── POST /api/auth/card/activate — one-time customer access card ─────────── */
+router.post("/auth/card/activate", async (req, res) => {
+  const code = typeof req.body?.code === "string" ? req.body.code.trim().toUpperCase() : "";
+  if (!/^CIVAC-WILLIAM-[A-F0-9]{48}$/.test(code)) {
+    return res.status(400).json({ error: "Ingresa el código completo de la tarjeta." });
+  }
+
+  const codeHash = createHash("sha256").update(code).digest("hex");
+  const storedCode = `CARD_SHA256:${codeHash}`;
+  const now = new Date();
+
+  try {
+    const result = await db.transaction(async tx => {
+      const cards = await tx.select().from(codigosActivacionTable)
+        .where(eq(codigosActivacionTable.codigo, storedCode)).limit(1);
+      const card = cards[0];
+      if (
+        !card ||
+        card.estado !== "disponible" ||
+        card.planCode !== "premium" ||
+        !card.notas.startsWith("LOGIN_CARD:WILLIAM:") ||
+        (card.expiresAt && new Date(card.expiresAt) <= now)
+      ) {
+        return { error: "invalid" as const };
+      }
+
+      const userId = card.notas.slice("LOGIN_CARD:WILLIAM:".length);
+      const users = await tx.select().from(usuariosTable)
+        .where(eq(usuariosTable.id, userId)).limit(1);
+      const current = users[0];
+      if (
+        !current ||
+        current.estado === "bloqueado" ||
+        current.activo === false ||
+        ["admin", "superadmin", "developer"].includes(current.role)
+      ) {
+        return { error: "account" as const };
+      }
+
+      const [claimed] = await tx.update(codigosActivacionTable).set({
+        estado: "usado",
+        usadoPor: current.id,
+        usadoPorEmail: current.email,
+        usadoPorNombre: current.nombre,
+        usadoAt: now,
+      }).where(and(
+        eq(codigosActivacionTable.id, card.id),
+        eq(codigosActivacionTable.estado, "disponible"),
+        or(isNull(codigosActivacionTable.expiresAt), gt(codigosActivacionTable.expiresAt, now)),
+      )).returning();
+      if (!claimed) return { error: "invalid" as const };
+
+      const planExpiry = new Date(now.getTime() + claimed.diasPlan * 86_400_000);
+      const [updated] = await tx.update(usuariosTable).set({
+        role: "cliente",
+        estado: "activo",
+        activo: true,
+        planCode: "premium",
+        planDias: claimed.diasPlan,
+        planExpiry,
+        loginCount: (current.loginCount ?? 0) + 1,
+        lastLogin: now,
+        updatedAt: now,
+      }).where(eq(usuariosTable.id, current.id)).returning();
+
+      const token = randomBytes(32).toString("hex");
+      await tx.insert(userSessionsTable).values({
+        id: token,
+        userId: updated.id,
+        userEmail: updated.email,
+        userRole: "cliente",
+        userName: updated.nombre,
+        planCode: "premium",
+        ipAddress: req.ip ?? "",
+        userAgent: req.headers["user-agent"] ?? "",
+        expiresAt: planExpiry,
+      });
+
+      return { token, user: updated };
+    });
+
+    if ("error" in result) {
+      return res.status(result.error === "account" ? 403 : 401).json({
+        error: result.error === "account"
+          ? "La cuenta no está disponible. Contacta al administrador CIVAC."
+          : "La tarjeta no es válida, venció o ya fue utilizada.",
+      });
+    }
+
+    return res.json({
+      token: result.token,
+      user: {
+        id: result.user.id,
+        nombre: result.user.nombre,
+        email: result.user.email,
+        role: "cliente",
+        cargo: result.user.cargo,
+        finca: result.user.finca,
+        planCode: "premium",
+        estado: result.user.estado,
+        planExpiry: result.user.planExpiry?.toISOString() ?? null,
+      },
+    });
+  } catch {
+    return res.status(503).json({ error: "No fue posible activar la tarjeta. Intenta de nuevo." });
+  }
 });
 
 /* ── GET /api/auth/me ─────────────────────────────────────────────────────── */

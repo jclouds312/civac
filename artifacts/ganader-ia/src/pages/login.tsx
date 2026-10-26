@@ -929,13 +929,51 @@ export default function Login() {
     setTimeout(() => { loginAs(a); setLoading(false); }, 420);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true); setError("");
-    setTimeout(() => {
-      if (!login(email, password)) setError("Credenciales incorrectas. Verifique email y contraseña.");
+    if (login(email, password)) {
       setLoading(false);
-    }, 600);
+      return;
+    }
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json() as {
+        token?: string;
+        user?: {
+          id: string; nombre: string; email: string; role: string; cargo: string; finca: string;
+          planCode: string; estado: string; planExpiry?: string | null;
+        };
+        error?: string;
+      };
+      if (!response.ok || !result.token || !result.user) {
+        throw new Error(result.error ?? "Credenciales incorrectas. Verifique email y contraseña.");
+      }
+      loginAs({
+        id: result.user.id,
+        nombre: result.user.nombre,
+        email: result.user.email,
+        password: "",
+        role: result.user.role as Account["role"],
+        cargo: result.user.cargo,
+        finca: result.user.finca,
+        avatar: result.user.role === "cliente" ? "🐄" : "🙂",
+        gradient: result.user.role === "cliente" ? "from-[#b8860b] to-[#fbbf24]" : "from-[#4a148c] to-[#6a1b9a]",
+        plan: (result.user.planCode ?? "basico") as PlanId,
+        planExpiry: result.user.planExpiry ?? undefined,
+        permisos: ["*"],
+        activo: true,
+        loginMethod: "email",
+      }, result.token);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No fue posible iniciar sesión. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCardActivate = async (e: React.FormEvent) => {

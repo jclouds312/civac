@@ -674,11 +674,11 @@ function CodigosTab() {
           style={{ background:"rgba(251,191,36,0.07)", borderBottom:"1px solid rgba(251,191,36,0.12)" }}>
           <Crown size={14} style={{ color:"#fbbf24" }}/>
           <span className="text-sm font-bold text-white">Tarjeta de William · Cliente Premium</span>
-          <span className="ml-auto text-[9px] font-bold" style={{ color:"rgba(251,191,36,0.65)" }}>USO ÚNICO · SIN GMAIL</span>
+          <span className="ml-auto text-[9px] font-bold" style={{ color:"rgba(251,191,36,0.65)" }}>USO ÚNICO · GMAIL VINCULABLE</span>
         </div>
         <div className="p-4 space-y-3">
           <p className="text-[10px] leading-relaxed text-white/45">
-            Crea la cuenta de cliente <strong className="text-white/75">william</strong> y emite un código privado.
+            Crea la cuenta Premium de <strong className="text-white/75">William</strong> y emite un código privado.
             El código se muestra una sola vez, vence en 48 horas y activa Premium por el período elegido.
           </p>
           <div className="flex flex-wrap items-end gap-2">

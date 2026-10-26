@@ -10,7 +10,7 @@ import { publicEnv } from "../lib/runtime-env";
 const PLAN_FEATURES: Record<PlanId, string[]> = {
   basico:  ["50 animales","1 usuario","Dashboard","Inventario","Producción","Alertas"],
   pro:     ["Animales ilimitados","5 usuarios","GPS Ganado","Pesaje BT","Reproducción","Genética","Costos","Predicción IA"],
-  premium: ["Todo PRO","15 usuarios","GPS 50 collares","IA Avanzada","Multi-finca","Drive Sync","Soporte 24/7"],
+  premium: ["Todo PRO","15 usuarios","GPS 50 collares","IA avanzada","Multi-finca","Drive Sync","Pesaje manual","Huella CO₂","Lotes y datos","Ventas y asesoría","Sanidad y trazabilidad","Soporte 24/7"],
   platino: ["TODO ilimitado","Usuarios ilimitados","SLA 99.9%","Instancia dedicada","API + Webhooks"],
 };
 
@@ -41,13 +41,25 @@ function PlanBadgeBig({ plan }: { plan: PlanId }) {
 
 export default function MiCuenta() {
   const { user, logout, updateProfile } = useAuth();
-  const [serverUser, setServerUser]   = useState<{ estado?: string; googleFoto?: string; cargo?: string; finca?: string } | null>(null);
+  const [serverUser, setServerUser]   = useState<{
+    id?: string; email?: string; estado?: string; googleFoto?: string; googleLinked?: boolean;
+    googleEmail?: string | null; hasPassword?: boolean; planCode?: string; planExpiry?: string | null;
+    cargo?: string; finca?: string;
+  } | null>(null);
   const [loading, setLoading]         = useState(false);
   const [payRef, setPayRef]           = useState<string | null>(null);
   const [payPlan, setPayPlan]         = useState<PlanId>("pro");
   const [showPayModal, setShowPayModal] = useState(false);
   const [copied, setCopied]           = useState(false);
   const [tab, setTab]                 = useState<"perfil" | "plan" | "seguridad">("perfil");
+  const [googleConfigured, setGoogleConfigured] = useState<boolean | null>(null);
+  const [googleLinkBusy, setGoogleLinkBusy] = useState(false);
+  const [googleMessage, setGoogleMessage] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordBusy, setPasswordBusy] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
   const photoKey = `civac_user_foto_${user?.id ?? ""}`;
   const [customFoto, setCustomFoto]   = useState<string | null>(() => { try { return localStorage.getItem(photoKey); } catch { return null; } });
   const [uploadingFoto, setUploadingFoto] = useState(false);
@@ -73,16 +85,119 @@ export default function MiCuenta() {
     if (!token) return;
     setLoading(true);
     fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json() as Promise<{ estado?: string; googleFoto?: string; cargo?: string; finca?: string }>)
+      .then(r => r.json() as Promise<NonNullable<typeof serverUser>>)
       .then(d => setServerUser(d))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/auth/google/status")
+      .then(r => r.json() as Promise<{ configured?: boolean }>)
+      .then(d => setGoogleConfigured(Boolean(d.configured)))
+      .catch(() => setGoogleConfigured(false));
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const linked = params.get("google_linked");
+    const error = params.get("google_link_error");
+    if (!linked && !error) return;
+    if (linked) setGoogleMessage("Gmail verificado y vinculado a la cuenta William.");
+    else {
+      const messages: Record<string, string> = {
+        state: "No se pudo verificar la solicitud. Intenta vincular Gmail otra vez.",
+        cancelled: "La vinculación con Google fue cancelada.",
+        session: "La sesión venció. Entra de nuevo con tu tarjeta o contraseña.",
+        account: "La cuenta no está disponible para vincular Gmail.",
+        token: "Google no pudo confirmar el acceso. Intenta de nuevo.",
+        unverified: "Debes elegir una cuenta Gmail verificada.",
+        already_linked: "Ese Gmail ya está vinculado a otra cuenta CIVAC.",
+        server: "No fue posible completar la vinculación. Intenta más tarde.",
+      };
+      setGoogleMessage(messages[error ?? ""] ?? "No fue posible vincular Gmail.");
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+  }, []);
+
+  useEffect(() => {
+    if (!serverUser?.email || !user) return;
+    const updates: Parameters<typeof updateProfile>[0] = {};
+    if (serverUser.email !== user.email) updates.email = serverUser.email;
+    if (serverUser.googleEmail && serverUser.googleEmail !== user.googleEmail) updates.googleEmail = serverUser.googleEmail;
+    if (serverUser.googleFoto && serverUser.googleFoto !== user.googleAvatar) updates.googleAvatar = serverUser.googleFoto;
+    if (Object.keys(updates).length) updateProfile(updates);
+  // updateProfile only applies these server-verified values; keyed to their values to avoid repeating the sync.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverUser?.email, serverUser?.googleEmail, serverUser?.googleFoto, user?.id]);
+
+  const hasPassword = serverUser?.hasPassword ?? Boolean(user?.password && !user.password.startsWith("CARD_ONLY:"));
+
+  const handlePasswordSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage("");
+    if (newPassword.length < 10) {
+      setPasswordMessage("Usa al menos 10 caracteres para la nueva contraseña.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage("Las contraseñas nuevas no coinciden.");
+      return;
+    }
+    const token = localStorage.getItem("civac_server_token") || localStorage.getItem("civac_session_token");
+    if (!token) {
+      setPasswordMessage("No encontramos una sesión segura. Vuelve a iniciar sesión.");
+      return;
+    }
+    setPasswordBusy(true);
+    try {
+      const response = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await response.json() as { ok?: boolean; hasPassword?: boolean; error?: string };
+      if (!response.ok || !data.ok) throw new Error(data.error ?? "No se pudo actualizar la contraseña.");
+      setServerUser(current => current ? { ...current, hasPassword: true } : current);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordMessage("Contraseña actualizada. Ya puedes usarla junto con tu Gmail.");
+    } catch (error) {
+      setPasswordMessage(error instanceof Error ? error.message : "No se pudo actualizar la contraseña.");
+    } finally {
+      setPasswordBusy(false);
+    }
+  };
+
+  const handleGoogleLink = async () => {
+    setGoogleMessage("");
+    const token = localStorage.getItem("civac_server_token") || localStorage.getItem("civac_session_token");
+    if (!token) {
+      setGoogleMessage("Vuelve a iniciar sesión para vincular Gmail.");
+      return;
+    }
+    setGoogleLinkBusy(true);
+    try {
+      const response = await fetch("/api/auth/google/link/start", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json() as { authorizationUrl?: string; error?: string };
+      if (!response.ok || !data.authorizationUrl) throw new Error(data.error ?? "No se pudo iniciar la vinculación.");
+      window.location.assign(data.authorizationUrl);
+    } catch (error) {
+      setGoogleMessage(error instanceof Error ? error.message : "No se pudo iniciar la vinculación con Google.");
+      setGoogleLinkBusy(false);
+    }
+  };
+
   const currentPlan = (user?.plan ?? "basico") as PlanId;
   const nextPlan    = PLAN_NEXT[currentPlan];
   const estado      = serverUser?.estado ?? (user?.activo === false ? "pendiente" : "activo");
   const googleFoto  = serverUser?.googleFoto;
+  const googleLinked = serverUser?.googleLinked ?? Boolean(user?.googleEmail);
+  const googleEmail = serverUser?.googleEmail ?? user?.googleEmail;
 
   const genPayLink = (plan: PlanId) => {
     const ref = `CIVAC-${plan.toUpperCase()}-${user?.id?.slice(-6).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`;
@@ -200,7 +315,7 @@ export default function MiCuenta() {
           <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
             {[
               { icon: <User size={13}/>,      label: "Nombre",  val: user.nombre,    c: "#00f5d4" },
-              { icon: <Mail size={13}/>,      label: "Email",   val: user.email,     c: "#00c8ff" },
+              { icon: <Mail size={13}/>,      label: "Email",   val: serverUser?.email ?? user.email, c: "#00c8ff" },
               { icon: <Briefcase size={13}/>, label: "Cargo",   val: user.cargo || serverUser?.cargo || "—", c: "#a78bfa" },
               { icon: <Building2 size={13}/>, label: "Finca",   val: user.finca || serverUser?.finca || "—", c: "#39ff7e" },
               { icon: <Shield size={13}/>,    label: "Rol",     val: user.role,      c: "#fbbf24" },
@@ -216,15 +331,36 @@ export default function MiCuenta() {
             ))}
           </div>
 
-          {/* Google info */}
-          {googleFoto && (
-            <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)" }}>
-              <Globe size={14} style={{ color: "#4285F4", flexShrink: 0 }}/>
-              <div>
-                <p className="text-xs font-bold" style={{ color: "#4285F4" }}>Cuenta vinculada con Google</p>
-                <p className="text-[10px] text-white/40">{user.email}</p>
+          {/* William can securely link a verified Gmail after the one-use card login. */}
+          {user.id === "civac_william" && (
+            <div className="rounded-2xl p-4 space-y-3"
+              style={{ background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)" }}>
+              <div className="flex items-center gap-3">
+                {googleFoto
+                  ? <img src={googleFoto} alt="" className="w-9 h-9 rounded-full object-cover"/>
+                  : <Globe size={16} style={{ color: "#4285F4", flexShrink: 0 }}/>
+                }
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold" style={{ color: "#8ab4f8" }}>
+                    {googleLinked ? "Gmail vinculada" : "Vincular Gmail"}
+                  </p>
+                  <p className="text-[10px] text-white/45 truncate">
+                    {googleEmail ?? "Usa Google para volver a entrar a la cuenta de William."}
+                  </p>
+                </div>
+                {googleLinked && <CheckCircle2 size={14} style={{ color: "#4285F4", flexShrink: 0 }}/>}
+                <button type="button" onClick={handleGoogleLink}
+                  disabled={googleLinkBusy || googleConfigured === false}
+                  className="flex-shrink-0 px-3 py-2 rounded-xl text-[10px] font-black disabled:opacity-40"
+                  style={{ background: "rgba(66,133,244,0.14)", border: "1px solid rgba(66,133,244,0.3)", color: "#8ab4f8" }}>
+                  {googleLinkBusy ? "Conectando…" : googleLinked ? "Cambiar Gmail" : "Vincular"}
+                </button>
               </div>
-              <CheckCircle2 size={14} style={{ color: "#4285F4", marginLeft: "auto" }}/>
+              <p className="text-[9px] leading-relaxed text-white/35">
+                Google verificará la dirección. Al vincularla, ese Gmail quedará como correo de acceso y el nombre de la cuenta seguirá siendo William.
+                {googleConfigured === false ? " El administrador debe configurar Google OAuth antes de activar esta opción." : ""}
+              </p>
+              {googleMessage && <p role="status" className="text-[10px] text-sky-200">{googleMessage}</p>}
             </div>
           )}
 
@@ -316,7 +452,7 @@ export default function MiCuenta() {
       {tab === "seguridad" && (
         <div className="space-y-3">
           {[
-            { icon: <Lock size={13}/>,       label: "Contraseña",          val: user.password ? "••••••••" : "Login con Google (sin contraseña)", c: "#fbbf24" },
+            { icon: <Lock size={13}/>,       label: "Contraseña",          val: hasPassword ? "Configurada" : "Pendiente de configurar", c: "#fbbf24" },
             { icon: <Smartphone size={13}/>, label: "2FA",                 val: "No activado",     c: "#f87171" },
             { icon: <Globe size={13}/>,      label: "Sesión activa",       val: "Este dispositivo", c: "#39ff7e" },
             { icon: <Shield size={13}/>,     label: "Nivel de acceso",     val: user.role,         c: "#a78bfa" },
@@ -330,6 +466,44 @@ export default function MiCuenta() {
               </div>
             </div>
           ))}
+          {user.id === "civac_william" && (
+            <form onSubmit={handlePasswordSave} className="rounded-2xl p-4 space-y-3"
+              style={{ background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.18)" }}>
+              <div>
+                <p className="text-xs font-black text-amber-200">
+                  {hasPassword ? "Cambiar contraseña" : "Crear contraseña de acceso"}
+                </p>
+                <p className="mt-1 text-[10px] leading-relaxed text-white/40">
+                  {hasPassword
+                    ? "Confirma tu contraseña actual para guardar una nueva."
+                    : "Después de entrar con la tarjeta privada, crea una contraseña para futuros accesos."}
+                </p>
+              </div>
+              {hasPassword && (
+                <input type="password" autoComplete="current-password" value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)} required
+                  placeholder="Contraseña actual"
+                  className="w-full px-3 py-2.5 rounded-xl text-xs text-white placeholder:text-white/25 outline-none"
+                  style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)" }}/>
+              )}
+              <input type="password" autoComplete="new-password" value={newPassword}
+                onChange={e => setNewPassword(e.target.value)} minLength={10} maxLength={128} required
+                placeholder="Nueva contraseña (mínimo 10 caracteres)"
+                className="w-full px-3 py-2.5 rounded-xl text-xs text-white placeholder:text-white/25 outline-none"
+                style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)" }}/>
+              <input type="password" autoComplete="new-password" value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)} minLength={10} maxLength={128} required
+                placeholder="Confirmar nueva contraseña"
+                className="w-full px-3 py-2.5 rounded-xl text-xs text-white placeholder:text-white/25 outline-none"
+                style={{ background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)" }}/>
+              <button type="submit" disabled={passwordBusy}
+                className="w-full py-2.5 rounded-xl text-xs font-black disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg,#fbbf24,#f59e0b)", color: "#1a1300" }}>
+                {passwordBusy ? "Guardando…" : hasPassword ? "Actualizar contraseña" : "Crear contraseña"}
+              </button>
+              {passwordMessage && <p role="status" className="text-[10px] text-amber-100/80">{passwordMessage}</p>}
+            </form>
+          )}
           <div className="rounded-2xl p-4 mt-2" style={{ background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.15)" }}>
             <p className="text-xs font-bold text-white/60 mb-2">Zona de peligro</p>
             <button onClick={logout}

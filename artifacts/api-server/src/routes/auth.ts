@@ -1,9 +1,57 @@
 import { Router } from "express";
 import { and, eq, gt, isNull, or } from "drizzle-orm";
-import { createHash, randomBytes, randomUUID } from "crypto";
+import { createHash, randomBytes, randomUUID, scrypt, timingSafeEqual } from "crypto";
 import { db, codigosActivacionTable, usuariosTable, userSessionsTable } from "@workspace/db";
+import { authMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
+
+const PASSWORD_KEY_LENGTH = 64;
+
+function derivePasswordKey(password: string, salt: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scrypt(password, salt, PASSWORD_KEY_LENGTH, (error, key) => {
+      if (error) reject(error);
+      else resolve(Buffer.from(key));
+    });
+  });
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const key = await derivePasswordKey(password, salt);
+  return `scrypt$${salt}$${key.toString("hex")}`;
+}
+
+async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  const [scheme, salt, hash, ...extra] = stored.split("$");
+  if (scheme === "scrypt" && !extra.length && /^[a-f0-9]{32}$/i.test(salt) && /^[a-f0-9]{128}$/i.test(hash)) {
+    const expected = Buffer.from(hash, "hex");
+    const actual = await derivePasswordKey(password, salt);
+    return expected.length === actual.length && timingSafeEqual(actual, expected);
+  }
+  // Existing accounts still have legacy plaintext passwords; keep them usable.
+  return stored === password;
+}
+
+function appBaseUrl(): string {
+  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
+  return domain ? `https://${domain}` : "http://localhost:5000";
+}
+
+function googleCallbackUrl(): string {
+  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
+  return domain
+    ? `https://${domain}/api/auth/google/link/callback`
+    : "http://localhost:8080/api/auth/google/link/callback";
+}
+
+function requestCookie(req: AuthRequest, name: string): string | null {
+  const cookie = req.headers.cookie ?? "";
+  const entry = cookie.split(";").map(part => part.trim()).find(part => part.startsWith(`${name}=`));
+  if (!entry) return null;
+  try { return decodeURIComponent(entry.slice(name.length + 1)); } catch { return null; }
+}
 
 const FALLBACK_USERS = [
   { id:"superadmin", nombre:"Javier Hernando Sánchez Bernal", cargo:"CEO · Fundador & Propietario CIVAC",    finca:"CIVAC HQ · Bogotá",    email:"Softganventas@gmail.com",             password:"civac2026",  role:"superadmin", planCode:"platino", estado:"activo" },
@@ -30,9 +78,10 @@ router.post("/auth/login", async (req, res) => {
     let dbRow: typeof usuariosTable.$inferSelect | null = null;
 
     try {
+      const loginId = email.toLowerCase().trim();
       const rows = await db.select().from(usuariosTable)
-        .where(eq(usuariosTable.email, email.toLowerCase().trim())).limit(1);
-      if (rows[0] && !rows[0].password.startsWith("CARD_ONLY:") && rows[0].password === password) {
+        .where(or(eq(usuariosTable.email, loginId), eq(usuariosTable.id, loginId))).limit(1);
+      if (rows[0] && !rows[0].password.startsWith("CARD_ONLY:") && await verifyPassword(password, rows[0].password)) {
         dbRow = rows[0];
 
         if (rows[0].estado === "bloqueado")
@@ -71,8 +120,8 @@ router.post("/auth/login", async (req, res) => {
     } catch { /* DB not ready — use fallback */ }
 
     if (!user) {
-      const fb = FALLBACK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase().trim() && u.password === password);
-      if (fb) user = fb;
+      const fb = FALLBACK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
+      if (fb && await verifyPassword(password, fb.password)) user = fb;
     }
     if (!user) return res.status(401).json({ error: "Credenciales incorrectas" });
 
@@ -116,6 +165,39 @@ router.post("/auth/login", async (req, res) => {
       },
     });
   } catch (e) { res.status(500).json({ error: String(e) }); }
+});
+
+/* ── POST /api/auth/password — create or change the signed-in user's password ─ */
+router.post("/auth/password", authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId || userId === "anon") return res.status(401).json({ error: "Inicia sesión para cambiar tu contraseña." });
+
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (typeof newPassword !== "string" || newPassword.length < 10 || newPassword.length > 128) {
+      return res.status(400).json({ error: "La contraseña nueva debe tener entre 10 y 128 caracteres." });
+    }
+
+    const rows = await db.select().from(usuariosTable).where(eq(usuariosTable.id, userId)).limit(1);
+    const account = rows[0];
+    if (!account || account.estado === "bloqueado" || account.activo === false) {
+      return res.status(403).json({ error: "La cuenta no está disponible." });
+    }
+
+    const firstPassword = !account.password || account.password.startsWith("CARD_ONLY:");
+    if (!firstPassword) {
+      if (typeof currentPassword !== "string" || !await verifyPassword(currentPassword, account.password)) {
+        return res.status(403).json({ error: "La contraseña actual no es correcta." });
+      }
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await db.update(usuariosTable).set({ password: passwordHash, updatedAt: new Date() })
+      .where(eq(usuariosTable.id, userId));
+    return res.json({ ok: true, hasPassword: true });
+  } catch {
+    return res.status(503).json({ error: "No fue posible actualizar la contraseña. Intenta de nuevo." });
+  }
 });
 
 /* ── POST /api/auth/card/activate — one-time customer access card ─────────── */
@@ -246,10 +328,16 @@ router.get("/auth/me", async (req, res) => {
         let demoDias = 0;
         let planDias = 0;
         let loginCount = 0;
+        let accountEmail = s.userEmail;
+        let hasPassword = false;
+        let googleLinked = false;
         try {
           const users = await db.select().from(usuariosTable)
             .where(eq(usuariosTable.id, s.userId)).limit(1);
           if (users[0]) {
+            accountEmail = users[0].email;
+            hasPassword = !!users[0].password && !users[0].password.startsWith("CARD_ONLY:");
+            googleLinked = !!users[0].googleId;
             estado = users[0].estado ?? "activo";
             googleFoto = users[0].googleFoto ?? null;
             finca = users[0].finca ?? finca;
@@ -262,8 +350,9 @@ router.get("/auth/me", async (req, res) => {
           }
         } catch { /* ok */ }
         return res.json({
-          id: s.userId, nombre: s.userName, email: s.userEmail,
+          id: s.userId, nombre: s.userName, email: accountEmail,
           role: s.userRole, cargo, finca, planCode: s.planCode, estado, googleFoto,
+          googleLinked, googleEmail: googleLinked ? accountEmail : null, hasPassword,
           demoExpiry: demoExpiry?.toISOString() ?? null,
           planExpiry: planExpiry?.toISOString() ?? null,
           demoDias, planDias, loginCount,
@@ -416,6 +505,114 @@ router.get("/auth/google/callback", async (req, res) => {
 /* ── GET /api/auth/google/status ─────────────────────────────────────────── */
 router.get("/auth/google/status", (_req, res) => {
   res.json({ configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) });
+});
+
+/* ── Google account linking for William's Premium account ─────────────────── */
+router.post("/auth/google/link/start", authMiddleware, (req: AuthRequest, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const sessionToken = req.token;
+  if (req.user?.userId !== "civac_william") {
+    return res.status(403).json({ error: "Esta vinculación está habilitada para la cuenta William." });
+  }
+  if (!clientId || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(503).json({ error: "La vinculación con Google no está configurada." });
+  }
+  if (!sessionToken) return res.status(401).json({ error: "Inicia sesión nuevamente para vincular Gmail." });
+
+  const state = randomBytes(32).toString("hex");
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" || req.headers["x-forwarded-proto"] === "https",
+    sameSite: "lax" as const,
+    maxAge: 5 * 60 * 1000,
+    path: "/api/auth/google/link/callback",
+  };
+  res.cookie("civac_google_link_state", state, cookieOptions);
+  res.cookie("civac_google_link_session", sessionToken, cookieOptions);
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: googleCallbackUrl(),
+    response_type: "code",
+    scope: "email profile openid",
+    access_type: "offline",
+    prompt: "select_account consent",
+    state,
+  });
+  return res.json({ authorizationUrl: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}` });
+});
+
+router.get("/auth/google/link/callback", async (req: AuthRequest, res) => {
+  const frontendUrl = appBaseUrl();
+  const fail = (reason: string) => res.redirect(`${frontendUrl}/mi-cuenta?google_link_error=${encodeURIComponent(reason)}`);
+  const state = typeof req.query.state === "string" ? req.query.state : "";
+  const expectedState = requestCookie(req, "civac_google_link_state") ?? "";
+  const sessionToken = requestCookie(req, "civac_google_link_session");
+  const clearOptions = { path: "/api/auth/google/link/callback" };
+  res.clearCookie("civac_google_link_state", clearOptions);
+  res.clearCookie("civac_google_link_session", clearOptions);
+
+  if (!state || !expectedState || state.length !== expectedState.length ||
+      !timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) {
+    return fail("state");
+  }
+  if (!sessionToken || typeof req.query.code !== "string") return fail("cancelled");
+
+  try {
+    const sessions = await db.select().from(userSessionsTable)
+      .where(eq(userSessionsTable.id, sessionToken)).limit(1);
+    const session = sessions[0];
+    if (!session || session.userId !== "civac_william" || new Date(session.expiresAt) <= new Date()) {
+      return fail("session");
+    }
+
+    const users = await db.select().from(usuariosTable)
+      .where(eq(usuariosTable.id, session.userId)).limit(1);
+    const account = users[0];
+    if (!account || account.estado === "bloqueado" || account.activo === false) return fail("account");
+
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code: req.query.code,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: googleCallbackUrl(),
+        grant_type: "authorization_code",
+      }).toString(),
+    });
+    const tokenData = await tokenRes.json() as { access_token?: string };
+    if (!tokenRes.ok || !tokenData.access_token) return fail("token");
+
+    const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+    });
+    const gUser = await userInfoRes.json() as {
+      id?: string; email?: string; name?: string; picture?: string; verified_email?: boolean;
+    };
+    const googleEmail = gUser.email?.toLowerCase().trim();
+    if (!userInfoRes.ok || !gUser.id || !googleEmail || gUser.verified_email !== true) return fail("unverified");
+
+    const matches = await db.select().from(usuariosTable)
+      .where(or(eq(usuariosTable.googleId, gUser.id), eq(usuariosTable.email, googleEmail))).limit(1);
+    if (matches[0] && matches[0].id !== account.id) return fail("already_linked");
+
+    await db.transaction(async tx => {
+      await tx.update(usuariosTable).set({
+        email: googleEmail,
+        googleId: gUser.id!,
+        googleFoto: gUser.picture ?? null,
+        updatedAt: new Date(),
+      }).where(eq(usuariosTable.id, account.id));
+      await tx.update(userSessionsTable).set({ userEmail: googleEmail })
+        .where(eq(userSessionsTable.userId, account.id));
+    });
+
+    return res.redirect(`${frontendUrl}/mi-cuenta?google_linked=1`);
+  } catch {
+    return fail("server");
+  }
 });
 
 /* ── POST /api/auth/register ─────────────────────────────────────────────── */

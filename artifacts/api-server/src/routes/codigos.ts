@@ -64,7 +64,7 @@ router.post("/codigos", authMiddleware, adminOnlyMiddleware, async (req: AuthReq
       return res.status(503).json({ error: "Base de datos no disponible; no se creó el código." });
     }
   } catch (err) {
-    res.status(500).json({ error: "Error creando código" });
+    return res.status(500).json({ error: "Error creando código" });
   }
 });
 
@@ -241,7 +241,7 @@ router.post("/codigos/redeem", authMiddleware, async (req: AuthRequest, res) => 
       });
     } catch { /* skip */ }
 
-    res.json({
+    return res.json({
       ok: true,
       planCode: found.planCode,
       diasPlan: found.diasPlan,
@@ -250,18 +250,22 @@ router.post("/codigos/redeem", authMiddleware, async (req: AuthRequest, res) => 
       message: `Plan ${found.planCode.toUpperCase()} activado por ${found.diasPlan} días`,
     });
   } catch (err) {
-    res.status(500).json({ error: "Error canjeando código", detail: String(err) });
+    return res.status(500).json({ error: "Error canjeando código", detail: String(err) });
   }
 });
 
 /* ── DELETE /api/codigos/:id ── eliminar/expirar código ─────────────────── */
 router.delete("/codigos/:id", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
+    const rawId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const id = parseInt(rawId, 10);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return res.status(400).json({ error: "Código inválido." });
+    }
     await db.update(codigosActivacionTable).set({ estado: "expirado" }).where(eq(codigosActivacionTable.id, id));
-    res.json({ ok: true });
+    return res.json({ ok: true });
   } catch {
-    res.status(503).json({ error: "Error eliminando código" });
+    return res.status(503).json({ error: "Error eliminando código" });
   }
 });
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, type FormEvent } from "react";
 import GoogleUsersPanel from "@/components/google-users-panel";
 import {
   useAuth, LoginActivity, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_PRECIOS,
@@ -43,6 +43,40 @@ import {
 ────────────────────────────────────────────────────────────────────────── */
 const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
 const PLAN_COLORS_PIE = ["#b8c4d4", "#00f5d4", "#fbbf24", "#cd7f32"];
+
+type WilliamFollowup = {
+  id: number;
+  note?: string;
+  channel?: string;
+  dueAt?: string | null;
+  createdAt?: string;
+  createdBy?: string;
+};
+
+type WilliamMonitoring = {
+  account: {
+    id: string;
+    nombre: string;
+    cargo?: string | null;
+    finca?: string | null;
+    email: string;
+    planCode: string;
+    activo: boolean;
+    estado: string;
+    planExpiry?: string | null;
+    loginCount?: number | null;
+    lastLogin?: string | null;
+    createdAt?: string | null;
+    paidAccount: boolean;
+    isDemo: boolean;
+  };
+  followups: WilliamFollowup[];
+};
+
+const williamAuthHeaders = (): Record<string, string> => {
+  const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const PLAN_MODULES: Record<PlanId, string[]> = {
   basico:  ["Dashboard","Inventario","Producción","Potreros","Alertas","Sanidad básica","Pesaje Manual"],
@@ -1084,6 +1118,14 @@ export default function AdminDashboard({
   const [internalTab,  setInternalTab]  = useState("resumen");
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
   const [sessionsList, setSessionsList] = useState(SIMULATED_SESSIONS);
+  const [williamMonitoring, setWilliamMonitoring] = useState<WilliamMonitoring | null>(null);
+  const [williamLoading, setWilliamLoading] = useState(false);
+  const [williamError, setWilliamError] = useState("");
+  const [williamFollowupOpen, setWilliamFollowupOpen] = useState(false);
+  const [williamFollowupNote, setWilliamFollowupNote] = useState("");
+  const [williamFollowupChannel, setWilliamFollowupChannel] = useState("llamada");
+  const [williamFollowupDueAt, setWilliamFollowupDueAt] = useState("");
+  const [williamFollowupSaving, setWilliamFollowupSaving] = useState(false);
   const [inviteTarget, setInviteTarget] = useState<Account | null>(null);
   const [inviteCopied, setInviteCopied] = useState(false);
   const [linkPlan,     setLinkPlan]     = useState<PlanId>("pro");
@@ -1344,9 +1386,109 @@ export default function AdminDashboard({
   const tab    = extTab ?? internalTab;
   const setTab = onTabChange ?? setInternalTab;
 
+  const loadWilliamMonitoring = useCallback(async (ensureAccount = false, signal?: AbortSignal) => {
+    setWilliamLoading(true);
+    setWilliamError("");
+    try {
+      const headers = williamAuthHeaders();
+      if (!headers.Authorization) throw new Error("Inicia sesión como administrador para cargar el panel CIVAC.");
+      if (ensureAccount) {
+        const ensureResponse = await fetch("/api/admin/users/william/ensure-premium", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...headers },
+          signal,
+        });
+        const ensureData = await ensureResponse.json();
+        if (!ensureResponse.ok || !ensureData.ok) {
+          throw new Error(ensureData.message ?? ensureData.error ?? "No se pudo vincular la cuenta Premium de William.");
+        }
+      }
+      const response = await fetch("/api/admin/users/civac_william/monitoring", { headers, signal });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !data.account) {
+        throw new Error(data.message ?? data.error ?? "No se pudo cargar el seguimiento de William.");
+      }
+      setWilliamMonitoring(data as WilliamMonitoring);
+    } catch (error) {
+      if (signal?.aborted) return;
+      setWilliamError(error instanceof Error ? error.message : "No se pudo cargar la cuenta de William.");
+    } finally {
+      if (!signal?.aborted) setWilliamLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "cuentas") return;
+    const controller = new AbortController();
+    void loadWilliamMonitoring(true, controller.signal);
+    return () => controller.abort();
+  }, [tab, loadWilliamMonitoring]);
+
+  const submitWilliamFollowup = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const note = williamFollowupNote.trim();
+    if (!note || williamFollowupSaving) return;
+    setWilliamFollowupSaving(true);
+    setWilliamError("");
+    try {
+      const response = await fetch("/api/admin/users/civac_william/followups", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...williamAuthHeaders() },
+        body: JSON.stringify({
+          note,
+          channel: williamFollowupChannel,
+          dueAt: williamFollowupDueAt ? new Date(williamFollowupDueAt).toISOString() : null,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message ?? data.error ?? "No se pudo guardar el seguimiento.");
+      }
+      setWilliamFollowupNote("");
+      setWilliamFollowupDueAt("");
+      setWilliamFollowupOpen(false);
+      await loadWilliamMonitoring(false);
+    } catch (error) {
+      setWilliamError(error instanceof Error ? error.message : "No se pudo guardar el seguimiento.");
+    } finally {
+      setWilliamFollowupSaving(false);
+    }
+  };
+
   /* ── Derived ── */
   const civacStaff  = accounts.filter(a => CIVAC_STAFF_IDS.includes(a.id));
-  const clients     = accounts.filter(a => !CIVAC_STAFF_IDS.includes(a.id));
+  const williamAccount: Account | null = williamMonitoring?.account ? {
+    id: "civac_william",
+    nombre: williamMonitoring.account.nombre || "William",
+    cargo: "Cliente Premium CIVAC",
+    finca: williamMonitoring.account.finca || "CIVAC",
+    email: williamMonitoring.account.email,
+    password: "",
+    avatar: "W",
+    gradient: "linear-gradient(135deg,#fbbf24,#f59e0b)",
+    role: "cliente",
+    permisos: [],
+    activo: williamMonitoring.account.activo,
+    plan: "premium",
+    planExpiry: williamMonitoring.account.planExpiry
+      ? new Date(williamMonitoring.account.planExpiry).toISOString().slice(0, 10)
+      : undefined,
+    isDemo: williamMonitoring.account.isDemo,
+    totalConexiones: williamMonitoring.account.loginCount ?? 0,
+    ultimaConexion: williamMonitoring.account.lastLogin ?? undefined,
+    fechaCreacion: williamMonitoring.account.createdAt ?? undefined,
+  } : null;
+  const williamExpiryDate = williamMonitoring?.account.planExpiry
+    ? new Date(williamMonitoring.account.planExpiry)
+    : null;
+  const williamPlanExpired = !!williamExpiryDate && williamExpiryDate.getTime() < Date.now();
+  const williamLastLogin = williamMonitoring?.account.lastLogin
+    ? new Date(williamMonitoring.account.lastLogin).toLocaleString("es-CO")
+    : "Sin ingresos registrados";
+  const clients     = [
+    ...accounts.filter(a => !CIVAC_STAFF_IDS.includes(a.id) && a.id !== "civac_william"),
+    ...(williamAccount ? [williamAccount] : []),
+  ].sort((a, b) => a.id === "civac_william" ? -1 : b.id === "civac_william" ? 1 : 0);
   const filtered    = clients.filter(a =>
     a.nombre.toLowerCase().includes(search.toLowerCase()) ||
     a.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -1773,6 +1915,7 @@ export default function AdminDashboard({
 
           {/* ── WILLIAM PREMIUM ACCOUNT CARD ── */}
           <div
+            id="william-account-card"
             className="relative overflow-hidden rounded-2xl p-4 sm:p-5"
             style={{
               background: "linear-gradient(120deg,rgba(251,191,36,0.12),rgba(245,158,11,0.04) 60%,rgba(255,255,255,0.02))",
@@ -1792,25 +1935,107 @@ export default function AdminDashboard({
                   <h2 className="text-base font-black text-white">William</h2>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-black"
                     style={{ color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.28)" }}>
-                    CLIENTE PREMIUM
+                    PREMIUM REAL · PAGADA
                   </span>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-400/10 border border-emerald-300/20">
-                    Acceso protegido
+                    {!williamMonitoring
+                      ? (williamLoading ? "Sincronizando cuenta…" : "Estado de servidor no confirmado")
+                      : williamMonitoring.account.isDemo ? "Revisar estado demo" : "No demo · cuenta CIVAC"}
                   </span>
                 </div>
                 <p className="text-[11px] text-white/45 mt-1">
-                  Cuenta Premium pagada · la tarjeta de acceso se valida en el servidor y es de un solo uso.
+                  Registro Premium pagado según CIVAC. {williamMonitoring?.account.paidAccount
+                    ? "Vinculado al panel real de usuarios; sin comprobante de pago asociado."
+                    : "Validando la cuenta con el servidor…"}
                 </p>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[9px] text-white/50">
+                  <span>Estado: <b className={williamPlanExpired || !williamMonitoring?.account.activo ? "text-rose-300" : "text-emerald-300"}>
+                    {!williamMonitoring ? (williamLoading ? "Cargando…" : "Sin conexión") : williamPlanExpired ? "Plan vencido" : williamMonitoring.account.activo ? "Activo" : "Inactivo"}
+                  </b></span>
+                  <span>Vigencia: <b className="text-white/75">{williamExpiryDate ? williamExpiryDate.toLocaleDateString("es-CO") : "No registrada"}</b></span>
+                  <span>Ingresos: <b className="text-white/75">{williamMonitoring?.account.loginCount ?? "—"}</b></span>
+                  <span>Último acceso: <b className="text-white/75">{williamLastLogin}</b></span>
+                  <span>Seguimientos: <b className="text-white/75">{williamMonitoring?.followups.length ?? "—"}</b></span>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setTab("codigos")}
-                className="flex-shrink-0 rounded-xl px-3.5 py-2.5 text-[10px] font-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
-                style={{ color: "#1a1200", background: "linear-gradient(135deg,#fbbf24,#f59e0b)", boxShadow: "0 4px 16px rgba(251,191,36,0.18)" }}
-              >
-                <Key size={13} /> Administrar acceso de William
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => {
+                  setSearch("William");
+                  document.getElementById("civac-client-accounts")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                  className="flex-shrink-0 rounded-xl px-3 py-2.5 text-[10px] font-black flex items-center justify-center gap-2 transition-all hover:bg-white/10"
+                  style={{ color: "#fff", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                  <Users size={13} /> Ver en cuentas CIVAC
+                </button>
+                <button type="button" onClick={() => setWilliamFollowupOpen(open => !open)}
+                  className="flex-shrink-0 rounded-xl px-3 py-2.5 text-[10px] font-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
+                  style={{ color: "#052014", background: "linear-gradient(135deg,#6ee7b7,#34d399)" }}>
+                  <Plus size={13} /> Registrar seguimiento
+                </button>
+                <button type="button" onClick={() => setTab("codigos")}
+                  className="flex-shrink-0 rounded-xl px-3 py-2.5 text-[10px] font-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
+                  style={{ color: "#1a1200", background: "linear-gradient(135deg,#fbbf24,#f59e0b)", boxShadow: "0 4px 16px rgba(251,191,36,0.18)" }}>
+                  <Key size={13} /> Administrar acceso
+                </button>
+                <button type="button" title="Actualizar cuenta y seguimientos" onClick={() => void loadWilliamMonitoring(true)}
+                  disabled={williamLoading}
+                  className="flex-shrink-0 rounded-xl px-3 py-2.5 text-[10px] font-black flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ color: "#dbeafe", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.22)" }}>
+                  <RefreshCw size={13} className={williamLoading ? "animate-spin" : ""} /> Actualizar
+                </button>
+              </div>
             </div>
+            {williamError && <p role="alert" className="relative mt-3 rounded-xl border border-rose-400/20 bg-rose-400/5 px-3 py-2 text-[10px] text-rose-200">{williamError}</p>}
+            {williamFollowupOpen && (
+              <form onSubmit={submitWilliamFollowup} className="relative mt-4 rounded-xl border border-emerald-300/15 bg-black/20 p-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-[150px_1fr_190px]">
+                  <label className="text-[9px] text-white/50">
+                    Canal
+                    <select value={williamFollowupChannel} onChange={event => setWilliamFollowupChannel(event.target.value)}
+                      className="mt-1 h-9 w-full rounded-lg border border-white/10 bg-[#111b19] px-2 text-[11px] text-white">
+                      <option value="llamada">Llamada</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="correo">Correo</option>
+                      <option value="reunion">Reunión</option>
+                      <option value="otro">Otro</option>
+                    </select>
+                  </label>
+                  <label className="text-[9px] text-white/50">
+                    Nota de seguimiento
+                    <textarea value={williamFollowupNote} onChange={event => setWilliamFollowupNote(event.target.value)}
+                      maxLength={1000} required rows={2} placeholder="Registra el contacto, acuerdo o pendiente…"
+                      className="mt-1 w-full resize-y rounded-lg border border-white/10 bg-black/25 p-2 text-[11px] text-white placeholder:text-white/25" />
+                  </label>
+                  <label className="text-[9px] text-white/50">
+                    Próximo contacto (opcional)
+                    <input type="datetime-local" value={williamFollowupDueAt} onChange={event => setWilliamFollowupDueAt(event.target.value)}
+                      className="mt-1 h-9 w-full rounded-lg border border-white/10 bg-[#111b19] px-2 text-[10px] text-white" />
+                  </label>
+                </div>
+                <div className="mt-2 flex justify-end gap-2">
+                  <button type="button" onClick={() => setWilliamFollowupOpen(false)} className="rounded-lg px-3 py-2 text-[10px] text-white/50 hover:bg-white/5">Cancelar</button>
+                  <button type="submit" disabled={williamFollowupSaving || !williamFollowupNote.trim()}
+                    className="rounded-lg bg-emerald-400 px-3 py-2 text-[10px] font-black text-emerald-950 disabled:opacity-50">
+                    {williamFollowupSaving ? "Guardando…" : "Guardar seguimiento"}
+                  </button>
+                </div>
+              </form>
+            )}
+            {!!williamMonitoring?.followups.length && (
+              <div className="relative mt-3 space-y-2">
+                <p className="text-[9px] font-black uppercase tracking-wider text-white/35">Últimos seguimientos de la cuenta</p>
+                {williamMonitoring.followups.slice(0, 3).map(entry => (
+                  <div key={entry.id} className="flex flex-col gap-1 rounded-xl border border-white/5 bg-black/15 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="min-w-0 text-[10px] text-white/70">{entry.note}</p>
+                    <span className="shrink-0 text-[9px] text-white/35">
+                      {(entry.channel ?? "otro").toUpperCase()} · {entry.createdAt ? new Date(entry.createdAt).toLocaleString("es-CO") : "Fecha no disponible"}
+                      {entry.dueAt ? ` · Próximo: ${new Date(entry.dueAt).toLocaleString("es-CO")}` : ""}
+                      {entry.createdBy ? ` · ${entry.createdBy}` : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── CIVAC STAFF SECTION ── */}
@@ -1885,7 +2110,7 @@ export default function AdminDashboard({
           </div>
 
           {/* ── SEARCH + ADD ── */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div id="civac-client-accounts" className="flex items-center gap-2 flex-wrap scroll-mt-4">
             <div className="relative flex-1 min-w-48 max-w-sm">
               <Input placeholder="Buscar nombre, email, finca…" value={search} onChange={e=>setSearch(e.target.value)}
                 className="pl-8 text-xs h-8"
@@ -1946,6 +2171,15 @@ export default function AdminDashboard({
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1 flex-wrap">
+                          {a.id === "civac_william" ? (
+                            <button onClick={() => {
+                              setWilliamFollowupOpen(true);
+                              document.getElementById("william-account-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }}
+                              className="flex items-center gap-1 rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-2 py-1 text-[9px] font-bold text-emerald-200 hover:bg-emerald-400/20">
+                              <Plus size={11} /> Seguimiento
+                            </button>
+                          ) : <>
                           <button onClick={()=>toggleStatus(a)}
                             className="flex items-center gap-1 px-2 py-1 rounded-xl text-[9px] font-bold transition-all"
                             style={{
@@ -1981,6 +2215,7 @@ export default function AdminDashboard({
                             className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-red-500/15 text-red-400/50 hover:text-red-400 disabled:opacity-20 transition-colors">
                             <Trash2 size={11}/>
                           </button>
+                          </>}
                         </div>
                       </td>
                     </tr>

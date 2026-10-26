@@ -1,4 +1,4 @@
-import { createElement, createContext, useContext, useState, useCallback } from "react";
+import { createElement, createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
 
 export type PlanId = 'basico' | 'pro' | 'premium' | 'platino';
@@ -56,7 +56,7 @@ export interface Account {
   password: string;
   avatar: string;
   gradient: string;
-  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales';
+  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales' | 'cliente';
   permisos: string[];
   activo?: boolean;
   /* ── Contacto ── */
@@ -75,7 +75,7 @@ export interface Account {
   sessionLimit?: number;     // 0 = ilimitado, >0 = máx sesiones concurrentes por admin
   totalConexiones?: number;  // contador total de logins acumulados
   ultimaConexion?: string;   // ISO timestamp del último login
-  loginMethod?: 'email' | 'google' | 'outlook';
+  loginMethod?: 'email' | 'google' | 'outlook' | 'card';
   googleEmail?: string;      // email Google vinculado para OAuth
   outlookEmail?: string;     // email Outlook/Microsoft vinculado
   googleAvatar?: string;     // avatar obtenido desde Google OAuth
@@ -525,7 +525,7 @@ interface AuthContextType {
   invoices: CivacInvoice[];
   loginActivity: LoginActivity[];
   login: (email: string, password: string) => boolean;
-  loginAs: (account: Account) => void;
+  loginAs: (account: Account, serverToken?: string) => void;
   loginWithOAuth: (provider: 'google'|'outlook', email: string, name: string, avatarUrl?: string) => { ok: boolean; account: Account | null };
   logout: () => void;
   registerUser: (data: Omit<Account, 'id'> & { pendiente?: boolean }) => Account;
@@ -553,6 +553,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [wompiPayments, setWompiPaymentsState] = useState<WompiPayment[]>(loadPayments);
   const [invoices, setInvoicesState] = useState<CivacInvoice[]>(loadInvoices);
   const [loginActivity, setLoginActivity] = useState<LoginActivity[]>(loadActivities);
+
+  useEffect(() => {
+    if (user?.loginMethod !== 'card') return;
+    const token = localStorage.getItem('civac_session_token') || localStorage.getItem('civac_server_token');
+    if (!token) {
+      setUser(null);
+      localStorage.removeItem('ganader_user');
+      return;
+    }
+    let active = true;
+    fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(async response => {
+        if (!response.ok) throw new Error('Sesión vencida');
+        return response.json() as Promise<{id:string;nombre:string;email:string;role:string;planCode:string;estado:string;planExpiry?:string|null}>;
+      })
+      .then(serverUser => {
+        if (!active) return;
+        if (serverUser.estado !== 'activo') throw new Error('Cuenta no activa');
+        setUser(current => {
+          if (!current) return current;
+          const refreshed: Account = {
+            ...current,
+            id: serverUser.id,
+            nombre: serverUser.nombre,
+            email: serverUser.email,
+            role: serverUser.role as Account['role'],
+            plan: (serverUser.planCode ?? 'premium') as PlanId,
+            planExpiry: serverUser.planExpiry ?? undefined,
+          };
+          localStorage.setItem('ganader_user', JSON.stringify(refreshed));
+          return refreshed;
+        });
+      })
+      .catch(() => {
+        if (!active) return;
+        setUser(null);
+        localStorage.removeItem('ganader_user');
+        localStorage.removeItem('civac_session_token');
+        localStorage.removeItem('civac_server_token');
+      });
+    return () => { active = false; };
+  // Verify one-use card sessions against the server when the app starts.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setAccounts = useCallback((next: Account[]) => {
     setAccountsState(next);
@@ -614,7 +658,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { ok: false, account: null };
   };
 
-  const loginAs = (account: Account) => {
+  const loginAs = (account: Account, serverToken?: string) => {
     setUser(account);
     try { localStorage.setItem('ganader_user', JSON.stringify(account)); } catch {}
     // Record login activity
@@ -636,21 +680,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       setLoginActivity(prev => { const next=[activity,...prev].slice(0,200); saveActivities(next); return next; });
     } catch { /* ignore */ }
-    // Background: also get a real server session token for API access
-    fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: account.email, password: account.password }),
-    }).then(r => r.ok ? r.json() : null).then(data => {
-      if (data?.token) {
-        try { localStorage.setItem('civac_session_token', data.token); } catch {}
-      }
-    }).catch(() => { /* offline — token stays empty */ });
+    if (serverToken) {
+      try {
+        localStorage.setItem('civac_session_token', serverToken);
+        localStorage.setItem('civac_server_token', serverToken);
+      } catch {}
+    } else {
+      localStorage.removeItem('civac_session_token');
+      localStorage.removeItem('civac_server_token');
+      // Background: also get a real server session token for API access.
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: account.email, password: account.password }),
+      }).then(r => r.ok ? r.json() : null).then(data => {
+        if (data?.token) {
+          try { localStorage.setItem('civac_session_token', data.token); } catch {}
+        }
+      }).catch(() => { /* offline — token stays empty */ });
+    }
   };
 
   const logout = () => {
+    const token = localStorage.getItem('civac_session_token') || localStorage.getItem('civac_server_token');
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
     setUser(null);
-    try { localStorage.removeItem('ganader_user'); } catch {}
+    try {
+      localStorage.removeItem('ganader_user');
+      localStorage.removeItem('civac_session_token');
+      localStorage.removeItem('civac_server_token');
+    } catch {}
   };
 
   const registerUser = (data: Omit<Account, 'id'>): Account => {

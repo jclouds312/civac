@@ -564,41 +564,89 @@ function CodigosTab() {
   const [genQty,     setGenQty]     = useState(1);
   const [genLoading, setGenLoading] = useState(false);
   const [genMsg,     setGenMsg]     = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [loadError, setLoadError] = useState("");
+  const [williamDays, setWilliamDays] = useState(30);
+  const [williamCard, setWilliamCard] = useState<{ codigo:string; expiresAt:string; diasPlan:number }|null>(null);
+  const [williamError, setWilliamError] = useState("");
 
-  const MOCK: CodigoItem[] = [
-    { id:1, codigo:"CIVAC-PRO-ABC123", planCode:"pro",     diasPlan:30,  sessionLimit:3,   maxAnimales:999, estado:"disponible", notas:"Demo PRO",       createdAt:"2026-06-01" },
-    { id:2, codigo:"CIVAC-PREM-XY9Z1", planCode:"premium", diasPlan:90,  sessionLimit:5,   maxAnimales:999, estado:"disponible", notas:"Premio feria",   createdAt:"2026-06-02" },
-    { id:3, codigo:"CIVAC-PLAT-QWE72", planCode:"platino", diasPlan:365, sessionLimit:999, maxAnimales:999, estado:"usado",     usadoPorEmail:"cliente@farm.co", notas:"Cliente Platino", createdAt:"2026-05-28" },
-    { id:4, codigo:"CIVAC-PRO-TEST01", planCode:"pro",     diasPlan:7,   sessionLimit:1,   maxAnimales:50,  estado:"expirado",  notas:"Test 7 días",    createdAt:"2026-05-01" },
-  ];
+  const authHeaders = (): Record<string, string> => {
+    const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   useEffect(() => {
-    fetch("/api/codigos").then(r => r.json()).then(d => {
-      if (d.codigos) setCodigosData(d.codigos);
-      else setCodigosData(MOCK);
-    }).catch(() => setCodigosData(MOCK));
-  }, [genMsg]); // eslint-disable-line react-hooks/exhaustive-deps
+    let active = true;
+    setLoadError("");
+    fetch("/api/codigos", { headers: authHeaders() })
+      .then(async response => {
+        const data = await response.json();
+        if (!response.ok || !Array.isArray(data.codigos)) {
+          throw new Error(data.error ?? "No se pudieron cargar los códigos reales.");
+        }
+        if (active) setCodigosData(data.codigos);
+      })
+      .catch(error => {
+        if (!active) return;
+        setCodigosData([]);
+        setLoadError(error instanceof Error ? error.message : "No se pudieron cargar los códigos.");
+      });
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const handleGenerate = async () => {
     setGenLoading(true); setGenMsg("");
     try {
       const tasks = Array.from({ length: Math.min(genQty, 10) }).map(() =>
-        fetch("/api/codigos", { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ planCode: genPlan, diasPlan: genDias, notas: genNotas, creadoPor: "admin" })
-        }).then(r => r.json())
+        fetch("/api/codigos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", ...authHeaders() },
+          body: JSON.stringify({ planCode: genPlan, diasPlan: genDias, notas: genNotas }),
+        }).then(async response => {
+          const data = await response.json();
+          if (!response.ok || !data.codigo) throw new Error(data.error ?? "No se pudo crear el código.");
+          return data as { codigo:string };
+        })
       );
       const batch = await Promise.all(tasks);
-      const codes = batch.map((b: { codigo?: string }) => b.codigo ?? "").filter(Boolean).join(", ");
+      const codes = batch.map(b => b.codigo).join(", ");
       setGenMsg(`Código(s) generado(s): ${codes}`);
-    } catch {
-      setGenMsg("Error generando. API offline.");
+      setRefreshKey(key => key + 1);
+    } catch (error) {
+      setGenMsg(error instanceof Error ? error.message : "No se pudo generar el código.");
+    } finally { setGenLoading(false); }
+  };
+
+  const handleWilliamCard = async () => {
+    setGenLoading(true); setWilliamError(""); setWilliamCard(null);
+    try {
+      const response = await fetch("/api/codigos/william-card", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ diasPlan: williamDays }),
+      });
+      const data = await response.json() as { ok?:boolean; codigo?:string; expiresAt?:string; diasPlan?:number; error?:string };
+      if (!response.ok || !data.codigo || !data.expiresAt) {
+        throw new Error(data.error ?? "No se pudo generar la tarjeta.");
+      }
+      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? williamDays });
+      setRefreshKey(key => key + 1);
+    } catch (error) {
+      setWilliamError(error instanceof Error ? error.message : "No se pudo crear la tarjeta.");
     } finally { setGenLoading(false); }
   };
 
   const handleRevoke = async (id?: number) => {
     if (!id) return;
-    await fetch(`/api/codigos/${id}`, { method: "DELETE" }).catch(() => {});
-    setCodigosData(prev => prev.map(c => c.id === id ? { ...c, estado: "expirado" } : c));
+    try {
+      const response = await fetch(`/api/codigos/${id}`, { method: "DELETE", headers: authHeaders() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "No se pudo revocar el código.");
+      setCodigosData(prev => prev.map(c => c.id === id ? { ...c, estado: "expirado" } : c));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "No se pudo revocar el código.");
+    }
   };
 
   const copyCode = (code: string) => navigator.clipboard?.writeText(code);
@@ -620,6 +668,65 @@ function CodigosTab() {
 
   return (
     <div className="space-y-4">
+      {loadError && (
+        <div role="alert" className="rounded-xl px-3 py-2 text-xs text-red-300"
+          style={{ background:"rgba(248,113,113,0.08)", border:"1px solid rgba(248,113,113,0.2)" }}>
+          {loadError}
+        </div>
+      )}
+
+      <div className="rounded-2xl overflow-hidden" style={{ border:"1px solid rgba(251,191,36,0.25)" }}>
+        <div className="px-4 py-3 flex items-center gap-2"
+          style={{ background:"rgba(251,191,36,0.07)", borderBottom:"1px solid rgba(251,191,36,0.12)" }}>
+          <Crown size={14} style={{ color:"#fbbf24" }}/>
+          <span className="text-sm font-bold text-white">Tarjeta de William · Premium pagado</span>
+          <span className="ml-auto text-[9px] font-bold" style={{ color:"rgba(251,191,36,0.65)" }}>USO ÚNICO · PRIVADA</span>
+        </div>
+        <div className="p-4 space-y-3">
+          <p className="text-[10px] leading-relaxed text-white/45">
+            Emite el acceso de la cuenta pagada de <strong className="text-white/75">William</strong>.
+            El código se muestra una sola vez, vence en 48 horas y conserva cualquier vigencia Premium aún activa.
+          </p>
+          <div className="flex flex-wrap items-end gap-2">
+            <div>
+              <Label className="text-[10px] text-white/50 mb-1 block">Vigencia Premium</Label>
+              <Select value={String(williamDays)} onValueChange={value => setWilliamDays(Number(value))}>
+                <SelectTrigger className="h-8 w-36 text-xs" style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)" }}>
+                  <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>
+                  {[30,60,90,180,365].map(days => <SelectItem key={days} value={String(days)}>{days} días</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleWilliamCard} disabled={genLoading}
+              className="gap-1.5 text-xs"
+              style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300" }}>
+              {genLoading ? <RefreshCw size={12} className="animate-spin"/> : <CreditCard size={12}/>}
+              {genLoading ? "Creando…" : "Crear cuenta y tarjeta"}
+            </Button>
+          </div>
+          {williamError && <p role="alert" className="text-xs text-red-300">{williamError}</p>}
+          {williamCard && (
+            <div className="rounded-xl p-3 space-y-2"
+              style={{ background:"rgba(251,191,36,0.07)", border:"1px solid rgba(251,191,36,0.22)" }}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-bold text-white/70">Código privado para entregar a William</span>
+                <button type="button" onClick={() => navigator.clipboard?.writeText(williamCard.codigo)}
+                  className="flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200">
+                  <Copy size={11}/> Copiar
+                </button>
+              </div>
+              <code className="block break-all font-mono text-xs text-amber-200">{williamCard.codigo}</code>
+              <p className="text-[9px] text-white/40">
+                Premium por {williamCard.diasPlan} días. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
+                se consume al primer acceso.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Generador */}
       <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(244,114,182,0.25)" }}>
         <div className="px-4 py-3 flex items-center gap-2"

@@ -37,6 +37,7 @@ const PLAN_PRECIOS_LABEL: Record<PlanId, string> = {
 const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; from:string; to:string; glow:string; color:string; accent:string }> = {
   superadmin:  { emoji:"🔱",  label:"CEO · Co-Fundador CIVAC",    sub:"Dueño · Acceso total · Auditoría · Config global · Server Panel",   from:"#c0392b", to:"#e74c3c", glow:"192,57,43",     color:"#e74c3c", accent:"#ff4444" },
   admin:       { emoji:"👑",  label:"Co-Fundadora · Dir. Ejecutiva", sub:"Dirección ejecutiva · Panel Admin · Plataforma completa",         from:"#d4a017", to:"#f0c040", glow:"212,160,23",    color:"#f0c040", accent:"#ffd700" },
+  cliente:     { emoji:"🏆",  label:"Cliente CIVAC Premium",        sub:"Cuenta de cliente Premium · Acceso de finca · Asistente IA",       from:"#b8860b", to:"#fbbf24", glow:"184,134,11",    color:"#fbbf24", accent:"#fde68a" },
   developer:   { emoji:"🛠️", label:"Arquitecto · Soporte Dev",    sub:"Dev principal · Soporte PWA · APIs · Feature Flags · Deploy",      from:"#00c853", to:"#00e676", glow:"0,200,83",      color:"#00e676", accent:"#00ff88" },
   sales:       { emoji:"📊",  label:"Asesora Comercial Senior",   sub:"CRM · Pipeline · Reportes diarios · Gestión de cuentas",           from:"#e879f9", to:"#a855f7", glow:"232,121,249",   color:"#e879f9", accent:"#f472b6" },
   vet:         { emoji:"🩺",  label:"Médico Veterinario",          sub:"Sanidad animal · Reproducción · Genética · Historia clínica",      from:"#0288d1", to:"#29b6f6", glow:"2,136,209",     color:"#29b6f6", accent:"#00c8ff" },
@@ -825,6 +826,10 @@ export default function Login() {
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<string|null>(null);
+  const [showCardAccess, setShowCardAccess] = useState(false);
+  const [cardCode, setCardCode] = useState("");
+  const [cardError, setCardError] = useState("");
+  const [cardBusy, setCardBusy] = useState(false);
   const [inviteBanner, setInviteBanner] = useState<{nombre:string;plan:string}|null>(null);
   const [pendingGoogleUser, setPendingGoogleUser] = useState<{nombre:string;email:string;googleFoto?:string}|null>(null);
 
@@ -931,6 +936,48 @@ export default function Login() {
       if (!login(email, password)) setError("Credenciales incorrectas. Verifique email y contraseña.");
       setLoading(false);
     }, 600);
+  };
+
+  const handleCardActivate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCardError("");
+    if (!cardCode.trim()) { setCardError("Ingresa el código de tu tarjeta."); return; }
+    setCardBusy(true);
+    try {
+      const response = await fetch("/api/auth/card/activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: cardCode.trim() }),
+      });
+      const result = await response.json() as {
+        token?: string;
+        user?: { id:string; nombre:string; email:string; role:string; cargo:string; finca:string; planCode:string; estado:string; planExpiry?:string|null };
+        error?: string;
+      };
+      if (!response.ok || !result.token || !result.user) {
+        throw new Error(result.error ?? "No se pudo validar la tarjeta.");
+      }
+      loginAs({
+        id: result.user.id,
+        nombre: result.user.nombre,
+        email: result.user.email,
+        password: "",
+        avatar: "🐄",
+        gradient: "from-[#b8860b] to-[#fbbf24]",
+        role: result.user.role as Account["role"],
+        cargo: result.user.cargo,
+        finca: result.user.finca,
+        plan: (result.user.planCode ?? "premium") as PlanId,
+        planExpiry: result.user.planExpiry ?? undefined,
+        permisos: ["*"],
+        activo: true,
+        loginMethod: "card",
+      }, result.token);
+    } catch (err) {
+      setCardError(err instanceof Error ? err.message : "No se pudo validar la tarjeta.");
+    } finally {
+      setCardBusy(false);
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -1233,6 +1280,38 @@ export default function Login() {
                   </div>
 
                   <GoogleSignInButton onError={msg => setError(msg)} />
+
+                  <div className="mt-5 rounded-2xl p-3.5"
+                    style={{ background:"linear-gradient(135deg,rgba(251,191,36,0.08),rgba(245,158,11,0.04))", border:"1px solid rgba(251,191,36,0.2)" }}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-white">William · Premium pagado</p>
+                        <p className="text-[10px] text-white/45 mt-0.5">Acceso de cliente con tarjeta privada de un solo uso</p>
+                      </div>
+                      <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
+                        className="flex-shrink-0 px-3 py-2 rounded-xl text-[10px] font-black transition-all hover:brightness-110"
+                        style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300" }}>
+                        {showCardAccess ? "Cerrar" : "Acceder"}
+                      </button>
+                    </div>
+                    {showCardAccess && (
+                      <form onSubmit={handleCardActivate} className="mt-3 space-y-2.5">
+                        <input value={cardCode} onChange={e => { setCardCode(e.target.value.toUpperCase()); setCardError(""); }}
+                          aria-label="Código privado de acceso de William"
+                          autoComplete="one-time-code" autoCapitalize="characters" maxLength={80}
+                          placeholder="CIVAC-WILLIAM-…"
+                          className="w-full px-3 py-3 rounded-xl text-xs text-white font-mono placeholder:text-white/20 outline-none"
+                          style={{ background:"rgba(0,0,0,0.3)", border:"1px solid rgba(251,191,36,0.25)" }} />
+                        {cardError && <p role="alert" className="text-[10px] text-red-300">{cardError}</p>}
+                        <button type="submit" disabled={cardBusy || !cardCode.trim()}
+                          className="w-full py-2.5 rounded-xl text-xs font-black disabled:opacity-50"
+                          style={{ background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.35)", color:"#fbbf24" }}>
+                          {cardBusy ? "Validando acceso…" : "Entrar a mi cuenta pagada"}
+                        </button>
+                        <p className="text-[9px] text-white/35">Solicita la tarjeta privada al administrador CIVAC. El código se consume al acceder.</p>
+                      </form>
+                    )}
+                  </div>
 
                   {/* Bottom links */}
                   <div className="mt-6 pt-5 flex items-center justify-between" style={{ borderTop:"1px solid rgba(0,245,212,0.08)" }}>

@@ -1,18 +1,20 @@
 import { Router } from "express";
-import { eq, desc } from "drizzle-orm";
-import { db, codigosActivacionTable, usuariosTable, planAsignacionesTable, auditLogTable } from "@workspace/db";
+import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
+import { createHash, randomBytes } from "crypto";
+import { db, codigosActivacionTable, usuariosTable, auditLogTable } from "@workspace/db";
+import { adminOnlyMiddleware, authMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
 /* ── Generar código único ─────────────────────────────────────────────────── */
 function genCodigo(planCode: string): string {
   const plan = planCode.slice(0, 4).toUpperCase();
-  const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const rand = randomBytes(6).toString("hex").toUpperCase();
   return `CIVAC-${plan}-${rand}`;
 }
 
 /* ── POST /api/codigos ── crear nuevo código de activación ────────────────── */
-router.post("/codigos", async (req, res) => {
+router.post("/codigos", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
     const {
       planCode = "basico",
@@ -28,6 +30,12 @@ router.post("/codigos", async (req, res) => {
       maxAnimales?: number; maxUsuarios?: number; notas?: string;
       creadoPor?: string; expiresInDias?: number;
     };
+    if (!["basico", "pro", "premium", "platino"].includes(planCode)) {
+      return res.status(400).json({ error: "Plan inválido." });
+    }
+    if (!Number.isInteger(diasPlan) || diasPlan < 1 || diasPlan > 3650) {
+      return res.status(400).json({ error: "La duración debe estar entre 1 y 3650 días." });
+    }
 
     const codigo = genCodigo(planCode);
     const expiresAt = expiresInDias
@@ -37,46 +45,143 @@ router.post("/codigos", async (req, res) => {
     try {
       const [row] = await db.insert(codigosActivacionTable).values({
         codigo, planCode, diasPlan, sessionLimit, maxAnimales, maxUsuarios,
-        notas, creadoPor, expiresAt,
+        notas, creadoPor: req.user?.userId ?? "admin", expiresAt,
       }).returning();
 
       /* audit */
       try {
         await db.insert(auditLogTable).values({
-          userId: creadoPor, userEmail: creadoPor, userRole: "admin",
+          userId: req.user?.userId ?? "admin",
+          userEmail: req.user?.email ?? "admin",
+          userRole: req.user?.role ?? "admin",
           accion: "create_codigo", entidad: "codigo_activacion", entidadId: String(row?.id ?? 0),
           detalles: JSON.stringify({ codigo, planCode, diasPlan }),
         });
       } catch { /* skip */ }
 
       return res.json({ ok: true, codigo, id: row?.id });
-    } catch (dbErr) {
-      /* DB not ready — return code anyway */
-      return res.json({ ok: true, codigo, id: null, warning: "Código generado localmente" });
+    } catch {
+      return res.status(503).json({ error: "Base de datos no disponible; no se creó el código." });
     }
   } catch (err) {
-    res.status(500).json({ error: "Error creando código", detail: String(err) });
+    res.status(500).json({ error: "Error creando código" });
   }
 });
 
 /* ── GET /api/codigos ── listar todos los códigos ─────────────────────────── */
-router.get("/codigos", async (req, res) => {
+router.get("/codigos", authMiddleware, adminOnlyMiddleware, async (_req, res) => {
   try {
     const rows = await db.select().from(codigosActivacionTable)
       .orderBy(desc(codigosActivacionTable.createdAt)).limit(200);
-    res.json({ ok: true, codigos: rows });
-  } catch (err) {
-    res.status(500).json({ error: "Error listando códigos", detail: String(err) });
+    const safeRows = rows.map(row => row.codigo.startsWith("CARD_SHA256:")
+      ? { ...row, codigo: "Tarjeta de activación protegida", notas: "Acceso cliente William" }
+      : row);
+    res.json({ ok: true, codigos: safeRows });
+  } catch {
+    res.status(503).json({ error: "No fue posible cargar los códigos." });
+  }
+});
+
+/* ── POST /api/codigos/william-card — create protected customer access ─────── */
+router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
+  const requestedDays = Number(req.body?.diasPlan ?? 30);
+  const validPeriods = [30, 60, 90, 180, 365];
+  if (!validPeriods.includes(requestedDays)) {
+    return res.status(400).json({ error: "Selecciona un período de acceso Premium válido." });
+  }
+
+  const marker = "LOGIN_CARD:WILLIAM:";
+  const now = new Date();
+
+  try {
+    const issued = await db.transaction(async tx => {
+      const existingRows = await tx.select().from(usuariosTable)
+        .where(or(
+          eq(usuariosTable.id, "civac_william"),
+          eq(usuariosTable.email, "william"),
+        )).limit(1);
+      let user = existingRows[0];
+      if (user && ["admin", "superadmin", "developer"].includes(user.role)) {
+        return { error: "privileged" as const };
+      }
+      if (user?.estado === "bloqueado" || user?.activo === false) {
+        return { error: "inactive" as const };
+      }
+
+      if (!user) {
+        const [created] = await tx.insert(usuariosTable).values({
+          id: "civac_william",
+          nombre: "William",
+          cargo: "Cliente CIVAC",
+          finca: "CIVAC",
+          email: "william",
+          password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
+          role: "cliente",
+          permisos: "[]",
+          planCode: "basico",
+          activo: true,
+          estado: "activo",
+        }).returning();
+        user = created;
+      } else {
+        const [updated] = await tx.update(usuariosTable).set({
+          role: "cliente",
+          cargo: "Cliente CIVAC",
+          updatedAt: now,
+        }).where(eq(usuariosTable.id, user.id)).returning();
+        user = updated;
+      }
+
+      const rawCode = `CIVAC-WILLIAM-${randomBytes(24).toString("hex").toUpperCase()}`;
+      const digest = createHash("sha256").update(rawCode).digest("hex");
+      const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+      const [row] = await tx.insert(codigosActivacionTable).values({
+        codigo: `CARD_SHA256:${digest}`,
+        planCode: "premium",
+        diasPlan: requestedDays,
+        sessionLimit: 20,
+        maxAnimales: 2000,
+        maxUsuarios: 15,
+        estado: "disponible",
+        creadoPor: req.user?.userId ?? "admin",
+        expiresAt,
+        notas: `${marker}${user.id}`,
+      }).returning();
+
+      return { codigo: rawCode, expiresAt, diasPlan: requestedDays, id: row.id };
+    });
+
+    if ("error" in issued) {
+      const message = issued.error === "privileged"
+        ? "Ese identificador pertenece a una cuenta de personal; no se modificó."
+        : "La cuenta de William está inactiva o bloqueada; no se modificó.";
+      return res.status(409).json({ error: message });
+    }
+
+    return res.json({
+      ok: true,
+      username: "william",
+      nombre: "William",
+      role: "cliente",
+      planCode: "premium",
+      diasPlan: issued.diasPlan,
+      codigo: issued.codigo,
+      expiresAt: issued.expiresAt.toISOString(),
+      id: issued.id,
+    });
+  } catch {
+    return res.status(503).json({ error: "No fue posible crear la cuenta y la tarjeta en la base de datos activa." });
   }
 });
 
 /* ── POST /api/codigos/redeem ── canjear un código de activación ─────────── */
-router.post("/codigos/redeem", async (req, res) => {
+router.post("/codigos/redeem", authMiddleware, async (req: AuthRequest, res) => {
   try {
-    const { codigo, userId, userEmail, userNombre } = req.body as {
-      codigo: string; userId: string; userEmail: string; userNombre?: string;
-    };
-    if (!codigo || !userId) return res.status(400).json({ error: "codigo y userId requeridos" });
+    const { codigo } = req.body as { codigo?: string };
+    const sessionUser = req.user;
+    if (!codigo || !sessionUser || sessionUser.role === "anonymous") {
+      return res.status(400).json({ error: "Se requiere una sesión y un código." });
+    }
 
     let found;
     try {
@@ -88,37 +193,51 @@ router.post("/codigos/redeem", async (req, res) => {
     }
 
     if (!found) return res.status(404).json({ ok: false, error: "Código no encontrado" });
+    if (found.notas.startsWith("LOGIN_CARD:")) {
+      return res.status(403).json({ ok: false, error: "Esta tarjeta solo se canjea desde el acceso de cliente." });
+    }
     if (found.estado !== "disponible") return res.status(409).json({ ok: false, error: "Código ya utilizado o expirado" });
     if (found.expiresAt && new Date(found.expiresAt) < new Date()) {
       await db.update(codigosActivacionTable).set({ estado: "expirado" }).where(eq(codigosActivacionTable.id, found.id));
       return res.status(410).json({ ok: false, error: "Código expirado" });
     }
 
-    /* marcar como usado */
-    await db.update(codigosActivacionTable).set({
-      estado: "usado",
-      usadoPor: userId,
-      usadoPorEmail: userEmail,
-      usadoPorNombre: userNombre ?? "",
-      usadoAt: new Date(),
-    }).where(eq(codigosActivacionTable.id, found.id));
+    const users = await db.select().from(usuariosTable)
+      .where(eq(usuariosTable.id, sessionUser.userId)).limit(1);
+    const current = users[0];
+    if (!current) return res.status(401).json({ ok: false, error: "La cuenta de la sesión no existe." });
 
-    /* actualizar plan del usuario en DB */
-    try {
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + found.diasPlan);
-      await db.update(usuariosTable).set({
+    const now = new Date();
+    const expiry = new Date(now.getTime() + found.diasPlan * 86_400_000);
+    const claimed = await db.transaction(async tx => {
+      const [row] = await tx.update(codigosActivacionTable).set({
+        estado: "usado",
+        usadoPor: current.id,
+        usadoPorEmail: current.email,
+        usadoPorNombre: current.nombre,
+        usadoAt: now,
+      }).where(and(
+        eq(codigosActivacionTable.id, found.id),
+        eq(codigosActivacionTable.estado, "disponible"),
+        or(isNull(codigosActivacionTable.expiresAt), gt(codigosActivacionTable.expiresAt, now)),
+      )).returning();
+      if (!row) return false;
+      await tx.update(usuariosTable).set({
         planCode: found.planCode,
         planExpiry: expiry,
-      }).where(eq(usuariosTable.id, userId));
-    } catch { /* skip */ }
+        planDias: found.diasPlan,
+        updatedAt: now,
+      }).where(eq(usuariosTable.id, current.id));
+      return true;
+    });
+    if (!claimed) return res.status(409).json({ ok: false, error: "Código ya utilizado o expirado" });
 
     /* audit */
     try {
       await db.insert(auditLogTable).values({
-        userId, userEmail, userRole: "user",
+        userId: current.id, userEmail: current.email, userRole: current.role,
         accion: "redeem_code", entidad: "codigo_activacion", entidadId: String(found.id),
-        detalles: JSON.stringify({ codigo, planCode: found.planCode, diasPlan: found.diasPlan }),
+        detalles: JSON.stringify({ codigo: "redacted", planCode: found.planCode, diasPlan: found.diasPlan }),
       });
     } catch { /* skip */ }
 
@@ -136,13 +255,13 @@ router.post("/codigos/redeem", async (req, res) => {
 });
 
 /* ── DELETE /api/codigos/:id ── eliminar/expirar código ─────────────────── */
-router.delete("/codigos/:id", async (req, res) => {
+router.delete("/codigos/:id", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     await db.update(codigosActivacionTable).set({ estado: "expirado" }).where(eq(codigosActivacionTable.id, id));
     res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ error: "Error eliminando código", detail: String(err) });
+  } catch {
+    res.status(503).json({ error: "Error eliminando código" });
   }
 });
 

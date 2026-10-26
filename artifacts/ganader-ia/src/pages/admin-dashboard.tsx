@@ -1771,6 +1771,48 @@ export default function AdminDashboard({
       {tab === "cuentas" && (
         <div className="space-y-4">
 
+          {/* ── WILLIAM PREMIUM ACCOUNT CARD ── */}
+          <div
+            className="relative overflow-hidden rounded-2xl p-4 sm:p-5"
+            style={{
+              background: "linear-gradient(120deg,rgba(251,191,36,0.12),rgba(245,158,11,0.04) 60%,rgba(255,255,255,0.02))",
+              border: "1px solid rgba(251,191,36,0.28)",
+              boxShadow: "0 0 28px rgba(251,191,36,0.06)",
+            }}
+          >
+            <div className="absolute -right-8 -top-12 h-40 w-40 rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(circle,rgba(251,191,36,0.16),transparent 68%)" }} />
+            <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{ background: "linear-gradient(135deg,rgba(251,191,36,0.22),rgba(245,158,11,0.08))", border: "1px solid rgba(251,191,36,0.35)" }}>
+                👤
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base font-black text-white">William</h2>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full font-black"
+                    style={{ color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.28)" }}>
+                    CLIENTE PREMIUM
+                  </span>
+                  <span className="text-[9px] px-2 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-400/10 border border-emerald-300/20">
+                    Acceso protegido
+                  </span>
+                </div>
+                <p className="text-[11px] text-white/45 mt-1">
+                  Cuenta Premium pagada · la tarjeta de acceso se valida en el servidor y es de un solo uso.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTab("codigos")}
+                className="flex-shrink-0 rounded-xl px-3.5 py-2.5 text-[10px] font-black flex items-center justify-center gap-2 transition-all hover:brightness-110"
+                style={{ color: "#1a1200", background: "linear-gradient(135deg,#fbbf24,#f59e0b)", boxShadow: "0 4px 16px rgba(251,191,36,0.18)" }}
+              >
+                <Key size={13} /> Administrar acceso de William
+              </button>
+            </div>
+          </div>
+
           {/* ── CIVAC STAFF SECTION ── */}
           <div className="rounded-2xl overflow-hidden"
             style={{ background:"linear-gradient(135deg,rgba(0,245,212,0.05),rgba(0,200,255,0.03))", border:"1px solid rgba(0,245,212,0.18)", boxShadow:"0 0 30px rgba(0,245,212,0.06)" }}>

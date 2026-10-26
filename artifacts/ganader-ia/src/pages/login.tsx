@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, type PlanId } from "@/lib/auth";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
@@ -847,6 +847,64 @@ export default function Login() {
 
   useEffect(() => { const t = setTimeout(() => setEntered(true), 80); return () => clearTimeout(t); }, []);
 
+  const activateWilliamCard = useCallback(async (code: string) => {
+    setCardError("");
+    if (!code.trim()) { setCardError("Ingresa el código de tu tarjeta."); return; }
+    setCardBusy(true);
+    try {
+      const response = await fetch("/api/auth/card/activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      const result = await response.json() as {
+        token?: string;
+        user?: { id:string; nombre:string; email:string; role:string; cargo:string; finca:string; planCode:string; estado:string; planExpiry?:string|null };
+        error?: string;
+      };
+      if (!response.ok || !result.token || !result.user) {
+        throw new Error(result.error ?? "No se pudo activar la tarjeta.");
+      }
+      setCardCode("");
+      setShowCardAccess(false);
+      loginAs({
+        id: result.user.id,
+        nombre: result.user.nombre,
+        email: result.user.email,
+        password: "",
+        avatar: "🐄",
+        gradient: "from-[#b8860b] to-[#fbbf24]",
+        role: result.user.role as Account["role"],
+        cargo: result.user.cargo,
+        finca: result.user.finca,
+        plan: (result.user.planCode ?? "premium") as PlanId,
+        planExpiry: result.user.planExpiry ?? undefined,
+        permisos: ["*"],
+        activo: true,
+        loginMethod: "card",
+      }, result.token);
+    } catch (err) {
+      setCardError(err instanceof Error ? err.message : "No se pudo activar la tarjeta.");
+    } finally {
+      setCardBusy(false);
+    }
+  }, [loginAs]);
+
+  /* A private access link carries its one-time code in the fragment, never in the HTTP request URL. */
+  useEffect(() => {
+    const accessCode = new URLSearchParams(window.location.hash.replace(/^#/, "")).get("william_access")
+      ?? new URLSearchParams(window.location.search).get("william_access");
+    if (!accessCode) return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("william_access");
+    url.hash = "";
+    window.history.replaceState({}, "", `${url.pathname}${url.search}`);
+    setShowCardAccess(true);
+    setCardCode(accessCode);
+    void activateWilliamCard(accessCode);
+  }, [activateWilliamCard]);
+
   /* ── Handle Google OAuth callback: ?civac_token= or ?google_error= ── */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -978,44 +1036,7 @@ export default function Login() {
 
   const handleCardActivate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCardError("");
-    if (!cardCode.trim()) { setCardError("Ingresa el código de tu tarjeta."); return; }
-    setCardBusy(true);
-    try {
-      const response = await fetch("/api/auth/card/activate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: cardCode.trim() }),
-      });
-      const result = await response.json() as {
-        token?: string;
-        user?: { id:string; nombre:string; email:string; role:string; cargo:string; finca:string; planCode:string; estado:string; planExpiry?:string|null };
-        error?: string;
-      };
-      if (!response.ok || !result.token || !result.user) {
-        throw new Error(result.error ?? "No se pudo activar la tarjeta.");
-      }
-      loginAs({
-        id: result.user.id,
-        nombre: result.user.nombre,
-        email: result.user.email,
-        password: "",
-        avatar: "🐄",
-        gradient: "from-[#b8860b] to-[#fbbf24]",
-        role: result.user.role as Account["role"],
-        cargo: result.user.cargo,
-        finca: result.user.finca,
-        plan: (result.user.planCode ?? "premium") as PlanId,
-        planExpiry: result.user.planExpiry ?? undefined,
-        permisos: ["*"],
-        activo: true,
-        loginMethod: "card",
-      }, result.token);
-    } catch (err) {
-      setCardError(err instanceof Error ? err.message : "No se pudo activar la tarjeta.");
-    } finally {
-      setCardBusy(false);
-    }
+    await activateWilliamCard(cardCode);
   };
 
   const handleRegister = async (e: React.FormEvent) => {

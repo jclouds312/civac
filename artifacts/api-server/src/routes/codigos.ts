@@ -82,8 +82,6 @@ router.get("/codigos", authMiddleware, adminOnlyMiddleware, async (_req, res) =>
 
 /* ── POST /api/codigos/william-card — crear cuenta cliente y tarjeta de acceso ─ */
 router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
-  const requestedDays = Number(req.body?.diasPlan ?? 30);
-  const diasPlan = [30, 60, 90, 180, 365].includes(requestedDays) ? requestedDays : 30;
   const marker = "LOGIN_CARD:WILLIAM:";
   const now = new Date();
 
@@ -98,6 +96,9 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       if (user && ["admin", "superadmin", "developer"].includes(user.role)) {
         return { error: "privileged" as const };
       }
+      if (user && (user.estado === "bloqueado" || user.activo === false)) {
+        return { error: "account_unavailable" as const };
+      }
 
       if (!user) {
         const [created] = await tx.insert(usuariosTable).values({
@@ -109,17 +110,23 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
           password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
           role: "cliente",
           permisos: "[]",
-          planCode: "basico",
+          planCode: "premium",
           activo: true,
           estado: "activo",
+          demoExpiry: null,
+          demoDias: 0,
+          planDias: 0,
         }).returning();
         user = created;
       } else {
         const [updated] = await tx.update(usuariosTable).set({
           role: "cliente",
-          cargo: "Cliente CIVAC",
-          estado: "activo",
-          activo: true,
+          nombre: "William",
+          cargo: "Cliente Premium CIVAC",
+          planCode: "premium",
+          demoExpiry: null,
+          demoDias: 0,
+          ...(user.estado === "demo" ? { estado: "activo" } : {}),
           updatedAt: now,
         }).where(eq(usuariosTable.id, user.id)).returning();
         user = updated;
@@ -131,7 +138,7 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       const [row] = await tx.insert(codigosActivacionTable).values({
         codigo: `CARD_SHA256:${digest}`,
         planCode: "premium",
-        diasPlan,
+        diasPlan: 0,
         sessionLimit: 20,
         maxAnimales: 2000,
         maxUsuarios: 15,
@@ -141,10 +148,13 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
         notas: `${marker}${user.id}`,
       }).returning();
 
-      return { codigo, expiresAt, diasPlan, id: row.id };
+      return { codigo, expiresAt, id: row.id };
     });
 
     if ("error" in issued) {
+      if (issued.error === "account_unavailable") {
+        return res.status(409).json({ error: "La cuenta está bloqueada o inactiva; no se emitió un acceso." });
+      }
       return res.status(409).json({ error: "Ese identificador ya pertenece a una cuenta de personal; no se modificó." });
     }
 
@@ -154,7 +164,7 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       nombre: "William",
       role: "cliente",
       planCode: "premium",
-      diasPlan: issued.diasPlan,
+      diasPlan: 0,
       codigo: issued.codigo,
       expiresAt: issued.expiresAt.toISOString(),
       id: issued.id,

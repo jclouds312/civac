@@ -34,16 +34,25 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
   return stored === password;
 }
 
-function appBaseUrl(): string {
-  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
-  return domain ? `https://${domain}` : "http://localhost:5000";
+function appBaseUrl(): string | null {
+  const configuredUrl = process.env.PUBLIC_APP_URL?.trim();
+  if (configuredUrl) {
+    try {
+      const parsed = new URL(configuredUrl);
+      if (parsed.protocol === "https:" || (process.env.NODE_ENV !== "production" && parsed.hostname === "localhost")) {
+        return parsed.origin;
+      }
+    } catch { /* ignore invalid public URL */ }
+  }
+
+  const devDomain = process.env.REPLIT_DEV_DOMAIN?.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  if (devDomain && process.env.NODE_ENV !== "production") return `https://${devDomain}`;
+  return process.env.NODE_ENV === "production" ? null : "http://localhost:5000";
 }
 
-function googleCallbackUrl(): string {
-  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
-  return domain
-    ? `https://${domain}/api/auth/google/link/callback`
-    : "http://localhost:8080/api/auth/google/link/callback";
+function googleCallbackUrl(path: "callback" | "link/callback"): string | null {
+  const base = appBaseUrl();
+  return base ? `${base}/api/auth/google/${path}` : null;
 }
 
 function requestCookie(req: AuthRequest, name: string): string | null {
@@ -252,14 +261,14 @@ router.post("/auth/card/activate", async (req, res) => {
       )).returning();
       if (!claimed) return { error: "invalid" as const };
 
-      const planExpiry = new Date(now.getTime() + claimed.diasPlan * 86_400_000);
+      const sessionExpiresAt = new Date(now.getTime() + 7 * 86_400_000);
       const [updated] = await tx.update(usuariosTable).set({
         role: "cliente",
         estado: "activo",
         activo: true,
         planCode: "premium",
-        planDias: claimed.diasPlan,
-        planExpiry,
+        demoExpiry: null,
+        demoDias: 0,
         loginCount: (current.loginCount ?? 0) + 1,
         lastLogin: now,
         updatedAt: now,
@@ -275,7 +284,7 @@ router.post("/auth/card/activate", async (req, res) => {
         planCode: "premium",
         ipAddress: req.ip ?? "",
         userAgent: req.headers["user-agent"] ?? "",
-        expiresAt: planExpiry,
+        expiresAt: sessionExpiresAt,
       });
 
       return { token, user: updated };
@@ -376,16 +385,12 @@ router.post("/auth/logout", async (req, res) => {
 /* ── GET /api/auth/google ─────────────────────────────────────────────────── */
 router.get("/auth/google", (_req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
-  const frontendUrl = domain ? `https://${domain}` : "http://localhost:5000";
+  const frontendUrl = appBaseUrl() ?? "";
+  const callbackUrl = googleCallbackUrl("callback");
 
-  if (!clientId) {
+  if (!clientId || !process.env.GOOGLE_CLIENT_SECRET || !callbackUrl) {
     return res.redirect(`${frontendUrl}/?google_error=no_config`);
   }
-
-  const callbackUrl = domain
-    ? `https://${domain}/api/auth/google/callback`
-    : "http://localhost:8080/api/auth/google/callback";
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -401,11 +406,11 @@ router.get("/auth/google", (_req, res) => {
 
 /* ── GET /api/auth/google/callback ───────────────────────────────────────── */
 router.get("/auth/google/callback", async (req, res) => {
-  const domain = process.env.REPLIT_DEV_DOMAIN ?? "";
-  const frontendUrl = domain ? `https://${domain}` : "http://localhost:5000";
-  const callbackUrl = domain
-    ? `https://${domain}/api/auth/google/callback`
-    : "http://localhost:8080/api/auth/google/callback";
+  const frontendUrl = appBaseUrl() ?? "";
+  const callbackUrl = googleCallbackUrl("callback");
+  if (!callbackUrl || !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.redirect(`${frontendUrl}/?google_error=no_config`);
+  }
 
   const { code, error: oauthError } = req.query as { code?: string; error?: string };
 
@@ -504,18 +509,19 @@ router.get("/auth/google/callback", async (req, res) => {
 
 /* ── GET /api/auth/google/status ─────────────────────────────────────────── */
 router.get("/auth/google/status", (_req, res) => {
-  res.json({ configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) });
+  res.json({ configured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && appBaseUrl()) });
 });
 
 /* ── Google account linking for William's Premium account ─────────────────── */
 router.post("/auth/google/link/start", authMiddleware, (req: AuthRequest, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
+  const callbackUrl = googleCallbackUrl("link/callback");
   const sessionToken = req.token;
   if (req.user?.userId !== "civac_william") {
     return res.status(403).json({ error: "Esta vinculación está habilitada para la cuenta William." });
   }
-  if (!clientId || !process.env.GOOGLE_CLIENT_SECRET) {
-    return res.status(503).json({ error: "La vinculación con Google no está configurada." });
+  if (!clientId || !process.env.GOOGLE_CLIENT_SECRET || !callbackUrl) {
+    return res.status(503).json({ error: "Google OAuth requiere credenciales y una URL pública configurada." });
   }
   if (!sessionToken) return res.status(401).json({ error: "Inicia sesión nuevamente para vincular Gmail." });
 
@@ -532,7 +538,7 @@ router.post("/auth/google/link/start", authMiddleware, (req: AuthRequest, res) =
 
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: googleCallbackUrl(),
+    redirect_uri: callbackUrl,
     response_type: "code",
     scope: "email profile openid",
     access_type: "offline",
@@ -543,7 +549,8 @@ router.post("/auth/google/link/start", authMiddleware, (req: AuthRequest, res) =
 });
 
 router.get("/auth/google/link/callback", async (req: AuthRequest, res) => {
-  const frontendUrl = appBaseUrl();
+  const frontendUrl = appBaseUrl() ?? "";
+  const callbackUrl = googleCallbackUrl("link/callback");
   const fail = (reason: string) => res.redirect(`${frontendUrl}/mi-cuenta?google_link_error=${encodeURIComponent(reason)}`);
   const state = typeof req.query.state === "string" ? req.query.state : "";
   const expectedState = requestCookie(req, "civac_google_link_state") ?? "";
@@ -556,6 +563,7 @@ router.get("/auth/google/link/callback", async (req: AuthRequest, res) => {
       !timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) {
     return fail("state");
   }
+  if (!callbackUrl || !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) return fail("config");
   if (!sessionToken || typeof req.query.code !== "string") return fail("cancelled");
 
   try {
@@ -578,7 +586,7 @@ router.get("/auth/google/link/callback", async (req: AuthRequest, res) => {
         code: req.query.code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: googleCallbackUrl(),
+        redirect_uri: callbackUrl,
         grant_type: "authorization_code",
       }).toString(),
     });

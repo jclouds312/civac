@@ -115,13 +115,13 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
         const [created] = await tx.insert(usuariosTable).values({
           id: "civac_william",
           nombre: "William",
-          cargo: "Cliente Platino CIVAC",
+          cargo: "Cliente Premium CIVAC",
           finca: "CIVAC",
           email: WILLIAM_EMAIL,
           password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
           role: "cliente",
           permisos: "[]",
-          planCode: "platino",
+          planCode: "premium",
           activo: true,
           estado: "activo",
           planExpiry: null,
@@ -134,8 +134,8 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
         const [updated] = await tx.update(usuariosTable).set({
           role: "cliente",
           nombre: "William",
-          cargo: "Cliente Platino CIVAC",
-          planCode: "platino",
+          cargo: "Cliente Premium CIVAC",
+          planCode: "premium",
           email: WILLIAM_EMAIL,
           planExpiry: null,
           planDias: 0,
@@ -152,7 +152,7 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       const expiresAt = new Date(now.getTime() + 30 * 86_400_000);
       const [row] = await tx.insert(codigosActivacionTable).values({
         codigo: `CARD_SHA256:${digest}`,
-        planCode: "platino",
+        planCode: "premium",
         diasPlan: 0,
         sessionLimit: 20,
         maxAnimales: 2000,
@@ -160,7 +160,7 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
         estado: "disponible",
         creadoPor: req.user?.userId ?? "admin",
         expiresAt,
-        notas: `${marker}${user.id}:NOVIEMBRE2026`,
+        notas: `${marker}${user.id}`,
       }).returning();
 
       return { codigo, expiresAt, id: row.id };
@@ -185,14 +185,14 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       email: WILLIAM_EMAIL,
       nombre: "William",
       role: "cliente",
-      planCode: "platino",
+      planCode: "premium",
       diasPlan: 0,
       codigo: issued.codigo,
       expiresAt: issued.expiresAt.toISOString(),
       id: issued.id,
     });
   } catch {
-    return res.status(503).json({ error: "No fue posible crear la cuenta y la tarjeta en la base de datos activa." });
+    return res.status(503).json({ error: "No fue posible crear la cuenta Premium y su tarjeta de acceso." });
   }
 });
 

@@ -16,3 +16,4 @@
 - [AI provider billing policy](ai-provider-billing-policy.md) — keep free providers as default; paid providers require explicit selection and server-side Premium access checks.
 - [William Premium account](william-premium-account.md) — William's CIVAC account must remain Premium with permanent access, not be labeled Platino.
 - [Expo Linux devtools](expo-linux-devtools.md) — Metro can run even when Expo's optional desktop DevTools lacks GTK/graphics libraries.
+- [Replit Python package installation](replit-python-package-install.md) — a Python dependency listed in requirements.txt may still be absent from the runtime; install through Replit package management and smoke-test WSGI.

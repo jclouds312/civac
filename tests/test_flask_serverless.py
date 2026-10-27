@@ -85,6 +85,27 @@ class FlaskServerlessSmokeTest(unittest.TestCase):
         self.assertIn(response.status_code, (400, 500))
         self.assertIn("error", response.json)
 
+    def test_william_card_requires_the_complete_campaign_code(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        for incomplete_code in ("noviembre2026", "CIVAC-WILLIAM-NOVIEMBRE2026-"):
+            with self.subTest(code=incomplete_code):
+                response = client.post(
+                    "/api/auth/card/activate",
+                    json={"code": incomplete_code},
+                )
+                self.assertEqual(response.status_code, 400)
+
+    def test_william_card_issuance_requires_admin_session(self):
+        from werkzeug.test import Client
+        from werkzeug.wrappers import Response
+
+        client = Client(self.gateway, Response)
+        response = client.post("/api/codigos/william-card", json={})
+        self.assertEqual(response.status_code, 401)
+
 
 if __name__ == "__main__":
     unittest.main()

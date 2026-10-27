@@ -131,26 +131,29 @@ el servidor; nunca se incluye en el bundle móvil.
 
 ## Acceso CIVAC y seguridad de cuentas
 
-`NOVIEMBRE2026` es el nombre de la campaña, no una contraseña ni un código que
-se pueda canjear por sí solo. La cuenta de William conserva el rol de cliente y
-el plan Premium sin vencimiento, asignado únicamente por una operación protegida
-del panel administrativo. Para el primer acceso:
+`NOVIEMBRE2026` identifica la campaña; no es un PIN, contraseña ni código
+canjeable por sí solo. La cuenta de William conserva el rol de cliente y el plan
+Premium sin vencimiento, asignado únicamente por una operación protegida del
+panel administrativo. Cada tarjeta lleva un sufijo aleatorio de 48 caracteres
+hexadecimales. Para el primer acceso:
 
 1. Un administrador abre **Admin → Códigos → Tarjeta de William** y pulsa
    **Crear cuenta y tarjeta**.
-2. El panel crea un token aleatorio de un solo uso, lo almacena como hash y
-   muestra el token y la opción **Copiar enlace privado** una sola vez.
+2. El panel crea o verifica la cuenta con rol **Cliente** y plan **Premium
+   permanente**, guarda únicamente el hash de la tarjeta y muestra el código
+   completo y la opción **Copiar enlace privado** una sola vez.
 3. Comparte el enlace directamente con William por un canal privado. Al abrirlo,
-   la tarjeta se valida automáticamente; no hace falta escribir el código
-   completo. Si se escribe únicamente `NOVIEMBRE2026`, la tarjeta no se activa.
+   la tarjeta se valida automáticamente. También puede pegarse el código
+   completo en la tarjeta de William del login. No compartas ni uses solo
+   `NOVIEMBRE2026`.
 4. Tras el primer acceso, William puede crear una contraseña permanente en
    **Mi cuenta → Seguridad → Crear contraseña de acceso**. La contraseña debe
    tener al menos 10 caracteres y se guarda protegida en el servidor.
 
-La tarjeta de acceso inicial vence si no se usa dentro de los 30 días posteriores
-a su emisión. Al activarla, la cuenta conserva Platino sin vencimiento; cada
-sesión vence por separado y se puede iniciar de nuevo con la contraseña que
-defina el titular. El plan Platino no concede rol ni permisos administrativos.
+La tarjeta de acceso inicial vence 30 días después de emitirse y solo se puede
+canjear una vez. Al activarla, la cuenta conserva Premium sin vencimiento; la
+sesión vence por separado a los siete días. William puede volver a entrar con la
+contraseña que defina. Premium no concede rol ni permisos administrativos.
 
 No se configura una contraseña compartida ni se publica información de cuentas,
 clientes, enlaces privados o tokens en este README. Las credenciales se crean o
@@ -168,6 +171,30 @@ funciones, no contiene un directorio de personas.
 | Campo | Inventario, pesajes, potreros, alimentación y registros operativos. |
 | Consulta | Lectura de paneles y reportes permitidos por su finca. |
 | Cliente | Funciones habilitadas por plan y permisos de la cuenta. |
+
+Las cuentas reales, sus correos, estados y asignaciones individuales se administran
+en **Admin → Usuarios**. No se publica el padrón de clientes ni sus credenciales
+en este repositorio. El panel de sesiones permite revisar y revocar sesiones
+vigentes; las tarjetas se administran desde **Admin → Códigos**.
+
+### Planes y acceso
+
+Los precios mensuales siguientes son los publicados en la pantalla **Planes**.
+Los límites son valores de referencia del catálogo de la API; pueden cambiar por
+configuración y deben confirmarse en el sistema antes de vender o asignar un
+plan. Enterprise es una opción de catálogo/cotización interna.
+
+| Plan | Precio público mensual | Animales | Usuarios | Collares GPS | Funciones principales |
+|---|---:|---:|---:|---:|---|
+| Básico | Gratis | 50 | 1 | 2 | Inventario, producción, potreros, alertas, pesaje manual y PWA. |
+| PRO | $129.000 COP | 300 | 5 | 10 | Básico, GPS, reproducción, genética, pesaje Bluetooth, multi-finca e IA. |
+| Premium | $289.000 COP | 2.000 | 15 | 50 | PRO, trazabilidad, pesaje automatizado, lotes, Drive, centro de datos y CRM. |
+| Platino | $890.000 COP | 2.000 | 20 | 50 | Premium, usuarios y roles, configuración avanzada, reportes y API. |
+| Enterprise | Cotización | 99.999 | 999 | 999 | Instancia dedicada, SLA, consultoría e integración ERP. |
+
+El plan asignado a cada cliente se consulta en **Admin → Usuarios**; no se
+deduce del rol. El acceso permanente de William es una asignación especial de
+**Premium**, no Platino, y no cambia sus permisos de cliente.
 
 ### Módulos y funciones
 
@@ -214,6 +241,16 @@ proveedor remoto se presenta como ilimitado ni garantiza funcionamiento offline.
 La IA no accede a cuentas, datos de fincas o animales, no ejecuta cambios y no
 sustituye la valoración veterinaria.
 
+## Despliegue
+
+- **Replit:** el build configurado en `.replit` compila la PWA y la API; el
+  servicio web de producción usa Gunicorn para servir Flask WSGI en el puerto
+  5000. El preview de desarrollo usa workflows separados.
+- **Vercel:** el proyecto Next.js entrega la web y enruta las solicitudes
+  `/api/*` al backend Flask. Verifica el build con `pnpm run build:vercel`.
+- Los cambios del esquema de la base de desarrollo llegan a producción mediante
+  **Publish**. No se ejecutan migraciones desde el build ni al arrancar el servidor.
+
 ## Integraciones y API
 
 El frontend usa rutas relativas `/api/*` para que desarrollo y despliegue
@@ -249,7 +286,7 @@ no sustituye un contrato o certificado de licencia.
 ## Historial reciente
 
 - Se trabaja desde la rama `deploy-backend`, que corresponde a
-  `origin/deploy-backend`; la rama predeterminada del remoto es `v7`.
+  `origin/deploy-backend`; la rama predeterminada del remoto es `v9`.
 - William conserva el rol de cliente y el plan Premium sin vencimiento; el
   acceso inicial se establece por una activación privada de un solo uso.
 - CIVAC IA ofrece modelo local opcional en web y una guía local sin conexión en

@@ -1162,7 +1162,10 @@ def activate_william_card():
                     if (
                         not card
                         or card.get("estado") != "disponible"
-                        or card.get("plan_code") not in {"premium", "platino"}
+                        or not (
+                            (card.get("plan_code") == "premium" and card.get("dias_plan") in {0, 30})
+                            or (card.get("plan_code") == "platino" and card.get("dias_plan") == 0)
+                        )
                         or not str(card.get("notas") or "").startswith("LOGIN_CARD:WILLIAM:")
                         or (card.get("expires_at") and card["expires_at"] <= now)
                     ):
@@ -1192,7 +1195,7 @@ def activate_william_card():
                         return _error("La tarjeta no es válida, venció o ya fue utilizada.", 401)
                     cur.execute(
                         "UPDATE usuarios_sistema SET role = 'cliente', estado = 'activo', activo = true, "
-                        "plan_code = 'platino', plan_expiry = NULL, plan_dias = 0, demo_expiry = NULL, "
+                        "plan_code = 'premium', plan_expiry = NULL, plan_dias = 0, demo_expiry = NULL, "
                         "demo_dias = 0, login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), "
                         "updated_at = NOW() WHERE id = %s",
                         (user_id,),
@@ -1201,7 +1204,7 @@ def activate_william_card():
                     cur.execute(
                         "INSERT INTO user_sessions "
                         "(id, user_id, user_email, user_role, user_name, plan_code, ip_address, user_agent, expires_at) "
-                        "VALUES (%s,%s,%s,'cliente',%s,'platino',%s,%s,NOW()+INTERVAL '7 days')",
+                        "VALUES (%s,%s,%s,'cliente',%s,'premium',%s,%s,NOW()+INTERVAL '7 days')",
                         (
                             token,
                             user_id,
@@ -1225,7 +1228,7 @@ def activate_william_card():
                     "role": "cliente",
                     "cargo": account.get("cargo") or "",
                     "finca": account.get("finca") or "",
-                    "planCode": "platino",
+                    "planCode": "premium",
                     "estado": "activo",
                     "planExpiry": None,
                 },
@@ -1246,7 +1249,8 @@ def issue_william_card():
     marker = "LOGIN_CARD:WILLIAM:"
     code = f"CIVAC-WILLIAM-NOVIEMBRE2026-{secrets.token_hex(24).upper()}"
     stored_code = f"CARD_SHA256:{hashlib.sha256(code.encode('utf-8')).hexdigest()}"
-    expires_at = datetime.now(timezone.utc) + timedelta(days=30)
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(days=30)
 
     try:
         with _db() as conn:
@@ -1280,8 +1284,8 @@ def issue_william_card():
                     if account:
                         user_id = account["id"]
                         cur.execute(
-                            "UPDATE usuarios_sistema SET nombre = 'William', cargo = 'Cliente Platino CIVAC', "
-                            "email = %s, role = 'cliente', plan_code = 'platino', plan_expiry = NULL, "
+                            "UPDATE usuarios_sistema SET nombre = 'William', cargo = 'Cliente Premium CIVAC', "
+                            "email = %s, role = 'cliente', plan_code = 'premium', plan_expiry = NULL, "
                             "plan_dias = 0, demo_expiry = NULL, demo_dias = 0, "
                             "estado = CASE WHEN estado = 'demo' THEN 'activo' ELSE estado END, "
                             "updated_at = NOW() WHERE id = %s "
@@ -1295,8 +1299,8 @@ def issue_william_card():
                             "INSERT INTO usuarios_sistema "
                             "(id, nombre, cargo, finca, email, password, role, permisos, plan_code, activo, estado, "
                             "plan_expiry, plan_dias, demo_expiry, demo_dias) "
-                            "VALUES (%s, 'William', 'Cliente Platino CIVAC', 'CIVAC', %s, %s, "
-                            "'cliente', '[]', 'platino', true, 'activo', NULL, 0, NULL, 0) "
+                            "VALUES (%s, 'William', 'Cliente Premium CIVAC', 'CIVAC', %s, %s, "
+                            "'cliente', '[]', 'premium', true, 'activo', NULL, 0, NULL, 0) "
                             "RETURNING id, nombre, email",
                             (user_id, email, f"CARD_ONLY:{secrets.token_hex(32)}"),
                         )
@@ -1306,7 +1310,7 @@ def issue_william_card():
                         "INSERT INTO codigos_activacion "
                         "(codigo, plan_code, dias_plan, session_limit, max_animales, max_usuarios, estado, "
                         "creado_por, expires_at, notas) "
-                        "VALUES (%s, 'platino', 0, 20, 2000, 15, 'disponible', %s, %s, %s) "
+                        "VALUES (%s, 'premium', 0, 20, 2000, 15, 'disponible', %s, %s, %s) "
                         "RETURNING id",
                         (stored_code, admin.get("id", "admin"), expires_at, f"{marker}{user_id}"),
                     )
@@ -1318,14 +1322,14 @@ def issue_william_card():
             "email": email,
             "nombre": "William",
             "role": "cliente",
-            "planCode": "platino",
+            "planCode": "premium",
             "diasPlan": 0,
             "codigo": code,
             "expiresAt": expires_at.isoformat(),
             "id": code_row["id"],
         })
     except Exception:
-        return _error("No fue posible crear la cuenta Platino y su tarjeta privada.", 503)
+        return _error("No fue posible crear la cuenta Premium y su tarjeta privada.", 503)
 
 
 @app.get("/api/codigos")

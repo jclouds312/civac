@@ -67,12 +67,29 @@ const DEFAULT_PLANS = [
   },
 ];
 
+const PREMIUM_PLAN = {
+  code: "premium",
+  name: "Premium",
+  nameLong: "Plan Premium CIVAC",
+  priceMonthly: 189000,
+  maxAnimals: 2000,
+  maxUsers: 15,
+  maxGpsCollars: 50,
+  features: JSON.stringify(["Todo PRO", "Pesaje automatizado", "Huella CO₂", "Lotes", "Centro de datos", "Google Drive", "Multi-finca"]),
+  colorPrimary: "#fbbf24",
+  colorSecondary: "#f59e0b",
+  colorAccent: "#fcd34d",
+  badgeLabel: "PREMIUM",
+  active: true,
+};
+
 // Ensure plans exist helper
 async function ensurePlans() {
   const rows = await db.select().from(plansTable).limit(1);
   if (!rows.length) {
     await db.insert(plansTable).values(DEFAULT_PLANS);
   }
+  await db.insert(plansTable).values(PREMIUM_PLAN).onConflictDoNothing();
 }
 
 // GET /api/plans

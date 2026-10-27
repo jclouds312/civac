@@ -1935,7 +1935,7 @@ export default function AdminDashboard({
                   <h2 className="text-base font-black text-white">William</h2>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-black"
                     style={{ color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.28)" }}>
-                    PREMIUM REAL · PAGADA
+                    PREMIUM ASIGNADA
                   </span>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-400/10 border border-emerald-300/20">
                     {!williamMonitoring
@@ -1944,18 +1944,17 @@ export default function AdminDashboard({
                   </span>
                 </div>
                 <p className="text-[11px] text-white/45 mt-1">
-                  Registro Premium pagado según CIVAC. {williamMonitoring?.account.paidAccount
-                    ? "Vinculado al panel real de usuarios; sin comprobante de pago asociado."
-                    : "Validando la cuenta con el servidor…"}
+                  Cuenta Premium permanente de cliente; no es demo. Esta asignación no acredita un pago.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[9px] text-white/50">
                   <span>Estado: <b className={williamPlanExpired || !williamMonitoring?.account.activo ? "text-rose-300" : "text-emerald-300"}>
                     {!williamMonitoring ? (williamLoading ? "Cargando…" : "Sin conexión") : williamPlanExpired ? "Plan vencido" : williamMonitoring.account.activo ? "Activo" : "Inactivo"}
                   </b></span>
-                  <span>Vigencia: <b className="text-white/75">{williamExpiryDate ? williamExpiryDate.toLocaleDateString("es-CO") : "No registrada"}</b></span>
+                  <span>Vigencia: <b className="text-white/75">{williamExpiryDate ? williamExpiryDate.toLocaleDateString("es-CO") : williamMonitoring?.account.planCode === "premium" && !williamMonitoring.account.planExpiry ? "Sin vencimiento" : "No registrada"}</b></span>
                   <span>Ingresos: <b className="text-white/75">{williamMonitoring?.account.loginCount ?? "—"}</b></span>
                   <span>Último acceso: <b className="text-white/75">{williamLastLogin}</b></span>
                   <span>Seguimientos: <b className="text-white/75">{williamMonitoring?.followups.length ?? "—"}</b></span>
+                  <span>Eliminación: <b className="text-emerald-300">Protegida</b></span>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">

@@ -9,6 +9,18 @@ Sistema de gestión ganadera integral para Colombia. PWA instalable (v11, 34 rut
 
 ---
 
+## Run on Replit
+
+Open the **GanaderIA — Ganadería Inteligente** web artifact for the main app preview. Its configured web workflow runs the Vite frontend on port `5000`; the app proxies `/api` requests to the services below:
+
+- **artifacts/api-server: API Server** — persistent application API on port `8080`.
+- **API Server** — Flask services for AI, GPS and analytics on port `8000`.
+- **artifacts/ganader-ia-mobile: expo** — optional Expo mobile preview.
+
+Replit supplies the database connection. The persistent William Premium customer account is initialized by the Node API from the `WILLIAM_ACCOUNT_PASSWORD` Replit Secret; only a scrypt password hash is stored in the database. Never put account credentials in this file or the README.
+
+---
+
 ## Inicio rápido
 
 ```bash

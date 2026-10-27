@@ -7,86 +7,30 @@ import {
 } from "@workspace/db";
 import { randomBytes } from "node:crypto";
 import { authMiddleware, adminOnlyMiddleware, type AuthRequest } from "../middleware/auth";
+import { ensureWilliamAccount } from "../lib/william-account";
 
 const router = Router();
 
 const PLAN_PRECIOS: Record<string, number> = { basico:0, pro:89000, premium:189000, platino:399000 };
 
-/* ── William: cuenta Premium pagada y seguimiento CIVAC ────────────────────── */
+/* ── William: cuenta Premium permanente, no demo ───────────────────────────── */
 router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
-    const now = new Date();
-    const account = await db.transaction(async tx => {
-      const matches = await tx.select().from(usuariosTable)
-        .where(sql`${usuariosTable.id} = 'civac_william' OR ${usuariosTable.email} = 'william'`)
-        .limit(1);
-      const existing = matches[0];
-      if (existing && ["admin", "superadmin", "developer"].includes(existing.role)) {
-        return { conflict: true as const };
-      }
-
-      let saved = existing;
-      if (!existing) {
-        const [created] = await tx.insert(usuariosTable).values({
-          id: "civac_william",
-          nombre: "William",
-          cargo: "Cliente Premium CIVAC",
-          finca: "CIVAC",
-          email: "william",
-          password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
-          role: "cliente",
-          permisos: "[]",
-          planCode: "premium",
-          activo: true,
-          estado: "activo",
-          demoExpiry: null,
-          demoDias: 0,
-          planDias: 0,
-        }).returning();
-        saved = created;
-      } else {
-        const updates: Partial<typeof usuariosTable.$inferInsert> = {
-          nombre: "William",
-          cargo: "Cliente Premium CIVAC",
-          role: "cliente",
-          planCode: "premium",
-          demoExpiry: null,
-          demoDias: 0,
-          updatedAt: now,
-        };
-        if (existing.estado === "demo") updates.estado = "activo";
-        const [updated] = await tx.update(usuariosTable).set(updates)
-          .where(eq(usuariosTable.id, existing.id)).returning();
-        saved = updated;
-      }
-      return { account: saved, created: !existing };
-    });
-
-    if ("conflict" in account) {
+    const account = await ensureWilliamAccount();
+    if (!account.ok && account.reason === "staff_account_conflict") {
       return res.status(409).json({ ok: false, message: "El identificador de William pertenece a una cuenta de personal." });
     }
-
-    const priorConfirmation = await db.select({ id: auditLogTable.id }).from(auditLogTable)
-      .where(and(eq(auditLogTable.entidadId, account.account.id), eq(auditLogTable.accion, "paid_account_confirmed")))
-      .limit(1);
-    if (!priorConfirmation.length) {
-      await db.insert(auditLogTable).values({
-        userId: req.user?.userId ?? "admin",
-        userEmail: req.user?.email ?? "",
-        userRole: req.user?.role ?? "",
-        accion: "paid_account_confirmed",
-        entidad: "user",
-        entidadId: account.account.id,
-        detalles: JSON.stringify({ planCode: "premium", demo: false, source: "CIVAC account panel" }),
-        ipAddress: req.ip ?? "",
-        resultado: "ok",
-      });
+    if (!account.ok) {
+      const message = account.reason === "password_not_configured"
+        ? "Configura la contraseña de William en Secrets antes de activar la cuenta."
+        : "La cuenta de William está bloqueada o inactiva; no se modificó.";
+      return res.status(409).json({ ok: false, message });
     }
 
     const { password: _password, ...safeAccount } = account.account;
-    return res.json({ ok: true, created: account.created, account: safeAccount, paidAccount: true, isDemo: false });
+    return res.json({ ok: true, created: account.created, account: safeAccount, paidAccount: false, isDemo: false });
   } catch (err) {
-    return res.status(500).json({ ok: false, message: "No fue posible vincular la cuenta Premium de William.", detail: String(err) });
+    return res.status(500).json({ ok: false, message: "No fue posible activar la cuenta Premium de William.", detail: String(err) });
   }
 });
 
@@ -121,15 +65,11 @@ router.get("/admin/users/:id/monitoring", authMiddleware, adminOnlyMiddleware, a
       .where(and(eq(auditLogTable.entidadId, account.id), eq(auditLogTable.accion, "customer_followup")))
       .orderBy(desc(auditLogTable.createdAt))
       .limit(25);
-    const [paidConfirmation] = await db.select({ id: auditLogTable.id }).from(auditLogTable)
-      .where(and(eq(auditLogTable.entidadId, account.id), eq(auditLogTable.accion, "paid_account_confirmed")))
-      .limit(1);
-
     return res.json({
       ok: true,
       account: {
         ...account,
-        paidAccount: account.planCode === "premium" && !account.demoExpiry && !!paidConfirmation,
+        paidAccount: false,
         isDemo: account.estado === "demo" || !!account.demoExpiry,
       },
       followups: events.map(event => {

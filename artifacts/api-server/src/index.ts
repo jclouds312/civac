@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { ensureWilliamAccount } from "./lib/william-account";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,13 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+  void ensureWilliamAccount().then(result => {
+    if (result.ok) {
+      logger.info({ created: result.created }, "William's persistent Premium account is ready");
+    } else {
+      logger.warn({ reason: result.reason }, "William's account was not provisioned");
+    }
+  }).catch(err => {
+    logger.error({ err }, "William's account provisioning failed");
+  });
 });

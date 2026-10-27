@@ -194,16 +194,20 @@ Civac/
 
 ---
 
-## Sistema de autenticación — 6 cuentas con planes aplicados
+## Cuentas de acceso
 
-| Nombre | Email | Password | Rol | Acceso | Plan |
-|--------|-------|----------|-----|--------|------|
-| Administrador General | admin@civac.co | admin | admin | Panel Admin completo (11 tabs) | Enterprise |
-| Dr. Carlos Ramírez | vet@civac.co | vet2026 | vet | Módulos clínicos + lectura | Professional |
-| Luis Patiño | luis@civac.co | campo2026 | field | Campo: pesaje, GPS, potreros | Professional |
-| Propietario / Inversor | visor@civac.co | visor | viewer | Solo lectura / dashboards | Basic |
-| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola desarrollo (9 tabs) | Developer |
-| Super Administrador | super@civac.co | super2026 | superadmin | Acceso total plataforma | Enterprise |
+| Nombre | Usuario | Rol | Acceso | Plan |
+|--------|----------|-----|--------|------|
+| Administrador General | admin@civac.co | admin | Panel Admin completo (11 tabs) | Enterprise |
+| Dr. Carlos Ramírez | vet@civac.co | vet | Módulos clínicos + lectura | Professional |
+| Luis Patiño | luis@civac.co | field | Campo: pesaje, GPS, potreros | Professional |
+| Propietario / Inversor | visor@civac.co | viewer | Solo lectura / dashboards | Basic |
+| Dev · Arquitecto CIVAC | dev@civac.co | developer | Consola desarrollo (9 tabs) | Developer |
+| Super Administrador | super@civac.co | superadmin | Acceso total plataforma | Enterprise |
+| William | `william` | cliente | Cuenta persistente, Premium sin demo y protegida contra eliminación | Premium |
+
+Las contraseñas no se documentan en este archivo. La cuenta de William usa una
+contraseña almacenada como secreto de Replit y un hash en la base de datos.
 
 ---
 

@@ -383,6 +383,29 @@ export const DEFAULT_ACCOUNTS: Account[] = [
     ],
   },
   {
+    id: 'civac_william',
+    nombre: 'William',
+    cargo: 'Cliente CIVAC · Plan Premium',
+    finca: 'CIVAC',
+    email: 'william',
+    password: '',
+    avatar: '👤',
+    gradient: 'from-[#2a1a00] to-[#3d2800]',
+    role: 'cliente',
+    activo: true,
+    isTemplate: true,
+    isDemo: false,
+    plan: 'premium',
+    etiquetas: ['Cliente CIVAC', 'Premium permanente', 'No demo'],
+    permisos: [
+      'alertas','inventario','produccion','potreros',
+      'reproduccion','genetica','pesaje','ficha','alimentacion',
+      'gps','gps-chips','insumos','semen','costos','personal',
+      'multifinca','prediccion','ventas','asesora','sanidad','trazabilidad',
+      'pesaje-manual','co2','lotes','datos','drive',
+    ],
+  },
+  {
     id: 'demo_platino',
     nombre: 'Grupo Ganadero Córdoba Corp.',
     cargo: 'CEO · Propietario · Plan Platino — Todo Incluido',
@@ -413,7 +436,7 @@ export const DEFAULT_ACCOUNTS: Account[] = [
 ];
 
 /* ─── Versión de cuentas (fuerza refresh cuando cambian los planes) ────────── */
-const ACCOUNTS_VERSION = '7.5.0';
+const ACCOUNTS_VERSION = '7.6.0';
 
 /* ─── Template backup — persiste siempre las cuentas demo originales ─────── */
 function saveTemplateBackup() {
@@ -477,11 +500,13 @@ function loadAccounts(): Account[] {
       const parsed: Account[] = JSON.parse(stored);
       if (parsed.length > 0) {
         /* Ensure template accounts are always up-to-date from DEFAULT_ACCOUNTS */
-        const defaultMap = new Map(DEFAULT_ACCOUNTS.map(a => [a.id, a]));
+          const defaultMap = new Map(DEFAULT_ACCOUNTS.map(a => [a.id, a]));
         const withRefreshedTemplates = parsed.map(a =>
           (a.isTemplate && defaultMap.has(a.id)) ? defaultMap.get(a.id)! : a
         );
-        return withRefreshedTemplates;
+          const storedIds = new Set(withRefreshedTemplates.map(a => a.id));
+          const newTemplates = DEFAULT_ACCOUNTS.filter(a => a.isTemplate && !storedIds.has(a.id));
+          return [...withRefreshedTemplates, ...newTemplates];
       }
     }
   } catch {}

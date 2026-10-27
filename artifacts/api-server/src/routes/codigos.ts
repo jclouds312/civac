@@ -124,8 +124,8 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
           planCode: "premium",
           activo: true,
           estado: "activo",
-          planExpiry: null,
-          planDias: 0,
+          planExpiry: new Date(now.getTime() + 30 * 86_400_000),
+          planDias: 30,
           demoExpiry: null,
           demoDias: 0,
         }).returning();
@@ -137,8 +137,8 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
           cargo: "Cliente Premium CIVAC",
           planCode: "premium",
           email: WILLIAM_EMAIL,
-          planExpiry: null,
-          planDias: 0,
+          planExpiry: user.planExpiry ?? new Date(now.getTime() + 30 * 86_400_000),
+          planDias: user.planExpiry ? (user.planDias ?? 30) : 30,
           demoExpiry: null,
           demoDias: 0,
           ...(user.estado === "demo" ? { estado: "activo" } : {}),
@@ -147,20 +147,20 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
         user = updated;
       }
 
-      const codigo = `CIVAC-WILLIAM-${randomBytes(24).toString("hex").toUpperCase()}`;
+      const codigo = `CIVAC-WILLIAM-NOVIEMBRE2026-${randomBytes(24).toString("hex").toUpperCase()}`;
       const digest = createHash("sha256").update(codigo).digest("hex");
-      const expiresAt = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+      const expiresAt = new Date(now.getTime() + 30 * 86_400_000);
       const [row] = await tx.insert(codigosActivacionTable).values({
         codigo: `CARD_SHA256:${digest}`,
         planCode: "premium",
-        diasPlan: 0,
+        diasPlan: 30,
         sessionLimit: 20,
         maxAnimales: 2000,
         maxUsuarios: 15,
         estado: "disponible",
         creadoPor: req.user?.userId ?? "admin",
         expiresAt,
-        notas: `${marker}${user.id}`,
+        notas: `${marker}${user.id}:NOVIEMBRE2026`,
       }).returning();
 
       return { codigo, expiresAt, id: row.id };
@@ -186,7 +186,7 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       nombre: "William",
       role: "cliente",
       planCode: "premium",
-      diasPlan: 0,
+      diasPlan: 30,
       codigo: issued.codigo,
       expiresAt: issued.expiresAt.toISOString(),
       id: issued.id,

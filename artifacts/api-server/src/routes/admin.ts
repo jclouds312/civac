@@ -13,7 +13,7 @@ const router = Router();
 
 const PLAN_PRECIOS: Record<string, number> = { basico:0, pro:89000, premium:189000, platino:399000 };
 
-/* ── William: cuenta Premium permanente, no demo ───────────────────────────── */
+/* ── William: acceso Premium temporal de 30 días ──────────────────────────── */
 router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
     const account = await ensureWilliamAccount();
@@ -31,7 +31,14 @@ router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMidd
     }
 
     const { password: _password, ...safeAccount } = account.account;
-    return res.json({ ok: true, created: account.created, account: safeAccount, paidAccount: true, isDemo: false });
+    return res.json({
+      ok: true,
+      created: account.created,
+      account: safeAccount,
+      paidAccount: false,
+      isDemo: true,
+      accessDays: 30,
+    });
   } catch (err) {
     return res.status(500).json({ ok: false, message: "No fue posible activar la cuenta Premium de William.", detail: String(err) });
   }

@@ -33,6 +33,7 @@ export async function ensureWilliamAccount() {
     }
 
     const now = new Date();
+    const accessExpiry = new Date(now.getTime() + 30 * 86_400_000);
     if (!existing) {
       const [account] = await tx.insert(usuariosTable).values({
         id: WILLIAM_ID,
@@ -48,8 +49,8 @@ export async function ensureWilliamAccount() {
         estado: "activo",
         demoExpiry: null,
         demoDias: 0,
-        planExpiry: null,
-        planDias: 0,
+        planExpiry: accessExpiry,
+        planDias: 30,
       }).returning();
       return { ok: true as const, account, created: true };
     }
@@ -64,8 +65,8 @@ export async function ensureWilliamAccount() {
       estado: "activo",
       demoExpiry: null,
       demoDias: 0,
-      planExpiry: null,
-      planDias: 0,
+      planExpiry: existing.planExpiry ?? accessExpiry,
+      planDias: existing.planExpiry ? (existing.planDias ?? 30) : 30,
       email: WILLIAM_EMAIL,
       updatedAt: now,
     };

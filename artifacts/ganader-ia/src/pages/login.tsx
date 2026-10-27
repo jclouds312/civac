@@ -1773,7 +1773,7 @@ export default function Login() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 className="text-base font-black text-white">William · Cuenta Premium pagada</h3>
+                    <h3 className="text-base font-black text-white">William · Acceso Premium 30 días</h3>
                     <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
                       style={{ color:"#fbbf24", background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.25)" }}>
                       ACCESO PRIVADO

@@ -212,7 +212,7 @@ router.post("/auth/password", authMiddleware, async (req: AuthRequest, res) => {
 /* ── POST /api/auth/card/activate — one-time customer access card ─────────── */
 router.post("/auth/card/activate", async (req, res) => {
   const code = typeof req.body?.code === "string" ? req.body.code.trim().toUpperCase() : "";
-  if (!/^CIVAC-WILLIAM-[A-F0-9]{48}$/.test(code)) {
+  if (!/^CIVAC-WILLIAM-NOVIEMBRE2026-[A-F0-9]{48}$/.test(code)) {
     return res.status(400).json({ error: "Ingresa el código completo de la tarjeta." });
   }
 
@@ -229,6 +229,7 @@ router.post("/auth/card/activate", async (req, res) => {
         !card ||
         card.estado !== "disponible" ||
         card.planCode !== "premium" ||
+        card.diasPlan !== 30 ||
         !card.notas.startsWith("LOGIN_CARD:WILLIAM:") ||
         (card.expiresAt && new Date(card.expiresAt) <= now)
       ) {
@@ -261,14 +262,15 @@ router.post("/auth/card/activate", async (req, res) => {
       )).returning();
       if (!claimed) return { error: "invalid" as const };
 
-      const sessionExpiresAt = new Date(now.getTime() + 7 * 86_400_000);
+      const planExpiry = new Date(now.getTime() + card.diasPlan * 86_400_000);
+      const sessionExpiresAt = planExpiry;
       const [updated] = await tx.update(usuariosTable).set({
         role: "cliente",
         estado: "activo",
         activo: true,
         planCode: "premium",
-        planExpiry: null,
-        planDias: 0,
+        planExpiry,
+        planDias: card.diasPlan,
         demoExpiry: null,
         demoDias: 0,
         loginCount: (current.loginCount ?? 0) + 1,

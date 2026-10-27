@@ -711,11 +711,11 @@ function CodigosTab() {
         </div>
         <div className="p-4 space-y-3">
           <p className="text-[10px] leading-relaxed text-white/45">
-            Crea la cuenta Premium de <strong className="text-white/75">William (williamtoroparrado@gmail.com)</strong> y emite un código privado.
-            El código se muestra una sola vez, vence en 48 horas y activa Premium sin vencimiento para la cuenta ya pagada.
+            Crea la cuenta Premium de <strong className="text-white/75">William (williamtoroparrado@gmail.com)</strong> y emite un código privado de uso único.
+            El acceso completo dura 30 días; el código de campaña NOVIEMBRE2026 se muestra una sola vez.
           </p>
           <div className="flex flex-wrap items-end gap-2">
-            <span className="text-[10px] text-amber-100/65">Premium sin vencimiento</span>
+            <span className="text-[10px] text-amber-100/65">Premium · 30 días</span>
             <Button onClick={handleWilliamCard} disabled={genLoading}
               className="gap-1.5 text-xs"
               style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300" }}>
@@ -736,7 +736,7 @@ function CodigosTab() {
               </div>
               <code className="block break-all font-mono text-xs text-amber-200">{williamCard.codigo}</code>
               <p className="text-[9px] text-white/40">
-                Premium sin vencimiento. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
+                Premium por 30 días desde la activación. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
                 se consume al primer acceso en web o móvil.
               </p>
             </div>

@@ -12,7 +12,7 @@ kind = "web"
   [[services]]
   name = "web"
   paths = [ "/" ]
-  localPort = 19538
+  localPort = 5000
 
   [services.development]
   run = "pnpm --filter @workspace/ganader-ia run dev"
@@ -32,6 +32,6 @@ kind = "web"
   to = "/index.html"
 
   [services.env]
-  PORT = "19538"
+  PORT = "5000"
   BASE_PATH = "/"
   

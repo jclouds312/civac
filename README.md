@@ -131,20 +131,28 @@ el servidor; nunca se incluye en el bundle móvil.
 
 ## Cuentas CIVAC y acceso temporal de William
 
-El panel de administración puede emitir una tarjeta privada, de un solo uso,
-para la cuenta cliente de William. La tarjeta de campaña `NOVIEMBRE2026`:
+`NOVIEMBRE2026` es el nombre de la campaña, no una contraseña ni un código que
+se pueda canjear por sí solo. Para dar acceso inicial a William:
 
-- Otorga el plan Premium con acceso completo durante 30 días desde su activación.
-- Se consume una sola vez y se almacena como hash en la base de datos.
-- Tiene un plazo de 30 días para canjearse; el token de sesión vence al terminar
-  el período de acceso.
-- El código completo se muestra una sola vez en el panel de administración.
-  Entrégalo únicamente por un canal privado; no lo guardes en el README, código
-  fuente, capturas públicas ni logs.
+1. Un administrador abre **Admin → Códigos → Tarjeta de William** y pulsa
+   **Crear cuenta y tarjeta**.
+2. El panel crea un token aleatorio de un solo uso, lo almacena como hash y
+   muestra el token y la opción **Copiar enlace privado** una sola vez.
+3. Comparte el enlace directamente con William por un canal privado. Al abrirlo,
+   la tarjeta se valida automáticamente; no hace falta escribir el código
+   completo. Si se escribe únicamente `NOVIEMBRE2026`, la tarjeta no se activa.
+4. Tras el primer acceso, William puede crear una contraseña permanente en
+   **Mi cuenta → Seguridad → Crear contraseña de acceso**. La contraseña debe
+   tener al menos 10 caracteres y se guarda protegida en el servidor.
 
-El aprovisionamiento de la cuenta conserva una fecha de vencimiento existente;
-reiniciar el servidor no debe extender el acceso. Las contraseñas y códigos
-activos no se documentan aquí.
+La tarjeta otorga Premium por 30 días desde la activación y vence si no se
+canjea dentro de los 30 días posteriores a su emisión. El token de sesión vence
+al terminar el período de acceso. Reiniciar el servidor no debe extender la
+fecha de vencimiento existente.
+
+No guardar tokens de tarjeta, enlaces privados ni contraseñas en el README,
+código fuente, capturas públicas ni logs. El README documenta el procedimiento,
+no credenciales activas.
 
 ## Integraciones y API
 

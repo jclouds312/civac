@@ -602,6 +602,7 @@ function CodigosTab() {
   const [loadError, setLoadError] = useState("");
   const [williamCard, setWilliamCard] = useState<{ codigo:string; expiresAt:string; diasPlan:number }|null>(null);
   const [williamError, setWilliamError] = useState("");
+  const [williamLinkCopied, setWilliamLinkCopied] = useState(false);
 
   const authHeaders = (): Record<string, string> => {
     const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
@@ -652,7 +653,7 @@ function CodigosTab() {
   };
 
   const handleWilliamCard = async () => {
-    setGenLoading(true); setWilliamError(""); setWilliamCard(null);
+    setGenLoading(true); setWilliamError(""); setWilliamCard(null); setWilliamLinkCopied(false);
     try {
       const response = await fetch("/api/codigos/william-card", {
         method: "POST",
@@ -683,6 +684,16 @@ function CodigosTab() {
   };
 
   const copyCode = (code: string) => navigator.clipboard?.writeText(code);
+  const copyWilliamAccessLink = async (code: string) => {
+    const link = `${window.location.origin}/#william_access=${encodeURIComponent(code)}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setWilliamLinkCopied(true);
+      window.setTimeout(() => setWilliamLinkCopied(false), 2500);
+    } catch {
+      setWilliamError("No se pudo copiar el enlace privado. Intenta de nuevo desde este navegador.");
+    }
+  };
 
   const estadoBadge = (est: string) => {
     const map: Record<string, { bg: string; c: string; label: string }> = {
@@ -712,7 +723,7 @@ function CodigosTab() {
         <div className="p-4 space-y-3">
           <p className="text-[10px] leading-relaxed text-white/45">
             Crea la cuenta Premium de <strong className="text-white/75">William (williamtoroparrado@gmail.com)</strong> y emite un código privado de uso único.
-            El acceso completo dura 30 días; el código de campaña NOVIEMBRE2026 se muestra una sola vez.
+            El acceso dura 30 días. NOVIEMBRE2026 identifica la campaña; el token real es aleatorio y privado.
           </p>
           <div className="flex flex-wrap items-end gap-2">
             <span className="text-[10px] text-amber-100/65">Premium · 30 días</span>
@@ -729,15 +740,21 @@ function CodigosTab() {
               style={{ background:"rgba(251,191,36,0.07)", border:"1px solid rgba(251,191,36,0.22)" }}>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[10px] font-bold text-white/70">Código de activación para entregar en privado</span>
-                <button type="button" onClick={() => copyCode(williamCard.codigo)}
-                  className="flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200">
-                  <Copy size={11}/> Copiar
-                </button>
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={() => copyCode(williamCard.codigo)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-white/55 hover:text-white">
+                    <Copy size={11}/> Copiar código
+                  </button>
+                  <button type="button" onClick={() => void copyWilliamAccessLink(williamCard.codigo)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-amber-300 hover:text-amber-200">
+                    <Copy size={11}/> {williamLinkCopied ? "Enlace copiado" : "Copiar enlace privado"}
+                  </button>
+                </div>
               </div>
               <code className="block break-all font-mono text-xs text-amber-200">{williamCard.codigo}</code>
               <p className="text-[9px] text-white/40">
                 Premium por 30 días desde la activación. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
-                se consume al primer acceso en web o móvil.
+                el enlace privado activa la tarjeta automáticamente y se consume al primer acceso en web o móvil.
               </p>
             </div>
           )}

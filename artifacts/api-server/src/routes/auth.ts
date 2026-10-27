@@ -213,7 +213,7 @@ router.post("/auth/password", authMiddleware, async (req: AuthRequest, res) => {
 router.post("/auth/card/activate", async (req, res) => {
   const code = typeof req.body?.code === "string" ? req.body.code.trim().toUpperCase() : "";
   if (!/^CIVAC-WILLIAM-NOVIEMBRE2026-[A-F0-9]{48}$/.test(code)) {
-    return res.status(400).json({ error: "Ingresa el código completo de la tarjeta." });
+    return res.status(400).json({ error: "Abre el enlace privado de activación o pega el código completo de la tarjeta." });
   }
 
   const codeHash = createHash("sha256").update(code).digest("hex");

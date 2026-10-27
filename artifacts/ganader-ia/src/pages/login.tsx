@@ -1781,7 +1781,7 @@ export default function Login() {
                   </div>
                   <p className="text-[10px] text-amber-100/75">williamtoroparrado@gmail.com</p>
                   <p className="text-[10px] leading-relaxed text-white/45">
-                    Acceso a los módulos Premium. La tarjeta se valida en el servidor y se consume al primer uso.
+                    Campaña NOVIEMBRE2026 · abre el enlace privado para activar la tarjeta automáticamente.
                   </p>
                 </div>
                 <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
@@ -1809,7 +1809,7 @@ export default function Login() {
                     </button>
                   </div>
                   {cardError && <p role="alert" className="text-[10px] text-red-300">{cardError}</p>}
-                  <p className="text-[9px] text-white/35">El código privado lo emite un administrador y se consume al primer acceso.</p>
+                  <p className="text-[9px] text-white/35">Si recibiste el enlace privado, ábrelo para activar automáticamente; si tienes el código, pégalo completo.</p>
                 </form>
               )}
             </section>

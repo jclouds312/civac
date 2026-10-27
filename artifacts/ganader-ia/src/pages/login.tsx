@@ -1799,7 +1799,7 @@ export default function Login() {
                     <input id="william-card-code" value={cardCode}
                       onChange={e => { setCardCode(e.target.value.toUpperCase()); setCardError(""); }}
                       autoComplete="one-time-code" autoCapitalize="characters" maxLength={80}
-                      placeholder="CIVAC-WILLIAM-…"
+                      placeholder="CIVAC-WILLIAM-NOVIEMBRE2026-…"
                       className="min-w-0 flex-1 px-3 py-3 rounded-xl text-xs text-white font-mono placeholder:text-white/20 outline-none"
                       style={{ background:"rgba(0,0,0,0.3)", border:"1px solid rgba(251,191,36,0.25)" }} />
                     <button type="submit" disabled={cardBusy || !cardCode.trim()}

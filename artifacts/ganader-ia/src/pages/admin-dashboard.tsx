@@ -657,13 +657,13 @@ function CodigosTab() {
       const response = await fetch("/api/codigos/william-card", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ diasPlan: 0 }),
+        body: JSON.stringify({ diasPlan: 30 }),
       });
       const data = await response.json() as { ok?:boolean; codigo?:string; expiresAt?:string; diasPlan?:number; error?:string };
       if (!response.ok || !data.codigo || !data.expiresAt) {
         throw new Error(data.error ?? "No se pudo generar la tarjeta.");
       }
-      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? 0 });
+      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? 30 });
       setRefreshKey(key => key + 1);
     } catch (error) {
       setWilliamError(error instanceof Error ? error.message : "No se pudo crear la tarjeta.");

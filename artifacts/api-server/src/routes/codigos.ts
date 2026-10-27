@@ -5,6 +5,7 @@ import { db, codigosActivacionTable, usuariosTable, planAsignacionesTable, audit
 import { adminOnlyMiddleware, authMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
+const WILLIAM_EMAIL = "williamtoroparrado@gmail.com";
 
 /* ── Generar código único ─────────────────────────────────────────────────── */
 function genCodigo(planCode: string): string {
@@ -87,12 +88,22 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
 
   try {
     const issued = await db.transaction(async tx => {
+      const emailOwner = await tx.select({ id: usuariosTable.id }).from(usuariosTable)
+        .where(eq(usuariosTable.email, WILLIAM_EMAIL)).limit(1);
+      if (emailOwner[0] && emailOwner[0].id !== "civac_william") {
+        return { error: "email_conflict" as const };
+      }
+
       const existingRows = await tx.select().from(usuariosTable)
         .where(or(
           eq(usuariosTable.id, "civac_william"),
           eq(usuariosTable.email, "william"),
+          eq(usuariosTable.email, WILLIAM_EMAIL),
         )).limit(1);
       let user = existingRows[0];
+      if (user && user.id !== "civac_william") {
+        return { error: "account_id_conflict" as const };
+      }
       if (user && ["admin", "superadmin", "developer"].includes(user.role)) {
         return { error: "privileged" as const };
       }
@@ -106,16 +117,17 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
           nombre: "William",
           cargo: "Cliente CIVAC",
           finca: "CIVAC",
-          email: "william",
+          email: WILLIAM_EMAIL,
           password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
           role: "cliente",
           permisos: "[]",
           planCode: "premium",
           activo: true,
           estado: "activo",
+          planExpiry: null,
+          planDias: 0,
           demoExpiry: null,
           demoDias: 0,
-          planDias: 0,
         }).returning();
         user = created;
       } else {
@@ -124,6 +136,9 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
           nombre: "William",
           cargo: "Cliente Premium CIVAC",
           planCode: "premium",
+          email: WILLIAM_EMAIL,
+          planExpiry: null,
+          planDias: 0,
           demoExpiry: null,
           demoDias: 0,
           ...(user.estado === "demo" ? { estado: "activo" } : {}),
@@ -155,12 +170,19 @@ router.post("/codigos/william-card", authMiddleware, adminOnlyMiddleware, async 
       if (issued.error === "account_unavailable") {
         return res.status(409).json({ error: "La cuenta está bloqueada o inactiva; no se emitió un acceso." });
       }
+      if (issued.error === "email_conflict") {
+        return res.status(409).json({ error: "Ese Gmail ya está asignado a otra cuenta CIVAC; no se modificó." });
+      }
+      if (issued.error === "account_id_conflict") {
+        return res.status(409).json({ error: "El identificador heredado de William no coincide; no se modificó ninguna cuenta." });
+      }
       return res.status(409).json({ error: "Ese identificador ya pertenece a una cuenta de personal; no se modificó." });
     }
 
     return res.json({
       ok: true,
       username: "william",
+      email: WILLIAM_EMAIL,
       nombre: "William",
       role: "cliente",
       planCode: "premium",

@@ -821,7 +821,7 @@ export default function Login() {
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [loadingId, setLoadingId] = useState<string|null>(null);
-  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro"|"ia">("login");
+  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro"|"ia">("cuentas");
   const [entered, setEntered]     = useState(false);
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -1762,6 +1762,58 @@ export default function Login() {
           return (
           <div className="space-y-6">
 
+            {/* William's paid Premium account is the first quick-access card. */}
+            <section id="william-login-card" className="relative rounded-3xl overflow-hidden"
+              style={{ background:"linear-gradient(145deg,rgba(4,13,26,0.97),rgba(20,15,5,0.95))", border:"1.5px solid rgba(251,191,36,0.3)", boxShadow:"0 0 30px rgba(251,191,36,0.08)" }}>
+              <div className="h-1 w-full" style={{ background:"linear-gradient(90deg,#fbbf24,#f59e0b,transparent)" }}/>
+              <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+                  style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", boxShadow:"0 0 20px rgba(251,191,36,0.12)" }}>
+                  🏆
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 className="text-base font-black text-white">William · Cuenta Premium pagada</h3>
+                    <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
+                      style={{ color:"#fbbf24", background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.25)" }}>
+                      ACCESO PRIVADO
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-amber-100/75">williamtoroparrado@gmail.com</p>
+                  <p className="text-[10px] leading-relaxed text-white/45">
+                    Acceso a los módulos Premium. La tarjeta se valida en el servidor y se consume al primer uso.
+                  </p>
+                </div>
+                <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
+                  className="flex-shrink-0 px-4 py-3 rounded-xl text-xs font-black transition-all hover:brightness-110"
+                  style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300", boxShadow:"0 0 18px rgba(251,191,36,0.18)" }}>
+                  {showCardAccess ? "Cerrar acceso" : "Acceder a William"}
+                </button>
+              </div>
+              {showCardAccess && (
+                <form onSubmit={handleCardActivate} className="px-5 pb-5 space-y-2.5">
+                  <label htmlFor="william-card-code" className="block text-[10px] font-bold text-amber-200/75">
+                    Código privado de acceso
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input id="william-card-code" value={cardCode}
+                      onChange={e => { setCardCode(e.target.value.toUpperCase()); setCardError(""); }}
+                      autoComplete="one-time-code" autoCapitalize="characters" maxLength={80}
+                      placeholder="CIVAC-WILLIAM-…"
+                      className="min-w-0 flex-1 px-3 py-3 rounded-xl text-xs text-white font-mono placeholder:text-white/20 outline-none"
+                      style={{ background:"rgba(0,0,0,0.3)", border:"1px solid rgba(251,191,36,0.25)" }} />
+                    <button type="submit" disabled={cardBusy || !cardCode.trim()}
+                      className="px-5 py-3 rounded-xl text-xs font-black disabled:opacity-50"
+                      style={{ background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.35)", color:"#fbbf24" }}>
+                      {cardBusy ? "Validando…" : "Entrar con Premium"}
+                    </button>
+                  </div>
+                  {cardError && <p role="alert" className="text-[10px] text-red-300">{cardError}</p>}
+                  <p className="text-[9px] text-white/35">El código privado lo emite un administrador y se consume al primer acceso.</p>
+                </form>
+              )}
+            </section>
+
             {/* ── Sección Planes Demo — PRIMERO (el producto) ── */}
             <div>
               <div className="flex items-center gap-3 mb-1">
@@ -1925,57 +1977,6 @@ export default function Login() {
                 })}
               </div>
             </div>
-
-            {/* William's paid customer account: card access stays server-validated. */}
-            <section className="relative rounded-3xl overflow-hidden"
-              style={{ background:"linear-gradient(145deg,rgba(4,13,26,0.97),rgba(20,15,5,0.95))", border:"1.5px solid rgba(251,191,36,0.3)", boxShadow:"0 0 30px rgba(251,191,36,0.08)" }}>
-              <div className="h-1 w-full" style={{ background:"linear-gradient(90deg,#fbbf24,#f59e0b,transparent)" }}/>
-              <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                  style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", boxShadow:"0 0 20px rgba(251,191,36,0.12)" }}>
-                  🏆
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 className="text-base font-black text-white">William · Cuenta Premium pagada</h3>
-                    <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
-                      style={{ color:"#fbbf24", background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.25)" }}>
-                      ACCESO PRIVADO
-                    </span>
-                  </div>
-                  <p className="text-[10px] leading-relaxed text-white/45">
-                    Acceso a los módulos Premium de la cuenta de William. La tarjeta de acceso se valida en el servidor y no expone credenciales.
-                  </p>
-                </div>
-                <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
-                  className="flex-shrink-0 px-4 py-3 rounded-xl text-xs font-black transition-all hover:brightness-110"
-                  style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300", boxShadow:"0 0 18px rgba(251,191,36,0.18)" }}>
-                  {showCardAccess ? "Cerrar acceso" : "Acceder a William"}
-                </button>
-              </div>
-              {showCardAccess && (
-                <form onSubmit={handleCardActivate} className="px-5 pb-5 space-y-2.5">
-                  <label htmlFor="william-card-code" className="block text-[10px] font-bold text-amber-200/75">
-                    Código privado de acceso
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input id="william-card-code" value={cardCode}
-                      onChange={e => { setCardCode(e.target.value.toUpperCase()); setCardError(""); }}
-                      autoComplete="one-time-code" autoCapitalize="characters" maxLength={80}
-                      placeholder="CIVAC-WILLIAM-…"
-                      className="min-w-0 flex-1 px-3 py-3 rounded-xl text-xs text-white font-mono placeholder:text-white/20 outline-none"
-                      style={{ background:"rgba(0,0,0,0.3)", border:"1px solid rgba(251,191,36,0.25)" }} />
-                    <button type="submit" disabled={cardBusy || !cardCode.trim()}
-                      className="px-5 py-3 rounded-xl text-xs font-black disabled:opacity-50"
-                      style={{ background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.35)", color:"#fbbf24" }}>
-                      {cardBusy ? "Validando…" : "Entrar con Premium"}
-                    </button>
-                  </div>
-                  {cardError && <p role="alert" className="text-[10px] text-red-300">{cardError}</p>}
-                  <p className="text-[9px] text-white/35">El código se solicita al administrador CIVAC y se consume al primer acceso.</p>
-                </form>
-              )}
-            </section>
 
             {/* ══════════════════════════════════════════════════════════
                 CIVAC ADMIN ACCOUNTS — equipo interno con tarjetas

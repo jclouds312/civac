@@ -600,7 +600,6 @@ function CodigosTab() {
   const [genMsg,     setGenMsg]     = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [loadError, setLoadError] = useState("");
-  const [williamDays, setWilliamDays] = useState(30);
   const [williamCard, setWilliamCard] = useState<{ codigo:string; expiresAt:string; diasPlan:number }|null>(null);
   const [williamError, setWilliamError] = useState("");
 
@@ -658,13 +657,13 @@ function CodigosTab() {
       const response = await fetch("/api/codigos/william-card", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeaders() },
-        body: JSON.stringify({ diasPlan: williamDays }),
+        body: JSON.stringify({ diasPlan: 0 }),
       });
       const data = await response.json() as { ok?:boolean; codigo?:string; expiresAt?:string; diasPlan?:number; error?:string };
       if (!response.ok || !data.codigo || !data.expiresAt) {
         throw new Error(data.error ?? "No se pudo generar la tarjeta.");
       }
-      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? williamDays });
+      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? 0 });
       setRefreshKey(key => key + 1);
     } catch (error) {
       setWilliamError(error instanceof Error ? error.message : "No se pudo crear la tarjeta.");
@@ -712,21 +711,11 @@ function CodigosTab() {
         </div>
         <div className="p-4 space-y-3">
           <p className="text-[10px] leading-relaxed text-white/45">
-            Crea la cuenta Premium de <strong className="text-white/75">William</strong> y emite un código privado.
-            El código se muestra una sola vez, vence en 48 horas y activa Premium por el período elegido.
+            Crea la cuenta Premium de <strong className="text-white/75">William (williamtoroparrado@gmail.com)</strong> y emite un código privado.
+            El código se muestra una sola vez, vence en 48 horas y activa Premium sin vencimiento para la cuenta ya pagada.
           </p>
           <div className="flex flex-wrap items-end gap-2">
-            <div>
-              <Label className="text-[10px] text-white/50 mb-1 block">Duración Premium</Label>
-              <Select value={String(williamDays)} onValueChange={value => setWilliamDays(Number(value))}>
-                <SelectTrigger className="h-8 w-36 text-xs" style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)" }}>
-                  <SelectValue/>
-                </SelectTrigger>
-                <SelectContent>
-                  {[30,60,90,180,365].map(days => <SelectItem key={days} value={String(days)}>{days} días</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <span className="text-[10px] text-amber-100/65">Premium sin vencimiento</span>
             <Button onClick={handleWilliamCard} disabled={genLoading}
               className="gap-1.5 text-xs"
               style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300" }}>
@@ -747,7 +736,7 @@ function CodigosTab() {
               </div>
               <code className="block break-all font-mono text-xs text-amber-200">{williamCard.codigo}</code>
               <p className="text-[9px] text-white/40">
-                Premium por {williamCard.diasPlan} días. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
+                Premium sin vencimiento. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
                 se consume al primer acceso en web o móvil.
               </p>
             </div>

@@ -27,9 +27,10 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlencode
 
 from werkzeug.exceptions import HTTPException
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory
 from flask_cors import CORS
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,6 +100,127 @@ def _allowed_values(payload: dict[str, Any], columns: set[str], drop: set[str] |
         if column in columns and column not in drop:
             values[column] = value
     return values
+
+
+def _hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16).hex()
+    key = hashlib.scrypt(
+        password.encode("utf-8"),
+        salt=salt.encode("ascii"),
+        n=2**14,
+        r=8,
+        p=1,
+        dklen=64,
+        maxmem=64 * 1024 * 1024,
+    )
+    return f"scrypt${salt}${key.hex()}"
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    parts = stored.split("$")
+    if (
+        len(parts) == 3
+        and parts[0] == "scrypt"
+        and re.fullmatch(r"[a-fA-F0-9]{32}", parts[1])
+        and re.fullmatch(r"[a-fA-F0-9]{128}", parts[2])
+    ):
+        try:
+            actual = hashlib.scrypt(
+                password.encode("utf-8"),
+                salt=parts[1].encode("ascii"),
+                n=2**14,
+                r=8,
+                p=1,
+                dklen=64,
+                maxmem=64 * 1024 * 1024,
+            )
+            return hmac.compare_digest(actual.hex(), parts[2].lower())
+        except (ValueError, MemoryError):
+            return False
+    return hmac.compare_digest(password, stored)
+
+
+def _app_base_url() -> str | None:
+    configured = (
+        os.getenv("APP_BASE_URL")
+        or os.getenv("NEXT_PUBLIC_APP_URL")
+        or os.getenv("PUBLIC_APP_URL")
+        or os.getenv("REPLIT_DEV_DOMAIN")
+        or os.getenv("REPLIT_DOMAINS", "").split(",", 1)[0].strip()
+        or os.getenv("VERCEL_URL")
+        or ""
+    ).strip().rstrip("/")
+    if not configured:
+        if os.getenv("NODE_ENV") == "production":
+            return None
+        return "http://localhost:5000"
+    if "://" not in configured:
+        configured = f"http://{configured}" if configured.startswith("localhost") else f"https://{configured}"
+    return configured
+
+
+def _google_callback_url(path: str) -> str:
+    base_url = _app_base_url()
+    if not base_url:
+        raise ValueError("La URL pública de la aplicación no está configurada")
+    return f"{base_url}{path}"
+
+
+def _google_configured() -> bool:
+    return bool(os.getenv("GOOGLE_CLIENT_ID") and os.getenv("GOOGLE_CLIENT_SECRET") and _app_base_url())
+
+
+def _oauth_cookie_options(path: str) -> dict[str, Any]:
+    forwarded_proto = request.headers.get("X-Forwarded-Proto", "").split(",", 1)[0].strip().lower()
+    return {
+        "httponly": True,
+        "secure": request.is_secure or forwarded_proto == "https",
+        "samesite": "Lax",
+        "max_age": 5 * 60,
+        "path": path,
+    }
+
+
+def _google_authorization_url(callback_path: str, state: str) -> str:
+    params = {
+        "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+        "redirect_uri": _google_callback_url(callback_path),
+        "response_type": "code",
+        "scope": "email profile openid",
+        "access_type": "offline",
+        "prompt": "select_account consent",
+        "state": state,
+    }
+    return f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}"
+
+
+def _google_exchange(code: str, callback_path: str) -> dict[str, Any]:
+    token_request = urllib.request.Request(
+        "https://oauth2.googleapis.com/token",
+        data=urlencode({
+            "code": code,
+            "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
+            "client_secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
+            "redirect_uri": _google_callback_url(callback_path),
+            "grant_type": "authorization_code",
+        }).encode("utf-8"),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    with urllib.request.urlopen(token_request, timeout=15) as response:
+        token_data = json.loads(response.read().decode("utf-8"))
+    access_token = token_data.get("access_token")
+    if not access_token:
+        raise ValueError("Google no entregó un token de acceso")
+    info_request = urllib.request.Request(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    with urllib.request.urlopen(info_request, timeout=15) as response:
+        user_info = json.loads(response.read().decode("utf-8"))
+    if not user_info.get("id") or not user_info.get("email") or user_info.get("verified_email") is not True:
+        raise ValueError("Google no devolvió un correo verificado")
+    return user_info
 
 
 # Public API route -> PostgreSQL table and behavior.  Keeping this list
@@ -378,6 +500,11 @@ def _session_user(token: str):
     except Exception:
         pass
     return None
+
+
+def _bearer_token() -> str:
+    scheme, _, token = request.headers.get("Authorization", "").partition(" ")
+    return token.strip() if scheme.lower() == "bearer" else ""
 
 
 AI_ROLE_GUIDANCE = {
@@ -790,9 +917,13 @@ def login():
     try:
         with _db() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT * FROM usuarios_sistema WHERE lower(email) = %s LIMIT 1", (email,))
+                cur.execute(
+                    "SELECT * FROM usuarios_sistema WHERE lower(email) = %s OR id = %s LIMIT 1",
+                    (email, email),
+                )
                 db_user = cur.fetchone()
-                if db_user and db_user["password"] == password:
+                stored_password = str(db_user.get("password") or "") if db_user else ""
+                if db_user and not stored_password.startswith("CARD_ONLY:") and _verify_password(password, stored_password):
                     if db_user.get("estado") in {"bloqueado", "pendiente"}:
                         return _error("Cuenta no activa", 403)
                     user = _json_row(db_user, {"password", "created_at", "updated_at"})
@@ -824,9 +955,387 @@ def login():
 
 @app.get("/api/auth/me")
 def auth_me():
-    token = request.headers.get("Authorization", "").replace("Bearer ", "").strip()
+    token = _bearer_token()
     user = _session_user(token) if token else None
-    return jsonify(user) if user else _error("Sesión inválida o expirada", 401)
+    if not user:
+        return _error("Sesión inválida o expirada", 401)
+    response = dict(user)
+    response.update({
+        "hasPassword": False,
+        "googleLinked": False,
+        "googleEmail": None,
+        "googleFoto": None,
+    })
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT email, password, google_id, google_foto, cargo, finca, estado, "
+                    "plan_expiry, plan_dias, demo_expiry, demo_dias, login_count "
+                    "FROM usuarios_sistema WHERE id = %s LIMIT 1",
+                    (user["id"],),
+                )
+                account = cur.fetchone()
+                if account:
+                    google_linked = bool(account.get("google_id"))
+                    response.update({
+                        "email": account.get("email") or user.get("email"),
+                        "hasPassword": bool(account.get("password")) and not str(account.get("password")).startswith("CARD_ONLY:"),
+                        "googleLinked": google_linked,
+                        "googleEmail": account.get("email") if google_linked else None,
+                        "googleFoto": account.get("google_foto"),
+                        "cargo": account.get("cargo") or "",
+                        "finca": account.get("finca") or "",
+                        "estado": account.get("estado") or user.get("estado"),
+                        "planExpiry": account["plan_expiry"].isoformat() if account.get("plan_expiry") else None,
+                        "planDias": account.get("plan_dias") or 0,
+                        "demoExpiry": account["demo_expiry"].isoformat() if account.get("demo_expiry") else None,
+                        "demoDias": account.get("demo_dias") or 0,
+                        "loginCount": account.get("login_count") or 0,
+                    })
+    except Exception:
+        pass
+    return jsonify(response)
+
+
+@app.post("/api/auth/password")
+def auth_password():
+    token = _bearer_token()
+    user = _session_user(token) if token else None
+    if not user:
+        return _error("Inicia sesión para cambiar tu contraseña.", 401)
+    payload = _body()
+    current_password = payload.get("currentPassword")
+    new_password = payload.get("newPassword")
+    if not isinstance(new_password, str) or not 10 <= len(new_password) <= 128:
+        return _error("La contraseña nueva debe tener entre 10 y 128 caracteres.", 400)
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT password, estado, activo FROM usuarios_sistema WHERE id = %s LIMIT 1",
+                    (user["id"],),
+                )
+                account = cur.fetchone()
+                if not account or account.get("estado") == "bloqueado" or account.get("activo") is False:
+                    return _error("La cuenta no está disponible.", 403)
+                stored_password = str(account.get("password") or "")
+                first_password = not stored_password or stored_password.startswith("CARD_ONLY:")
+                if not first_password and (
+                    not isinstance(current_password, str)
+                    or not _verify_password(current_password, stored_password)
+                ):
+                    return _error("La contraseña actual no es correcta.", 403)
+                cur.execute(
+                    "UPDATE usuarios_sistema SET password = %s, updated_at = NOW() WHERE id = %s",
+                    (_hash_password(new_password), user["id"]),
+                )
+            conn.commit()
+        return jsonify({"ok": True, "hasPassword": True})
+    except Exception:
+        return _error("No fue posible actualizar la contraseña. Intenta de nuevo.", 503)
+
+
+@app.get("/api/auth/google/status")
+def google_status():
+    return jsonify({"configured": _google_configured()})
+
+
+@app.post("/api/auth/google/link/start")
+def google_link_start():
+    token = _bearer_token()
+    user = _session_user(token) if token else None
+    if not user or user.get("id") != "civac_william":
+        return _error("Esta vinculación está habilitada para la cuenta William.", 403)
+    if not _google_configured():
+        return _error("Google OAuth requiere credenciales y una URL pública configurada.", 503)
+
+    state = secrets.token_hex(32)
+    response = jsonify({
+        "authorizationUrl": _google_authorization_url("/api/auth/google/link/callback", state),
+    })
+    cookie_options = _oauth_cookie_options("/api/auth/google/link/callback")
+    response.set_cookie("civac_google_link_state", state, **cookie_options)
+    response.set_cookie("civac_google_link_session", token, **cookie_options)
+    return response
+
+
+@app.get("/api/auth/google/link/callback")
+def google_link_callback():
+    frontend_url = _app_base_url()
+    fail = lambda reason: redirect(f"{frontend_url}/mi-cuenta?google_link_error={reason}")
+    state = request.args.get("state", "")
+    expected_state = request.cookies.get("civac_google_link_state", "")
+    session_token = request.cookies.get("civac_google_link_session", "")
+    response_cookies_path = "/api/auth/google/link/callback"
+
+    if (
+        not state
+        or not expected_state
+        or len(state) != len(expected_state)
+        or not hmac.compare_digest(state, expected_state)
+    ):
+        response = fail("state")
+    elif not _google_configured():
+        response = fail("config")
+    elif request.args.get("error") or not request.args.get("code") or not session_token:
+        response = fail("cancelled")
+    else:
+        try:
+            with _db() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT user_id FROM user_sessions WHERE id = %s AND user_id = 'civac_william' "
+                        "AND expires_at > NOW() LIMIT 1",
+                        (session_token,),
+                    )
+                    session = cur.fetchone()
+                    if not session:
+                        response = fail("session")
+                    else:
+                        cur.execute(
+                            "SELECT id, email, activo, estado FROM usuarios_sistema "
+                            "WHERE id = 'civac_william' LIMIT 1"
+                        )
+                        account = cur.fetchone()
+                        if not account or account.get("estado") == "bloqueado" or account.get("activo") is False:
+                            response = fail("account")
+                        else:
+                            google_user = _google_exchange(
+                                request.args["code"],
+                                "/api/auth/google/link/callback",
+                            )
+                            google_email = str(google_user["email"]).strip().lower()
+                            cur.execute(
+                                "SELECT id FROM usuarios_sistema WHERE "
+                                "(lower(email) = %s OR google_id = %s) AND id <> 'civac_william' LIMIT 1",
+                                (google_email, str(google_user["id"])),
+                            )
+                            if cur.fetchone():
+                                response = fail("already_linked")
+                            else:
+                                cur.execute(
+                                    "UPDATE usuarios_sistema SET email = %s, google_id = %s, google_foto = %s, "
+                                    "updated_at = NOW() WHERE id = 'civac_william'",
+                                    (google_email, str(google_user["id"]), google_user.get("picture")),
+                                )
+                                cur.execute(
+                                    "UPDATE user_sessions SET user_email = %s WHERE user_id = 'civac_william'",
+                                    (google_email,),
+                                )
+                                conn.commit()
+                                response = redirect(f"{frontend_url}/mi-cuenta?google_linked=1")
+        except Exception:
+            response = fail("server")
+
+    response.delete_cookie("civac_google_link_state", path=response_cookies_path)
+    response.delete_cookie("civac_google_link_session", path=response_cookies_path)
+    return response
+
+
+@app.post("/api/auth/card/activate")
+def activate_william_card():
+    code = str(_body().get("code", "")).strip().upper()
+    if not re.fullmatch(r"CIVAC-WILLIAM-[A-F0-9]{48}", code):
+        return _error("Ingresa el código completo de la tarjeta.", 400)
+    code_digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
+    stored_code = f"CARD_SHA256:{code_digest}"
+    now = datetime.now(timezone.utc)
+    try:
+        with _db() as conn:
+            with conn.transaction():
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT * FROM codigos_activacion WHERE codigo = %s FOR UPDATE",
+                        (stored_code,),
+                    )
+                    card = cur.fetchone()
+                    if (
+                        not card
+                        or card.get("estado") != "disponible"
+                        or card.get("plan_code") != "premium"
+                        or not str(card.get("notas") or "").startswith("LOGIN_CARD:WILLIAM:")
+                        or (card.get("expires_at") and card["expires_at"] <= now)
+                    ):
+                        return _error("La tarjeta no es válida, venció o ya fue utilizada.", 401)
+                    user_id = str(card["notas"])[len("LOGIN_CARD:WILLIAM:"):]
+                    cur.execute(
+                        "SELECT id, nombre, email, cargo, finca, role, activo, estado FROM usuarios_sistema "
+                        "WHERE id = %s FOR UPDATE",
+                        (user_id,),
+                    )
+                    account = cur.fetchone()
+                    if (
+                        not account
+                        or account.get("estado") == "bloqueado"
+                        or account.get("activo") is False
+                        or account.get("role") in {"admin", "superadmin", "developer"}
+                    ):
+                        return _error("La cuenta no está disponible. Contacta al administrador CIVAC.", 403)
+                    cur.execute(
+                        "UPDATE codigos_activacion SET estado = 'usado', usado_por = %s, "
+                        "usado_por_email = %s, usado_por_nombre = %s, usado_at = NOW() "
+                        "WHERE id = %s AND estado = 'disponible' AND (expires_at IS NULL OR expires_at > NOW()) "
+                        "RETURNING id",
+                        (user_id, account["email"], account["nombre"], card["id"]),
+                    )
+                    if not cur.fetchone():
+                        return _error("La tarjeta no es válida, venció o ya fue utilizada.", 401)
+                    cur.execute(
+                        "UPDATE usuarios_sistema SET role = 'cliente', estado = 'activo', activo = true, "
+                        "plan_code = 'premium', plan_expiry = NULL, plan_dias = 0, demo_expiry = NULL, "
+                        "demo_dias = 0, login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), "
+                        "updated_at = NOW() WHERE id = %s",
+                        (user_id,),
+                    )
+                    token = secrets.token_hex(32)
+                    cur.execute(
+                        "INSERT INTO user_sessions "
+                        "(id, user_id, user_email, user_role, user_name, plan_code, ip_address, user_agent, expires_at) "
+                        "VALUES (%s,%s,%s,'cliente',%s,'premium',%s,%s,NOW()+INTERVAL '7 days')",
+                        (
+                            token,
+                            user_id,
+                            account["email"],
+                            account["nombre"],
+                            request.remote_addr or "",
+                            request.user_agent.string or "",
+                        ),
+                    )
+            return jsonify({
+                "token": token,
+                "user": {
+                    "id": user_id,
+                    "nombre": account["nombre"],
+                    "email": account["email"],
+                    "role": "cliente",
+                    "cargo": account.get("cargo") or "",
+                    "finca": account.get("finca") or "",
+                    "planCode": "premium",
+                    "estado": "activo",
+                    "planExpiry": None,
+                },
+            })
+    except Exception:
+        return _error("No fue posible activar la tarjeta. Intenta de nuevo.", 503)
+
+
+@app.post("/api/codigos/william-card")
+def issue_william_card():
+    admin = _session_user(_bearer_token())
+    if not admin:
+        return _error("Inicia sesión como administrador para emitir esta tarjeta.", 401)
+    if admin.get("role") not in {"admin", "superadmin", "developer"}:
+        return _error("Admin access required", 403)
+
+    email = "williamtoroparrado@gmail.com"
+    marker = "LOGIN_CARD:WILLIAM:"
+    code = f"CIVAC-WILLIAM-{secrets.token_hex(24).upper()}"
+    stored_code = f"CARD_SHA256:{hashlib.sha256(code.encode('utf-8')).hexdigest()}"
+    expires_at = datetime.now(timezone.utc) + timedelta(hours=48)
+
+    try:
+        with _db() as conn:
+            with conn.transaction():
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT id FROM usuarios_sistema WHERE lower(email) = %s LIMIT 1",
+                        (email,),
+                    )
+                    email_owner = cur.fetchone()
+                    if email_owner and email_owner["id"] != "civac_william":
+                        return _error("Ese Gmail ya está asignado a otra cuenta CIVAC; no se modificó.", 409)
+
+                    cur.execute(
+                        "SELECT * FROM usuarios_sistema WHERE id = 'civac_william' "
+                        "OR lower(email) IN ('william', %s) "
+                        "ORDER BY CASE WHEN id = 'civac_william' THEN 0 ELSE 1 END LIMIT 1 FOR UPDATE",
+                        (email,),
+                    )
+                    account = cur.fetchone()
+                    if account and account.get("id") != "civac_william":
+                        return _error("El identificador heredado de William no coincide; no se modificó ninguna cuenta.", 409)
+                    if account and account.get("role") in {"admin", "superadmin", "developer"}:
+                        return _error("Ese identificador ya pertenece a una cuenta de personal; no se modificó.", 409)
+                    if account and (
+                        account.get("estado") == "bloqueado"
+                        or account.get("activo") is False
+                    ):
+                        return _error("La cuenta está bloqueada o inactiva; no se emitió un acceso.", 409)
+
+                    if account:
+                        user_id = account["id"]
+                        cur.execute(
+                            "UPDATE usuarios_sistema SET nombre = 'William', cargo = 'Cliente Premium CIVAC', "
+                            "email = %s, role = 'cliente', plan_code = 'premium', plan_expiry = NULL, "
+                            "plan_dias = 0, demo_expiry = NULL, demo_dias = 0, "
+                            "estado = CASE WHEN estado = 'demo' THEN 'activo' ELSE estado END, "
+                            "updated_at = NOW() WHERE id = %s "
+                            "RETURNING id, nombre, email",
+                            (email, user_id),
+                        )
+                        account = cur.fetchone()
+                    else:
+                        user_id = "civac_william"
+                        cur.execute(
+                            "INSERT INTO usuarios_sistema "
+                            "(id, nombre, cargo, finca, email, password, role, permisos, plan_code, activo, estado, "
+                            "plan_expiry, plan_dias, demo_expiry, demo_dias) "
+                            "VALUES (%s, 'William', 'Cliente Premium CIVAC', 'CIVAC', %s, %s, "
+                            "'cliente', '[]', 'premium', true, 'activo', NULL, 0, NULL, 0) "
+                            "RETURNING id, nombre, email",
+                            (user_id, email, f"CARD_ONLY:{secrets.token_hex(32)}"),
+                        )
+                        account = cur.fetchone()
+
+                    cur.execute(
+                        "INSERT INTO codigos_activacion "
+                        "(codigo, plan_code, dias_plan, session_limit, max_animales, max_usuarios, estado, "
+                        "creado_por, expires_at, notas) "
+                        "VALUES (%s, 'premium', 0, 20, 2000, 15, 'disponible', %s, %s, %s) "
+                        "RETURNING id",
+                        (stored_code, admin.get("id", "admin"), expires_at, f"{marker}{user_id}"),
+                    )
+                    code_row = cur.fetchone()
+
+        return jsonify({
+            "ok": True,
+            "username": "william",
+            "email": email,
+            "nombre": "William",
+            "role": "cliente",
+            "planCode": "premium",
+            "diasPlan": 0,
+            "codigo": code,
+            "expiresAt": expires_at.isoformat(),
+            "id": code_row["id"],
+        })
+    except Exception:
+        return _error("No fue posible crear la cuenta Premium y su tarjeta privada.", 503)
+
+
+@app.get("/api/codigos")
+def list_activation_codes():
+    admin = _session_user(_bearer_token())
+    if not admin:
+        return _error("Inicia sesión como administrador para consultar las tarjetas.", 401)
+    if admin.get("role") not in {"admin", "superadmin", "developer"}:
+        return _error("Admin access required", 403)
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM codigos_activacion ORDER BY created_at DESC LIMIT 200")
+                rows = cur.fetchall()
+        codes = []
+        for row in rows:
+            safe_row = dict(row)
+            if str(safe_row.get("codigo", "")).startswith("CARD_SHA256:"):
+                safe_row["codigo"] = "Tarjeta de activación protegida"
+                safe_row["notas"] = "Acceso cliente William"
+            codes.append(_json_row(safe_row))
+        return jsonify({"ok": True, "codigos": codes})
+    except Exception:
+        return _error("No fue posible cargar los códigos.", 503)
 
 
 @app.post("/api/auth/logout")

@@ -267,6 +267,8 @@ router.post("/auth/card/activate", async (req, res) => {
         estado: "activo",
         activo: true,
         planCode: "premium",
+        planExpiry: null,
+        planDias: 0,
         demoExpiry: null,
         demoDias: 0,
         loginCount: (current.loginCount ?? 0) + 1,

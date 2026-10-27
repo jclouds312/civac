@@ -20,15 +20,18 @@ router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMidd
     if (!account.ok && account.reason === "staff_account_conflict") {
       return res.status(409).json({ ok: false, message: "El identificador de William pertenece a una cuenta de personal." });
     }
+    if (!account.ok && account.reason === "email_conflict") {
+      return res.status(409).json({ ok: false, message: "El Gmail indicado ya pertenece a otra cuenta CIVAC." });
+    }
+    if (!account.ok && account.reason === "account_id_conflict") {
+      return res.status(409).json({ ok: false, message: "El identificador heredado de William no coincide; no se modificó ninguna cuenta." });
+    }
     if (!account.ok) {
-      const message = account.reason === "password_not_configured"
-        ? "Configura la contraseña de William en Secrets antes de activar la cuenta."
-        : "La cuenta de William está bloqueada o inactiva; no se modificó.";
-      return res.status(409).json({ ok: false, message });
+      return res.status(409).json({ ok: false, message: "La cuenta de William está bloqueada o inactiva; no se modificó." });
     }
 
     const { password: _password, ...safeAccount } = account.account;
-    return res.json({ ok: true, created: account.created, account: safeAccount, paidAccount: false, isDemo: false });
+    return res.json({ ok: true, created: account.created, account: safeAccount, paidAccount: true, isDemo: false });
   } catch (err) {
     return res.status(500).json({ ok: false, message: "No fue posible activar la cuenta Premium de William.", detail: String(err) });
   }

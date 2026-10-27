@@ -1,32 +1,30 @@
-import { randomBytes, scrypt } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { eq, or } from "drizzle-orm";
 import { db, usuariosTable } from "@workspace/db";
 
 const WILLIAM_ID = "civac_william";
-const WILLIAM_EMAIL = "william";
-
-function hashPassword(password: string): Promise<string> {
-  const salt = randomBytes(16).toString("hex");
-  return new Promise((resolve, reject) => {
-    scrypt(password, salt, 64, (error, key) => {
-      if (error) reject(error);
-      else resolve(`scrypt$${salt}$${Buffer.from(key).toString("hex")}`);
-    });
-  });
-}
+const WILLIAM_EMAIL = "williamtoroparrado@gmail.com";
 
 export async function ensureWilliamAccount() {
-  const password = process.env.WILLIAM_ACCOUNT_PASSWORD;
-  if (!password || password.length < 10 || password.length > 128) {
-    return { ok: false as const, reason: "password_not_configured" };
-  }
-
   return db.transaction(async tx => {
+    const emailOwners = await tx.select({ id: usuariosTable.id }).from(usuariosTable)
+      .where(eq(usuariosTable.email, WILLIAM_EMAIL)).limit(1);
+    if (emailOwners[0] && emailOwners[0].id !== WILLIAM_ID) {
+      return { ok: false as const, reason: "email_conflict" };
+    }
+
     const matches = await tx.select().from(usuariosTable)
-      .where(or(eq(usuariosTable.id, WILLIAM_ID), eq(usuariosTable.email, WILLIAM_EMAIL)))
+      .where(or(
+        eq(usuariosTable.id, WILLIAM_ID),
+        eq(usuariosTable.email, "william"),
+        eq(usuariosTable.email, WILLIAM_EMAIL),
+      ))
       .limit(1);
     const existing = matches[0];
 
+    if (existing && existing.id !== WILLIAM_ID) {
+      return { ok: false as const, reason: "account_id_conflict" };
+    }
     if (existing && ["admin", "superadmin", "developer"].includes(existing.role)) {
       return { ok: false as const, reason: "staff_account_conflict" };
     }
@@ -36,16 +34,15 @@ export async function ensureWilliamAccount() {
 
     const now = new Date();
     if (!existing) {
-      const passwordHash = await hashPassword(password);
       const [account] = await tx.insert(usuariosTable).values({
         id: WILLIAM_ID,
         nombre: "William",
         cargo: "Cliente Premium CIVAC",
         finca: "CIVAC",
         email: WILLIAM_EMAIL,
-        password: passwordHash,
+        password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
         role: "cliente",
-        permisos: JSON.stringify(["*"]),
+        permisos: "[]",
         planCode: "premium",
         activo: true,
         estado: "activo",
@@ -61,7 +58,7 @@ export async function ensureWilliamAccount() {
       nombre: "William",
       cargo: "Cliente Premium CIVAC",
       role: "cliente",
-      permisos: JSON.stringify(["*"]),
+      permisos: "[]",
       planCode: "premium",
       activo: true,
       estado: "activo",
@@ -72,9 +69,6 @@ export async function ensureWilliamAccount() {
       email: WILLIAM_EMAIL,
       updatedAt: now,
     };
-    if (existing.password.startsWith("CARD_ONLY:")) {
-      updates.password = await hashPassword(password);
-    }
 
     const [account] = await tx.update(usuariosTable).set(updates)
       .where(eq(usuariosTable.id, existing.id)).returning();

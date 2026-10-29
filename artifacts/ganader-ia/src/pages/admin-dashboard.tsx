@@ -73,6 +73,28 @@ type WilliamMonitoring = {
   followups: WilliamFollowup[];
 };
 
+type AdminSession = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userRole: string;
+  userName: string;
+  planCode: string;
+  ipAddress: string;
+  userAgent: string;
+  expiresAt: string;
+  createdAt: string;
+  daysUsed: number;
+};
+
+type AccountUsageDays = {
+  userId: string;
+  userName: string | null;
+  userEmail: string | null;
+  userRole: string | null;
+  daysUsed: number;
+};
+
 const williamAuthHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -157,13 +179,6 @@ const BASC_MODULES_DEFAULT = {
   pesaje_manual: { enabled:true,  plan:"basico"  as PlanId, usos:42, label:"Pesaje Manual",      icon:"✏️", color:"#a78bfa", devs:0, desc:"Entrada directa · Recibo PDF imprimible"        },
 };
 
-const SIMULATED_SESSIONS = [
-  { id:"s1", nombre:"Administrador General",  email:"admin@ganader.ia",  ultima:"Hace 2 min",  ip:"181.132.45.12",  dis:"Chrome 124",  tipo:"desktop",  ciudad:"Bogotá, CO",      activa:true,  login:"Hoy 08:14" },
-  { id:"s2", nombre:"Dr. Carlos Ramírez",     email:"vet@ganader.ia",    ultima:"Hace 18 min", ip:"190.25.134.88",  dis:"Safari 17",   tipo:"mobile",   ciudad:"Medellín, CO",    activa:true,  login:"Hoy 09:30" },
-  { id:"s3", nombre:"Luis Patiño",            email:"luis@ganader.ia",   ultima:"Hace 1 h",    ip:"181.78.99.201",  dis:"Chrome 124",  tipo:"mobile",   ciudad:"Cali, CO",        activa:false, login:"Ayer 16:22" },
-  { id:"s4", nombre:"Propietario/Inversor",   email:"visor@ganader.ia",  ultima:"Hace 3 h",    ip:"190.144.22.55",  dis:"Edge 124",    tipo:"desktop",  ciudad:"Barranquilla, CO",activa:false, login:"Ayer 14:05" },
-];
-
 const SYS_METRICS = [
   { mes:"Nov", clientes:2, mrr:178,  churn:0, nuevos:2 },
   { mes:"Dic", clientes:3, mrr:267,  churn:0, nuevos:1 },
@@ -204,6 +219,12 @@ const PERMS_BY_ROLE: Record<string, string[]> = {
    HELPERS
 ────────────────────────────────────────────────────────────────────────── */
 const fmt = (n: number) => new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",minimumFractionDigits:0}).format(n);
+const isMobileSession = (userAgent: string) => /android|iphone|ipad|ipod|mobile/i.test(userAgent || "");
+const formatSessionDate = (value?: string | null) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" });
+};
 const TIP = { backgroundColor:"#050d18", border:"1px solid rgba(0,245,212,0.2)", color:"#e2e8f0", borderRadius:"12px", fontSize:"11px" };
 
 function PlanBadge({ plan }: { plan?: PlanId }) {
@@ -1123,7 +1144,10 @@ export default function AdminDashboard({
   const [newPlan,      setNewPlan]      = useState<PlanId>("pro");
   const [internalTab,  setInternalTab]  = useState("resumen");
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
-  const [sessionsList, setSessionsList] = useState(SIMULATED_SESSIONS);
+  const [sessionsList, setSessionsList] = useState<AdminSession[]>([]);
+  const [usageByUser, setUsageByUser] = useState<AccountUsageDays[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [sessionsError, setSessionsError] = useState("");
   const [williamMonitoring, setWilliamMonitoring] = useState<WilliamMonitoring | null>(null);
   const [williamLoading, setWilliamLoading] = useState(false);
   const [williamError, setWilliamError] = useState("");
@@ -1392,6 +1416,36 @@ export default function AdminDashboard({
   const tab    = extTab ?? internalTab;
   const setTab = onTabChange ?? setInternalTab;
 
+  const refreshSessions = useCallback(async (signal?: AbortSignal) => {
+    setSessionsLoading(true);
+    setSessionsError("");
+    try {
+      const headers = williamAuthHeaders();
+      if (!headers.Authorization) throw new Error("Inicia sesión como administrador para consultar las sesiones.");
+      const response = await fetch("/api/admin/sessions", { headers, signal });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.message ?? "No fue posible cargar las sesiones.");
+      if (signal?.aborted) return;
+      setSessionsList(Array.isArray(data.sessions) ? data.sessions as AdminSession[] : []);
+      setUsageByUser(Array.isArray(data.usageByUser) ? data.usageByUser as AccountUsageDays[] : []);
+    } catch (error) {
+      if (!signal?.aborted) setSessionsError(error instanceof Error ? error.message : "No fue posible cargar las sesiones.");
+    } finally {
+      if (!signal?.aborted) setSessionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab !== "sesiones") return;
+    const controller = new AbortController();
+    void refreshSessions(controller.signal);
+    const timer = window.setInterval(() => void refreshSessions(), 30_000);
+    return () => {
+      controller.abort();
+      window.clearInterval(timer);
+    };
+  }, [tab, refreshSessions]);
+
   const loadWilliamMonitoring = useCallback(async (ensureAccount = false, signal?: AbortSignal) => {
     setWilliamLoading(true);
     setWilliamError("");
@@ -1399,14 +1453,14 @@ export default function AdminDashboard({
       const headers = williamAuthHeaders();
       if (!headers.Authorization) throw new Error("Inicia sesión como administrador para cargar el panel CIVAC.");
       if (ensureAccount) {
-        const ensureResponse = await fetch("/api/admin/users/william/ensure-premium", {
+        const ensureResponse = await fetch("/api/admin/users/william/ensure-unlimited", {
           method: "POST",
           headers: { "Content-Type": "application/json", ...headers },
           signal,
         });
         const ensureData = await ensureResponse.json();
         if (!ensureResponse.ok || !ensureData.ok) {
-          throw new Error(ensureData.message ?? ensureData.error ?? "No se pudo vincular la cuenta Premium de William.");
+          throw new Error(ensureData.message ?? ensureData.error ?? "No se pudo asignar el plan Platino a William.");
         }
       }
       const response = await fetch("/api/admin/users/civac_william/monitoring", { headers, signal });
@@ -1553,9 +1607,20 @@ export default function AdminDashboard({
   };
   const toggleStatus = (a: Account) => { if (a.id==="admin") return; updateUser(a.id, { activo:!(a.activo!==false) }); };
   const doDelete     = () => { if (!deleteTarget) return; deleteUser(deleteTarget.id); setDeleteTarget(null); };
-  const revokeSession = (id: string) => {
-    setSessionsList(s => s.map(x => x.id===id ? {...x, activa:false, ultima:"Sesión revocada"} : x));
-    setRevokeTarget(null);
+  const revokeSession = async (id: string) => {
+    setSessionsError("");
+    try {
+      const response = await fetch(`/api/admin/sessions/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: williamAuthHeaders(),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok) throw new Error(data.message ?? "No fue posible revocar la sesión.");
+      setRevokeTarget(null);
+      await refreshSessions();
+    } catch (error) {
+      setSessionsError(error instanceof Error ? error.message : "No fue posible revocar la sesión.");
+    }
   };
   const genPayLink = () => {
     const base = "https://checkout.wompi.co/p/?public-key=pub_prod_CIVAC&currency=COP";
@@ -1719,7 +1784,7 @@ export default function AdminDashboard({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label:"Total cuentas",   val:accounts.length, sub:"sistemas CIVAC",        icon:<Users size={16}/>,       from:"#00f5d4",to:"#00a896",glow:"0,245,212"   },
-          { label:"Activos ahora",   val:sessionsList.filter(s=>s.activa).length, sub:"sesiones en línea",   icon:<Activity size={16}/>,    from:"#39ff7e",to:"#00c850",glow:"57,255,126"  },
+          { label:"Sesiones vigentes",val:sessionsList.length, sub:"sin vencer",   icon:<Activity size={16}/>,    from:"#39ff7e",to:"#00c850",glow:"57,255,126"  },
           { label:"Planes pagos",    val:proCount,        sub:"PRO / Premium / Platino", icon:<CreditCard size={16}/>,  from:"#fbbf24",to:"#f97316",glow:"251,191,36"  },
           { label:"MRR Colombia",    val:fmt(mrrTotal),   sub:"mes actual pagos",        icon:<DollarSign size={16}/>,  from:"#fbbf24",to:"#ea580c",glow:"251,191,36"  },
         ].map(k => (
@@ -1941,7 +2006,7 @@ export default function AdminDashboard({
                   <h2 className="text-base font-black text-white">William</h2>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-black"
                     style={{ color: "#fbbf24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.28)" }}>
-                    PREMIUM ASIGNADA
+                    PLATINO · SIN VENCIMIENTO
                   </span>
                   <span className="text-[9px] px-2 py-0.5 rounded-full font-bold text-emerald-300 bg-emerald-400/10 border border-emerald-300/20">
                     {!williamMonitoring
@@ -1950,13 +2015,13 @@ export default function AdminDashboard({
                   </span>
                 </div>
                 <p className="text-[11px] text-white/45 mt-1">
-                  Cuenta Premium permanente de cliente; no es demo. Esta asignación no acredita un pago.
+                  Plan Platino sin fecha de vencimiento, con rol de cliente. Esta asignación no acredita un pago ni concede permisos administrativos.
                 </p>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[9px] text-white/50">
                   <span>Estado: <b className={williamPlanExpired || !williamMonitoring?.account.activo ? "text-rose-300" : "text-emerald-300"}>
                     {!williamMonitoring ? (williamLoading ? "Cargando…" : "Sin conexión") : williamPlanExpired ? "Plan vencido" : williamMonitoring.account.activo ? "Activo" : "Inactivo"}
                   </b></span>
-                  <span>Vigencia: <b className="text-white/75">{williamExpiryDate ? williamExpiryDate.toLocaleDateString("es-CO") : williamMonitoring?.account.planCode === "premium" && !williamMonitoring.account.planExpiry ? "Sin vencimiento" : "No registrada"}</b></span>
+                  <span>Vigencia: <b className="text-white/75">{williamExpiryDate ? williamExpiryDate.toLocaleDateString("es-CO") : williamMonitoring?.account.planCode === "platino" && !williamMonitoring.account.planExpiry ? "Sin vencimiento" : "No registrada"}</b></span>
                   <span>Ingresos: <b className="text-white/75">{williamMonitoring?.account.loginCount ?? "—"}</b></span>
                   <span>Último acceso: <b className="text-white/75">{williamLastLogin}</b></span>
                   <span>Seguimientos: <b className="text-white/75">{williamMonitoring?.followups.length ?? "—"}</b></span>
@@ -2950,10 +3015,10 @@ export default function AdminDashboard({
           {/* Session KPIs */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              {label:"Online ahora",     val:sessionsList.filter(s=>s.activa).length,    c:"#39ff7e", icon:"🟢" },
-              {label:"Sesiones hoy",     val:sessionsList.length,                         c:"#00c8ff", icon:"📡" },
-              {label:"Móvil",            val:sessionsList.filter(s=>s.tipo==="mobile").length, c:"#a78bfa", icon:"📱" },
-              {label:"Desktop",          val:sessionsList.filter(s=>s.tipo==="desktop").length, c:"#fbbf24", icon:"🖥️" },
+              {label:"Sesiones vigentes", val:sessionsList.length, c:"#39ff7e", icon:"🟢" },
+              {label:"Cuentas con sesión", val:new Set(sessionsList.map(session=>session.userId)).size, c:"#00c8ff", icon:"👤" },
+              {label:"Días registrados", val:usageByUser.reduce((total, user)=>total+user.daysUsed,0), c:"#a78bfa", icon:"📆" },
+              {label:"Sesiones móviles", val:sessionsList.filter(session=>isMobileSession(session.userAgent)).length, c:"#fbbf24", icon:"📱" },
             ].map(k=>(
               <div key={k.label} className="rounded-2xl p-3 text-center"
                 style={{background:"rgba(255,255,255,0.03)",border:`1px solid ${k.c}20`}}>
@@ -2968,41 +3033,75 @@ export default function AdminDashboard({
           <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.08)"}}>
             <div className="px-4 py-3 flex items-center justify-between"
               style={{background:"rgba(0,200,255,0.06)",borderBottom:"1px solid rgba(0,200,255,0.1)"}}>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <MonitorSmartphone size={14} style={{color:"#00c8ff"}}/> Sesiones activas e historial
-              </h3>
-              <span className="text-[10px] text-white/30">{sessionsList.filter(s=>s.activa).length} activas ahora</span>
+              <div>
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <MonitorSmartphone size={14} style={{color:"#00c8ff"}}/> Sesiones vigentes
+                </h3>
+                <p className="text-[9px] text-white/35 mt-1">Vigente significa que no ha vencido; no representa actividad en tiempo real.</p>
+              </div>
+              <button type="button" onClick={()=>void refreshSessions()} disabled={sessionsLoading}
+                className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[9px] font-bold text-cyan-200 disabled:opacity-50"
+                style={{background:"rgba(0,200,255,0.08)",border:"1px solid rgba(0,200,255,0.18)"}}>
+                <RefreshCw size={11} className={sessionsLoading?"animate-spin":""}/> Actualizar
+              </button>
             </div>
             <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.04)"}}>
-              {sessionsList.map((s,i)=>(
-                <div key={s.id} className="px-4 py-3 flex items-center gap-3"
-                  style={{background:i%2===0?"rgba(255,255,255,0.01)":"transparent"}}>
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{background:"rgba(0,200,255,0.08)",border:"1px solid rgba(0,200,255,0.15)"}}>
-                    {s.tipo==="mobile"?<Smartphone size={16} style={{color:"#00c8ff"}}/>:<Monitor size={16} style={{color:"#00c8ff"}}/>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-xs text-white">{s.nombre}</span>
-                      {s.activa&&<span className="inline-flex items-center gap-1 text-[9px] text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"/>Online</span>}
+              {sessionsError && <p role="alert" className="px-4 py-3 text-[10px] text-rose-300">{sessionsError}</p>}
+              {!sessionsLoading && !sessionsError && sessionsList.length === 0 && <p className="px-4 py-5 text-center text-[10px] text-white/40">No hay sesiones vigentes.</p>}
+              {sessionsList.map((session,i)=>{
+                const mobile = isMobileSession(session.userAgent);
+                return (
+                  <div key={session.id} className="px-4 py-3 flex items-center gap-3"
+                    style={{background:i%2===0?"rgba(255,255,255,0.01)":"transparent"}}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{background:"rgba(0,200,255,0.08)",border:"1px solid rgba(0,200,255,0.15)"}}>
+                      {mobile?<Smartphone size={16} style={{color:"#00c8ff"}}/>:<Monitor size={16} style={{color:"#00c8ff"}}/>}
                     </div>
-                    <div className="text-[9px] text-white/35 mt-0.5">{s.email}</div>
-                    <div className="flex items-center gap-3 mt-1 flex-wrap">
-                      <span className="flex items-center gap-1 text-[9px] text-white/30"><MapPin size={9}/>{s.ciudad}</span>
-                      <span className="font-mono text-[9px] text-white/25">{s.ip}</span>
-                      <span className="text-[9px] text-white/25">{s.dis}</span>
-                      <span className="flex items-center gap-1 text-[9px] text-white/25"><Calendar size={9}/>{s.login}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-xs text-white">{session.userName || "Cuenta"}</span>
+                        <span className="inline-flex items-center gap-1 text-[9px] text-green-400"><span className="w-1.5 h-1.5 rounded-full bg-green-400"/>Vigente</span>
+                      </div>
+                      <div className="text-[9px] text-white/35 mt-0.5">{session.userEmail}</div>
+                      <div className="flex items-center gap-3 mt-1 flex-wrap text-[9px] text-white/35">
+                        <span>Rol: {session.userRole}</span>
+                        <span>Plan: {PLAN_LABEL[session.planCode as PlanId] ?? session.planCode}</span>
+                        <span>{session.daysUsed} días de uso registrados</span>
+                        {session.ipAddress && <span className="font-mono">{session.ipAddress}</span>}
+                      </div>
+                      <div className="text-[9px] text-white/25 mt-1">
+                        Inicio: {formatSessionDate(session.createdAt)} · Vence: {formatSessionDate(session.expiresAt)}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-[9px] text-white/30 mb-2">{s.ultima}</div>
-                    {s.activa&&(
-                      <button onClick={()=>setRevokeTarget(s.id)}
+                    <div className="text-right flex-shrink-0">
+                      <button onClick={()=>setRevokeTarget(session.id)}
                         className="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-bold transition-all"
                         style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.25)",color:"#f87171"}}>
                         <Ban size={10}/> Revocar
                       </button>
-                    )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl overflow-hidden" style={{border:"1px solid rgba(255,255,255,0.08)"}}>
+            <div className="px-4 py-3" style={{background:"rgba(167,139,250,0.06)",borderBottom:"1px solid rgba(167,139,250,0.12)"}}>
+              <h3 className="text-sm font-bold text-white">Días de uso por cuenta</h3>
+              <p className="text-[9px] text-white/35 mt-1">Cuenta los días con inicio de sesión registrado desde que se activó este contador; no reconstruye días anteriores.</p>
+            </div>
+            <div className="divide-y" style={{borderColor:"rgba(255,255,255,0.04)"}}>
+              {usageByUser.length === 0 && <p className="px-4 py-5 text-center text-[10px] text-white/40">Aún no hay días de uso registrados.</p>}
+              {[...usageByUser].sort((a,b)=>b.daysUsed-a.daysUsed).map((user,index)=>(
+                <div key={user.userId} className="px-4 py-3 flex items-center gap-3" style={{background:index%2===0?"rgba(255,255,255,0.01)":"transparent"}}>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-white truncate">{user.userName || user.userEmail || "Cuenta"}</p>
+                    <p className="text-[9px] text-white/35 mt-0.5">{user.userEmail || "Correo no disponible"} · {user.userRole || "rol sin registrar"}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-black text-violet-200">{user.daysUsed}</p>
+                    <p className="text-[8px] text-white/35">días</p>
                   </div>
                 </div>
               ))}

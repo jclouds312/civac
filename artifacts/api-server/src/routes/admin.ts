@@ -343,7 +343,7 @@ router.post("/admin/users/:id/extend", async (req, res) => {
 /* ── GET /api/admin/sessions — sesiones vigentes, solo para administradores ── */
 router.get("/admin/sessions", authMiddleware, adminOnlyMiddleware, async (_req, res) => {
   try {
-    const [sessions, usageDays] = await Promise.all([
+    const [sessions, usageByUser] = await Promise.all([
       db.select({
         id: userSessionsTable.id,
         userId: userSessionsTable.userId,
@@ -361,19 +361,29 @@ router.get("/admin/sessions", authMiddleware, adminOnlyMiddleware, async (_req, 
         .limit(100),
       db.select({
         userId: auditLogTable.entidadId,
+        userName: usuariosTable.nombre,
+        userEmail: usuariosTable.email,
+        userRole: usuariosTable.role,
         daysUsed: sql<number>`COUNT(DISTINCT (${auditLogTable.createdAt}::date))`,
       }).from(auditLogTable)
+        .leftJoin(usuariosTable, eq(usuariosTable.id, auditLogTable.entidadId))
         .where(eq(auditLogTable.accion, "login"))
-        .groupBy(auditLogTable.entidadId),
+        .groupBy(auditLogTable.entidadId, usuariosTable.nombre, usuariosTable.email, usuariosTable.role)
+        .limit(200),
     ]);
 
-    const usageDaysByUser = new Map(usageDays.map(row => [row.userId, Number(row.daysUsed) || 0]));
+    const usageDaysByUser = new Map(usageByUser.map(row => [row.userId, Number(row.daysUsed) || 0]));
     const safeSessions = sessions.map(({ id, ...session }) => ({
       ...session,
       id: createHash("sha256").update(id).digest("hex"),
       daysUsed: usageDaysByUser.get(session.userId) ?? 0,
     }));
-    return res.json({ ok: true, total: safeSessions.length, sessions: safeSessions });
+    return res.json({
+      ok: true,
+      total: safeSessions.length,
+      sessions: safeSessions,
+      usageByUser: usageByUser.map(row => ({ ...row, daysUsed: Number(row.daysUsed) || 0 })),
+    });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });
 
@@ -407,7 +417,7 @@ router.delete("/admin/sessions", authMiddleware, adminOnlyMiddleware, async (req
 });
 
 /* ── PUT /api/admin/users/:id/plan — update user plan (legacy) ───────────── */
-router.put("/admin/users/:id/plan", async (req, res) => {
+router.put("/admin/users/:id/plan", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { plan } = req.body as { plan: string };

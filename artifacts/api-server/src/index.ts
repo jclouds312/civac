@@ -25,7 +25,7 @@ app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
   void ensureWilliamAccount().then(result => {
     if (result.ok) {
-      logger.info({ created: result.created }, "William's 30-day Premium account is ready");
+      logger.info({ created: result.created }, "William's permanent Premium account is ready");
     } else {
       logger.warn({ reason: result.reason }, "William's account was not provisioned");
     }

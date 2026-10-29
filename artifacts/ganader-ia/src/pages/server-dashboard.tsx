@@ -1155,7 +1155,7 @@ interface ServerSession {
   expiresAt: string; createdAt: string; daysUsed?: number;
 }
 
-const serverSessionHeaders = () => {
+const serverSessionHeaders = (): Record<string, string> => {
   const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

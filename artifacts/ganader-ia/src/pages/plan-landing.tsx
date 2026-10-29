@@ -6,6 +6,7 @@ import {
   BarChart3, MapPin, Scale, Dna, Beef, Leaf, DollarSign,
   MessageSquare, Lock, Clock, ChevronDown, ExternalLink,
 } from "lucide-react";
+import { formatPlanPrice, PLAN_RETAIL_MONTHLY } from "@/lib/plan-pricing";
 
 /* ─── Plan / Rol config ─────────────────────────────────────── */
 type PlanKey = "basico" | "pro" | "premium" | "platino" | "vendedora" | "developer";
@@ -53,7 +54,7 @@ const PLANS: Record<PlanKey, PlanConfig> = {
   pro: {
     id:"pro", label:"PRO", emoji:"⚡", tagline:"El plan más popular entre ganaderos colombianos",
     desc:"Todo lo del plan Básico más módulos avanzados de reproducción, genética, pesaje BT y costos.",
-    precio:"$89.000", periodo:"COP / mes", badge:"MÁS POPULAR",
+    precio:formatPlanPrice(PLAN_RETAIL_MONTHLY.pro), periodo:"COP / mes + IVA", badge:"MÁS POPULAR",
     color:"#00f5d4", color2:"#00c8a0", glow:"0,245,212",
     bg1:"#020f0c", bg2:"#041a14", border:"rgba(0,245,212,0.28)",
     from:"#00f5d4", to:"#00c8a0", highlight:"rgba(0,245,212,0.10)",
@@ -65,7 +66,7 @@ const PLANS: Record<PlanKey, PlanConfig> = {
   premium: {
     id:"premium", label:"Premium", emoji:"🌟", tagline:"Gestión avanzada con IA para fincas en crecimiento",
     desc:"Incluye predicciones IA, huella de carbono, multi-finca y todas las funciones profesionales.",
-    precio:"$189.000", periodo:"COP / mes", badge:"RECOMENDADO",
+    precio:formatPlanPrice(PLAN_RETAIL_MONTHLY.premium), periodo:"COP / mes + IVA", badge:"RECOMENDADO",
     color:"#fbbf24", color2:"#f59e0b", glow:"251,191,36",
     bg1:"#100800", bg2:"#1a0f00", border:"rgba(251,191,36,0.28)",
     from:"#fbbf24", to:"#f59e0b", highlight:"rgba(251,191,36,0.08)",
@@ -77,7 +78,7 @@ const PLANS: Record<PlanKey, PlanConfig> = {
   platino: {
     id:"platino", label:"Platino", emoji:"👑", tagline:"Plataforma empresarial sin límites para operaciones grandes",
     desc:"Plan corporativo con usuarios ilimitados, multi-tenant, panel admin, soporte dedicado y GPS sin límite.",
-    precio:"$399.000", periodo:"COP / mes", badge:"EMPRESARIAL",
+    precio:formatPlanPrice(PLAN_RETAIL_MONTHLY.platino), periodo:"COP / mes + IVA", badge:"EMPRESARIAL",
     color:"#e2b96a", color2:"#cd7f32", glow:"226,185,106",
     bg1:"#0e0800", bg2:"#180d00", border:"rgba(226,185,106,0.35)",
     from:"#e2b96a", to:"#cd7f32", highlight:"rgba(226,185,106,0.08)",

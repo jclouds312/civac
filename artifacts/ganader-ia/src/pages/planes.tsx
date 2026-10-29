@@ -14,6 +14,7 @@ import {
   useAuth, PLAN_LABEL, PLAN_COLOR, PLAN_ICON, PLAN_GRADIENT,
   type PlanId, type CivacInvoice,
 } from "@/lib/auth";
+import { PLAN_RETAIL_ANNUAL, PLAN_RETAIL_MONTHLY } from "@/lib/plan-pricing";
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
 const fmtCOP = (n: number) =>
@@ -80,8 +81,8 @@ function modulesForPlan(p: PlanId) {
 }
 
 /* ── Plan definitions ────────────────────────────────────────────────────── */
-const RETAIL: Record<PlanId,number> = { basico:0, pro:129000, premium:289000, platino:890000 };
-const RETAIL_ANNUAL: Record<PlanId,number> = { basico:0, pro:1239000, premium:2775000, platino:8544000 };
+const RETAIL = PLAN_RETAIL_MONTHLY;
+const RETAIL_ANNUAL = PLAN_RETAIL_ANNUAL;
 
 const PLANS = [
   {

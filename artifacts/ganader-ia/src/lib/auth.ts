@@ -1,5 +1,6 @@
 import { createElement, createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { ReactNode } from "react";
+import { PLAN_RETAIL_MONTHLY } from "./plan-pricing";
 
 export type PlanId = 'basico' | 'pro' | 'premium' | 'platino';
 
@@ -91,12 +92,7 @@ export interface Account {
   notas?: string;            // notas internas del administrador
 }
 
-export const PLAN_PRECIOS: Record<PlanId, number> = {
-  basico:  0,
-  pro:     89000,
-  premium: 189000,
-  platino: 399000,
-};
+export const PLAN_PRECIOS: Record<PlanId, number> = PLAN_RETAIL_MONTHLY;
 
 export const PLAN_LABEL: Record<PlanId, string> = {
   basico:  'Básico',

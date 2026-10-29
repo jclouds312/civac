@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_ICON, PLAN_PRECIOS, PLAN_GRADIENT, type PlanId } from "@/lib/auth";
+import { formatPlanPrice } from "@/lib/plan-pricing";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
   Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
@@ -14,10 +15,10 @@ import {
 ═══════════════════════════════════════════════════════════════════════════════ */
 
 const PLAN_FEATURES: Record<PlanId, string[]> = {
-  basico:  ["50 animales máx","1 usuario","Dashboard básico","Inventario","Producción","Alertas","Potreros"],
-  pro:     ["Animales ilimitados","5 usuarios","Pesaje Bluetooth","GPS ganado","Reproducción","Genética","Insumos","Costos","Personal","Predicción IA","3 Multi-fincas","Básculas COM/USB"],
-  premium: ["Todo el plan PRO","15 usuarios","GPS 50 collares","IA avanzada","Multi-finca ilimitada","Google Drive sync","Soporte 24/7","API REST"],
-  platino: ["TODO ilimitado","Usuarios ilimitados","SLA 99.9%","Instancia dedicada","Capacitación en finca","Módulos a medida","Contrato empresarial","Webhooks + API"],
+  basico:  ["Hasta 50 animales","1 usuario","Dashboard y alertas","Inventario y producción","Potreros","Sanidad","Pesaje manual","PWA instalable"],
+  pro:     ["Todo Básico","Hasta 300 animales","5 usuarios","GPS: hasta 10 collares","Pesaje Bluetooth","Reproducción y genética","Alimentación e insumos","Semen y costos","Personal y predicción IA","Hasta 3 fincas"],
+  premium: ["Todo PRO","Hasta 2.000 animales","15 usuarios","GPS: hasta 50 collares","Trazabilidad ICA","Ficha clínica y lotes","CRM de ventas","Drive y centro de datos","Multi-finca avanzada"],
+  platino: ["Todo Premium","Hasta 2.000 animales","20 usuarios","GPS: hasta 50 collares","Usuarios y roles","Configuración avanzada","Reportes ejecutivos","API REST","Atención corporativa"],
 };
 
 const PLAN_COLORS_GRADIENT: Record<PlanId, [string,string]> = {
@@ -29,9 +30,9 @@ const PLAN_COLORS_GRADIENT: Record<PlanId, [string,string]> = {
 
 const PLAN_PRECIOS_LABEL: Record<PlanId, string> = {
   basico:  "Gratis",
-  pro:     "$89.000/mes",
-  premium: "$189.000/mes",
-  platino: "$399.000/mes",
+  pro:     `${formatPlanPrice(PLAN_PRECIOS.pro)}/mes`,
+  premium: `${formatPlanPrice(PLAN_PRECIOS.premium)}/mes`,
+  platino: `${formatPlanPrice(PLAN_PRECIOS.platino)}/mes`,
 };
 
 const CLIENT_CONFIG: Record<string, { emoji:string; label:string; sub:string; from:string; to:string; glow:string; color:string; accent:string }> = {
@@ -1437,7 +1438,7 @@ export default function Login() {
         {tab === "planes" && (
           <div className="space-y-5">
             <p className="text-center text-xs" style={{ color:"rgba(255,255,255,0.3)" }}>
-              Facturación mensual COP · IVA incluido · <strong style={{ color:"#00f5d4" }}>Wompi / Nequi / PSE / Bancolombia</strong> · Sin permanencia mínima
+              Facturación mensual COP · IVA calculado en el checkout · <strong style={{ color:"#00f5d4" }}>Wompi / Nequi / PSE / Bancolombia</strong> · Sin permanencia mínima
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {(["basico","pro","premium","platino"] as PlanId[]).map(pid => {
@@ -1472,12 +1473,11 @@ export default function Login() {
                         {PLAN_PRECIOS_LABEL[pid]}
                       </p>
                       <ul className="space-y-1.5 mb-4">
-                        {feats.slice(0,6).map(f=>(
+                        {feats.map(f=>(
                           <li key={f} className="flex items-start gap-1.5 text-[10px] text-white/65">
                             <CheckCircle2 size={10} className="flex-shrink-0 mt-0.5" style={{ color:"#39ff7e" }}/>{f}
                           </li>
                         ))}
-                        {feats.length > 6 && <li className="text-[10px] text-white/30">+{feats.length-6} más…</li>}
                       </ul>
                       {pid === "basico" ? (
                         <button onClick={() => setTab("login")}
@@ -1751,12 +1751,12 @@ export default function Login() {
           const PLAN_IDENTITY: Record<PlanId, {
             c1:string; c2:string; g:string; gRGB:string;
             badge:string; badgeBg:string; desc:string;
-            mods:string[]; emoji:string;
+            emoji:string;
           }> = {
-            basico:  { c1:"#b8c4d4", c2:"#94a3b8", g:"184,196,212", gRGB:"184,196,212", badge:"GRATIS", badgeBg:"rgba(148,163,184,0.15)", desc:"Gestión básica · Inventario, Producción, Potreros, Alertas",            mods:["📊 Dashboard","🐄 Inventario","🥛 Producción","🌿 Potreros","🔔 Alertas","🩺 Sanidad","📝 Pesaje Manual"], emoji:"🥈" },
-            pro:     { c1:"#00f5d4", c2:"#00c8ff", g:"0,245,212",   gRGB:"0,245,212",   badge:"⚡ PRO", badgeBg:"rgba(0,245,212,0.12)",  desc:"Hato completo · GPS, Genética, Reproducción, Pesaje BT, IA",         mods:["⚡ Todo Básico","🧬 Reproducción","🔬 Genética","⚖️ Pesaje BT","📡 GPS","🌾 Alimentación","📦 Insumos","🧊 Semen","💰 Costos","👷 Personal","📋 Ficha","🏷️ Lotes"], emoji:"⚡" },
-            premium: { c1:"#fbbf24", c2:"#f59e0b", g:"251,191,36",  gRGB:"251,191,36",  badge:"🥇 PREMIUM", badgeBg:"rgba(251,191,36,0.12)", desc:"Empresa ganadera · IA, Multi-Finca, CRM, Drive, CO₂ IPCC",       mods:["🥇 Todo PRO","🤖 Asesora IA","💼 CRM Ventas","🏘️ Multi-Finca","🔮 Predicción IA","🌱 Huella CO₂","☁️ Drive Backup"], emoji:"🥇" },
-            platino: { c1:"#cd7f32", c2:"#e07b54", g:"205,127,50",  gRGB:"205,127,50",  badge:"👑 PLATINO", badgeBg:"rgba(205,127,50,0.12)", desc:"Corporativo · Usuarios, Config. avanzada, SLA 99.9%, todo incluido", mods:["👑 TODO incluido","👥 Usuarios & Roles","⚙️ Config. avanzada","📖 Documentación","📘 Manual completo","🗄️ Centro Datos","💳 Gestión Planes"], emoji:"👑" },
+            basico:  { c1:"#b8c4d4", c2:"#94a3b8", g:"184,196,212", gRGB:"184,196,212", badge:"GRATIS", badgeBg:"rgba(148,163,184,0.15)", desc:"Gestión básica para fincas pequeñas", emoji:"🥈" },
+            pro:     { c1:"#00f5d4", c2:"#00c8ff", g:"0,245,212",   gRGB:"0,245,212",   badge:"⚡ PRO", badgeBg:"rgba(0,245,212,0.12)",  desc:"Operación ganadera y herramientas avanzadas", emoji:"⚡" },
+            premium: { c1:"#fbbf24", c2:"#f59e0b", g:"251,191,36",  gRGB:"251,191,36",  badge:"🥇 PREMIUM", badgeBg:"rgba(251,191,36,0.12)", desc:"Trazabilidad y gestión de varias fincas", emoji:"🥇" },
+            platino: { c1:"#cd7f32", c2:"#e07b54", g:"205,127,50",  gRGB:"205,127,50",  badge:"👑 PLATINO", badgeBg:"rgba(205,127,50,0.12)", desc:"Control y administración corporativa", emoji:"👑" },
           };
 
           return (
@@ -1773,15 +1773,14 @@ export default function Login() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 className="text-base font-black text-white">William · Acceso Premium 30 días</h3>
+                  <h3 className="text-base font-black text-white">William · Acceso privado Platino</h3>
                     <span className="text-[8px] font-black px-2 py-0.5 rounded-full"
                       style={{ color:"#fbbf24", background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.25)" }}>
                       ACCESO PRIVADO
                     </span>
                   </div>
-                  <p className="text-[10px] text-amber-100/75">williamtoroparrado@gmail.com</p>
                   <p className="text-[10px] leading-relaxed text-white/45">
-                    Campaña NOVIEMBRE2026 · abre el enlace privado para activar la tarjeta automáticamente.
+                    Acceso de cliente protegido con una tarjeta privada de un solo uso.
                   </p>
                 </div>
                 <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
@@ -1799,7 +1798,7 @@ export default function Login() {
                     <input id="william-card-code" value={cardCode}
                       onChange={e => { setCardCode(e.target.value.toUpperCase()); setCardError(""); }}
                       autoComplete="one-time-code" autoCapitalize="characters" maxLength={80}
-                      placeholder="CIVAC-WILLIAM-NOVIEMBRE2026-…"
+                      placeholder="Pega aquí tu código privado completo"
                       className="min-w-0 flex-1 px-3 py-3 rounded-xl text-xs text-white font-mono placeholder:text-white/20 outline-none"
                       style={{ background:"rgba(0,0,0,0.3)", border:"1px solid rgba(251,191,36,0.25)" }} />
                     <button type="submit" disabled={cardBusy || !cardCode.trim()}
@@ -1827,7 +1826,7 @@ export default function Login() {
               <p className="text-center text-[9px] mb-3" style={{ color:"rgba(255,255,255,0.25)" }}>
                 Cuentas de ganadero cliente — explora todos los módulos de tu plan
                 <span className="mx-1.5 text-white/15">·</span>
-                <span style={{ color:"rgba(57,255,126,0.45)" }}>credenciales visibles en cada tarjeta</span>
+                <span style={{ color:"rgba(57,255,126,0.45)" }}>perfiles de muestra · sin credenciales de clientes</span>
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {planAccounts.map(account => {
@@ -1879,18 +1878,17 @@ export default function Login() {
                           {PLAN_LABEL[plan]}
                         </h3>
                         <p className="text-[10px] mb-1 font-bold" style={{ color:`rgba(${pi.gRGB},0.55)` }}>
-                          {account.nombre.split(" ").slice(0,3).join(" ")}
+                          {`Demo ${PLAN_LABEL[plan]}`}
                         </p>
                         <p className="text-[9px] mb-3 leading-relaxed" style={{ color:"rgba(255,255,255,0.35)" }}>{pi.desc}</p>
 
                         {/* Module list */}
                         <div className="space-y-1 mb-4">
-                          {pi.mods.slice(0,5).map(m=>(
+                          {feats.map(m=>(
                             <div key={m} className="flex items-center gap-1.5 text-[10px]" style={{ color:`rgba(${pi.gRGB},0.65)` }}>
                               <span style={{ color:pi.c1, fontSize:"9px" }}>✓</span>{m}
                             </div>
                           ))}
-                          {pi.mods.length > 5 && <div className="text-[9px]" style={{ color:"rgba(255,255,255,0.2)" }}>+{pi.mods.length-5} módulos más…</div>}
                         </div>
 
                         {/* Plan progress bar */}
@@ -1908,29 +1906,9 @@ export default function Login() {
                           </div>
                         </div>
 
-                        {/* Credenciales demo — visibles */}
-                        <div className="mb-3 rounded-xl p-2.5" style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
-                          <div className="text-[7.5px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-1" style={{ color:"rgba(57,255,126,0.5)" }}>
-                            <span>🔑</span> Credenciales demo
-                          </div>
-                          <div className="flex items-center justify-between gap-1 mb-1.5">
-                            <span className="text-[8.5px] font-mono truncate max-w-[120px]" style={{ color:"rgba(255,255,255,0.45)" }}>{account.email}</span>
-                            <button
-                              onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(account.email); }}
-                              className="flex-shrink-0 text-[7px] font-black px-1.5 py-0.5 rounded-full transition-all hover:opacity-80"
-                              style={{ background:`rgba(${pi.gRGB},0.08)`, color:`rgba(${pi.gRGB},0.6)`, border:`1px solid rgba(${pi.gRGB},0.18)` }}>
-                              copiar
-                            </button>
-                          </div>
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[9px] font-mono font-black" style={{ color:"rgba(57,255,126,0.75)" }}>{account.password}</span>
-                            <button
-                              onClick={e => { e.stopPropagation(); navigator.clipboard?.writeText(account.password); }}
-                              className="flex-shrink-0 text-[7px] font-black px-1.5 py-0.5 rounded-full transition-all hover:opacity-80"
-                              style={{ background:"rgba(57,255,126,0.07)", color:"rgba(57,255,126,0.55)", border:"1px solid rgba(57,255,126,0.16)" }}>
-                              copiar
-                            </button>
-                          </div>
+                        <div className="mb-3 rounded-xl p-2.5 text-[9px] text-white/45"
+                          style={{ background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)" }}>
+                          Datos de muestra para explorar funciones; no son cuentas de clientes.
                         </div>
 
                         {/* CTA buttons */}

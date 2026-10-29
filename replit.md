@@ -17,7 +17,7 @@ Open the **GanaderIA — Ganadería Inteligente** web artifact for the main app 
 - **API Server** — Flask services for AI, GPS and analytics on port `8000`.
 - **artifacts/ganader-ia-mobile: expo** — optional Expo mobile preview.
 
-Replit supplies the database connection. The persistent William Premium customer account is initialized by the Node API from the `WILLIAM_ACCOUNT_PASSWORD` Replit Secret; only a scrypt password hash is stored in the database. Never put account credentials in this file or the README.
+Replit supplies the database connection. William's customer account and permanent Platino entitlement are managed through an authenticated administrator flow. Initial access uses a private, one-time activation; the account holder creates a password which is stored as a scrypt hash. Never put account credentials, customer records, activation tokens, or passwords in this file or the README.
 
 ---
 
@@ -126,28 +126,18 @@ artifacts/ganader-ia/
 
 ---
 
-## Sistema de autenticación — Cuentas oficiales v7.5.0
+## Sistema de autenticación y roles
 
-### Cuentas CIVAC Staff (acceso Server Panel + badge ⬡ CIVAC)
+No se enumeran cuentas, correos, contraseñas, tokens ni datos de clientes en la
+documentación del proyecto. El acceso CIVAC Staff y el acceso a fincas son
+flujos separados; el panel de servidor requiere una sesión y un rol CIVAC
+autorizado. Los perfiles de cliente (veterinario, campo y consulta) reciben
+permisos por rol, plan y módulo.
 
-| Nombre | Email | Password | Rol | Cargo |
-|--------|-------|----------|-----|-------|
-| Super Administrador | super@civac.co | super2026 | superadmin | Control total · Auditoría · Config global |
-| Administrador General | admin@civac.co | admin | admin | Panel Admin completo · Gestión plataforma |
-| Dev · Arquitecto CIVAC | dev@civac.co | dev2026 | developer | Consola Dev · PWA · APIs · Deploy |
-| Asesora CIVAC · Ventas | ventas@civac.co | ventas2026 | sales | Asesora Comercial Senior · CRM |
-
-### Cuentas Cliente (acceso finca — Plan Premium)
-
-| Nombre | Email | Password | Rol | Descripción |
-|--------|-------|----------|-----|-------------|
-| Dr. Carlos Ramírez | vet@civac.co | vet2026 | vet | Médico Veterinario — módulos clínicos |
-| Luis Patiño | luis@civac.co | campo2026 | field | Jefe de Campo — pesaje, GPS, potreros |
-| Propietario / Inversor | visor@civac.co | visor | viewer | Solo lectura / dashboards |
-
-**`CIVAC_STAFF_IDS`** = `['superadmin','developer','admin','sales']` — exportado de `auth.ts`. Estas cuentas muestran badge `⬡ CIVAC` en lugar del badge de plan y tienen acceso al Server Panel (`/server`).
-
-**Respaldo oficial:** `civac-accounts-backup.json` — contiene todas las cuentas staff, demo por plan y cuentas cliente con passwords, precios, permisos y configuración de días demo.
+La cuenta de William conserva el rol de cliente y el plan Platino sin vencimiento.
+El acceso inicial se completa desde el flujo privado de activación y la contraseña
+se define por su titular; no se instala una contraseña fija. Las sesiones de
+administración requieren autenticación y nunca deben exponer sus tokens.
 
 ---
 

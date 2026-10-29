@@ -17,7 +17,7 @@ Open the **GanaderIA — Ganadería Inteligente** web artifact for the main app 
 - **API Server** — Flask services for AI, GPS and analytics on port `8000`.
 - **artifacts/ganader-ia-mobile: expo** — optional Expo mobile preview.
 
-Replit supplies the development database connection. After a fresh import, install Node dependencies with `pnpm install --frozen-lockfile`, then initialize an empty development database with `pnpm --filter @workspace/db push` (never use `push-force` against existing data). Install the Python dependencies from `requirements.txt` for the Flask service. William's customer account and permanent Platino entitlement are managed through the authenticated administrator flow. Initial access uses a private, one-time activation; the account holder creates a password stored as a scrypt hash. Never put account credentials, customer records, activation codes, or passwords in this file or the README.
+Replit supplies the development database connection. After a fresh import, install Node dependencies with `pnpm install --frozen-lockfile`, then initialize an empty development database with `pnpm --filter @workspace/db push` (never use `push-force` against existing data). Install the Python dependencies from `requirements.txt` for the Flask service. William's customer account has a permanent Premium entitlement and is managed through the authenticated administrator flow. Initial access uses a private, one-time activation; the account holder creates a password stored as a scrypt hash. Never put account credentials, customer records, activation codes, or passwords in this file or the README.
 
 The **Project** Run button starts the managed web and Node API workflows plus the Flask service. Keep only one frontend workflow, listening on `0.0.0.0:5000`; the artifact configuration sets `PORT=5000` and `BASE_PATH=/`. The optional Expo workflow is started separately. AI providers and hardware integrations still require their own configuration; startup does not configure paid services or simulated hardware.
 
@@ -136,7 +136,7 @@ flujos separados; el panel de servidor requiere una sesión y un rol CIVAC
 autorizado. Los perfiles de cliente (veterinario, campo y consulta) reciben
 permisos por rol, plan y módulo.
 
-La cuenta de William conserva el rol de cliente y el plan Platino sin vencimiento.
+La cuenta de William conserva el rol de cliente y el plan Premium sin vencimiento.
 El acceso inicial se completa desde el flujo privado de activación y la contraseña
 se define por su titular; no se instala una contraseña fija. Las sesiones de
 administración requieren autenticación y nunca deben exponer sus tokens.

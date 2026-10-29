@@ -14,3 +14,4 @@
 - [GitHub branch sync and build](github-branch-sync-build.md) — preserve divergent local commits before aligning a requested branch; validate artifact workflows after checkout changes.
 - [Drizzle schema sync](drizzle-schema-sync.md) — inspect source imports and schema drift; never force-push into an existing database without reviewing data-loss prompts.
 - [AI provider billing policy](ai-provider-billing-policy.md) — keep free providers as default; paid providers require explicit selection and server-side Premium access checks.
+- [William Premium account](william-premium-account.md) — William's CIVAC account must remain Premium with permanent access, not be labeled Platino.

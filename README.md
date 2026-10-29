@@ -133,7 +133,7 @@ el servidor; nunca se incluye en el bundle móvil.
 
 `NOVIEMBRE2026` es el nombre de la campaña, no una contraseña ni un código que
 se pueda canjear por sí solo. La cuenta de William conserva el rol de cliente y
-el plan Platino sin vencimiento, asignado únicamente por una operación protegida
+el plan Premium sin vencimiento, asignado únicamente por una operación protegida
 del panel administrativo. Para el primer acceso:
 
 1. Un administrador abre **Admin → Códigos → Tarjeta de William** y pulsa
@@ -250,7 +250,7 @@ no sustituye un contrato o certificado de licencia.
 
 - Se trabaja desde la rama `deploy-backend`, que corresponde a
   `origin/deploy-backend`; la rama predeterminada del remoto es `v7`.
-- William conserva el rol de cliente y el plan Platino sin vencimiento; el
+- William conserva el rol de cliente y el plan Premium sin vencimiento; el
   acceso inicial se establece por una activación privada de un solo uso.
 - CIVAC IA ofrece modelo local opcional en web y una guía local sin conexión en
   Expo; las claves remotas permanecen en el servidor.

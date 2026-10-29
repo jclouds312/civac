@@ -280,7 +280,7 @@ router.post("/auth/card/activate", async (req, res) => {
       if (!claimed) return { error: "invalid" as const };
 
       const permanentWilliamPlan = current.id === "civac_william";
-      const activatedPlanCode = permanentWilliamPlan ? "platino" : "premium";
+      const activatedPlanCode = permanentWilliamPlan ? "premium" : card.planCode;
       const planExpiry = permanentWilliamPlan ? null : new Date(now.getTime() + card.diasPlan * 86_400_000);
       const sessionExpiresAt = new Date(now.getTime() + 7 * 86_400_000);
       const [updated] = await tx.update(usuariosTable).set({

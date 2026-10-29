@@ -37,13 +37,13 @@ export async function ensureWilliamAccount() {
       const [account] = await tx.insert(usuariosTable).values({
         id: WILLIAM_ID,
         nombre: "William",
-        cargo: "Cliente Platino CIVAC",
+        cargo: "Cliente Premium CIVAC",
         finca: "CIVAC",
         email: WILLIAM_EMAIL,
         password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
         role: "cliente",
         permisos: "[]",
-        planCode: "platino",
+        planCode: "premium",
         activo: true,
         estado: "activo",
         demoExpiry: null,
@@ -56,10 +56,10 @@ export async function ensureWilliamAccount() {
 
     const updates: Partial<typeof usuariosTable.$inferInsert> = {
       nombre: "William",
-      cargo: "Cliente Platino CIVAC",
+      cargo: "Cliente Premium CIVAC",
       role: "cliente",
       permisos: "[]",
-      planCode: "platino",
+      planCode: "premium",
       activo: true,
       estado: "activo",
       demoExpiry: null,

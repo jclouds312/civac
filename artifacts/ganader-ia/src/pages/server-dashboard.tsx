@@ -1152,8 +1152,13 @@ function DevConsolePanel() {
 interface ServerSession {
   id: string; userId: string; userEmail: string; userRole: string;
   userName: string; planCode: string; ipAddress: string; userAgent: string;
-  expiresAt: string; createdAt: string;
+  expiresAt: string; createdAt: string; daysUsed?: number;
 }
+
+const serverSessionHeaders = () => {
+  const token = localStorage.getItem("civac_session_token") || localStorage.getItem("civac_server_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 function SessionsPanel() {
   const [sessions, setSessions]     = useState<ServerSession[]>([]);
@@ -1168,7 +1173,7 @@ function SessionsPanel() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await fetch("/api/admin/sessions");
+      const r = await fetch("/api/admin/sessions", { headers: serverSessionHeaders() });
       const d = await r.json() as { ok: boolean; sessions: ServerSession[] };
       if (d.ok) { setSessions(d.sessions ?? []); setLastRefresh(new Date()); }
     } catch { /* ignore */ }
@@ -1178,8 +1183,11 @@ function SessionsPanel() {
   const revoke = async (sessionId: string) => {
     setRevoking(sessionId);
     try {
-      await fetch(`/api/admin/sessions/${sessionId}`, { method: "DELETE" });
-      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      const response = await fetch(`/api/admin/sessions/${encodeURIComponent(sessionId)}`, {
+        method: "DELETE",
+        headers: serverSessionHeaders(),
+      });
+      if (response.ok) setSessions(prev => prev.filter(s => s.id !== sessionId));
     } catch { /* ignore */ }
     setRevoking(null);
   };

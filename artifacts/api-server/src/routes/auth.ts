@@ -339,7 +339,7 @@ router.post("/auth/card/activate", async (req, res) => {
         role: "cliente",
         cargo: result.user.cargo,
         finca: result.user.finca,
-        planCode: "premium",
+        planCode: result.user.planCode,
         estado: result.user.estado,
         planExpiry: result.user.planExpiry?.toISOString() ?? null,
       },

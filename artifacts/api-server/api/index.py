@@ -914,6 +914,8 @@ def login():
     if not email or not password:
         return _error("Email y contraseña requeridos", 400)
     user = next((item for item in FALLBACK_USERS if item["email"].lower() == email and item["password"] == password), None)
+    db_user = None
+    db_authenticated = False
     try:
         with _db() as conn:
             with conn.cursor() as cur:
@@ -924,6 +926,7 @@ def login():
                 db_user = cur.fetchone()
                 stored_password = str(db_user.get("password") or "") if db_user else ""
                 if db_user and not stored_password.startswith("CARD_ONLY:") and _verify_password(password, stored_password):
+                    db_authenticated = True
                     if db_user.get("estado") in {"bloqueado", "pendiente"}:
                         return _error("Cuenta no activa", 403)
                     user = _json_row(db_user, {"password", "created_at", "updated_at"})
@@ -947,6 +950,12 @@ def login():
                     "INSERT INTO user_sessions (id, user_id, user_email, user_role, user_name, plan_code, ip_address, user_agent, expires_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,NOW()+INTERVAL '7 days')",
                     (token, public_user["id"], public_user["email"], public_user["role"], public_user.get("nombre", ""), public_user.get("planCode", "basico"), request.remote_addr or "", request.user_agent.string or ""),
                 )
+                if db_authenticated:
+                    cur.execute(
+                        "INSERT INTO audit_log (user_id, user_email, user_role, accion, entidad, entidad_id, detalles, ip_address, resultado) "
+                        "VALUES (%s,%s,%s,'login','user',%s,%s,%s,'ok')",
+                        (public_user["id"], public_user["email"], public_user["role"], public_user["id"], '{"method":"password"}', request.remote_addr or ""),
+                    )
             conn.commit()
     except Exception:
         pass
@@ -1153,7 +1162,7 @@ def activate_william_card():
                     if (
                         not card
                         or card.get("estado") != "disponible"
-                        or card.get("plan_code") != "premium"
+                        or card.get("plan_code") not in {"premium", "platino"}
                         or not str(card.get("notas") or "").startswith("LOGIN_CARD:WILLIAM:")
                         or (card.get("expires_at") and card["expires_at"] <= now)
                     ):
@@ -1183,7 +1192,7 @@ def activate_william_card():
                         return _error("La tarjeta no es válida, venció o ya fue utilizada.", 401)
                     cur.execute(
                         "UPDATE usuarios_sistema SET role = 'cliente', estado = 'activo', activo = true, "
-                        "plan_code = 'premium', plan_expiry = NULL, plan_dias = 0, demo_expiry = NULL, "
+                        "plan_code = 'platino', plan_expiry = NULL, plan_dias = 0, demo_expiry = NULL, "
                         "demo_dias = 0, login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), "
                         "updated_at = NOW() WHERE id = %s",
                         (user_id,),
@@ -1192,7 +1201,7 @@ def activate_william_card():
                     cur.execute(
                         "INSERT INTO user_sessions "
                         "(id, user_id, user_email, user_role, user_name, plan_code, ip_address, user_agent, expires_at) "
-                        "VALUES (%s,%s,%s,'cliente',%s,'premium',%s,%s,NOW()+INTERVAL '7 days')",
+                        "VALUES (%s,%s,%s,'cliente',%s,'platino',%s,%s,NOW()+INTERVAL '7 days')",
                         (
                             token,
                             user_id,
@@ -1201,6 +1210,11 @@ def activate_william_card():
                             request.remote_addr or "",
                             request.user_agent.string or "",
                         ),
+                    )
+                    cur.execute(
+                        "INSERT INTO audit_log (user_id, user_email, user_role, accion, entidad, entidad_id, detalles, ip_address, resultado) "
+                        "VALUES (%s,%s,'cliente','login','user',%s,%s,%s,'ok')",
+                        (user_id, account["email"], user_id, '{"method":"activation_card"}', request.remote_addr or ""),
                     )
             return jsonify({
                 "token": token,
@@ -1211,7 +1225,7 @@ def activate_william_card():
                     "role": "cliente",
                     "cargo": account.get("cargo") or "",
                     "finca": account.get("finca") or "",
-                    "planCode": "premium",
+                    "planCode": "platino",
                     "estado": "activo",
                     "planExpiry": None,
                 },
@@ -1232,7 +1246,7 @@ def issue_william_card():
     marker = "LOGIN_CARD:WILLIAM:"
     code = f"CIVAC-WILLIAM-{secrets.token_hex(24).upper()}"
     stored_code = f"CARD_SHA256:{hashlib.sha256(code.encode('utf-8')).hexdigest()}"
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=48)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=30)
 
     try:
         with _db() as conn:
@@ -1266,8 +1280,8 @@ def issue_william_card():
                     if account:
                         user_id = account["id"]
                         cur.execute(
-                            "UPDATE usuarios_sistema SET nombre = 'William', cargo = 'Cliente Premium CIVAC', "
-                            "email = %s, role = 'cliente', plan_code = 'premium', plan_expiry = NULL, "
+                            "UPDATE usuarios_sistema SET nombre = 'William', cargo = 'Cliente Platino CIVAC', "
+                            "email = %s, role = 'cliente', plan_code = 'platino', plan_expiry = NULL, "
                             "plan_dias = 0, demo_expiry = NULL, demo_dias = 0, "
                             "estado = CASE WHEN estado = 'demo' THEN 'activo' ELSE estado END, "
                             "updated_at = NOW() WHERE id = %s "
@@ -1281,8 +1295,8 @@ def issue_william_card():
                             "INSERT INTO usuarios_sistema "
                             "(id, nombre, cargo, finca, email, password, role, permisos, plan_code, activo, estado, "
                             "plan_expiry, plan_dias, demo_expiry, demo_dias) "
-                            "VALUES (%s, 'William', 'Cliente Premium CIVAC', 'CIVAC', %s, %s, "
-                            "'cliente', '[]', 'premium', true, 'activo', NULL, 0, NULL, 0) "
+                            "VALUES (%s, 'William', 'Cliente Platino CIVAC', 'CIVAC', %s, %s, "
+                            "'cliente', '[]', 'platino', true, 'activo', NULL, 0, NULL, 0) "
                             "RETURNING id, nombre, email",
                             (user_id, email, f"CARD_ONLY:{secrets.token_hex(32)}"),
                         )
@@ -1292,7 +1306,7 @@ def issue_william_card():
                         "INSERT INTO codigos_activacion "
                         "(codigo, plan_code, dias_plan, session_limit, max_animales, max_usuarios, estado, "
                         "creado_por, expires_at, notas) "
-                        "VALUES (%s, 'premium', 0, 20, 2000, 15, 'disponible', %s, %s, %s) "
+                        "VALUES (%s, 'platino', 0, 20, 2000, 15, 'disponible', %s, %s, %s) "
                         "RETURNING id",
                         (stored_code, admin.get("id", "admin"), expires_at, f"{marker}{user_id}"),
                     )
@@ -1304,14 +1318,14 @@ def issue_william_card():
             "email": email,
             "nombre": "William",
             "role": "cliente",
-            "planCode": "premium",
+            "planCode": "platino",
             "diasPlan": 0,
             "codigo": code,
             "expiresAt": expires_at.isoformat(),
             "id": code_row["id"],
         })
     except Exception:
-        return _error("No fue posible crear la cuenta Premium y su tarjeta privada.", 503)
+        return _error("No fue posible crear la cuenta Platino y su tarjeta privada.", 503)
 
 
 @app.get("/api/codigos")
@@ -1350,6 +1364,117 @@ def auth_logout():
     except Exception:
         pass
     return jsonify({"ok": True})
+
+
+@app.get("/api/admin/sessions")
+def admin_sessions():
+    admin = _session_user(_bearer_token())
+    if not admin:
+        return _error("Inicia sesión como administrador para consultar las sesiones.", 401)
+    if admin.get("role") not in {"admin", "superadmin", "developer"}:
+        return _error("Admin access required", 403)
+
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT id, user_id, user_email, user_role, user_name, plan_code, ip_address, user_agent, expires_at, created_at "
+                    "FROM user_sessions WHERE expires_at > NOW() ORDER BY created_at DESC LIMIT 100"
+                )
+                session_rows = cur.fetchall()
+                cur.execute(
+                    "SELECT al.entidad_id AS user_id, u.nombre AS user_name, u.email AS user_email, u.role AS user_role, "
+                    "COUNT(DISTINCT al.created_at::date) AS days_used "
+                    "FROM audit_log al LEFT JOIN usuarios_sistema u ON u.id = al.entidad_id "
+                    "WHERE al.accion = 'login' "
+                    "GROUP BY al.entidad_id, u.nombre, u.email, u.role LIMIT 200"
+                )
+                usage_rows = cur.fetchall()
+
+        usage_by_user = {
+            str(row.get("user_id")): int(row.get("days_used") or 0)
+            for row in usage_rows
+        }
+        sessions = []
+        for row in session_rows:
+            raw_id = str(row.get("id") or "")
+            user_id = str(row.get("user_id") or "")
+            sessions.append({
+                "id": hashlib.sha256(raw_id.encode("utf-8")).hexdigest(),
+                "userId": user_id,
+                "userEmail": row.get("user_email") or "",
+                "userRole": row.get("user_role") or "",
+                "userName": row.get("user_name") or "",
+                "planCode": row.get("plan_code") or "basico",
+                "ipAddress": row.get("ip_address") or "",
+                "userAgent": row.get("user_agent") or "",
+                "expiresAt": row["expires_at"].isoformat() if row.get("expires_at") else None,
+                "createdAt": row["created_at"].isoformat() if row.get("created_at") else None,
+                "daysUsed": usage_by_user.get(user_id, 0),
+            })
+        usage = [{
+            "userId": str(row.get("user_id") or ""),
+            "userName": row.get("user_name"),
+            "userEmail": row.get("user_email"),
+            "userRole": row.get("user_role"),
+            "daysUsed": int(row.get("days_used") or 0),
+        } for row in usage_rows]
+        return jsonify({"ok": True, "total": len(sessions), "sessions": sessions, "usageByUser": usage})
+    except Exception:
+        return _error("No fue posible consultar las sesiones.", 503)
+
+
+@app.delete("/api/admin/sessions/<reference>")
+def revoke_admin_session(reference):
+    admin = _session_user(_bearer_token())
+    if not admin:
+        return _error("Inicia sesión como administrador para revocar sesiones.", 401)
+    if admin.get("role") not in {"admin", "superadmin", "developer"}:
+        return _error("Admin access required", 403)
+    if not re.fullmatch(r"[a-f0-9]{64}", reference):
+        return _error("Referencia de sesión inválida.", 400)
+
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM user_sessions WHERE expires_at > NOW()")
+                matching_id = next(
+                    (
+                        str(row["id"])
+                        for row in cur.fetchall()
+                        if hashlib.sha256(str(row["id"]).encode("utf-8")).hexdigest() == reference
+                    ),
+                    None,
+                )
+                if not matching_id:
+                    return _error("La sesión ya no está vigente.", 404)
+                cur.execute("DELETE FROM user_sessions WHERE id = %s", (matching_id,))
+            conn.commit()
+        return jsonify({"ok": True, "message": "Sesión revocada"})
+    except Exception:
+        return _error("No fue posible revocar la sesión.", 503)
+
+
+@app.delete("/api/admin/sessions")
+def revoke_admin_sessions():
+    admin = _session_user(_bearer_token())
+    if not admin:
+        return _error("Inicia sesión como administrador para revocar sesiones.", 401)
+    if admin.get("role") not in {"admin", "superadmin", "developer"}:
+        return _error("Admin access required", 403)
+    user_id = request.args.get("userId", "").strip()
+    try:
+        with _db() as conn:
+            with conn.cursor() as cur:
+                if user_id:
+                    cur.execute("DELETE FROM user_sessions WHERE user_id = %s", (user_id,))
+                else:
+                    cur.execute("DELETE FROM user_sessions WHERE expires_at < NOW()")
+                revoked = cur.rowcount
+            conn.commit()
+        return jsonify({"ok": True, "revoked": revoked})
+    except Exception:
+        return _error("No fue posible revocar las sesiones.", 503)
 
 
 @app.post("/api/auth/register")

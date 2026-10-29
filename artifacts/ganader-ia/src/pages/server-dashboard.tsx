@@ -1228,7 +1228,7 @@ function SessionsPanel() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader icon={Users} label="Sesiones Activas" sub="Accesos en tiempo real · Tokens JWT · Control de sesiones" color="#00c8ff"/>
+      <SectionHeader icon={Users} label="Sesiones Vigentes" sub="Sesiones no vencidas · Control administrativo" color="#00c8ff"/>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1304,6 +1304,7 @@ function SessionsPanel() {
                       <span>🌐 {s.ipAddress || "IP desconocida"}</span>
                       <span>💻 {getDevice(s.userAgent)} · {getBrowser(s.userAgent)}</span>
                       <span>🕐 Login: {timeAgo(s.createdAt)}</span>
+                      <span>📆 {s.daysUsed ?? 0} días de uso registrados</span>
                       <span style={{ color:timeLeft(s.expiresAt)==="Expirada"?"#f87171":"rgba(148,163,184,0.45)" }}>
                         ⏱️ Expira: {timeLeft(s.expiresAt)}
                       </span>

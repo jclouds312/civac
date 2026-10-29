@@ -243,8 +243,10 @@ router.post("/auth/card/activate", async (req, res) => {
       if (
         !card ||
         card.estado !== "disponible" ||
-        card.planCode !== "premium" ||
-        card.diasPlan !== 30 ||
+        !(
+          (card.planCode === "platino" && card.diasPlan === 0) ||
+          (card.planCode === "premium" && card.diasPlan === 30)
+        ) ||
         !card.notas.startsWith("LOGIN_CARD:WILLIAM:") ||
         (card.expiresAt && new Date(card.expiresAt) <= now)
       ) {

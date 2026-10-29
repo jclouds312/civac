@@ -1145,7 +1145,7 @@ def google_link_callback():
 @app.post("/api/auth/card/activate")
 def activate_william_card():
     code = str(_body().get("code", "")).strip().upper()
-    if not re.fullmatch(r"CIVAC-WILLIAM-[A-F0-9]{48}", code):
+    if not re.fullmatch(r"CIVAC-WILLIAM-NOVIEMBRE2026-[A-F0-9]{48}", code):
         return _error("Ingresa el código completo de la tarjeta.", 400)
     code_digest = hashlib.sha256(code.encode("utf-8")).hexdigest()
     stored_code = f"CARD_SHA256:{code_digest}"
@@ -1244,7 +1244,7 @@ def issue_william_card():
 
     email = "williamtoroparrado@gmail.com"
     marker = "LOGIN_CARD:WILLIAM:"
-    code = f"CIVAC-WILLIAM-{secrets.token_hex(24).upper()}"
+    code = f"CIVAC-WILLIAM-NOVIEMBRE2026-{secrets.token_hex(24).upper()}"
     stored_code = f"CARD_SHA256:{hashlib.sha256(code.encode('utf-8')).hexdigest()}"
     expires_at = datetime.now(timezone.utc) + timedelta(days=30)
 

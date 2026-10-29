@@ -685,7 +685,7 @@ function CodigosTab() {
       if (!response.ok || !data.codigo || !data.expiresAt) {
         throw new Error(data.error ?? "No se pudo generar la tarjeta.");
       }
-      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? 30 });
+      setWilliamCard({ codigo: data.codigo, expiresAt: data.expiresAt, diasPlan: data.diasPlan ?? 0 });
       setRefreshKey(key => key + 1);
     } catch (error) {
       setWilliamError(error instanceof Error ? error.message : "No se pudo crear la tarjeta.");
@@ -747,7 +747,7 @@ function CodigosTab() {
             El acceso dura 30 días. NOVIEMBRE2026 identifica la campaña; el token real es aleatorio y privado.
           </p>
           <div className="flex flex-wrap items-end gap-2">
-            <span className="text-[10px] text-amber-100/65">Premium · 30 días</span>
+            <span className="text-[10px] text-amber-100/65">Platino · sin vencimiento</span>
             <Button onClick={handleWilliamCard} disabled={genLoading}
               className="gap-1.5 text-xs"
               style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300" }}>
@@ -774,7 +774,7 @@ function CodigosTab() {
               </div>
               <code className="block break-all font-mono text-xs text-amber-200">{williamCard.codigo}</code>
               <p className="text-[9px] text-white/40">
-                Premium por 30 días desde la activación. Código válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
+                Plan Platino sin vencimiento al activar. Código de un solo uso válido hasta {new Date(williamCard.expiresAt).toLocaleString("es-CO")};
                 el enlace privado activa la tarjeta automáticamente y se consume al primer acceso en web o móvil.
               </p>
             </div>

@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Router, type Response } from "express";
 import { and, desc, eq, sql, gt } from "drizzle-orm";
 import {
   db, syncLogTable, animalsTable, potrerosTable, insumosTable, personalTable,
   alertasTable, pesajesTable, usuariosTable, plansTable, tramaLogsTable, appVersionsTable,
   userSessionsTable, auditLogTable,
 } from "@workspace/db";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { authMiddleware, adminOnlyMiddleware, type AuthRequest } from "../middleware/auth";
 import { ensureWilliamAccount } from "../lib/william-account";
 
@@ -13,8 +13,8 @@ const router = Router();
 
 const PLAN_PRECIOS: Record<string, number> = { basico:0, pro:89000, premium:189000, platino:399000 };
 
-/* ── William: acceso Premium temporal de 30 días ──────────────────────────── */
-router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
+/* ── William: plan Platino sin vencimiento, asignado solo por administración ── */
+const ensureWilliamUnlimitedHandler = async (req: AuthRequest, res: Response) => {
   try {
     const account = await ensureWilliamAccount();
     if (!account.ok && account.reason === "staff_account_conflict") {
@@ -36,13 +36,17 @@ router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMidd
       created: account.created,
       account: safeAccount,
       paidAccount: false,
-      isDemo: true,
-      accessDays: 30,
+      isDemo: false,
+      accessDays: null,
+      unlimitedAccess: true,
     });
   } catch (err) {
-    return res.status(500).json({ ok: false, message: "No fue posible activar la cuenta Premium de William.", detail: String(err) });
+    return res.status(500).json({ ok: false, message: "No fue posible actualizar el plan de William.", detail: String(err) });
   }
-});
+};
+router.post("/admin/users/william/ensure-unlimited", authMiddleware, adminOnlyMiddleware, ensureWilliamUnlimitedHandler);
+// Keep the old route for older clients; it now applies the same permanent plan.
+router.post("/admin/users/william/ensure-premium", authMiddleware, adminOnlyMiddleware, ensureWilliamUnlimitedHandler);
 
 router.get("/admin/users/:id/monitoring", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
@@ -336,39 +340,61 @@ router.post("/admin/users/:id/extend", async (req, res) => {
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });
 
-/* ── GET /api/admin/sessions — sesiones activas ──────────────────────────── */
-router.get("/admin/sessions", async (_req, res) => {
+/* ── GET /api/admin/sessions — sesiones vigentes, solo para administradores ── */
+router.get("/admin/sessions", authMiddleware, adminOnlyMiddleware, async (_req, res) => {
   try {
-    const sessions = await db.select({
-      id: userSessionsTable.id,
-      userId: userSessionsTable.userId,
-      userEmail: userSessionsTable.userEmail,
-      userRole: userSessionsTable.userRole,
-      userName: userSessionsTable.userName,
-      planCode: userSessionsTable.planCode,
-      ipAddress: userSessionsTable.ipAddress,
-      userAgent: userSessionsTable.userAgent,
-      expiresAt: userSessionsTable.expiresAt,
-      createdAt: userSessionsTable.createdAt,
-    }).from(userSessionsTable)
-      .where(gt(userSessionsTable.expiresAt, new Date()))
-      .orderBy(desc(userSessionsTable.createdAt))
-      .limit(100);
+    const [sessions, usageDays] = await Promise.all([
+      db.select({
+        id: userSessionsTable.id,
+        userId: userSessionsTable.userId,
+        userEmail: userSessionsTable.userEmail,
+        userRole: userSessionsTable.userRole,
+        userName: userSessionsTable.userName,
+        planCode: userSessionsTable.planCode,
+        ipAddress: userSessionsTable.ipAddress,
+        userAgent: userSessionsTable.userAgent,
+        expiresAt: userSessionsTable.expiresAt,
+        createdAt: userSessionsTable.createdAt,
+      }).from(userSessionsTable)
+        .where(gt(userSessionsTable.expiresAt, new Date()))
+        .orderBy(desc(userSessionsTable.createdAt))
+        .limit(100),
+      db.select({
+        userId: auditLogTable.entidadId,
+        daysUsed: sql<number>`COUNT(DISTINCT (${auditLogTable.createdAt}::date))`,
+      }).from(auditLogTable)
+        .where(eq(auditLogTable.accion, "login"))
+        .groupBy(auditLogTable.entidadId),
+    ]);
 
-    return res.json({ ok: true, total: sessions.length, sessions });
+    const usageDaysByUser = new Map(usageDays.map(row => [row.userId, Number(row.daysUsed) || 0]));
+    const safeSessions = sessions.map(({ id, ...session }) => ({
+      ...session,
+      id: createHash("sha256").update(id).digest("hex"),
+      daysUsed: usageDaysByUser.get(session.userId) ?? 0,
+    }));
+    return res.json({ ok: true, total: safeSessions.length, sessions: safeSessions });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });
 
-/* ── DELETE /api/admin/sessions/:id — revocar sesión ─────────────────────── */
-router.delete("/admin/sessions/:id", async (req, res) => {
+/* ── DELETE /api/admin/sessions/:id — revocar por referencia opaca ───────── */
+router.delete("/admin/sessions/:id", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
-    await db.delete(userSessionsTable).where(eq(userSessionsTable.id, req.params["id"]));
+    const reference = req.params["id"];
+    if (typeof reference !== "string" || !/^[a-f0-9]{64}$/.test(reference)) {
+      return res.status(400).json({ ok: false, message: "Referencia de sesión inválida." });
+    }
+    const candidates = await db.select({ id: userSessionsTable.id })
+      .from(userSessionsTable).where(gt(userSessionsTable.expiresAt, new Date()));
+    const session = candidates.find(row => createHash("sha256").update(row.id).digest("hex") === reference);
+    if (!session) return res.status(404).json({ ok: false, message: "La sesión ya no está vigente." });
+    await db.delete(userSessionsTable).where(eq(userSessionsTable.id, session.id));
     return res.json({ ok: true, message: "Sesión revocada" });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });
 
 /* ── DELETE /api/admin/sessions — revocar todas las sesiones de un user ───── */
-router.delete("/admin/sessions", async (req, res) => {
+router.delete("/admin/sessions", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
     const { userId } = req.query as { userId?: string };
     if (userId) {

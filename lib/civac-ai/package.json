@@ -1,0 +1,9 @@
+{
+  "name": "@workspace/civac-ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./offline": "./src/offline.ts"
+  }
+}

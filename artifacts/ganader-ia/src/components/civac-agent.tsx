@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { getToken } from "@/lib/api";
+import { answerOfflineCivac } from "@workspace/civac-ai/offline";
+import { askLocalCivacAI, canRunLocalAI, prepareLocalCivacAI } from "@/lib/local-ai";
 
 /* ── Types ───────────────────────────────────────────────────────────────── */
 interface ChatMsg {
@@ -122,6 +124,15 @@ const ROLE_GUIDES: Record<string, RoleGuide> = {
   },
 };
 
+const LOCAL_PROVIDER: AIProviderOption = {
+  id: "local",
+  label: "Modelo local del dispositivo",
+  tier: "free",
+  locked: false,
+  configured: true,
+  available: true,
+};
+
 /* ── Typing indicator ────────────────────────────────────────────────────── */
 function TypingDots() {
   return (
@@ -194,8 +205,10 @@ export default function CivacAgent() {
   const [loading,   setLoading]   = useState(false);
   const [online,    setOnline]    = useState(navigator.onLine);
   const [aiStatus,  setAiStatus]  = useState<'checking' | 'ready' | 'unconfigured' | 'session' | 'offline'>('checking');
-  const [aiProviders, setAiProviders] = useState<AIProviderOption[]>([]);
-  const [selectedProvider, setSelectedProvider] = useState('');
+  const [aiProviders, setAiProviders] = useState<AIProviderOption[]>([LOCAL_PROVIDER]);
+  const [selectedProvider, setSelectedProvider] = useState("local");
+  const [localModelState, setLocalModelState] = useState<"checking" | "available" | "loading" | "ready" | "unsupported" | "error">("checking");
+  const [localProgress, setLocalProgress] = useState({ progress: 0, text: "" });
   const [pulse,     setPulse]     = useState(true);
   const [unread,    setUnread]    = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -212,9 +225,20 @@ export default function CivacAgent() {
 
   useEffect(() => {
     if (!open) return;
+    let cancelled = false;
+    void canRunLocalAI().then(supported => {
+      if (!cancelled) setLocalModelState(current => current === "ready" ? current : supported ? "available" : "unsupported");
+    });
+    return () => { cancelled = true; };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const token = getToken();
     if (!token) {
       setAiStatus('session');
+      setAiProviders([LOCAL_PROVIDER]);
+      setSelectedProvider("local");
       return;
     }
     const controller = new AbortController();
@@ -228,16 +252,22 @@ export default function CivacAgent() {
       if (res.status === 401) setAiStatus('session');
       else if (!res.ok) setAiStatus('offline');
       else {
-        const providers = Array.isArray(data.providers) ? data.providers as AIProviderOption[] : [];
+        const remoteProviders = Array.isArray(data.providers) ? data.providers as AIProviderOption[] : [];
+        const providers = [...remoteProviders.filter(provider => provider.id !== "local"), LOCAL_PROVIDER];
         setAiProviders(providers);
         setSelectedProvider(current => {
-          if (providers.some(provider => provider.id === current && provider.available)) return current;
-          return typeof data.defaultProvider === 'string' ? data.defaultProvider : '';
+          if (current !== "local" && providers.some(provider => provider.id === current && provider.available)) return current;
+          const defaultProvider = typeof data.defaultProvider === "string" ? data.defaultProvider : "";
+          return providers.some(provider => provider.id === defaultProvider && provider.available) ? defaultProvider : "local";
         });
         setAiStatus(data.configured ? 'ready' : 'unconfigured');
       }
     }).catch(() => {
-      if (!controller.signal.aborted) setAiStatus('offline');
+      if (!controller.signal.aborted) {
+        setAiProviders([LOCAL_PROVIDER]);
+        setSelectedProvider("local");
+        setAiStatus('offline');
+      }
     });
     return () => controller.abort();
   }, [open, user?.id]);
@@ -265,6 +295,44 @@ export default function CivacAgent() {
     if (open) { setTimeout(() => inputRef.current?.focus(), 300); setUnread(0); }
   }, [open]);
 
+  const prepareLocalModel = useCallback(async () => {
+    setLocalModelState("loading");
+    setLocalProgress({ progress: 0, text: "Preparando el modelo…" });
+    try {
+      await prepareLocalCivacAI(progress => setLocalProgress(progress));
+      setLocalModelState("ready");
+    } catch {
+      setLocalModelState("error");
+    }
+  }, []);
+
+  const respondLocally = useCallback(async (prompt: string, history: ChatMsg[]) => {
+    if (localModelState === "ready") {
+      try {
+        const answer = await askLocalCivacAI(
+          prompt,
+          history
+            .filter(item => !item.loading && item.id !== "init")
+            .slice(-6)
+            .map(item => ({ role: item.role === "user" ? "user" as const : "assistant" as const, text: item.text })),
+          user?.role ?? "viewer",
+          progress => setLocalProgress(progress),
+        );
+        return answer;
+      } catch {
+        setLocalModelState("error");
+      }
+    }
+
+    const guide = answerOfflineCivac(prompt);
+    const modelNote = localModelState === "unsupported"
+      ? "Este navegador no tiene WebGPU; puedes seguir usando esta guía local."
+      : localModelState === "error"
+        ? "El modelo local no está disponible; se muestra la guía local."
+        : "Para respuestas generativas sin conexión, descarga primero el modelo local (aprox. 300 MB).";
+    return `Guía local · ${guide.topic}\n\n${guide.text}\n\n${modelNote}`;
+  }, [localModelState, user?.role]);
+
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
 
@@ -274,17 +342,27 @@ export default function CivacAgent() {
     setInput('');
     setLoading(true);
 
+    const finishResponse = (answer: string, action?: string | null, actionLabel?: string | null) => {
+      const agentMsg: ChatMsg = {
+        id: `a-${Date.now()}`,
+        role: "agent",
+        text: answer,
+        ts: new Date(),
+        accion: action,
+        accion_label: actionLabel,
+      };
+      setMessages(prev => [...prev.filter(item => !item.loading), agentMsg]);
+      if (!open) setUnread(value => value + 1);
+    };
+
     try {
-      // Offline fallback
-      if (!navigator.onLine) {
-        throw new Error('No hay conexión a internet. CIVAC IA necesita conexión; no se consultaron ni modificaron datos.');
+      const token = getToken();
+      if (selectedProvider === "local" || !navigator.onLine || !token) {
+        if (!token && selectedProvider !== "local") setAiStatus("session");
+        finishResponse(await respondLocally(text.trim(), messages));
+        return;
       }
 
-      const token = getToken();
-      if (!token) {
-        setAiStatus('session');
-        throw new Error('No encuentro una sesión válida del servidor. Cierra sesión y vuelve a ingresar para usar CIVAC IA.');
-      }
       const history = messages
         .filter(item => !item.loading && item.id !== 'init' && item.text.trim())
         .slice(-12)
@@ -295,7 +373,7 @@ export default function CivacAgent() {
         body: JSON.stringify({
           message: text.trim(),
           history,
-          ...(selectedProvider ? { provider: selectedProvider } : {}),
+          provider: selectedProvider,
         }),
         signal: AbortSignal.timeout(30000),
       });
@@ -303,32 +381,17 @@ export default function CivacAgent() {
       if (!res.ok) {
         if (data.code === 'AI_NOT_CONFIGURED') setAiStatus('unconfigured');
         if (data.code === 'SESSION_REQUIRED') setAiStatus('session');
-        throw new Error(data.error || 'No fue posible obtener una respuesta de CIVAC IA.');
+        throw new Error(data.error || 'Servicio remoto no disponible.');
       }
       setAiStatus('ready');
-
-      const agentMsg: ChatMsg = {
-        id: `a-${Date.now()}`, role: 'agent',
-        text: data.respuesta || 'No pude procesar esa pregunta.',
-        ts: new Date(),
-        accion: data.accion,
-        accion_label: data.accion_label,
-      };
-      setMessages(prev => [...prev.filter(m => !m.loading), agentMsg]);
-      if (!open) setUnread(u => u + 1);
-
-    } catch (error) {
-      const errorText = error instanceof Error ? error.message : 'No fue posible conectar con CIVAC IA.';
-      const offlineMsg: ChatMsg = {
-        id: `err-${Date.now()}`, role: 'agent',
-        text: errorText,
-        ts: new Date(),
-      };
-      setMessages(prev => [...prev.filter(m => !m.loading), offlineMsg]);
+      finishResponse(data.respuesta || 'No pude procesar esa pregunta.', data.accion, data.accion_label);
+    } catch {
+      const fallback = await respondLocally(text.trim(), messages);
+      finishResponse(`${fallback}\n\nEl servicio remoto no estuvo disponible; no se enviaron cambios a la cuenta.`);
     } finally {
       setLoading(false);
     }
-  }, [loading, messages, open, selectedProvider]);
+  }, [loading, messages, open, respondLocally, selectedProvider]);
 
   const handleNavigate = useCallback((href: string) => {
     navigate(href);
@@ -339,6 +402,21 @@ export default function CivacAgent() {
     e.preventDefault();
     sendMessage(input);
   };
+
+  const localStatusLabel = localModelState === "ready"
+    ? "Modelo local listo"
+    : localModelState === "loading"
+      ? `Preparando modelo ${Math.round(localProgress.progress * 100)}%`
+      : localModelState === "unsupported"
+        ? "Guía offline lista"
+        : "IA local sin clave";
+  const assistantStatusLabel = selectedProvider === "local"
+    ? localStatusLabel
+    : aiStatus === "ready" ? "IA remota lista"
+      : aiStatus === "unconfigured" ? "Servicio sin configurar"
+        : aiStatus === "session" ? "Guía local · inicia sesión para servicio remoto"
+          : aiStatus === "checking" ? "Verificando servicio"
+            : online ? "Servicio remoto no disponible" : "Offline · guía local";
 
   return (
     <>
@@ -400,9 +478,9 @@ export default function CivacAgent() {
               <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full"
                 style={{ background:'rgba(0,245,212,0.15)', border:'1px solid rgba(0,245,212,0.3)', color:'#00f5d4' }}>v2.1</span>
               <div className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: aiStatus === 'ready' ? '#39ff7e' : aiStatus === 'unconfigured' || aiStatus === 'session' ? '#ffb84d' : '#ff4d6d' }}/>
-                <span className="text-[8px]" style={{ color: aiStatus === 'ready' ? '#39ff7e' : aiStatus === 'unconfigured' || aiStatus === 'session' ? '#ffb84d' : '#ff4d6d' }}>
-                  {aiStatus === 'ready' ? 'IA lista' : aiStatus === 'unconfigured' ? 'Config. pendiente' : aiStatus === 'session' ? 'Inicia sesión' : aiStatus === 'checking' ? 'Verificando' : online ? 'Sin servidor' : 'Offline'}
+                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: selectedProvider === "local" ? localModelState === "loading" ? "#00c8ff" : "#39ff7e" : aiStatus === 'ready' ? '#39ff7e' : aiStatus === 'unconfigured' || aiStatus === 'session' ? '#ffb84d' : '#ff4d6d' }}/>
+                <span className="text-[8px]" style={{ color: selectedProvider === "local" ? localModelState === "loading" ? "#00c8ff" : "#39ff7e" : aiStatus === 'ready' ? '#39ff7e' : aiStatus === 'unconfigured' || aiStatus === 'session' ? '#ffb84d' : '#ff4d6d' }}>
+                  {assistantStatusLabel}
                 </span>
               </div>
             </div>
@@ -446,13 +524,14 @@ export default function CivacAgent() {
           <select
             id="civac-ai-provider"
             value={selectedProvider}
-            onChange={event => setSelectedProvider(event.target.value)}
+            onChange={event => setSelectedProvider(event.target.value || "local")}
             className="w-full rounded-xl px-3 py-2 text-[10px] font-bold outline-none"
             style={{ background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.82)', border:'1px solid rgba(0,245,212,0.16)' }}
           >
-            <option value="" style={{ background:'#071325', color:'#fff' }}>Selecciona un proveedor de IA</option>
             {aiProviders.map(provider => {
-              const detail = provider.locked
+              const detail = provider.id === "local"
+                ? "sin clave · requiere descarga inicial"
+                : provider.locked
                 ? 'requiere plan Premium'
                 : !provider.configured
                   ? 'pendiente de configurar'
@@ -472,11 +551,41 @@ export default function CivacAgent() {
             })}
           </select>
           <p className="text-[8px] mt-1 px-1" style={{ color:'rgba(255,255,255,0.32)' }}>
-            {selectedProvider && aiProviders.find(provider => provider.id === selectedProvider)?.tier === 'premium'
+            {selectedProvider === "local"
+              ? "El modelo local corre en este navegador. Tras descargarlo, puede responder sin conexión mientras el dispositivo conserve los archivos."
+              : selectedProvider && aiProviders.find(provider => provider.id === selectedProvider)?.tier === 'premium'
               ? 'El uso de modelos Premium puede tener costo según la tarifa de tu proveedor.'
               : 'Las opciones gratuitas tienen límites definidos por cada proveedor.'}
           </p>
         </div>
+        {selectedProvider === "local" && (
+          <div className="px-3 pb-2 flex-shrink-0">
+            <div className="rounded-xl px-3 py-2.5" style={{ background: "rgba(0,245,212,0.04)", border: "1px solid rgba(0,245,212,0.12)" }}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-white/75">IA local · {localModelState === "ready" ? "lista" : localModelState === "unsupported" ? "WebGPU no disponible" : "Qwen2.5 0.5B"}</p>
+                  <p className="text-[8px] mt-0.5 text-white/35">{localModelState === "loading" ? localProgress.text : "Descarga inicial aproximada: 300 MB. La guía breve sigue disponible sin modelo."}</p>
+                </div>
+                {localModelState !== "ready" && localModelState !== "unsupported" && (
+                  <button
+                    type="button"
+                    disabled={localModelState === "loading"}
+                    onClick={() => void prepareLocalModel()}
+                    className="flex-shrink-0 rounded-lg px-2.5 py-1.5 text-[8px] font-black disabled:opacity-50"
+                    style={{ color: "#04120f", background: "#00f5d4" }}
+                  >
+                    {localModelState === "loading" ? `${Math.round(localProgress.progress * 100)}%` : localModelState === "error" ? "Reintentar descarga" : "Preparar modelo"}
+                  </button>
+                )}
+              </div>
+              {localModelState === "loading" && (
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full rounded-full bg-[#00f5d4] transition-all" style={{ width: `${Math.round(localProgress.progress * 100)}%` }} />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {showGuide ? (
           <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0" style={{ scrollbarWidth:'none' }}>

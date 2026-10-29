@@ -33,40 +33,39 @@ export async function ensureWilliamAccount() {
     }
 
     const now = new Date();
-    const accessExpiry = new Date(now.getTime() + 30 * 86_400_000);
     if (!existing) {
       const [account] = await tx.insert(usuariosTable).values({
         id: WILLIAM_ID,
         nombre: "William",
-        cargo: "Cliente Premium CIVAC",
+        cargo: "Cliente Platino CIVAC",
         finca: "CIVAC",
         email: WILLIAM_EMAIL,
         password: `CARD_ONLY:${randomBytes(32).toString("hex")}`,
         role: "cliente",
         permisos: "[]",
-        planCode: "premium",
+        planCode: "platino",
         activo: true,
         estado: "activo",
         demoExpiry: null,
         demoDias: 0,
-        planExpiry: accessExpiry,
-        planDias: 30,
+        planExpiry: null,
+        planDias: 0,
       }).returning();
       return { ok: true as const, account, created: true };
     }
 
     const updates: Partial<typeof usuariosTable.$inferInsert> = {
       nombre: "William",
-      cargo: "Cliente Premium CIVAC",
+      cargo: "Cliente Platino CIVAC",
       role: "cliente",
       permisos: "[]",
-      planCode: "premium",
+      planCode: "platino",
       activo: true,
       estado: "activo",
       demoExpiry: null,
       demoDias: 0,
-      planExpiry: existing.planExpiry ?? accessExpiry,
-      planDias: existing.planExpiry ? (existing.planDias ?? 30) : 30,
+      planExpiry: null,
+      planDias: 0,
       email: WILLIAM_EMAIL,
       updatedAt: now,
     };

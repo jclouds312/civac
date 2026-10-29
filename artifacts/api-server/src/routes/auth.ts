@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { createHash, randomBytes, randomUUID, scrypt, timingSafeEqual } from "crypto";
-import { db, codigosActivacionTable, usuariosTable, userSessionsTable } from "@workspace/db";
+import { db, auditLogTable, codigosActivacionTable, usuariosTable, userSessionsTable } from "@workspace/db";
 import { authMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
@@ -154,6 +154,21 @@ router.post("/auth/login", async (req, res) => {
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
     } catch { /* ok */ }
+    if (dbRow) {
+      try {
+        await db.insert(auditLogTable).values({
+          userId: dbRow.id,
+          userEmail: dbRow.email,
+          userRole: dbRow.role,
+          accion: "login",
+          entidad: "user",
+          entidadId: dbRow.id,
+          detalles: JSON.stringify({ method: "password" }),
+          ipAddress: req.ip ?? "",
+          resultado: "ok",
+        });
+      } catch { /* login must not fail because of optional usage tracking */ }
+    }
 
     const demoExpiry = dbRow?.demoExpiry ?? null;
     const planExpiry = dbRow?.planExpiry ?? null;
@@ -262,15 +277,17 @@ router.post("/auth/card/activate", async (req, res) => {
       )).returning();
       if (!claimed) return { error: "invalid" as const };
 
-      const planExpiry = new Date(now.getTime() + card.diasPlan * 86_400_000);
-      const sessionExpiresAt = planExpiry;
+      const permanentWilliamPlan = current.id === "civac_william";
+      const activatedPlanCode = permanentWilliamPlan ? "platino" : "premium";
+      const planExpiry = permanentWilliamPlan ? null : new Date(now.getTime() + card.diasPlan * 86_400_000);
+      const sessionExpiresAt = new Date(now.getTime() + 7 * 86_400_000);
       const [updated] = await tx.update(usuariosTable).set({
         role: "cliente",
         estado: "activo",
         activo: true,
-        planCode: "premium",
+        planCode: activatedPlanCode,
         planExpiry,
-        planDias: card.diasPlan,
+        planDias: permanentWilliamPlan ? 0 : card.diasPlan,
         demoExpiry: null,
         demoDias: 0,
         loginCount: (current.loginCount ?? 0) + 1,
@@ -285,10 +302,21 @@ router.post("/auth/card/activate", async (req, res) => {
         userEmail: updated.email,
         userRole: "cliente",
         userName: updated.nombre,
-        planCode: "premium",
+        planCode: activatedPlanCode,
         ipAddress: req.ip ?? "",
         userAgent: req.headers["user-agent"] ?? "",
         expiresAt: sessionExpiresAt,
+      });
+      await tx.insert(auditLogTable).values({
+        userId: updated.id,
+        userEmail: updated.email,
+        userRole: updated.role,
+        accion: "login",
+        entidad: "user",
+        entidadId: updated.id,
+        detalles: JSON.stringify({ method: "activation_card" }),
+        ipAddress: req.ip ?? "",
+        resultado: "ok",
       });
 
       return { token, user: updated };

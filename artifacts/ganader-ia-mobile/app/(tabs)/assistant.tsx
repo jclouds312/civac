@@ -5,11 +5,12 @@ import { apiRequest, displayError } from '@/lib/api';
 import { Header, Notice, Page, ui } from '@/components/ui';
 import colors from '@/constants/colors';
 import { useSession } from '@/lib/session';
+import { answerOfflineCivac } from '@workspace/civac-ai/offline';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 export default function AssistantScreen() {
   const { user } = useSession();
-  const [status, setStatus] = useState<{ available?: boolean; [key: string]: unknown } | null>(null);
+  const [status, setStatus] = useState<{ available?: boolean; configured?: boolean; [key: string]: unknown } | null>(null);
   const [statusError, setStatusError] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -26,7 +27,7 @@ export default function AssistantScreen() {
     : 'Pregunta sobre manejo del hato, registros de peso o prácticas de finca. Comparte el contexto necesario; verifica decisiones clínicas con tu profesional veterinario.';
   useEffect(() => {
     let active = true;
-    apiRequest<{ available?: boolean; [key: string]: unknown }>('/api/ai/status')
+    apiRequest<{ available?: boolean; configured?: boolean; [key: string]: unknown }>('/api/ai/status')
       .then(value => { if (active) setStatus(value); })
       .catch(e => { if (active) setStatusError(displayError(e)); });
     return () => { active = false; };
@@ -38,19 +39,30 @@ export default function AssistantScreen() {
     const next = [...messages, { role: 'user' as const, content: message }];
     setMessages(next); setInput(''); setBusy(true); setChatError('');
     try {
+      if (status?.configured === false || status?.available === false) {
+        throw new Error('Servicio remoto no disponible');
+      }
       const response = await apiRequest<{ ok: boolean; respuesta?: string; error?: string }>('/api/ai/chat', { method: 'POST', body: JSON.stringify({ message, history }) });
       if (!response.ok) throw new Error(response.error || response.respuesta || 'El asistente no pudo responder.');
       setMessages([...next, { role: 'assistant', content: response.respuesta || 'La respuesta llegó vacía.' }]);
-    } catch (e) { setMessages(next); setChatError(displayError(e)); }
+    } catch {
+      const guide = answerOfflineCivac(message);
+      setMessages([...next, { role: 'assistant', content: `Guía local · ${guide.topic}\n\n${guide.text}` }]);
+      setChatError('');
+    }
     finally { setBusy(false); setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 120); }
   };
   return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={75}>
     <View style={{ flex: 1 }}>
       <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentContainerStyle={[ui.scroll, { paddingBottom: 12, flexGrow: 1 }]}>
         <Header kicker="CIVAC · ASISTENCIA" title="Asistente ganadero" subtitle="Orientación para el trabajo diario en finca." />
-        {statusError ? <Notice message={statusError} /> : <View style={[ui.row, { gap: 8, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, padding: 11, borderRadius: 13 }]}>
-          <View style={{ width: 8, height: 8, borderRadius: 5, backgroundColor: status?.available === false ? colors.amber : colors.primary }} />
-          <Text style={{ color: colors.muted, fontSize: 12, flex: 1 }}>{status?.available === false ? 'Servicio de IA no disponible en este momento.' : 'Estado del servicio: ' + String(status?.status ?? (status ? 'disponible' : 'consultando'))}</Text>
+        {statusError ? <Notice message={`${statusError} La guía local sigue disponible.`} /> : <View style={[ui.row, { gap: 8, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, padding: 11, borderRadius: 13 }]}>
+          <View style={{ width: 8, height: 8, borderRadius: 5, backgroundColor: status?.configured === false || status?.available === false ? colors.amber : colors.primary }} />
+          <Text style={{ color: colors.muted, fontSize: 12, flex: 1 }}>
+            {status?.configured === false || status?.available === false
+              ? 'Servicio remoto sin configurar; la guía local funciona sin conexión. En web puedes descargar el modelo local compatible con WebGPU.'
+              : 'Servicio remoto disponible; si falla, se usa una guía local sin conexión.'}
+          </Text>
         </View>}
         {!messages.length ? <View style={[ui.card, { gap: 12, backgroundColor: colors.navy, borderColor: colors.navy, padding: 20 }]}>
           <View style={[ui.row, { gap: 10 }]}><View style={{ width: 37, height: 37, borderRadius: 13, backgroundColor: '#1F5B58', alignItems: 'center', justifyContent: 'center' }}><Feather name="message-circle" color="#70E3CB" size={18} /></View><Text style={{ color: colors.white, fontSize: 17, fontWeight: '700' }}>¿Qué necesitas resolver?</Text></View>

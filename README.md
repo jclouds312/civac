@@ -149,6 +149,29 @@ el servidor; nunca se incluye en el bundle móvil.
 
 ## Acceso CIVAC y seguridad de cuentas
 
+> **Seguridad:** este README no contiene contraseñas, tokens, claves API, enlaces
+> privados ni el padrón de usuarios. No publiques credenciales reales en GitHub.
+> Las cuentas existentes deben usar contraseñas individuales y, si alguna clave
+> fue almacenada en archivos de respaldo o compartida fuera del gestor de
+> secretos, debe rotarse antes de usar producción.
+
+### Matriz de acceso y planes
+
+| Perfil | Rol | Plan de referencia | Acceso |
+|---|---|---|---|
+| Administración CIVAC | `superadmin` / `admin` | Platino | Panel administrativo, usuarios, planes, sesiones y todos los módulos según permisos. |
+| Desarrollo CIVAC | `developer` | Platino | Herramientas técnicas, versiones y despliegues; sin compartir credenciales. |
+| Ventas CIVAC | `sales` | Platino | CRM, prospectos, planes, demos y documentación comercial. |
+| Veterinaria | `vet` | PRO | Sanidad, reproducción, genética, fichas clínicas y módulos autorizados. |
+| Campo | `field` | Básico | Inventario, pesajes, potreros, alimentación y alertas autorizadas. |
+| Consulta | `viewer` | Básico | Paneles e informes de solo lectura. |
+| Cliente | `cliente` | Según contrato | Módulos habilitados por plan y permisos de su finca. |
+
+Las credenciales de prueba, cuando sean necesarias para desarrollo local, deben
+crearse mediante datos semilla fuera del repositorio o variables de entorno. En
+producción, el alta y restablecimiento se realiza desde el flujo autenticado de
+**Admin → Usuarios**; nunca se documentan contraseñas en este archivo.
+
 `NOVIEMBRE2026` identifica la campaña; no es un PIN, contraseña ni código
 canjeable por sí solo. La cuenta de William conserva el rol de cliente y el plan
 Premium sin vencimiento, asignado únicamente por una operación protegida del

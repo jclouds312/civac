@@ -158,7 +158,7 @@ router.post("/auth/login", async (req, res) => {
           loginCount: (dbRow.loginCount ?? 0) + 1,
           lastLogin: new Date(),
           updatedAt: new Date(),
-        } as Parameters<typeof db.update>[0]).where(eq(usuariosTable.id, dbRow.id));
+        }).where(eq(usuariosTable.id, dbRow.id));
       } catch { /* ok */ }
     }
 
@@ -725,7 +725,7 @@ router.post("/auth/register", async (req, res) => {
         planCode: "basico",
         activo: false,
         estado: "pendiente",
-      } as Parameters<typeof db.insert>[0]).returning();
+      }).returning();
 
       return res.status(201).json({
         ok: true,

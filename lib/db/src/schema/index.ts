@@ -475,3 +475,5 @@ export type OauthCuenta = typeof oauthCuentasTable.$inferSelect;
 // Kept in a focused module but re-exported here so Drizzle includes it in the
 // canonical PostgreSQL schema used by the API and migrations.
 export * from "./gps";
+
+export * from "./marketplace";

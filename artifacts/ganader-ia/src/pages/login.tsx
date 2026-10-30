@@ -437,7 +437,7 @@ function RightWidgets() {
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LOGO
-════����══════════════════════════════════════════════════════════════════════════ */
+════�����══════════════════════════════════════════════════════════════════════════ */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
     <div className="relative inline-block" style={{ width:size*1.6, height:size*1.6 }}>
@@ -1094,7 +1094,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden pb-28 sm:pb-0"
+    <div className="civac-login min-h-screen flex flex-col items-center justify-center relative overflow-hidden pb-28 sm:pb-0"
       style={{ fontFamily:"'Space Grotesk','Sora',sans-serif" }}>
 
       <FarmBackground />

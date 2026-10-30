@@ -20,6 +20,17 @@ $breakpoints: (sm: 640px, md: 768px, lg: 1024px, xl: 1280px);
   .civac-sticky-actions { position: sticky; bottom: 0; z-index: 20; padding: 0.75rem; margin-inline: -0.75rem; background: color-mix(in srgb, #0c1830 92%, transparent); backdrop-filter: blur(14px); }
 }
 
+@container (max-width: 720px) {
+  .civac-dashboard .module-card { min-height: 112px; padding: .7rem; }
+  .civac-dashboard .module-desc { font-size: .62rem; }
+}
+
+@media (max-width: 640px) {
+  .civac-login { min-height: 100svh; }
+  .civac-login .civac-touch-target { min-height: 48px; }
+  .civac-dashboard .module-card { border-radius: 1rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

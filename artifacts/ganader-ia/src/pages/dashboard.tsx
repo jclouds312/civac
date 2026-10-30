@@ -260,7 +260,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-5 pb-8 civac-animate">
+    <div className="civac-dashboard space-y-4 sm:space-y-5 pb-8 civac-animate">
 
       {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden module-banner"

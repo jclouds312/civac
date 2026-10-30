@@ -279,7 +279,7 @@ router.post("/codigos/redeem", authMiddleware, async (req: AuthRequest, res) => 
 /* ── DELETE /api/codigos/:id ── eliminar/expirar código ─────────────────── */
 router.delete("/codigos/:id", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
-    const id = parseInt(req.params.id, 10);
+    const id = parseInt(String(req.params.id), 10);
     await db.update(codigosActivacionTable).set({ estado: "expirado" }).where(eq(codigosActivacionTable.id, id));
     res.json({ ok: true });
   } catch {

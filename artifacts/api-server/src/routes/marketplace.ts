@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { db } from '@/lib/db';
-import { marketplaceListingsTable, marketplaceDealsTable, marketplaceMessagesTable, marketplaceCommissionLedgerTable } from '@/lib/db/src/schema/marketplace';
+import { db, marketplaceListingsTable, marketplaceDealsTable, marketplaceMessagesTable, marketplaceCommissionLedgerTable } from '@workspace/db';
 
 const router = Router();
 

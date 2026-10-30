@@ -98,13 +98,13 @@ router.post("/licenses/generate", authMiddleware, adminOnlyMiddleware, async (re
 router.get("/licenses/download/:id", authMiddleware, async (req: AuthRequest, res) => {
   try {
     if (!req.user || req.user.userId === "anon") return res.status(401).json({ ok: false, error: "Sesión requerida" });
-    const rows = await db.select().from(licenciasTable).where(eq(licenciasTable.id, req.params.id)).limit(1);
+    const rows = await db.select().from(licenciasTable).where(eq(licenciasTable.id, String(req.params.id))).limit(1);
     const license = rows[0];
     const isStaff = ["admin", "superadmin", "developer"].includes(req.user.role);
     if (!license || (!isStaff && license.userId !== req.user.userId)) {
       return res.status(404).json({ ok: false, error: "Licencia no disponible para esta cuenta" });
     }
-    if (license.estado !== "activa" || new Date(license.expiresAt) <= new Date()) {
+    if (license.estado !== "activa" || !license.expiresAt || new Date(license.expiresAt) <= new Date()) {
       return res.status(410).json({ ok: false, error: "La licencia está vencida o revocada" });
     }
     const permisos = typeof license.permisos === "string" ? JSON.parse(license.permisos) : license.permisos;
@@ -180,7 +180,7 @@ router.get("/licenses/user/:userId", authMiddleware, async (req: AuthRequest, re
     return res.status(403).json({ ok: false, error: "Solo puedes consultar tus propias licencias." });
   }
   try {
-    const { userId } = req.params;
+    const userId = String(req.params.userId);
     const rows = await db.select().from(licenciasTable)
       .where(eq(licenciasTable.userId, userId))
       .orderBy(desc(licenciasTable.createdAt))
@@ -194,7 +194,7 @@ router.get("/licenses/user/:userId", authMiddleware, async (req: AuthRequest, re
 /* ── POST /api/licenses/revoke/:id ── revocar licencia ─────────────────── */
 router.post("/licenses/revoke/:id", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { revokedPor = "admin" } = req.body ?? {};
     await db.update(licenciasTable)
       .set({ estado: "revocada", revokedAt: new Date(), revokedPor })

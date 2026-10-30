@@ -243,6 +243,52 @@
   --lm-table-hdr:  rgba(0,212,184,0.08);
 }
 
+/* CIVAC UI system: roles and modules keep their own semantic accent while sharing one fast surface language. */
+.civac-login,
+.civac-dashboard {
+  --ui-surface: color-mix(in srgb, var(--card) 86%, transparent);
+  --ui-line: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --ui-soft-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+  isolation: isolate;
+}
+
+.civac-login {
+  background: radial-gradient(circle at 50% 14%, rgba(0, 245, 212, 0.09), transparent 34%), #020814;
+}
+
+.civac-login [class*="rounded-3xl"],
+.civac-login [class*="rounded-2xl"] {
+  border-color: color-mix(in srgb, var(--civac-teal) 22%, transparent);
+  box-shadow: var(--ui-soft-shadow);
+}
+
+.civac-dashboard {
+  container-type: inline-size;
+}
+
+.civac-dashboard .module-card {
+  min-height: 126px;
+  border: 1px solid color-mix(in srgb, var(--module-glow, #00f5d4) 34%, transparent);
+  box-shadow: 0 12px 28px rgba(0,0,0,.14), inset 0 1px rgba(255,255,255,.06);
+  transform: translateZ(0);
+  contain: layout paint;
+}
+
+.civac-dashboard .module-card:hover,
+.civac-dashboard .module-card:focus-visible {
+  box-shadow: 0 16px 34px color-mix(in srgb, var(--module-glow, #00f5d4) 22%, transparent), inset 0 1px rgba(255,255,255,.13);
+}
+
+.civac-dashboard .module-card:focus-visible,
+.civac-login button:focus-visible,
+.civac-login a:focus-visible {
+  outline: 2px solid var(--civac-teal);
+  outline-offset: 3px;
+}
+
+.civac-dashboard .module-card .module-title { letter-spacing: -0.01em; }
+.civac-dashboard .module-card .module-desc { min-height: 2.2em; }
+
 @layer base {
   * { @apply border-border; box-sizing: border-box; }
   body { @apply font-sans antialiased bg-background text-foreground; }
@@ -611,7 +657,7 @@ html { font-size: 15.5px; }
   transform: translateY(-2px);
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════���════════════════════════
    KPI CARDS
    ═══════════════════════════════════════════════════════════════════════════ */
 .kpi-card {
@@ -662,7 +708,7 @@ html { font-size: 15.5px; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    GLASSMORPHISM
-   ═══════════════════════════════════════════════════════════════════════════ */
+   ═════════════════════════════��═════════════════════════════════════════════ */
 .glass-navy {
   background: rgba(15,25,50,0.70);
   backdrop-filter: blur(20px);
@@ -790,7 +836,7 @@ html { font-size: 15.5px; }
   border-color: rgba(200,120,40,0.35) !important;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
+/* ══════════���════════════════════════════════════════════════════════════════
    SENSOR / BÁSCULAS BT
    ═══════════════════════════════════════════════════════════════════════════ */
 .sensor-ring {
@@ -811,7 +857,7 @@ html { font-size: 15.5px; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BADGE SISTEMA
-   ══════════════════════════════════════════════════════════════���════════════ */
+   ══════════════════════════════════���═══════════════════════════���════════════ */
 .badge-pro {
   background: linear-gradient(135deg,#fbbf24,#ea580c);
   color: white;
@@ -1530,7 +1576,7 @@ html {
   animation: install-pulse 3s ease-in-out infinite;
 }
 
-/* ═════════════════════════════════════════════════════════���═════════════════
+/* ═══════════════════════════���═════════════════════════════���═════════════════
    SMOOTH THEME TRANSITIONS — cambio dark ↔ light suave
    ═══════════════════════════════════════════════════════════════════════════ */
 html {
@@ -1853,7 +1899,7 @@ body {
 }
 .gradient-border:hover::before { opacity: 0.65; }
 
-/* ── Typing cursor ──────────────────────────────────────────────────────── */
+/* ── Typing cursor ──────────────────────────────��───────────────────────── */
 @keyframes blink-cursor {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }

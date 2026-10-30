@@ -150,11 +150,11 @@ async function maybeCreateGeofenceAlert(
     animalId: device.animalId ?? "",
     potreroId: track.potreroId ?? device.potreroId ?? 0,
     alertType: "salida",
-    lat: track.lat,
-    lng: track.lng,
+    lat: String(track.lat),
+    lng: String(track.lng),
     estado: "activa",
     mensaje,
-  });
+  } as unknown as typeof geofenceAlertsTable.$inferInsert);
   await db.insert(alertasTable).values({
     title: `Geovallado: ${animalName ?? "Animal"} fuera de zona`,
     desc: mensaje,
@@ -185,11 +185,16 @@ gpsRouter.post("/dispositivos", async (req: AuthRequest, res) => {
   const owner = userId(req);
   if (!owner) return sendError(res, 401, "Sesión requerida");
   const normalized = normalizeDeviceInput(req.body as Record<string, unknown>);
-  if ("error" in normalized) return sendError(res, 400, normalized.error);
+  if (!("value" in normalized)) return sendError(res, 400, normalized.error);
+  const input = normalized.value!;
   try {
-    const existing = await db.select({ id: dispositivosGpsTable.id }).from(dispositivosGpsTable).where(eq(dispositivosGpsTable.imei, normalized.value.imei)).limit(1);
+    const existing = await db.select({ id: dispositivosGpsTable.id }).from(dispositivosGpsTable).where(eq(dispositivosGpsTable.imei, input.imei)).limit(1);
     if (existing[0]) return sendError(res, 409, "Ya existe un dispositivo con ese IMEI/ID");
-    const [device] = await db.insert(dispositivosGpsTable).values({ ...normalized.value, userId: owner }).returning();
+    const [device] = await db.insert(dispositivosGpsTable).values({
+      ...input,
+      userId: owner,
+      bateria: input.bateria == null ? null : String(input.bateria),
+    } as typeof dispositivosGpsTable.$inferInsert).returning();
     await linkAnimal(device.animalId, device.imei);
     res.status(201).json({ device });
   } catch (error) {
@@ -250,7 +255,7 @@ gpsRouter.post("/tracks", async (req: AuthRequest, res) => {
   const input = Array.isArray(raw.tracks) ? raw.tracks : [raw];
   if (input.length === 0 || input.length > 250) return sendError(res, 400, "El lote debe contener entre 1 y 250 puntos");
   try {
-    const grouped = new Map<number, { device: typeof dispositivosGpsTable.$inferSelect; rows: Array<Record<string, unknown>> }>();
+    const grouped = new Map<number, { device: typeof dispositivosGpsTable.$inferSelect; rows: Array<typeof gpsTracksTable.$inferInsert> }>();
     for (const item of input) {
       const dispositivoId = positiveInt(item.dispositivoId);
       const lat = finiteNumber(item.lat, -90, 90);
@@ -262,13 +267,13 @@ gpsRouter.post("/tracks", async (req: AuthRequest, res) => {
       if (item.potreroId != null && item.potreroId !== "" && potreroId === null) return sendError(res, 400, "Potrero no válido");
       const timestamp = item.timestamp ? new Date(String(item.timestamp)) : new Date();
       if (Number.isNaN(timestamp.getTime())) return sendError(res, 400, "Timestamp no válido");
-      const row = {
+      const row: typeof gpsTracksTable.$inferInsert = {
         dispositivoId,
-        lat,
-        lng,
-        speed: decimalNumber(item.speed),
-        altitude: decimalNumber(item.altitude),
-        precision: decimalNumber(item.precision ?? item.accuracy),
+        lat: String(lat),
+        lng: String(lng),
+        speed: decimalNumber(item.speed) == null ? null : String(decimalNumber(item.speed)),
+        altitude: decimalNumber(item.altitude) == null ? null : String(decimalNumber(item.altitude)),
+        precision: decimalNumber(item.precision ?? item.accuracy) == null ? null : String(decimalNumber(item.precision ?? item.accuracy)),
         potreroId,
         timestamp,
         rawData: item.rawData && typeof item.rawData === "object" ? item.rawData : null,
@@ -280,7 +285,7 @@ gpsRouter.post("/tracks", async (req: AuthRequest, res) => {
 
     const created: unknown[] = [];
     for (const { device, rows } of grouped.values()) {
-      const inserted = await db.insert(gpsTracksTable).values(rows as typeof gpsTracksTable.$inferInsert[]).returning();
+      const inserted = await db.insert(gpsTracksTable).values(rows).returning();
       created.push(...inserted);
       const latest = rows[rows.length - 1];
       await db.update(dispositivosGpsTable).set({
@@ -291,11 +296,11 @@ gpsRouter.post("/tracks", async (req: AuthRequest, res) => {
         precision: latest.precision,
         potreroId: latest.potreroId,
         ultimaSenial: latest.timestamp,
-        ...(raw.bateria !== undefined ? { bateria: decimalNumber(raw.bateria) } : {}),
+        ...(raw.bateria !== undefined ? { bateria: decimalNumber(raw.bateria) == null ? null : String(decimalNumber(raw.bateria)) } : {}),
         estado: "activo",
         updatedAt: new Date(),
       }).where(and(eq(dispositivosGpsTable.id, device.id), eq(dispositivosGpsTable.userId, owner)));
-      await maybeCreateGeofenceAlert(req, device, latest as { lat: number; lng: number; potreroId: number | null; timestamp: Date }, raw.insideGeofence === false ? false : undefined);
+      await maybeCreateGeofenceAlert(req, device, { lat: Number(latest.lat), lng: Number(latest.lng), potreroId: latest.potreroId ?? null, timestamp: latest.timestamp ?? new Date() }, raw.insideGeofence === false ? false : undefined);
     }
     res.status(201).json({ tracks: created, count: created.length });
   } catch (error) {

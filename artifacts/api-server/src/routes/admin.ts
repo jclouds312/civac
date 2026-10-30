@@ -425,7 +425,7 @@ router.put("/admin/users/:id/plan", authMiddleware, adminOnlyMiddleware, async (
       return res.status(400).json({ ok: false, message: "Plan inválido" });
     const [row] = await db.update(usuariosTable)
       .set({ planCode: plan, updatedAt: new Date() })
-      .where(eq(usuariosTable.id, id)).returning();
+      .where(eq(usuariosTable.id, String(id))).returning();
     return res.json({ ok: true, user: row });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });
@@ -461,11 +461,12 @@ router.post("/admin/broadcast", async (req, res) => {
     const { titulo, mensaje, tipo = "info" } = req.body as { titulo: string; mensaje: string; tipo?: string };
     if (!titulo || !mensaje) return res.status(400).json({ ok: false, message: "titulo y mensaje requeridos" });
     const [row] = await db.insert(alertasTable).values({
-      tipo: "sistema" as Parameters<typeof db.insert>[0],
-      titulo: `[ADMIN] ${titulo}`, mensaje,
-      severidad: tipo === "urgente" ? "alta" : tipo === "advertencia" ? "media" : "baja",
-      resuelta: false, animalId: "", fincaId: "all",
-    } as Parameters<typeof db.insert>[0]).returning();
+      title: `[ADMIN] ${titulo}`,
+      desc: mensaje,
+      type: tipo === "urgente" ? "danger" : tipo === "advertencia" ? "warning" : "info",
+      time: "Ahora",
+      resolved: false,
+    }).returning();
     return res.json({ ok: true, broadcast: row });
   } catch (err) { return res.status(500).json({ ok: false, message: String(err) }); }
 });

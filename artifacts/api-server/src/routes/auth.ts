@@ -70,6 +70,13 @@ const GOOGLE_STAFF_ACCOUNTS: Record<string, { role: string; cargo: string; finca
     planCode: "platino",
     permisos: ["*"],
   },
+  "john474nvallejo@gmail.com": {
+    role: "developer",
+    cargo: "Developer · Super Administrador Multirole",
+    finca: "CIVAC Labs · Colombia",
+    planCode: "platino",
+    permisos: ["*"],
+  },
 };
 
 const FALLBACK_USERS = [

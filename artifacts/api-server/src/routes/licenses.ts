@@ -2,6 +2,7 @@ import { Router } from "express";
 import { eq, desc } from "drizzle-orm";
 import { randomUUID, createHmac } from "crypto";
 import { db, licenciasTable, usuariosTable, planAsignacionesTable, auditLogTable } from "@workspace/db";
+import { authMiddleware, adminOnlyMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ function signLicense(payload: object): string {
 }
 
 /* ── POST /api/licenses/generate ── admin genera licencia para user ────── */
-router.post("/licenses/generate", async (req, res) => {
+router.post("/licenses/generate", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
     const {
       userId, planCode, diasValidos = 30, sessionLimit = 1,
@@ -93,6 +94,43 @@ router.post("/licenses/generate", async (req, res) => {
   }
 });
 
+/* ── GET /api/licenses/download/:id ── descarga exclusiva del propietario ── */
+router.get("/licenses/download/:id", authMiddleware, async (req: AuthRequest, res) => {
+  try {
+    if (!req.user || req.user.userId === "anon") return res.status(401).json({ ok: false, error: "Sesión requerida" });
+    const rows = await db.select().from(licenciasTable).where(eq(licenciasTable.id, req.params.id)).limit(1);
+    const license = rows[0];
+    const isStaff = ["admin", "superadmin", "developer"].includes(req.user.role);
+    if (!license || (!isStaff && license.userId !== req.user.userId)) {
+      return res.status(404).json({ ok: false, error: "Licencia no disponible para esta cuenta" });
+    }
+    if (license.estado !== "activa" || new Date(license.expiresAt) <= new Date()) {
+      return res.status(410).json({ ok: false, error: "La licencia está vencida o revocada" });
+    }
+    const permisos = typeof license.permisos === "string" ? JSON.parse(license.permisos) : license.permisos;
+    const file = {
+      id: license.id,
+      tipo: "civac_license_v2",
+      version: "2.0",
+      generada: license.createdAt,
+      userId: license.userId,
+      userEmail: license.userEmail,
+      userNombre: license.userNombre,
+      plan: { code: license.planCode, label: getPlanLabel(license.planCode), dias: license.diasValidos },
+      limites: { sesiones: license.sessionLimit, animales: license.maxAnimales, usuarios: license.maxUsuarios },
+      permisos,
+      expira: new Date(license.expiresAt).toISOString().slice(0, 10),
+      signature: license.signature,
+      issuer: "CIVAC Colombia · civac.co",
+    };
+    await db.update(licenciasTable).set({ descargada: true, descargadaAt: new Date() }).where(eq(licenciasTable.id, license.id));
+    res.setHeader("Content-Disposition", `attachment; filename=civac-${license.userId}-${license.planCode}.json`);
+    res.type("application/json").send(JSON.stringify(file, null, 2));
+  } catch (err) {
+    res.status(500).json({ ok: false, error: "Error descargando la licencia", detail: String(err) });
+  }
+});
+
 /* ── POST /api/licenses/validate ── validar archivo de licencia ─────────── */
 router.post("/licenses/validate", async (req, res) => {
   try {
@@ -127,7 +165,7 @@ router.post("/licenses/validate", async (req, res) => {
 });
 
 /* ── GET /api/licenses ── listar licencias (admin) ─────────────────────── */
-router.get("/licenses", async (req, res) => {
+router.get("/licenses", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
     const rows = await db.select().from(licenciasTable).orderBy(desc(licenciasTable.createdAt)).limit(100);
     res.json({ ok: true, licenses: rows });
@@ -137,7 +175,10 @@ router.get("/licenses", async (req, res) => {
 });
 
 /* ── GET /api/licenses/user/:userId ── licencias de un usuario ───────────── */
-router.get("/licenses/user/:userId", async (req, res) => {
+router.get("/licenses/user/:userId", authMiddleware, async (req: AuthRequest, res) => {
+  if (!req.user || (req.user.userId !== req.params.userId && !["admin", "superadmin", "developer"].includes(req.user.role))) {
+    return res.status(403).json({ ok: false, error: "Solo puedes consultar tus propias licencias." });
+  }
   try {
     const { userId } = req.params;
     const rows = await db.select().from(licenciasTable)
@@ -151,7 +192,7 @@ router.get("/licenses/user/:userId", async (req, res) => {
 });
 
 /* ── POST /api/licenses/revoke/:id ── revocar licencia ─────────────────── */
-router.post("/licenses/revoke/:id", async (req, res) => {
+router.post("/licenses/revoke/:id", authMiddleware, adminOnlyMiddleware, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { revokedPor = "admin" } = req.body ?? {};

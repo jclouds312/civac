@@ -83,6 +83,7 @@ const CIVAC_STAFF = [
   { id:"superadmin", name:"Javier Hernando Sánchez Bernal", email:"Softganventas@gmail.com",            role:"superadmin", icon:"🔱", color:"#ff6b35", online:true,  desc:"CEO · Fundador & Propietario · Acceso total plataforma", phone:"3187351262" },
   { id:"admin",      name:"Lizet Daza",                      email:"lizet.daza@civac.co",                role:"admin",      icon:"👑", color:"#fbbf24", online:true,  desc:"Co-Fundadora · Directora Ejecutiva · Panel Admin · Facturación" },
   { id:"developer",  name:"Johnatan Vallejo Marulanda",      email:"johnatanvallejomarulanda@gmail.com", role:"developer",  icon:"🛠️", color:"#00ff88", online:true,  desc:"Arquitecto Principal · Dev PWA & IA · Consola · Deploy" },
+  { id:"developer-john474", name:"John Vallejo", email:"john474nvallejo@gmail.com", role:"developer", icon:"🛠️", color:"#00ff88", online:true, desc:"Developer · Super Administrador Multirole · Consola · Deploy" },
   { id:"ventas",     name:"Asesora CIVAC · Ventas",          email:"ventas@civac.co",                    role:"sales",      icon:"💼", color:"#e879f9", online:false, desc:"Asesora Comercial Senior · CRM · Pipeline · Demos" },
 ];
 
@@ -661,7 +662,7 @@ function DepsPanel() {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
+/* ═════════════���════════════════════════════════════════════════════
    LENGUAJES PANEL
 ══════════════════════════════════════════════════════════════════ */
 function LangsPanel() {

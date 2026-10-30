@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+export * from "./trama.js";
 export declare const animalsTable: import("drizzle-orm/pg-core").PgTableWithColumns<{
     name: "animals";
     schema: undefined;

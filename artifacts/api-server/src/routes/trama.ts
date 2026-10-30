@@ -1,5 +1,7 @@
 import { Router } from 'express';
+import { and, desc, eq } from 'drizzle-orm';
 import { db, animalTramaTable } from '@workspace/db';
+import { authMiddleware, type AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -7,9 +9,9 @@ const router = Router();
  * POST /api/trama
  * Create a new trama (weighing traceability record)
  */
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const {
@@ -58,22 +60,24 @@ router.post('/', async (req, res) => {
  * GET /api/trama
  * Get trama history with filters
  */
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { animalId, operadorId, fecha } = req.query;
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 500);
     const offset = parseInt(req.query.offset as string) || 0;
 
-    let query = db.select().from(animalTramaTable);
+    const filters = [];
+    if (animalId) filters.push(eq(animalTramaTable.animalId, Number(animalId)));
+    if (operadorId) filters.push(eq(animalTramaTable.operadorId, Number(operadorId)));
 
-    if (animalId) query = query.where((t) => t.animalId.eq(parseInt(animalId as string)));
-    if (operadorId) query = query.where((t) => t.operadorId.eq(parseInt(operadorId as string)));
-
-    const tramas = await query
-      .orderBy((t) => ({ createdAt: t.createdAt }))
+    const tramas = await db
+      .select()
+      .from(animalTramaTable)
+      .where(filters.length > 0 ? and(...filters) : undefined)
+      .orderBy(desc(animalTramaTable.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -87,16 +91,16 @@ router.get('/', async (req, res) => {
  * GET /api/trama/:id/receipt
  * Generate receipt JSON for a trama
  */
-router.get('/:id/receipt', async (req, res) => {
+router.get('/:id/receipt', authMiddleware, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
     const { id } = req.params;
     const trama = await db
       .select()
       .from(animalTramaTable)
-      .where((t) => t.id.eq(parseInt(id)));
+      .where(eq(animalTramaTable.id, Number(Array.isArray(id) ? id[0] : id)));
 
     if (!trama[0]) return res.status(404).json({ error: 'Trama not found' });
 

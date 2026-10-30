@@ -2,6 +2,8 @@ import { pgTable, serial, text, integer, real, boolean, timestamp } from "drizzl
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
+export * from "./trama.js";
+
 // ── Animals ──────────────────────────────────────────────────────────────────
 export const animalsTable = pgTable("animals", {
   id:              text("id").primaryKey(),
@@ -254,7 +256,7 @@ export const insertImageSchema = createInsertSchema(imagesTable).omit({ id: true
 export type InsertImage = z.infer<typeof insertImageSchema>;
 export type StoredImage = typeof imagesTable.$inferSelect;
 
-// ── Finca Config ─────────────────────────────────────────────────────────────
+// ── Finca Config ─────────────────────────────────────────────────────────���───
 export const fincaConfigTable = pgTable("finca_config", {
   id:               serial("id").primaryKey(),
   nombre:           text("nombre").notNull().default("Finca El Rancho Verde"),

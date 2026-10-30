@@ -57,7 +57,7 @@ export interface Account {
   password: string;
   avatar: string;
   gradient: string;
-  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales' | 'cliente';
+  role: 'admin' | 'vet' | 'field' | 'viewer' | 'developer' | 'superadmin' | 'sales' | 'staff' | 'cliente';
   permisos: string[];
   activo?: boolean;
   /* ── Contacto ── */

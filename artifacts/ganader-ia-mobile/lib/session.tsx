@@ -71,6 +71,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     await setStoredValue(TOKEN_KEY, result.token);
     await setStoredValue(USER_KEY, JSON.stringify(result.user));
     setApiToken(result.token); setToken(result.token); setUser(result.user);
+    void apiRequest('/api/sync/v1/pull?since=1970-01-01T00%3A00%3A00.000Z&deviceId=mobile-login').catch(() => undefined);
   }, []);
   const activateCard = useCallback(async (code: string) => {
     const result = await apiRequest<{ token: string; user: SessionUser }>('/api/auth/card/activate', {

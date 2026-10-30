@@ -74,6 +74,14 @@ export function asList<T>(payload: unknown, keys: string[] = []): T[] {
   return [];
 }
 
+export async function syncMobileData(payload: Record<string, unknown>): Promise<{ ok: boolean; serverData?: Record<string, unknown[]> }> {
+  return apiRequest('/api/sync/v1/ingest', { method: 'POST', body: JSON.stringify(payload) });
+}
+
+export async function pullMobileData(since: string, deviceId: string): Promise<{ ok: boolean; data?: Record<string, unknown[]> }> {
+  return apiRequest(`/api/sync/v1/pull?since=${encodeURIComponent(since)}&deviceId=${encodeURIComponent(deviceId)}`);
+}
+
 export function displayError(error: unknown): string {
   return error instanceof Error ? error.message : 'No fue posible completar la solicitud.';
 }

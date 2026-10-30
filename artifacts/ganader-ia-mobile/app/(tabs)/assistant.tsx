@@ -35,7 +35,7 @@ export default function AssistantScreen() {
   const send = async (text = input) => {
     const message = text.trim();
     if (!message || busy) return;
-    const history = messages.map(m => ({ role: m.role, content: m.content }));
+    const history = messages.map(m => ({ role: m.role, text: m.content }));
     const next = [...messages, { role: 'user' as const, content: message }];
     setMessages(next); setInput(''); setBusy(true); setChatError('');
     try {

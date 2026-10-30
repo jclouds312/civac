@@ -3,8 +3,8 @@ import { authMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
 const GATEWAY_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
-const DEFAULT_MODEL = process.env.CIVAC_AI_MODEL || "anthropic/claude-haiku-4.5";
-const FREE_MODEL = process.env.CIVAC_AI_FREE_MODEL || "amazon/nova-2-lite";
+const DEFAULT_MODEL = process.env.CIVAC_AI_MODEL || "openai/o4-mini";
+const FREE_MODEL = process.env.CIVAC_AI_FREE_MODEL || "openai/gpt-oss-20b";
 const MAX_MESSAGE_BY_ROLE: Record<string, number> = { anonymous: 0, viewer: 2500, cliente: 4000, staff: 6000, sales: 6000, admin: 8000, developer: 10000, superadmin: 10000 };
 
 function gatewayConfigured() {
@@ -46,7 +46,7 @@ router.post("/ai/chat", authMiddleware, async (req: AuthRequest, res) => {
       : "Solo puedes ayudar con los módulos y datos de la cuenta autenticada.";
   const messages = [
     { role: "system", content: `Eres CIVAC IA, asistente seguro para gestión ganadera. Responde en español, con pasos concretos. Rol actual: ${role}. Plan: ${req.user?.plan ?? "basico"}. ${roleRules} No inventes precios, no solicites contraseñas y no ejecutes cambios administrativos. Para cambiar planes, pagos o permisos, indica el módulo autorizado correspondiente.` },
-    ...history.filter((item: unknown): item is { role: string; text: string } => Boolean(item && typeof item === "object" && "text" in item && typeof item.text === "string")).map(item => ({ role: item.role === "user" ? "user" : "assistant", content: item.text.slice(0, 4000) })),
+    ...history.filter((item: unknown): item is { role: string; text?: string; content?: string } => Boolean(item && typeof item === "object" && (typeof (item as { text?: unknown }).text === "string" || typeof (item as { content?: unknown }).content === "string"))).map(item => ({ role: item.role === "user" ? "user" : "assistant", content: (item.text ?? item.content ?? "").slice(0, 4000) })),
     { role: "user", content: message },
   ];
 

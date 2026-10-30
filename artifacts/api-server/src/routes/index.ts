@@ -25,6 +25,7 @@ import auditRouter from "./audit";
 import dbStatusRouter from "./db-status";
 import telemetryRouter from "./telemetry";
 import aiRouter from "./ai";
+import paymentsRouter from "./payments";
 
 const router: IRouter = Router();
 
@@ -54,5 +55,6 @@ router.use(auditRouter);
 router.use(dbStatusRouter);
 router.use(telemetryRouter);
 router.use(aiRouter);
+router.use(paymentsRouter);
 
 export default router;

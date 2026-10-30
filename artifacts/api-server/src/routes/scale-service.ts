@@ -200,7 +200,7 @@ export function createScaleRouter(): Router {
 
   // Get device status
   router.get('/devices/:id/status', (req: Request, res: Response) => {
-    const status = scaleService.getDeviceStatus(req.params.id);
+    const status = scaleService.getDeviceStatus(String(req.params.id));
     if (!status) {
       return res.status(404).json({ error: 'Device not found' });
     }

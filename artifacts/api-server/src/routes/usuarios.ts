@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db, usuariosTable } from "@workspace/db";
-import { authMiddleware, type AuthRequest } from "../middleware/auth";
+import { authMiddleware, adminOnlyMiddleware, type AuthRequest } from "../middleware/auth";
 
 const router = Router();
 

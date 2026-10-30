@@ -9,6 +9,7 @@ import {
   Sparkles, Satellite, Shield, Tag, MessageCircle, HelpCircle,
 } from "lucide-react";
 import { SyncStatusPill } from "./sync-status";
+import { SessionStatus } from "./session-status";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/lib/theme";
@@ -946,7 +947,8 @@ export function Layout({ children }: LayoutProps) {
               </div>
             </div>
 
-            {/* Sync status live pill */}
+            {/* Estado de sesión y sincronización persistente */}
+            <SessionStatus compact />
             <SyncStatusPill className="hidden lg:flex" />
 
             {/* Module inline help */}
@@ -1125,7 +1127,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </header>
 
-        {/* ── SW Update Banner ─────────────────────────────────────────── */}
+        {/* ── SW Update Banner ───���─────────────────────────────────────── */}
         {swUpdateReady && !swDismissed && (
           <div className="mx-3 mt-3 lg:mx-5 lg:mt-3 flex items-center gap-3 px-4 py-3 rounded-2xl border animate-in slide-in-from-top duration-300"
             style={{

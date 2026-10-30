@@ -3,6 +3,7 @@ import { useAppState } from "@/lib/data";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { X, Send, Sparkles, Bot, ChevronDown, RefreshCw, Printer } from "lucide-react";
+import { askCivacAgent } from "@/lib/gemini";
 
 type Msg = { role: "user" | "ai"; text: string; ts: number };
 
@@ -163,9 +164,11 @@ export function AiAssistant() {
     const newMsgs: Msg[] = [...msgs, { role: "user", text: q, ts: Date.now() }];
     setMsgs(newMsgs);
     setTyping(true);
-    await new Promise(r => setTimeout(r, 700 + Math.random() * 600));
-    const response = buildResponse(q, user?.role || "admin", animals, personal, insumos, location);
-    setMsgs([...newMsgs, { role: "ai", text: response, ts: Date.now() }]);
+    const remote = await askCivacAgent(q, newMsgs.filter((m) => m.role !== "ai").slice(-12).map((m) => ({ role: "user" as const, text: m.text })));
+    const response = remote.ok && remote.text
+      ? remote.text
+      : buildResponse(q, user?.role || "admin", animals, personal, insumos, location);
+    setMsgs([...newMsgs, { role: "ai", text: remote.ok ? response : `${response}\n\nNota: CIVAC IA está en modo local porque el servidor no respondió.` , ts: Date.now() }]);
     setTyping(false);
   };
 

@@ -19,6 +19,7 @@ import { Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import { printModule } from "@/lib/print";
 import { Button } from "@/components/ui/button";
+import { SessionStatus } from "@/components/session-status";
 
 /* ── Animated count-up hook ── */
 function useCountUp(target: number, duration = 900, trigger = true): number {
@@ -261,6 +262,14 @@ export default function Dashboard() {
 
   return (
     <div className="civac-dashboard space-y-4 sm:space-y-5 pb-8 civac-animate">
+
+      <section className="grid grid-cols-1 gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-3 sm:grid-cols-[1fr_auto] sm:items-center sm:p-4" aria-label="Estado de cuenta CIVAC">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300/70">Centro de cuenta</p>
+          <p className="mt-1 text-xs text-white/55">Los cambios se sincronizan cuando recuperas conexión. Tus datos locales permanecen disponibles para evitar pérdidas.</p>
+        </div>
+        <SessionStatus />
+      </section>
 
       {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden module-banner"

@@ -234,7 +234,7 @@ export default function Drive() {
           <div>
             <p className="font-semibold text-sm" style={{ color:"rgba(0,200,255,0.7)" }}>Sincronización con Google Drive no activada</p>
             <p className="text-xs mt-1" style={{ color:"rgba(0,200,255,0.4)" }}>
-              Puedes exportar e importar backups en formato JSON desde el <strong style={{ color:"rgba(0,200,255,0.55)" }}>Centro de Datos</strong>. Para activar la sincronización automática con Drive, configura <code className="font-mono bg-white/5 px-1 rounded">VITE_GOOGLE_CLIENT_ID</code> en las variables de entorno.
+              El conector CIVAC para Google Drive y Docs ya está asociado al proyecto. Puedes exportar e importar backups en formato JSON desde el <strong style={{ color:"rgba(0,200,255,0.55)" }}>Centro de Datos</strong>; si el navegador aún no tiene OAuth configurado, los backups locales siguen disponibles y no se eliminan.
             </p>
           </div>
         </div>

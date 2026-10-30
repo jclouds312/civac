@@ -1,5 +1,5 @@
 import { Switch, Route, Router as WouterRouter } from "wouter";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,7 @@ import CivacAgent from "./components/civac-agent";
 import DevGate from "./components/dev-gate";
 import SalesGate from "./components/sales-gate";
 import NetworkSync from "./components/network-sync";
+import { AppErrorBoundary } from "./components/app-error-boundary";
 import Acerca from "./pages/acerca";
 import PlanLanding from "./pages/plan-landing";
 import InvitePage from "./pages/invite";
@@ -26,8 +27,8 @@ import Login from "./pages/login";
 import ServerLogin from "./pages/server-login";
 import ServerDashboard from "./pages/server-dashboard";
 import Dashboard from "./pages/dashboard";
-import AdminDashboard from "./pages/admin-dashboard";
-import DeveloperDashboard from "./pages/developer-dashboard";
+const AdminDashboard = lazy(() => import("./pages/admin-dashboard"));
+const DeveloperDashboard = lazy(() => import("./pages/developer-dashboard"));
 import Alertas from "./pages/alertas";
 import Inventario from "./pages/inventario";
 import Ficha from "./pages/ficha";
@@ -61,11 +62,20 @@ import Drive from "./pages/drive";
 import Sanidad from "./pages/sanidad";
 import Trazabilidad from "./pages/trazabilidad";
 import MiCuenta from "./pages/mi-cuenta";
-import ChatPage from "./pages/chat";
-import Basculas from "./pages/basculas";
+const ChatPage = lazy(() => import("./pages/chat"));
+const Basculas = lazy(() => import("./pages/basculas"));
 import DeveloperConsole from "./pages/developer-console";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 10 * 60_000,
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function HomeRoute() {
   const { user } = useAuth();
@@ -316,6 +326,7 @@ function AuthGate() {
   return (
     <>
     <Layout>
+      <Suspense fallback={<div className="min-h-[55vh] flex items-center justify-center text-sm text-white/55">Cargando módulo CIVAC…</div>}>
       <Switch>
         <Route path="/" component={HomeRoute} />
         <Route path="/alertas" component={Alertas} />
@@ -356,6 +367,7 @@ function AuthGate() {
         <Route path="/developer-console" component={DeveloperConsole} />
         <Route component={NotFound} />
       </Switch>
+      </Suspense>
     </Layout>
     <CivacAgent />
     </>
@@ -364,6 +376,7 @@ function AuthGate() {
 
 function App() {
   return (
+    <AppErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
@@ -385,6 +398,7 @@ function App() {
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
+    </AppErrorBoundary>
   );
 }
 

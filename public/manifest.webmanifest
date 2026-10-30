@@ -3,9 +3,18 @@
   "short_name": "CIVAC",
   "description": "Operación ganadera con IA, GPS y pesaje Bluetooth",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#0c1830",
   "theme_color": "#00c8ff",
   "lang": "es-CO",
-  "icons": []
+  "categories": ["business", "productivity"],
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Cuentas", "short_name": "Cuentas", "url": "/cuentas", "icons": [{ "src": "/favicon.svg", "sizes": "any" }] },
+    { "name": "Asistente IA", "short_name": "Asistente", "url": "/chat", "icons": [{ "src": "/favicon.svg", "sizes": "any" }] }
+  ]
 }

@@ -887,6 +887,11 @@ export function Layout({ children }: LayoutProps) {
               user={user}
             />
           )}
+          <Link href="/cuentas" onClick={() => setMobileOpen(false)}>
+            <button className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-white/40 hover:text-[#00f5d4] hover:bg-[#00f5d4]/5 transition-all ${collapsed ? 'justify-center' : ''}`} style={{ borderRadius: 12 }}>
+              <Users size={13} />{!collapsed && <span>Cuentas y accesos</span>}
+            </button>
+          </Link>
           <Link href="/mi-cuenta" onClick={() => setMobileOpen(false)}>
             <button
               className={`w-full flex items-center gap-2 px-3 py-2 text-xs text-white/40 hover:text-[#00f5d4] hover:bg-[#00f5d4]/5 transition-all ${collapsed ? 'justify-center' : ''}`}
@@ -1096,7 +1101,8 @@ export function Layout({ children }: LayoutProps) {
                     </div>
                     <div className="p-1">
                       {[
-                        { href: '/mi-cuenta',     Icon: UserCircle, label: 'Mi Cuenta',           gold: false },
+                        { href: '/cuentas',       Icon: Users,      label: 'Cuentas y accesos',  gold: false },
+  { href: '/mi-cuenta',     Icon: UserCircle, label: 'Mi Cuenta',           gold: false },
                         { href: '/configuracion', Icon: Settings,  label: 'Configuración',        gold: false },
                         { href: '/usuarios',      Icon: UserCog,   label: 'Gestión de usuarios',  gold: false },
                         { href: '/documentacion', Icon: BookOpen,  label: 'Documentación',        gold: false },

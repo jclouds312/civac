@@ -62,6 +62,7 @@ import Drive from "./pages/drive";
 import Sanidad from "./pages/sanidad";
 import Trazabilidad from "./pages/trazabilidad";
 import MiCuenta from "./pages/mi-cuenta";
+import AccountCenter from "./pages/account-center";
 const ChatPage = lazy(() => import("./pages/chat"));
 const Basculas = lazy(() => import("./pages/basculas"));
 import DeveloperConsole from "./pages/developer-console";
@@ -363,6 +364,7 @@ function AuthGate() {
         <Route path="/trazabilidad" component={Trazabilidad} />
         <Route path="/acerca" component={Acerca} />
         <Route path="/mi-cuenta" component={MiCuenta} />
+  <Route path="/cuentas" component={AccountCenter} />
         <Route path="/chat" component={ChatPage} />
         <Route path="/developer-console" component={DeveloperConsole} />
         <Route component={NotFound} />

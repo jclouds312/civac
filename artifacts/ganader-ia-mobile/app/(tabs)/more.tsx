@@ -62,8 +62,8 @@ export default function MoreScreen() {
   return <Page>
     <Header title="Más" subtitle="Módulos y herramientas de tu operación." />
     <View style={[ui.card, { backgroundColor: colors.navy, borderColor: colors.navy, gap: 13, flexDirection: 'row', alignItems: 'center' }]}>
-      <View style={{ width: 47, height: 47, borderRadius: 17, backgroundColor: '#1C514D', alignItems: 'center', justifyContent: 'center' }}><Feather name="user" color="#73DCC7" size={22} /></View>
-      <View style={{ flex: 1, gap: 3 }}><Text style={{ color: colors.white, fontWeight: '700', fontSize: 16 }}>{displayName}</Text><Text style={{ color: '#B5CDCA', fontSize: 12 }}>{String(user?.email ?? 'Cuenta activa')}</Text></View>
+      <View style={{ width: 47, height: 47, borderRadius: 17, backgroundColor: '#1C514D', alignItems: 'center', justifyContent: 'center' }}><Feather name={['admin', 'superadmin', 'developer', 'sales'].includes(String(user?.role ?? user?.rol)) ? 'shield' : 'user'} color="#73DCC7" size={22} /></View>
+      <View style={{ flex: 1, gap: 3 }}><Text style={{ color: colors.white, fontWeight: '700', fontSize: 16 }}>{displayName}</Text><Text style={{ color: '#73DCC7', fontSize: 11, fontWeight: '700' }}>{['admin', 'superadmin', 'developer', 'sales'].includes(String(user?.role ?? user?.rol)) ? 'CIVAC Staff' : `Cuenta de usuario · ${String(user?.planCode ?? user?.plan ?? 'Básico').toUpperCase()}`}</Text><Text style={{ color: '#B5CDCA', fontSize: 12 }}>{String(user?.email ?? 'Cuenta activa')}</Text></View>
       <Pressable accessibilityRole="button" accessibilityLabel="Ver cuenta" onPress={() => setAccountVisible(true)}><Feather name="chevron-right" color="#9DC6C0" size={20} /></Pressable>
     </View>
     <Button title="Abrir GanaderIA completa" icon="external-link" tone="quiet" onPress={openFullApp} />

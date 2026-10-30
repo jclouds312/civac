@@ -1,6 +1,5 @@
 import { Router } from 'express';
-import { db } from '@/lib/db';
-import { animalTramaTable } from '@/lib/db/src/schema/trama';
+import { db, animalTramaTable } from '@workspace/db';
 
 const router = Router();
 

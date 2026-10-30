@@ -2,14 +2,26 @@
   "name": "workspace",
   "version": "0.0.0",
   "license": "MIT",
+  "private": true,
+  "packageManager": "pnpm@10.12.4",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.12.0"
+  },
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "dev": "pnpm run dev:web",
+    "dev:web": "pnpm --filter @workspace/ganader-ia dev",
+    "dev:api": "pnpm --filter @workspace/api-server dev-tsx",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build:web": "pnpm --filter @workspace/ganader-ia build",
+    "build:api": "pnpm --filter @workspace/api-server build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
+    "check": "pnpm run typecheck && pnpm run build",
+    "clean": "pnpm -r --if-present exec sh -c 'rm -rf dist .turbo .vite'",
     "build:vercel": "next build"
   },
-  "private": true,
   "pnpm": {
     "overrides": {
       "qs": ">=6.15.1",

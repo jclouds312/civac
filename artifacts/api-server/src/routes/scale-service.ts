@@ -209,7 +209,7 @@ export function createScaleRouter(): Router {
 
   // Get last weight
   router.get('/devices/:id/weight', (req: Request, res: Response) => {
-    const frame = scaleService.getLastFrame(req.params.id);
+    const frame = scaleService.getLastFrame(String(req.params.id));
     if (!frame) {
       return res.status(404).json({ error: 'No data' });
     }
@@ -220,8 +220,8 @@ export function createScaleRouter(): Router {
   router.post('/devices/:id/data', (req: Request, res: Response) => {
     try {
       const { data, tramaFormat } = req.body;
-      const frames = scaleService.processData(req.params.id, data, tramaFormat || 'civac_9b');
-      res.json({ frames, lastFrame: scaleService.getLastFrame(req.params.id) });
+      const frames = scaleService.processData(String(req.params.id), data, tramaFormat || 'civac_9b');
+      res.json({ frames, lastFrame: scaleService.getLastFrame(String(req.params.id)) });
     } catch (error) {
       res.status(400).json({ error: String(error) });
     }

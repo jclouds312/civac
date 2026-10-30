@@ -53,7 +53,7 @@ export declare function initGateway(): Promise<CivacGateway>;
 /** Obtener el gateway (lanza error si no fue inicializado) */
 export declare function getGateway(): CivacGateway;
 /** Atajos directos para uso en rutas */
-export declare function getDb(): Promise<BetterSQLite3Database<typeof sqliteSchema> | NodePgDatabase<typeof pgSchema>>;
+export declare function getDb(): Promise<NodePgDatabase<typeof pgSchema> | BetterSQLite3Database<typeof sqliteSchema>>;
 export declare function getDbMode(): Promise<DbMode>;
 export declare function getGatewayState(): Promise<GatewayState>;
 //# sourceMappingURL=gateway.d.ts.map

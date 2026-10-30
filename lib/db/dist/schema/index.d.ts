@@ -298,11 +298,11 @@ export declare const animalsTable: import("drizzle-orm/pg-core").PgTableWithColu
 export declare const insertAnimalSchema: z.ZodObject<{
     id: z.ZodString;
     nombre: z.ZodString;
-    estado: z.ZodOptional<z.ZodString>;
     raza: z.ZodOptional<z.ZodString>;
     categoria: z.ZodOptional<z.ZodString>;
     peso: z.ZodOptional<z.ZodNumber>;
     lote: z.ZodOptional<z.ZodString>;
+    estado: z.ZodOptional<z.ZodString>;
     litrosDia: z.ZodOptional<z.ZodNumber>;
     partos: z.ZodOptional<z.ZodInt>;
     fechaNacimiento: z.ZodOptional<z.ZodString>;
@@ -1316,8 +1316,8 @@ export declare const alertasTable: import("drizzle-orm/pg-core").PgTableWithColu
     dialect: "pg";
 }>;
 export declare const insertAlertaSchema: z.ZodObject<{
-    desc: z.ZodOptional<z.ZodString>;
     title: z.ZodString;
+    desc: z.ZodOptional<z.ZodString>;
     type: z.ZodOptional<z.ZodString>;
     time: z.ZodOptional<z.ZodString>;
     resolved: z.ZodOptional<z.ZodBoolean>;
@@ -1743,12 +1743,12 @@ export declare const pesajesTable: import("drizzle-orm/pg-core").PgTableWithColu
     dialect: "pg";
 }>;
 export declare const insertPesajeSchema: z.ZodObject<{
-    animalId: z.ZodString;
     raza: z.ZodOptional<z.ZodString>;
     categoria: z.ZodOptional<z.ZodString>;
     peso: z.ZodOptional<z.ZodNumber>;
     lote: z.ZodOptional<z.ZodString>;
     valorKilo: z.ZodOptional<z.ZodNumber>;
+    animalId: z.ZodString;
     animalNombre: z.ZodOptional<z.ZodString>;
     pesoAnterior: z.ZodOptional<z.ZodNumber>;
     fecha: z.ZodOptional<z.ZodString>;
@@ -2002,13 +2002,13 @@ export declare const gpsUbicacionesTable: import("drizzle-orm/pg-core").PgTableW
 export declare const insertGpsSchema: z.ZodObject<{
     nombre: z.ZodOptional<z.ZodString>;
     animalId: z.ZodString;
-    potreroId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
-    bateria: z.ZodOptional<z.ZodInt>;
-    activo: z.ZodOptional<z.ZodBoolean>;
+    dispositivo: z.ZodOptional<z.ZodString>;
     lat: z.ZodOptional<z.ZodNumber>;
     lng: z.ZodOptional<z.ZodNumber>;
-    dispositivo: z.ZodOptional<z.ZodString>;
+    potreroId: z.ZodOptional<z.ZodNullable<z.ZodInt>>;
     potreroNom: z.ZodOptional<z.ZodString>;
+    bateria: z.ZodOptional<z.ZodInt>;
+    activo: z.ZodOptional<z.ZodBoolean>;
     ultimaSenal: z.ZodOptional<z.ZodString>;
 }, {
     out: {};
@@ -2401,9 +2401,9 @@ export declare const insertUsuarioSchema: z.ZodObject<{
     id: z.ZodString;
     nombre: z.ZodString;
     estado: z.ZodOptional<z.ZodString>;
-    activo: z.ZodOptional<z.ZodBoolean>;
     foto: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     cargo: z.ZodOptional<z.ZodString>;
+    activo: z.ZodOptional<z.ZodBoolean>;
     finca: z.ZodOptional<z.ZodString>;
     email: z.ZodString;
     password: z.ZodString;
@@ -2667,8 +2667,8 @@ export declare const movimientosLoteTable: import("drizzle-orm/pg-core").PgTable
     dialect: "pg";
 }>;
 export declare const insertMovimientoLoteSchema: z.ZodObject<{
-    tipo: z.ZodOptional<z.ZodString>;
     fecha: z.ZodOptional<z.ZodString>;
+    tipo: z.ZodOptional<z.ZodString>;
     nombreLote: z.ZodOptional<z.ZodString>;
     cantidadAnimales: z.ZodOptional<z.ZodInt>;
     pesoTotalLote: z.ZodOptional<z.ZodNumber>;
@@ -3620,8 +3620,8 @@ export declare const userSessionsTable: import("drizzle-orm/pg-core").PgTableWit
 }>;
 export declare const insertUserSessionSchema: z.ZodObject<{
     id: z.ZodString;
-    userId: z.ZodString;
     planCode: z.ZodOptional<z.ZodString>;
+    userId: z.ZodString;
     userEmail: z.ZodString;
     userRole: z.ZodString;
     userName: z.ZodOptional<z.ZodString>;
@@ -3948,14 +3948,14 @@ export declare const tramaLogsTable: import("drizzle-orm/pg-core").PgTableWithCo
     dialect: "pg";
 }>;
 export declare const insertTramaLogSchema: z.ZodObject<{
-    userId: z.ZodOptional<z.ZodString>;
-    animalId: z.ZodOptional<z.ZodString>;
     peso: z.ZodOptional<z.ZodNumber>;
+    animalId: z.ZodOptional<z.ZodString>;
     animalNombre: z.ZodOptional<z.ZodString>;
     metodo: z.ZodOptional<z.ZodString>;
     dispositivo: z.ZodOptional<z.ZodString>;
     operador: z.ZodOptional<z.ZodString>;
     planCode: z.ZodOptional<z.ZodString>;
+    userId: z.ZodOptional<z.ZodString>;
     rawTrama: z.ZodOptional<z.ZodString>;
     tramaType: z.ZodOptional<z.ZodString>;
     puerto: z.ZodOptional<z.ZodString>;
@@ -4530,8 +4530,8 @@ export declare const syncLogTable: import("drizzle-orm/pg-core").PgTableWithColu
     dialect: "pg";
 }>;
 export declare const insertSyncLogSchema: z.ZodObject<{
-    userId: z.ZodOptional<z.ZodString>;
     planCode: z.ZodOptional<z.ZodString>;
+    userId: z.ZodOptional<z.ZodString>;
     userRole: z.ZodOptional<z.ZodString>;
     deviceId: z.ZodString;
     syncType: z.ZodOptional<z.ZodString>;
@@ -4918,11 +4918,11 @@ export declare const licenciasTable: import("drizzle-orm/pg-core").PgTableWithCo
 }>;
 export declare const insertLicenciaSchema: z.ZodObject<{
     id: z.ZodString;
-    userId: z.ZodString;
     estado: z.ZodOptional<z.ZodString>;
     permisos: z.ZodOptional<z.ZodString>;
     planCode: z.ZodOptional<z.ZodString>;
     notas: z.ZodOptional<z.ZodString>;
+    userId: z.ZodString;
     userEmail: z.ZodString;
     expiresAt: z.ZodOptional<z.ZodNullable<z.ZodDate>>;
     userNombre: z.ZodOptional<z.ZodString>;
@@ -5908,8 +5908,8 @@ export declare const oauthCuentasTable: import("drizzle-orm/pg-core").PgTableWit
     dialect: "pg";
 }>;
 export declare const insertOauthCuentaSchema: z.ZodObject<{
-    userId: z.ZodString;
     activo: z.ZodOptional<z.ZodBoolean>;
+    userId: z.ZodString;
     provider: z.ZodString;
     providerEmail: z.ZodString;
     providerName: z.ZodOptional<z.ZodString>;
@@ -5923,4 +5923,5 @@ export declare const insertOauthCuentaSchema: z.ZodObject<{
 export type InsertOauthCuenta = z.infer<typeof insertOauthCuentaSchema>;
 export type OauthCuenta = typeof oauthCuentasTable.$inferSelect;
 export * from "./gps";
+export * from "./marketplace";
 //# sourceMappingURL=index.d.ts.map

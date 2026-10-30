@@ -7,7 +7,7 @@ import {
   MapPin, Bell, Zap, CreditCard, Settings, Printer,
   Tag, Grid3x3, Heart, Activity, FlaskConical, TreePine, ChevronRight,
   Award, Cpu, Layers, Server, Code, Lock, RefreshCw, Star,
-  ChevronDown, ChevronUp, Copy, ExternalLink, Map, FileText, Radio,
+  ChevronDown, ChevronUp, Copy, ExternalLink, Map, FileText, Radio, Search,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -968,6 +968,8 @@ const PANEL_MAP: Record<string, () => ReactElement> = {
 export default function Documentacion() {
   const [active, setActive] = useState("inicio");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const visibleSections = SECTIONS.filter(sec => sec.label.toLowerCase().includes(query.toLowerCase()));
   const Panel = PANEL_MAP[active] || SecInicio;
   const current = SECTIONS.find(s => s.id === active);
 
@@ -986,8 +988,12 @@ export default function Documentacion() {
             </div>
             <div>
               <h1 className="text-2xl font-black text-white" style={{ fontFamily:"Sora,sans-serif" }}>Documentación</h1>
-              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v2.1 · {SECTIONS.length} secciones · 30+ módulos</p>
+              <p className="text-sm text-white/60 mt-0.5">CIVAC PRO v2.3 · {SECTIONS.length} secciones · módulos, IA, cuentas y planes</p>
             </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 rounded-xl px-3 py-2" style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)" }}>
+            <Search size={14} style={{ color:"rgba(148,163,184,0.7)" }}/>
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar en la guía…" aria-label="Buscar sección" className="w-40 bg-transparent outline-none text-xs text-white placeholder:text-white/30" />
           </div>
           <button onClick={() => setMobileOpen(v => !v)} className="lg:hidden flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-semibold"
             style={{ background:"rgba(0,245,212,0.1)", color:"#00f5d4", border:"1px solid rgba(0,245,212,0.2)" }}>
@@ -1006,7 +1012,7 @@ export default function Documentacion() {
               <button onClick={() => setMobileOpen(false)} style={{ color:"rgba(148,163,184,0.5)" }}>✕</button>
             </div>
           )}
-          {SECTIONS.map(sec => {
+          {visibleSections.map(sec => {
             const Icon = sec.icon;
             const isActive = active === sec.id;
             return (

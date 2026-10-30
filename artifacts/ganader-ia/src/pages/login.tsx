@@ -437,7 +437,7 @@ function RightWidgets() {
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LOGO
-════��══════════════════════════════════════════════════════════════════════════ */
+════���══════════════════════════════════════════════════════════════════════════ */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
     <div className="relative inline-block" style={{ width:size*1.6, height:size*1.6 }}>
@@ -610,13 +610,14 @@ function PaymentModal({ plan, onClose }: { plan: PlanId; onClose: () => void }) 
 /* ═══════════════════════════════════════════════════════════════════════════════
    BOTTOM PWA NAV — mobile navigation bar
 ═══════════════════════════════════════════════════════════════════════════════ */
-function BottomPWANav({ tab, setTab }: { tab: string; setTab: (t: "login"|"registro"|"cuentas"|"planes"|"ia") => void }) {
-  const items: { id:"login"|"registro"|"cuentas"|"planes"|"ia"; emoji:string; label:string; c:string; g:string }[] = [
+function BottomPWANav({ tab, setTab }: { tab: string; setTab: (t: "login"|"registro"|"cuentas"|"planes"|"ia"|"demo") => void }) {
+  const items: { id:"login"|"registro"|"cuentas"|"planes"|"ia"|"demo"; emoji:string; label:string; c:string; g:string }[] = [
     { id:"login",    emoji:"🔐", label:"Sesión",   c:"#00f5d4", g:"0,245,212"   },
     { id:"cuentas",  emoji:"👥", label:"Cuentas",  c:"#39ff7e", g:"57,255,126"  },
     { id:"planes",   emoji:"💳", label:"Planes",   c:"#fbbf24", g:"251,191,36"  },
-    { id:"ia",       emoji:"🤖", label:"IA",       c:"#e879f9", g:"232,121,249" },
-    { id:"registro", emoji:"✨", label:"Registro",  c:"#a855f7", g:"168,85,247"  },
+{ id:"ia",       emoji:"🤖", label:"IA",       c:"#e879f9", g:"232,121,249" },
+  { id:"demo",     emoji:"▶️", label:"Cómo funciona", c:"#00c8ff", g:"0,200,255" },
+  { id:"registro", emoji:"✨", label:"Registro",  c:"#a855f7", g:"168,85,247"  },
   ];
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden"
@@ -662,6 +663,30 @@ function BottomPWANav({ tab, setTab }: { tab: string; setTab: (t: "login"|"regis
 /* ═══════════════════════════════════════════════════════════════════════════════
    IA MODULE TAB — showcase of AI features
 ═══════════════════════════════════════════════════════════════════════════════ */
+function DemoCivacTab() {
+  const steps = [
+    { n:"01", title:"Conecta tu finca", text:"Registra la finca, ubicación, usuarios y el plan contratado. El sistema configura los módulos disponibles automáticamente.", c:"#00f5d4" },
+    { n:"02", title:"Opera cada día", text:"Captura inventario, pesajes, producción, sanidad, potreros y costos desde computador o celular, incluso sin internet.", c:"#39ff7e" },
+    { n:"03", title:"Decide con datos", text:"El dashboard, las alertas y la Asesora IA convierten tus registros en acciones para mejorar productividad y rentabilidad.", c:"#e879f9" },
+  ];
+  return (
+    <div className="max-w-5xl mx-auto space-y-6">
+      <div className="text-center">
+        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest" style={{ background:"rgba(0,245,212,0.1)", color:"#00f5d4", border:"1px solid rgba(0,245,212,0.3)" }}>Vista guiada para nuevos clientes</span>
+        <h2 className="mt-4 text-3xl sm:text-4xl font-black text-white">De la finca al control inteligente</h2>
+        <p className="mt-3 max-w-2xl mx-auto text-sm leading-relaxed" style={{ color:"rgba(255,255,255,0.55)" }}>CIVAC centraliza la operación ganadera, protege tus datos y te ayuda a actuar antes de que un problema afecte el hato.</p>
+      </div>
+      <div className="grid md:grid-cols-3 gap-4">
+        {steps.map(step => <div key={step.n} className="rounded-3xl p-5" style={{ background:`linear-gradient(145deg,${step.c}12,rgba(4,13,26,0.9))`, border:`1px solid ${step.c}35` }}><div className="text-4xl font-black" style={{ color:step.c }}>{step.n}</div><h3 className="mt-4 text-base font-black text-white">{step.title}</h3><p className="mt-2 text-xs leading-relaxed" style={{ color:"rgba(255,255,255,0.55)" }}>{step.text}</p></div>)}
+      </div>
+      <div className="rounded-3xl p-5 sm:p-6" style={{ background:"rgba(4,13,26,0.8)", border:"1px solid rgba(0,200,255,0.25)" }}>
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest" style={{ color:"#00c8ff" }}>Incluido en la plataforma</p><h3 className="mt-1 text-xl font-black text-white">Una operación conectada</h3></div><span className="px-3 py-1 rounded-full text-xs font-bold" style={{ background:"rgba(57,255,126,0.12)", color:"#39ff7e" }}>PWA · Offline · IA</span></div>
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">{["Inventario y trazabilidad","Producción y reproducción","GPS, Bluetooth y potreros","Planes, staff y reportes"].map(item => <div key={item} className="rounded-2xl p-3 text-xs font-semibold text-white/70" style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)" }}>✓ {item}</div>)}</div>
+      </div>
+    </div>
+  );
+}
+
 function IaModuleTab() {
   const features = [
     { emoji:"🔮", title:"Predicción de Producción", desc:"IA predice litros/día por animal con 96% precisión basado en históricos, clima y nutrición.", c:"#e879f9", g:"232,121,249" },
@@ -823,7 +848,7 @@ export default function Login() {
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [loadingId, setLoadingId] = useState<string|null>(null);
-  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro"|"ia">("cuentas");
+  const [tab, setTab]             = useState<"login"|"cuentas"|"planes"|"registro"|"ia"|"demo">("demo");
   const [entered, setEntered]     = useState(false);
   const [payPlan, setPayPlan]     = useState<PlanId|null>(null);
   const [showAdminForm, setShowAdminForm] = useState(false);
@@ -1211,6 +1236,7 @@ export default function Login() {
               { id:"registro" as const, label:"Registrarse", emoji:"✨", c1:"#a855f7", c2:"#7c3aed", g:"168,85,247"  },
               { id:"planes"   as const, label:"Planes",      emoji:"💳", c1:"#fbbf24", c2:"#d97706", g:"251,191,36"  },
               { id:"ia"       as const, label:"Asesora IA",  emoji:"🤖", c1:"#e879f9", c2:"#a855f7", g:"232,121,249" },
+              { id:"demo"     as const, label:"Cómo funciona", emoji:"▶️", c1:"#00c8ff", c2:"#0284c7", g:"0,200,255" },
             ].map(t => {
               const isActive = tab === t.id;
               return (
@@ -2192,6 +2218,7 @@ export default function Login() {
             TAB: IA MODULE
         ═══════════════════════════════════════════════════════════════════ */}
         {tab === "ia" && <IaModuleTab />}
+        {tab === "demo" && <DemoCivacTab />}
 
         {/* ── Footer KPI Strip — siempre visible debajo del card ── */}
         <LoginStatsFooter />

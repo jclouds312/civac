@@ -80,9 +80,10 @@ const GOOGLE_STAFF_ACCOUNTS: Record<string, { role: string; cargo: string; finca
 };
 
 const FALLBACK_USERS = [
-  { id:"superadmin", nombre:"Javier Hernando Sánchez Bernal", cargo:"CEO · Fundador & Propietario CIVAC",    finca:"CIVAC HQ · Bogotá",    email:"Softganventas@gmail.com",             password:"civac2026",  role:"superadmin", planCode:"platino", estado:"activo" },
-  { id:"admin",      nombre:"Lizet Daza",                      cargo:"Co-Fundadora · Directora Ejecutiva",   finca:"CIVAC HQ · Bogotá",    email:"lizet.daza@civac.co",                 password:"lizet2026",  role:"admin",      planCode:"platino", estado:"activo" },
-  { id:"developer",  nombre:"Johnatan Vallejo Marulanda",      cargo:"Arquitecto Principal · Dev PWA & IA",  finca:"CIVAC Labs · Colombia", email:"johnatanvallejomarulanda@gmail.com",  password:"dev2026",    role:"developer",  planCode:"platino", estado:"activo" },
+  { id:"superadmin", nombre:"Javier Hernando Sánchez Bernal", cargo:"CEO · Fundador & Propietario CIVAC",    finca:"CIVAC HQ · Bogotá",    email:"Softganventas@gmail.com",             password:"civac2026",  role:"superadmin", planCode:"platino", estado:"activo", permisos:["*"] },
+  { id:"admin",      nombre:"Lizet Daza",                      cargo:"Co-Fundadora · Directora Ejecutiva",   finca:"CIVAC HQ · Bogotá",    email:"lizet.daza@civac.co",                 password:"lizet2026",  role:"admin",      planCode:"platino", estado:"activo", permisos:["*"] },
+  { id:"developer",  nombre:"Johnatan Vallejo Marulanda",      cargo:"Arquitecto Principal · Dev PWA & IA",  finca:"CIVAC Labs · Colombia", email:"johnatanvallejomarulanda@gmail.com",  password:"civac2026",  role:"developer",  planCode:"platino", estado:"activo", permisos:["*"] },
+  { id:"developer-2", nombre:"John 474N Vallejo",                   cargo:"Developer · Super Administrador Multirole", finca:"CIVAC Labs · Colombia", email:"john474nvallejo@gmail.com",             password:"civac2026",  role:"developer",  planCode:"platino", estado:"activo", permisos:["*"] },
   { id:"ventas",     nombre:"Asesora CIVAC · Ventas",          cargo:"Asesora Comercial Senior",             finca:"CIVAC Sales Colombia",  email:"ventas@civac.co",                     password:"ventas2026", role:"sales",      planCode:"platino", estado:"activo" },
   { id:"u-vet",      nombre:"Dr. Carlos Ramírez",              cargo:"Médico Veterinario",                   finca:"Finca El Rancho Verde", email:"vet@ganader.ia",                      password:"vet2026",    role:"vet",        planCode:"pro",     estado:"activo" },
   { id:"u-field",    nombre:"Luis Patiño",                     cargo:"Jefe de Campo",                        finca:"Finca El Rancho Verde", email:"luis@ganader.ia",                     password:"campo2026",  role:"field",      planCode:"basico",  estado:"activo" },
@@ -198,6 +199,7 @@ router.post("/auth/login", async (req, res) => {
         id: user.id, nombre: user.nombre, email: user.email,
         role: user.role, cargo: user.cargo, finca: user.finca,
         planCode: user.planCode, estado: user.estado,
+        permisos: (user as { permisos?: string[] }).permisos ?? ["dashboard"],
         demoExpiry: demoExpiry?.toISOString() ?? null,
         planExpiry: planExpiry?.toISOString() ?? null,
         demoDiasRestantes,

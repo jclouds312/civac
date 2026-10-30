@@ -243,7 +243,7 @@ export default function ServerLogin() {
               style={{ color: "#172033" }}
             >
               <span className="text-base font-black">G</span>
-              {googleLoading ? "CONECTANDO CON GOOGLE..." : "Continuar con Google / Gmail"}
+              {googleLoading ? "CONECTANDO CON GOOGLE..." : "Continuar con Google / Gmail · Staff"}
             </button>
 
             {/* Security notice */}

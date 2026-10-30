@@ -66,6 +66,7 @@
     "react-icons": "^5.4.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
+    "sass": "^1.107.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "catalog:",
     "tailwindcss": "catalog:",
@@ -76,8 +77,9 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "@workspace/civac-ai": "workspace:*",
     "@mlc-ai/web-llm": "0.2.86",
-    "@vercel/speed-insights": "^2.0.0"
+    "@supabase/supabase-js": "^2.118.0",
+    "@vercel/speed-insights": "^2.0.0",
+    "@workspace/civac-ai": "workspace:*"
   }
 }

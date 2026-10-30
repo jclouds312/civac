@@ -81,6 +81,42 @@ export const DEFAULT_DEVICE_CONFIG: Record<string, ScaleDeviceConfig> = {
     color: '#fbbf24',
     glow: '251,191,36',
   },
+  'tru-test-s3': {
+    id: 'tru-test-s3',
+    nombre: 'Tru-Test S3 / EziWeigh',
+    marca: 'Tru-Test',
+    tipo: 'Indicador Bluetooth LE',
+    enabled: true,
+    color: '#22d3ee',
+    glow: '34,211,238',
+  },
+  'ruddweigh-ew': {
+    id: 'ruddweigh-ew',
+    nombre: 'Ruddweigh EziWeigh',
+    marca: 'Ruddweigh',
+    tipo: 'Indicador serial/Bluetooth',
+    enabled: true,
+    color: '#a78bfa',
+    glow: '167,139,250',
+  },
+  'agreto-h3030': {
+    id: 'agreto-h3030',
+    nombre: 'Agreto H3030',
+    marca: 'Agreto',
+    tipo: 'Indicador Bluetooth LE',
+    enabled: true,
+    color: '#34d399',
+    glow: '52,211,153',
+  },
+  'sema-technology': {
+    id: 'sema-technology',
+    nombre: 'SIMA / Sema Technology',
+    marca: 'Sema Technology',
+    tipo: 'Indicador Bluetooth/serial',
+    enabled: true,
+    color: '#fb7185',
+    glow: '251,113,133',
+  },
 };
 
 /**

@@ -1,0 +1,11 @@
+{
+  "name": "CIVAC Ganadería Inteligente",
+  "short_name": "CIVAC",
+  "description": "Operación ganadera con IA, GPS y pesaje Bluetooth",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1830",
+  "theme_color": "#00c8ff",
+  "lang": "es-CO",
+  "icons": []
+}

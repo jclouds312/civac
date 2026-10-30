@@ -15,7 +15,7 @@ type Socket = {
 };
 type SocketOptions = { transports?: string[]; reconnection?: boolean; reconnectionDelay?: number; reconnectionDelayMax?: number; reconnectionAttempts?: number };
 const io = (url: string, opts?: SocketOptions): Socket => {
-  console.warn('[useScaleService] socket.io-client not installed — scale service unavailable.', url, opts);
+  console.warn('[useScaleService] socket.io-client no está instalado; se mantiene el modo Bluetooth local.', url, opts);
   return { on: () => ({} as Socket), off: () => ({} as Socket), emit: () => ({} as Socket), disconnect: () => {}, connected: false };
 };
 
@@ -44,7 +44,12 @@ export const useScaleService = (options: UseScaleServiceOptions = {}) => {
   const [devices, setDevices] = useState<any[]>([]);
   const [currentWeight, setCurrentWeight] = useState<ScaleFrame | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [browserBluetoothAvailable, setBrowserBluetoothAvailable] = useState(false);
   const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    setBrowserBluetoothAvailable(typeof navigator !== 'undefined' && 'bluetooth' in navigator);
+  }, []);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -218,5 +223,6 @@ export const useScaleService = (options: UseScaleServiceOptions = {}) => {
     subscribeToDevice,
     requestWeight,
     exportConfig,
+    browserBluetoothAvailable,
   };
 };

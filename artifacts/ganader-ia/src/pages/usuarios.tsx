@@ -27,8 +27,13 @@ import { downloadAccountsCsv } from "@/lib/api";
 /* ── Constants ────────────────────────────────────────────────────────────── */
 const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
 
+const CIVAC_MANAGEMENT_PERMS = ["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","costos","personal","prediccion","co2","alertas","multifinca","usuarios","configuracion","documentacion","pesaje","gps","planes","admin_pagos"];
+
 const PERMS_BY_ROLE: Record<string, string[]> = {
-  admin:  ["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","costos","personal","prediccion","co2","alertas","multifinca","usuarios","configuracion","documentacion","pesaje","gps","planes","admin_pagos"],
+  admin:  CIVAC_MANAGEMENT_PERMS,
+  superadmin: CIVAC_MANAGEMENT_PERMS,
+  developer: CIVAC_MANAGEMENT_PERMS,
+  staff: CIVAC_MANAGEMENT_PERMS.filter(permission => permission !== "admin_pagos"),
   cliente:["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","costos","personal","prediccion","co2","alertas","multifinca","documentacion","pesaje","gps"],
   vet:    ["inventario","produccion","reproduccion","genetica","potreros","alimentacion","insumos","semen","prediccion","alertas","documentacion","pesaje","gps"],
   field:  ["inventario","produccion","potreros","alimentacion","insumos","alertas","pesaje"],
@@ -59,11 +64,13 @@ const ALL_PERMS = [
 ];
 
 const ROLE_LABEL: Record<string, string> = {
-  admin: "Administrador", cliente: "Cliente Premium", vet: "Veterinario",
+  admin: "Administrador", superadmin: "Superadministrador", developer: "Developer CIVAC",
+  staff: "Staff CIVAC", cliente: "Cliente Premium", vet: "Veterinario",
   field: "Campo", viewer: "Solo lectura",
 };
 const ROLE_COLOR: Record<string, string> = {
-  admin:"#00f5d4", cliente:"#fbbf24", vet:"#00c8ff", field:"#39ff7e", viewer:"#c084fc",
+  admin:"#00f5d4", superadmin:"#fb7185", developer:"#a78bfa", staff:"#38bdf8",
+  cliente:"#fbbf24", vet:"#00c8ff", field:"#39ff7e", viewer:"#c084fc",
 };
 
 /* ── Sub-components ───────────────────────────────────────────────────────── */
@@ -167,8 +174,11 @@ function UserForm({
           <Select value={role} onValueChange={v => handleRoleChange(v as Account["role"])}>
             <SelectTrigger className="mt-1"><SelectValue/></SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">👑 Administrador</SelectItem>
-              <SelectItem value="vet">🩺 Veterinario</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
+              <SelectItem value="superadmin">Superadministrador</SelectItem>
+              <SelectItem value="developer">Developer CIVAC</SelectItem>
+              <SelectItem value="staff">Staff CIVAC</SelectItem>
+              <SelectItem value="vet">Veterinario</SelectItem>
               <SelectItem value="field">🌿 Personal Campo</SelectItem>
               <SelectItem value="viewer">👁 Solo Lectura</SelectItem>
             </SelectContent>
@@ -322,8 +332,9 @@ export default function Usuarios() {
         {/* Stats row */}
         <div className="mt-4 flex flex-wrap gap-2">
           {[
-            { label:"Admins",     val:accounts.filter(a=>a.role==="admin").length,           color:"#00f5d4" },
-            { label:"Veterinarios",val:accounts.filter(a=>a.role==="vet").length,            color:"#00c8ff" },
+            { label:"Admins",     val:accounts.filter(a=>["admin","superadmin","developer"].includes(a.role)).length, color:"#00f5d4" },
+            { label:"Staff CIVAC", val:accounts.filter(a=>a.role==="staff").length, color:"#38bdf8" },
+            { label:"Veterinarios",val:accounts.filter(a=>a.role==="vet").length, color:"#00c8ff" },
             { label:"Campo",      val:accounts.filter(a=>a.role==="field").length,            color:"#39ff7e" },
             { label:"Solo lectura",val:accounts.filter(a=>a.role==="viewer").length,          color:"#c084fc" },
             { label:"Activos",    val:accounts.filter(a=>a.activo!==false).length,            color:"#34d399" },

@@ -62,6 +62,16 @@ function requestCookie(req: AuthRequest, name: string): string | null {
   try { return decodeURIComponent(entry.slice(name.length + 1)); } catch { return null; }
 }
 
+const GOOGLE_STAFF_ACCOUNTS: Record<string, { role: string; cargo: string; finca: string; planCode: string; permisos: string[] }> = {
+  "johnatanvallejomarulanda@gmail.com": {
+    role: "developer",
+    cargo: "Arquitecto Principal · Dev PWA & IA",
+    finca: "CIVAC Labs · Colombia",
+    planCode: "platino",
+    permisos: ["*"],
+  },
+};
+
 const FALLBACK_USERS = [
   { id:"superadmin", nombre:"Javier Hernando Sánchez Bernal", cargo:"CEO · Fundador & Propietario CIVAC",    finca:"CIVAC HQ · Bogotá",    email:"Softganventas@gmail.com",             password:"civac2026",  role:"superadmin", planCode:"platino", estado:"activo" },
   { id:"admin",      nombre:"Lizet Daza",                      cargo:"Co-Fundadora · Directora Ejecutiva",   finca:"CIVAC HQ · Bogotá",    email:"lizet.daza@civac.co",                 password:"lizet2026",  role:"admin",      planCode:"platino", estado:"activo" },
@@ -134,7 +144,7 @@ router.post("/auth/login", async (req, res) => {
     }
     if (!user) return res.status(401).json({ error: "Credenciales incorrectas" });
 
-    /* ── Increment loginCount + set lastLogin in DB ───────────────────── */
+    /* ── Increment loginCount + set lastLogin in DB ───────────��───────── */
     if (dbRow) {
       try {
         await db.update(usuariosTable).set({
@@ -480,8 +490,10 @@ router.get("/auth/google/callback", async (req, res) => {
     }
 
     let dbUser: typeof usuariosTable.$inferSelect;
+    const normalizedGoogleEmail = gUser.email.toLowerCase().trim();
+    const googleStaff = GOOGLE_STAFF_ACCOUNTS[normalizedGoogleEmail];
     const existing = await db.select().from(usuariosTable)
-      .where(or(eq(usuariosTable.googleId, gUser.id), eq(usuariosTable.email, gUser.email.toLowerCase())))
+      .where(or(eq(usuariosTable.googleId, gUser.id), eq(usuariosTable.email, normalizedGoogleEmail)))
       .limit(1);
 
     if (existing[0]) {
@@ -491,6 +503,15 @@ router.get("/auth/google/callback", async (req, res) => {
       const [updated] = await db.update(usuariosTable).set({
         googleId: gUser.id,
         googleFoto: gUser.picture ?? null,
+        ...(googleStaff ? {
+          role: googleStaff.role,
+          cargo: googleStaff.cargo,
+          finca: googleStaff.finca,
+          planCode: googleStaff.planCode,
+          permisos: JSON.stringify(googleStaff.permisos),
+          activo: true,
+          estado: "activo",
+        } : {}),
         loginCount: (existing[0].loginCount ?? 0) + 1,
         lastLogin: new Date(),
         updatedAt: new Date(),
@@ -501,17 +522,17 @@ router.get("/auth/google/callback", async (req, res) => {
       const [created] = await db.insert(usuariosTable).values({
         id: newId,
         nombre: gUser.name,
-        cargo: "Usuario Google",
-        finca: "Sin asignar",
-        email: gUser.email.toLowerCase(),
+        cargo: googleStaff?.cargo ?? "Usuario Google",
+        finca: googleStaff?.finca ?? "Sin asignar",
+        email: normalizedGoogleEmail,
         password: "",
-        role: "viewer",
-        permisos: JSON.stringify(["dashboard", "alertas"]),
-        planCode: "basico",
-        activo: false,
+        role: googleStaff?.role ?? "viewer",
+        permisos: JSON.stringify(googleStaff?.permisos ?? ["dashboard", "alertas"]),
+        planCode: googleStaff?.planCode ?? "basico",
+        activo: Boolean(googleStaff),
         googleId: gUser.id,
         googleFoto: gUser.picture ?? null,
-        estado: "pendiente",
+        estado: googleStaff ? "activo" : "pendiente",
       }).returning();
       dbUser = created;
     }

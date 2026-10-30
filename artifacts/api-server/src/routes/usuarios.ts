@@ -30,14 +30,16 @@ router.get("/usuarios/export", authMiddleware, staffExportMiddleware, async (_re
   }
 });
 
-router.get("/usuarios", async (_req, res) => {
+router.get("/usuarios", authMiddleware, async (req: AuthRequest, res) => {
   try {
     const rows = await db.select().from(usuariosTable).orderBy(usuariosTable.nombre);
-    res.json(rows.map(({ createdAt: _c, updatedAt: _u, ...r }) => r));
-  } catch (e) { res.status(500).json({ error: String(e) }); }
+    const isStaff = ["admin", "superadmin", "developer", "staff"].includes(req.user?.role ?? "");
+    const visibleRows = isStaff ? rows : rows.filter(row => row.id === req.user?.userId || row.email === req.user?.email);
+    res.json(visibleRows.map(({ createdAt: _c, updatedAt: _u, password: _password, ...r }) => r));
+  } catch (e) { res.status(500).json({ error: "No fue posible cargar las cuentas" }); }
 });
 
-router.post("/usuarios", async (req, res) => {
+router.post("/usuarios", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
     const [row] = await db.insert(usuariosTable).values(req.body).returning();
     const { createdAt: _c, updatedAt: _u, ...u } = row;
@@ -45,7 +47,7 @@ router.post("/usuarios", async (req, res) => {
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
-router.post("/usuarios/bulk", async (req, res) => {
+router.post("/usuarios/bulk", authMiddleware, adminOnlyMiddleware, async (req, res) => {
   try {
     const { usuarios } = req.body as { usuarios: typeof usuariosTable.$inferInsert[] };
     await db.delete(usuariosTable);
@@ -54,11 +56,12 @@ router.post("/usuarios/bulk", async (req, res) => {
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
-router.put("/usuarios/:id", async (req, res) => {
+router.put("/usuarios/:id", authMiddleware, adminOnlyMiddleware, async (req, res) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   try {
     const [row] = await db.update(usuariosTable)
       .set({ ...req.body, updatedAt: new Date() })
-      .where(eq(usuariosTable.id, req.params.id))
+      .where(eq(usuariosTable.id, id))
       .returning();
     if (!row) return res.status(404).json({ error: "Not found" });
     const { createdAt: _c, updatedAt: _u, ...u } = row;
@@ -66,9 +69,10 @@ router.put("/usuarios/:id", async (req, res) => {
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });
 
-router.delete("/usuarios/:id", async (req, res) => {
+router.delete("/usuarios/:id", authMiddleware, adminOnlyMiddleware, async (req, res) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   try {
-    await db.delete(usuariosTable).where(eq(usuariosTable.id, req.params.id));
+    await db.delete(usuariosTable).where(eq(usuariosTable.id, id));
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: String(e) }); }
 });

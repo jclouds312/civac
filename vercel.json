@@ -7,12 +7,7 @@
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
-      "includeFiles": [
-        "artifacts/api-server/api/index.py",
-        "artifacts/api-server/src/**",
-        "artifacts/analytics-server/app.py",
-        "requirements.txt"
-      ]
+      "includeFiles": "artifacts/**"
     }
   },
   "rewrites": [

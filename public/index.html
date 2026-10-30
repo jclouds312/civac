@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, viewport-fit=cover" />
+
+    <!-- ── SEO PRIMARY ─────────────────────────────────────────────────── -->
+    <title>CIVAC PRO — Software de Gestión Ganadera Colombia | PWA Offline</title>
+    <meta name="description" content="CIVAC PRO: El mejor software ganadero para Colombia. Pesaje Bluetooth, inventario bovino, GPS ganado, reproducción, genética, finanzas. 20+ módulos. Funciona sin internet (PWA). Prueba gratis." />
+    <meta name="keywords" content="software ganadería colombia, gestión ganadera, sistema bovino, pesaje ganado bluetooth, inventario bovino, reproducción bovina, GPS ganado colombia, FEDEGAN, ICA, app ganadería android, PWA ganadería, programa ganadero colombia, gestión finca ganadera, control bovino digital, CIVAC, GanaderIA, software agropecuario colombia, ganadería inteligente, manejo bovino, producción lechera software, comparar software ganadería, mejor app ganadera colombia" />
+    <meta name="author" content="Johnatan Vallejo Marulanda — Universal Business Technology" />
+    <meta name="copyright" content="© 2026 Universal Business Technology · SoftGan Colombia · Todos los derechos reservados" />
+    <meta name="owner" content="Johnatan Vallejo Marulanda" />
+    <meta name="license" content="Software Propietario — SoftGan Colombia · No reproducir sin autorización" />
+    <meta name="generator" content="CIVAC PRO v5.0 · Universal Business Technology" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://fonts.googleapis.com https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https: ws: wss: http://localhost:* http://127.0.0.1:*;" />
+    <script>
+      // Never let the production PWA cache interfere with Vite/HMR previews.
+      if (location.protocol !== 'https:' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          return Promise.all(registrations.map(function(reg) { return reg.unregister(); }));
+        }).then(function() {
+          return caches.keys().then(function(keys) {
+            return Promise.all(keys.map(function(key) { return caches.delete(key); }));
+          });
+        }).catch(function() {});
+      }
+    </script>
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="geo.region" content="CO" />
+    <meta name="geo.country" content="Colombia" />
+    <meta name="geo.placename" content="Colombia" />
+    <meta name="language" content="Spanish" />
+    <meta name="revisit-after" content="7 days" />
+    <link rel="canonical" href="https://civac.pro/" />
+
+    <!-- ── OPEN GRAPH ─────────────────────────────────────────────────── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CIVAC PRO" />
+    <meta property="og:title" content="CIVAC PRO — Software Ganadero #1 Colombia · PWA Offline" />
+    <meta property="og:description" content="Controla tu finca ganadera desde el celular sin internet. Pesaje BT, GPS bovino, reproducción, finanzas y más. 20+ módulos PRO. Desde $89.000/mes COP." />
+    <meta property="og:url" content="https://civac.pro/" />
+    <meta property="og:image" content="https://civac.pro/opengraph.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="CIVAC PRO - Software de Gestión Ganadera Colombia" />
+    <meta property="og:locale" content="es_CO" />
+
+    <!-- ── TWITTER / X CARD ─────────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@civacpro" />
+    <meta name="twitter:creator" content="@civacpro" />
+    <meta name="twitter:title" content="CIVAC PRO — Software Ganadero Colombia | PWA Offline" />
+    <meta name="twitter:description" content="Gestiona tu finca ganadera sin internet. Pesaje BT, GPS bovino, reproducción, genética, finanzas. 20+ módulos PRO para ganaderos colombianos." />
+    <meta name="twitter:image" content="https://civac.pro/opengraph.jpg" />
+
+    <!-- ── PWA ──────────────────────────────────────────────────────── -->
+    <!-- Theme color: dark mode gold neon · light mode teal -->
+    <meta name="theme-color" content="#FFD60A" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#00f5d4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#FFD60A" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CIVAC PRO" />
+    <meta name="application-name" content="CIVAC PRO" />
+    <!-- Windows PWA / Edge / PWABuilder -->
+    <meta name="msapplication-TileColor" content="#FFD60A" />
+    <meta name="msapplication-TileImage" content="/favicon.svg" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="msapplication-navbutton-color" content="#FFD60A" />
+    <meta name="msapplication-starturl" content="/" />
+    <meta name="msapplication-tooltip" content="CIVAC PRO — Gestión Ganadera Colombia" />
+    <meta name="msapplication-task" content="name=Dashboard;action-uri=/;icon-uri=/favicon.svg" />
+    <meta name="msapplication-task" content="name=GPS Bovino;action-uri=/gps;icon-uri=/favicon.svg" />
+    <meta name="msapplication-task" content="name=Pesaje BT;action-uri=/pesaje;icon-uri=/favicon.svg" />
+    <meta name="msapplication-task" content="name=Inventario;action-uri=/inventario;icon-uri=/favicon.svg" />
+    <!-- Window Controls Overlay — Desktop PWA -->
+    <meta name="wco-overlay-color" content="#0a1628" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
+    <link rel="apple-touch-startup-image" href="/opengraph.jpg" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Preload de iconos para faster PWA install -->
+    <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml" />
+
+    <!-- ── FONTS ─────────────────────────────────────────────────────── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- ── STRUCTURED DATA JSON-LD ──────────────────────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "CIVAC PRO",
+          "alternateName": ["GanaderIA Colombia", "Software Ganadería Colombia", "App Ganadera Colombia", "Sistema Bovino Colombia"],
+          "description": "Sistema PRO de gestión ganadera para Colombia. Pesaje Bluetooth, inventario bovino, GPS ganado, reproducción, genética, finanzas, producción lechera y más de 20 módulos integrados. Funciona 100% offline como PWA instalable sin App Store.",
+          "url": "https://civac.pro/",
+          "applicationCategory": "BusinessApplication",
+          "applicationSubCategory": "Agriculture Management Software",
+          "operatingSystem": "Android, iOS, Windows, macOS, Linux, ChromeOS",
+          "softwareVersion": "3.0",
+          "datePublished": "2024-01-01",
+          "dateModified": "2025-05-15",
+          "inLanguage": "es-CO",
+          "availableOnDevice": ["Desktop", "Mobile", "Tablet"],
+          "screenshot": "https://civac.pro/opengraph.jpg",
+          "offers": [
+            {
+              "@type": "Offer",
+              "name": "Plan PRO",
+              "price": "89000",
+              "priceCurrency": "COP",
+              "description": "Módulos esenciales de ganadería: inventario, pesaje, reproducción",
+              "priceSpecification": { "@type": "UnitPriceSpecification", "billingDuration": "P1M", "unitCode": "MON" }
+            },
+            {
+              "@type": "Offer",
+              "name": "Plan Premium",
+              "price": "189000",
+              "priceCurrency": "COP",
+              "description": "Todo PRO + GPS bovino + genética + multi-finca",
+              "priceSpecification": { "@type": "UnitPriceSpecification", "billingDuration": "P1M", "unitCode": "MON" }
+            },
+            {
+              "@type": "Offer",
+              "name": "Plan Platino",
+              "price": "399000",
+              "priceCurrency": "COP",
+              "description": "Todo Premium + soporte prioritario + personalización",
+              "priceSpecification": { "@type": "UnitPriceSpecification", "billingDuration": "P1M", "unitCode": "MON" }
+            }
+          ],
+          "featureList": [
+            "Inventario bovino con RFID y arete electrónico",
+            "Pesaje Bluetooth (Tru-Test, Gallagher, Agreto)",
+            "GPS bovino en tiempo real con geocercas",
+            "Reproducción y genética bovina (DEP, IEP)",
+            "Producción lechera y ranking de vacas",
+            "Módulo financiero completo (P&G, costos, proyecciones IA)",
+            "Funciona 100% sin internet (PWA offline)",
+            "Multi-finca con comparativa",
+            "Centro de alertas automáticas",
+            "Exportación CSV, JSON y PDF",
+            "Backup y restauración completa",
+            "Gestión de usuarios y roles (ICA, FEDEGAN, SENASA)",
+            "Potreros con mapa interactivo y rotación",
+            "Huella de carbono (IPCC 2019)",
+            "Insumos y Kardex ganadero",
+            "Personal y nómina finca"
+          ],
+          "publisher": {
+            "@type": "Organization",
+            "name": "CIVAC PRO",
+            "url": "https://civac.pro/",
+            "logo": "https://civac.pro/favicon.svg",
+            "areaServed": { "@type": "Country", "name": "Colombia" },
+            "description": "Empresa colombiana de software agropecuario inteligente"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "128",
+            "bestRating": "5",
+            "worstRating": "1"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "¿CIVAC PRO funciona sin internet en el campo?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Sí. CIVAC PRO es una PWA (Progressive Web App) que funciona 100% offline. Todos los datos se guardan en el dispositivo. Solo necesita internet para la primera instalación o para sincronizar backups." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Cuánto cuesta el software de ganadería CIVAC PRO en Colombia?",
+              "acceptedAnswer": { "@type": "Answer", "text": "CIVAC PRO tiene tres planes en pesos colombianos: PRO desde $89.000/mes, Premium desde $189.000/mes, y Platino desde $399.000/mes. Se puede pagar con Wompi (tarjeta, PSE, Nequi, Daviplata)." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿En qué dispositivos funciona CIVAC PRO?",
+              "acceptedAnswer": { "@type": "Answer", "text": "CIVAC PRO funciona en cualquier dispositivo con navegador: Android, iOS, Windows y Mac. Se instala como app directamente desde Chrome o Safari sin necesidad de App Store ni Play Store." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿CIVAC PRO se conecta con básculas Bluetooth ganaderas?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Sí. CIVAC PRO se integra con básculas Bluetooth como Tru-Test, Gallagher y Agreto. Auto-calcula ganancia de peso, GMD (ganancia media diaria) y valor comercial por raza según estándares FEDEGAN." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Cómo se compara CIVAC PRO con SisGan, Agrosoft u otros software ganaderos?",
+              "acceptedAnswer": { "@type": "Answer", "text": "CIVAC PRO es la única solución colombiana con PWA offline completa, pesaje BT, GPS bovino en tiempo real, módulo financiero con IA y más de 20 módulos integrados. A diferencia de alternativas, está diseñado específicamente para Colombia (FEDEGAN, ICA, razas criollas Cebú, Brahman, Simmental, GyrXHolstein)." }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Puedo usar CIVAC PRO para manejar varias fincas?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Sí. El módulo Multi-Finca de CIVAC PRO permite gestionar múltiples fincas con comparativas de rendimiento, inventarios separados y consolidación financiera." }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+    <script type="module" crossorigin src="/assets/index-Co0nHhsp.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BMf1-YWW.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Google Identity Services (Sign-In + Drive OAuth) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+      (function() {
+        var saved = localStorage.getItem('ganader_theme');
+        if (!saved || saved === 'dark') {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          // Vite/HMR must not run behind the production offline cache.
+          // Production is HTTPS; local/Replit preview development is HTTP.
+          if (location.protocol !== 'https:') {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              return Promise.all(registrations.map(function(reg) { return reg.unregister(); }));
+            }).then(function() {
+              return caches.keys().then(function(keys) {
+                return Promise.all(keys.map(function(key) { return caches.delete(key); }));
+              });
+            }).then(function() { console.log('[CIVAC SW] Disabled in development'); })
+              .catch(function(err) { console.warn('[CIVAC SW] Cleanup failed:', err); });
+            return;
+          }
+          navigator.serviceWorker.register('/sw.js?v=12', { scope: '/' })
+            .then(function(reg) { console.log('[CIVAC SW] Registered, scope:', reg.scope); })
+            .catch(function(err) { console.warn('[CIVAC SW] Registration failed:', err); });
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,313 @@
+2026-08-12T22:07:20Z info: Deployment: 649cdcc0-4a8a-4cbb-9cd8-a2cb66b52519
+2026-08-12T22:07:20Z info: Build: b2709f3e-3bf0-46f2-9028-41c2407496f6
+2026-08-12T22:07:21Z info: Running Security Scan
+2026-08-12T22:07:22Z info: Installing packages
+--> pnpm install
+
+Scope: all 9 workspace projects
+
+Lockfile is up to date, resolution step is skipped
+
+Progress: resolved 1, reused 0, downloaded 0, added 0
+
+Packages: +563
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 10.26.1 → 11.21.0.   │
+   │   Changelog: https://pnpm.io/v/11.21.0   │
+   │     To update, run: pnpm add -g pnpm     │
+   │                                          │
+   ╰──────────────────────────────────────────╯
+
+
+Progress: resolved 563, reused 0, downloaded 81, added 57
+
+Progress: resolved 563, reused 0, downloaded 176, added 106
+
+Progress: resolved 563, reused 0, downloaded 237, added 175
+
+Progress: resolved 563, reused 0, downloaded 275, added 205
+
+Progress: resolved 563, reused 0, downloaded 334, added 289
+
+Progress: resolved 563, reused 0, downloaded 342, added 294
+
+Progress: resolved 563, reused 0, downloaded 375, added 305
+
+Progress: resolved 563, reused 0, downloaded 426, added 356
+
+Progress: resolved 563, reused 0, downloaded 500, added 410
+
+Progress: resolved 563, reused 0, downloaded 562, added 542
+
+Progress: resolved 563, reused 0, downloaded 562, added 563, done
+
+.../node_modules/better-sqlite3 install$ prebuild-install || node-gyp rebuild --release
+
+.../esbuild@0.27.7/node_modules/esbuild postinstall$ node install.js
+
+.../node_modules/better-sqlite3 install: prebuild-install warn install socket hang up
+
+.../node_modules/better-sqlite3 install: gyp info it worked if it ends with ok
+
+.../node_modules/better-sqlite3 install: gyp info using node-gyp@11.5.0
+
+.../node_modules/better-sqlite3 install: gyp info using node@24.12.0 | linux | x64
+
+.../esbuild@0.27.7/node_modules/esbuild postinstall: Done
+
+.../node_modules/better-sqlite3 install: gyp info find Python using Python version 3.12.12 found at "/nix/store/sj74dzrygwdxpb54fv7zc6ry75ay4f3n-python-wrapped-0.1.0/bin/python3"
+
+.../node_modules/better-sqlite3 install: gyp http GET https://nodejs.org/download/release/v24.12.0/node-v24.12.0-headers.tar.gz
+
+.../node_modules/better-sqlite3 install: gyp http 200 https://nodejs.org/download/release/v24.12.0/node-v24.12.0-headers.tar.gz
+
+.../node_modules/better-sqlite3 install: gyp http GET https://nodejs.org/download/release/v24.12.0/SHASUMS256.txt
+
+.../node_modules/better-sqlite3 install: gyp http 200 https://nodejs.org/download/release/v24.12.0/SHASUMS256.txt
+
+.../node_modules/better-sqlite3 install: gyp info spawn args '/nix/store/61lr9izijvg30pcribjdxgjxvh3bysp4-pnpm-10.26.1/libexec/pnpm/dist/node_modules/node-gyp/gyp/gyp_main.py',
+.../node_modules/better-sqlite3 install: gyp info spawn args 'binding.gyp',
+
+.../node_modules/better-sqlite3 install: gyp info spawn args 'make',
+
+.../node_modules/better-sqlite3 install: gyp info spawn args '-I',
+
+.../node_modules/better-sqlite3 install: gyp info spawn args '-Dnode_gyp_dir=/nix/store/61lr9izijvg30pcribjdxgjxvh3bysp4-pnpm-10.26.1/libexec/pnpm/dist/node_modules/node-gyp',
+
+.../node_modules/better-sqlite3 install: gyp info spawn args '-Dmodule_root_dir=/home/runner/workspace/node_modules/.pnpm/better-sqlite3@12.10.0/node_modules/better-sqlite3',
+
+.../node_modules/better-sqlite3 install: gyp info spawn args '-Goutput_dir=.'
+
+.../node_modules/better-sqlite3 install: gyp info spawn args ]
+
+.../node_modules/better-sqlite3 install: gyp info spawn make
+
+.../node_modules/better-sqlite3 install: gyp info spawn args [ 'BUILDTYPE=Release', '-C', 'build' ]
+
+.../node_modules/better-sqlite3 install: make: Entering directory '/home/runner/workspace/node_modules/.pnpm/better-sqlite3@12.10.0/node_modules/better-sqlite3/build'
+
+.../node_modules/better-sqlite3 install:   TOUCH ba23eeee118cd63e16015df367567cb043fed872.intermediate
+
+.../node_modules/better-sqlite3 install:   ACTION deps_sqlite3_gyp_locate_sqlite3_target_copy_builtin_sqlite3 ba23eeee118cd63e16015df367567cb043fed872.intermediate
+
+.../node_modules/better-sqlite3 install:   TOUCH Release/obj.target/deps/locate_sqlite3.stamp
+
+.../node_modules/better-sqlite3 install:   CC(target) Release/obj.target/sqlite3/gen/sqlite3/sqlite3.o
+
+2026-08-12T22:08:00Z info: Security Scan Complete
+.../node_modules/better-sqlite3 install: rm -f Release/obj.target/deps/sqlite3.a Release/obj.target/deps/sqlite3.a.ar-file-list; mkdir -p `dirname Release/obj.target/deps/sqlite3.a`
+
+.../node_modules/better-sqlite3 install: ar crs Release/obj.target/deps/sqlite3.a @Release/obj.target/deps/sqlite3.a.ar-file-list
+
+.../node_modules/better-sqlite3 install:   CXX(target) Release/obj.target/better_sqlite3/src/better_sqlite3.o
+
+.../node_modules/better-sqlite3 install: In file included from ../src/better_sqlite3.cpp:11:
+
+.../node_modules/better-sqlite3 install:  1347 |   NODE_MODULE_CONTEXT_AWARE(NODE_GYP_MODULE_NAME,                     \
+.../node_modules/better-sqlite3 install:       |   ^~~~~~~~~~~~~~~~~~~~~~~~~
+.../node_modules/better-sqlite3 install: ../src/better_sqlite3.cpp:48:1: note: in expansion of macro ‘NODE_MODULE_INIT’
+.../node_modules/better-sqlite3 install:    48 | NODE_MODULE_INIT(/* exports, context */) {
+.../node_modules/better-sqlite3 install:       | ^~~~~~~~~~~~~~~~
+
+.../node_modules/better-sqlite3 install: ../src/util/data.cpp: In function ‘v8::Local<v8::Value> Data::GetValueJS(v8::Isolate*, sqlite3_stmt*, int, bool)’:
+
+.../node_modules/better-sqlite3 install:    73 |                 SQLITE_VALUE_TO_JS(column, isolate, safe_ints, handle, column);
+
+.../node_modules/better-sqlite3 install: ../src/util/data.cpp:73:17: note: in expansion of macro ‘SQLITE_VALUE_TO_JS’
+
+.../node_modules/better-sqlite3 install:    77 |                 SQLITE_VALUE_TO_JS(value, isolate, safe_ints, value);
+
+.../node_modules/better-sqlite3 install: ../src/util/data.cpp:42:9: note: here
+
+.../node_modules/better-sqlite3 install:       |                 ^~~~~~~~~~~~~~~~~~
+
+.../node_modules/better-sqlite3 install:   SOLINK_MODULE(target) Release/obj.target/better_sqlite3.node
+
+.../node_modules/better-sqlite3 install:   COPY Release/better_sqlite3.node
+
+.../node_modules/better-sqlite3 install:   CC(target) Release/obj.target/test_extension/deps/test_extension.o
+
+.../node_modules/better-sqlite3 install:   SOLINK_MODULE(target) Release/obj.target/test_extension.node
+
+.../node_modules/better-sqlite3 install:   COPY Release/test_extension.node
+
+.../node_modules/better-sqlite3 install: rm ba23eeee118cd63e16015df367567cb043fed872.intermediate
+
+.../node_modules/better-sqlite3 install: gyp info ok 
+
+.../node_modules/better-sqlite3 install: Done
+
+
+devDependencies:
++ @tailwindcss/postcss 4.3.3
++ next 15.5.23
++ prettier 3.8.1
++ react 19.1.0
++ react-dom 19.1.0
++ typescript 5.9.3
+
+
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+
+. preinstall: Done
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: sharp@0.34.5.                                       │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1m 47.7s using pnpm v10.26.1
+
+--> pip install -r requirements.txt
+
+--> pip install -r requirements.txt
+
+Looking in indexes: http://package-firewall.replit.local/pypi/simple/
+
+Looking in indexes: http://package-firewall.replit.local/pypi/simple/
+
+Collecting Flask==3.1.0 (from -r requirements.txt (line 1))
+
+  Downloading http://package-firewall.replit.local/pypi/packages/af/47/93213ee66ef8fae3b93b3e29206f6b251e65c97bd91d8e1c5596ef15af0a/flask-3.1.0-py3-none-any.whl.metadata (2.7 kB)
+
+Collecting Flask-CORS==4.0.0 (from -r requirements.txt (line 2))
+
+  Downloading http://package-firewall.replit.local/pypi/packages/10/69/1e6cfb87117568a9de088c32d6258219e9d1ff7c131abf74249ef2031279/Flask_Cors-4.0.0-py2.py3-none-any.whl.metadata (5.4 kB)
+
+  Downloading http://package-firewall.replit.local/pypi/packages/10/69/1e6cfb87117568a9de088c32d6258219e9d1ff7c131abf74249ef2031279/Flask_Cors-4.0.0-py2.py3-none-any.whl.metadata (5.4 kB)
+
+Collecting pyserial==3.5 (from -r requirements.txt (line 3))
+
+Collecting pyserial==3.5 (from -r requirements.txt (line 3))
+
+  Downloading http://package-firewall.replit.local/pypi/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl.metadata (1.6 kB)
+
+  Downloading http://package-firewall.replit.local/pypi/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl.metadata (1.6 kB)
+
+Collecting numpy==1.24.3 (from -r requirements.txt (line 4))
+
+  Downloading http://package-firewall.replit.local/pypi/packages/2c/d4/590ae7df5044465cc9fa2db152ae12468694d62d952b1528ecff328ef7fc/numpy-1.24.3.tar.gz (10.9 MB)
+
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.9/10.9 MB 83.1 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.9/10.9 MB 83.1 MB/s eta 0:00:00
+  Installing build dependencies: started
+
+  Installing build dependencies: started
+
+  Installing build dependencies: finished with status 'done'
+
+  Getting requirements to build wheel: started
+
+  Getting requirements to build wheel: finished with status 'done'
+
+  Getting requirements to build wheel: finished with status 'done'
+
+ERROR: Exception:
+Traceback (most recent call last):
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/cli/base_command.py", line 106, in _run_wrapper
+    status = _inner_run()
+             ^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/cli/base_command.py", line 97, in _inner_run
+    return self.run(options, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/cli/req_command.py", line 67, in wrapper
+    return func(self, options, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/commands/install.py", line 386, in run
+    requirement_set = resolver.resolve(
+                      ^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 95, in resolve
+    result = self._result = resolver.resolve(
+                            ^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/resolvers.py", line 546, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/resolvers.py", line 397, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/resolvers.py", line 173, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/structs.py", line 156, in __bool__
+    return bool(self._sequence)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 174, in __bool__
+    return any(self)
+           ^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 162, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 53, in _iter_built
+    candidate = func()
+                ^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 187, in _make_candidate_from_link
+    base: Optional[BaseCandidate] = self._make_base_candidate_from_link(
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 233, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 304, in __init__
+    super().__init__(
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 159, in __init__
+    self.dist = self._prepare()
+                ^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-
+ERROR: Exception:
+Traceback (most recent call last):
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/cli/base_command.py", line 106, in _run_wrapper
+    status = _inner_run()
+             ^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/cli/base_command.py", line 97, in _inner_run
+    return self.run(options, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/cli/req_command.py", line 67, in wrapper
+    return func(self, options, args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/commands/install.py", line 386, in run
+    requirement_set = resolver.resolve(
+                      ^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/resolver.py", line 95, in resolve
+    result = self._result = resolver.resolve(
+                            ^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/resolvers.py", line 546, in resolve
+    state = resolution.resolve(requirements, max_rounds=max_rounds)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/resolvers.py", line 397, in resolve
+    self._add_to_criteria(self.state.criteria, r, parent=None)
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/resolvers.py", line 173, in _add_to_criteria
+    if not criterion.candidates:
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_vendor/resolvelib/structs.py", line 156, in __bool__
+    return bool(self._sequence)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 174, in __bool__
+    return any(self)
+           ^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 162, in <genexpr>
+    return (c for c in iterator if id(c) not in self._incompatible_ids)
+                       ^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/found_candidates.py", line 53, in _iter_built
+    candidate = func()
+                ^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 187, in _make_candidate_from_link
+    base: Optional[BaseCandidate] = self._make_base_candidate_from_link(
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/factory.py", line 233, in _make_base_candidate_from_link
+    self._link_candidate_cache[link] = LinkCandidate(
+                                       ^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 304, in __init__
+    super().__init__(
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-python3.12-pip-25.0.1/lib/python3.12/site-packages/pip/_internal/resolution/resolvelib/candidates.py", line 159, in __init__
+    self.dist = self._prepare()
+                ^^^^^^^^^^^^^^^
+  File "/nix/store/3idd141l4qkq2s4b1jqwfahmzf739yyb-
+exit status 2
+
+exit status 2
+

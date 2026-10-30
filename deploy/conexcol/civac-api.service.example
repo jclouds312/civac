@@ -1,0 +1,18 @@
+[Unit]
+Description=CIVAC Flask API
+After=network.target
+
+[Service]
+Type=simple
+User=civac
+Group=www-data
+WorkingDirectory=/opt/civac
+EnvironmentFile=/etc/civac/civac.env
+ExecStart=/opt/civac/.venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8080 --timeout 90 --access-logfile - --error-logfile - api.index:app
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

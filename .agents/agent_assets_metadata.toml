@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ihG-IUjkkWxBuyhxxbW4X"
+uri = "file://generated-artifacts/civac-project-deck.html"
+type = "html"
+title = "Presentación de CIVAC"
+description = "Deck interactivo de 9 diapositivas sobre GanaderIA CIVAC, arquitectura, roles, IA, Bluetooth, estado de William y preparación para el despliegue."
+logical_id = "74467708-f047-41fd-8b63-e78eaf8c6671"
+content_hash = "sha256:d118afdcf1abddf87331b79c5fd9ec845552979a21daf3689fc3354bbbe1df83"
+size = 20896
+mtime_ms = 1792806287062
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:c849f415-1d04-42c3-bff7-5861643e32ff/74467708-f047-41fd-8b63-e78eaf8c6671/aa3efaee-dfb3-4d13-a707-ee9c50ff4f93"
+storage_version_token = "1792806343883422"
+content_type = "text/html"

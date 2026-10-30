@@ -1,0 +1,19 @@
+- [CIVAC Server Panel](civac-server-panel.md) — separate /server login + /server-dashboard for CIVAC staff; CIVAC_STAFF_IDS in auth.ts controls access; client demos stay on main login
+- [GitHub/Vercel sync](github-vercel-sync.md) — preserve the active branch before switching to GitHub's default; Vite output must point Vercel to the artifact's dist/public directory
+- [React namespace in .ts files](react-namespace-ts-files.md) — `import * as React` becomes null during Vite HMR in .ts files; use named imports only.
+- [lucide-react missing icons](lucide-react-missing.md) — `Cow` does not exist in the installed lucide-react; use `Beef` instead. Always verify new icons with `node -e "const lr=require('./node_modules/lucide-react'); console.log('X' in lr)"` before using them.
+- [CustomTrama type and testCustomTrama](custom-trama-api.md) — CustomTrama requires 10 fields; testCustomTrama returns number[] not {ok,peso,error}. See topic file for details.
+- [SW must not cache Vite dep URLs](sw-vite-deps-no-cache.md) — Service Worker cache-first on .js causes stale Vite dep chunks across re-optimizations → two React instances → null dispatcher crash. Fix: exclude /node_modules/ and /@ paths from SW cache.
+- [Real Bluetooth scale readings](bluetooth-weighing-authenticity.md) — Bluetooth weighing must never silently fall back to simulated weights that could be mistaken for real animal measurements.
+- [Hooks in conditional JSX](hooks-conditional-jsx.md) — useState/useEffect inside IIFE expressions in JSX are conditionally called and violate Rules of Hooks. Always extract to a named sub-component.
+- [WompiPayment field names](wompi-payment-fields.md) — WompiPayment type uses `userNombre` and `userEmail`, not `usuario`/`email`.
+- [CSS-in-JSX invalid props](css-invalid-props.md) — `divideColor` is not a valid React inline style; use Tailwind `divide-white/5` class. Always check CSS property names against React's style types.
+- [better-sqlite3 Replit build](better-sqlite3-replit.md) — pnpm blocks build scripts by default; add onlyBuiltDependencies to package.json, then compile with `make -C <pkg>/build better_sqlite3` using PATH with Nix g++. Also install in consumer package (api-server) since it's external in esbuild bundle.
+- [API server route prefix](api-server-route-prefix.md) — app.ts mounts router at /api, so route files must NOT include /api prefix. Real health path is /api/healthz not /api/health.
+- [API server esbuild build](api-server-esbuild-build.md) — drizzle-zod not in api-server node_modules by default; build.mjs must symlink it + use nodePaths for pnpm virtual store. esbuild override must be 0.27.7 (not 0.27.3 which doesn't exist).
+- [GitHub branch sync and build](github-branch-sync-build.md) — preserve divergent local commits before aligning a requested branch; validate artifact workflows after checkout changes.
+- [Drizzle schema sync](drizzle-schema-sync.md) — inspect source imports and schema drift; never force-push into an existing database without reviewing data-loss prompts.
+- [AI provider billing policy](ai-provider-billing-policy.md) — keep free providers as default; paid providers require explicit selection and server-side Premium access checks.
+- [William Premium account](william-premium-account.md) — William's CIVAC account must remain Premium with permanent access, not be labeled Platino.
+- [Expo Linux devtools](expo-linux-devtools.md) — Metro can run even when Expo's optional desktop DevTools lacks GTK/graphics libraries.
+- [Replit Python package installation](replit-python-package-install.md) — a Python dependency listed in requirements.txt may still be absent from the runtime; install through Replit package management and smoke-test WSGI.

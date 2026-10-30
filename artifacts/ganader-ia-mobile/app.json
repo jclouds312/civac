@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "Civacsoftgan",
+    "slug": "civacsoftgan",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "civacsoftgan",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.civacsoftgan.app"
+    },
+    "android": {
+      "package": "com.civacsoftgan.app"
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

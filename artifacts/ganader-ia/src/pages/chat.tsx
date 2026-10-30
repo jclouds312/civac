@@ -8,6 +8,7 @@ import {
   MessageSquare, Zap,
 } from "lucide-react";
 import { useAuth, CIVAC_STAFF_IDS, PLAN_LABEL_ROLE } from "@/lib/auth";
+import { loadCloudMessages, saveCloudMessage, subscribeToCloudMessages, supabase } from "@/lib/supabase";
 
 /* ── Types ──────────────────────────────────────────────────────────────── */
 export interface ChatMessage {
@@ -332,8 +333,26 @@ export default function ChatPage() {
   const isStaff = user ? (CIVAC_STAFF_IDS.includes(user.id) || ['admin','superadmin','developer','sales'].includes(user.role)) : false;
   const whatsapp = localStorage.getItem(WA_KEY) || '3187351262';
 
-  /* ── Seed on mount ─────────────────────────────────────────────────────── */
-  useEffect(() => { seedDemoMessages(); setMsgs(loadMessages()); }, []);
+  /* ── Sincronización persistente con Supabase ───────────────────────────── */
+  useEffect(() => {
+    let channel: ReturnType<typeof subscribeToCloudMessages>;
+    let cancelled = false;
+    void supabase?.auth.getUser().then(async ({ data }) => {
+      if (!data.user || cancelled) return;
+      const records = await loadCloudMessages(data.user.id);
+      if (records.length) {
+        const cloud = records.flatMap((record) => {
+          try {
+            const payload = JSON.parse(record.body) as { text: string; channel?: string; type?: ChatMessage["type"] };
+            return [{ id: record.id, fromId: record.author_id, fromNombre: record.author_id === data.user.id ? (user?.nombre ?? "Yo") : "Usuario", fromRole: "user", text: payload.text, ts: new Date(record.created_at).getTime(), read: record.author_id === data.user.id, threadId: record.thread_id, channel: payload.channel, type: payload.type ?? "text" } satisfies ChatMessage];
+          } catch { return []; }
+        });
+        if (!cancelled) setMsgs(cloud);
+      }
+      channel = subscribeToCloudMessages(() => { void loadCloudMessages(data.user!.id).then(() => setMsgs(loadMessages())); });
+    });
+    return () => { cancelled = true; if (channel && supabase) void supabase.removeChannel(channel); };
+  }, [user?.nombre]);
 
   /* ── Online status ─────────────────────────────────────────────────────── */
   useEffect(() => {
@@ -399,6 +418,7 @@ export default function ChatPage() {
       type: 'text',
     };
     saveMessages([...loadMessages(), msg]);
+    void supabase?.auth.getUser().then(({ data }) => data.user && saveCloudMessage(data.user.id, { text: msg.text, channel: msg.channel, type: msg.type, replyTo: msg.replyTo, replyText: msg.replyText }));
     setMsgs(loadMessages());
     setInput('');
     setReplyMsg(null);
@@ -424,6 +444,7 @@ export default function ChatPage() {
       type: 'notification',
     };
     saveMessages([...loadMessages(), msg]);
+    void supabase?.auth.getUser().then(({ data }) => data.user && saveCloudMessage(data.user.id, { text: msg.text, channel: msg.channel, type: msg.type }));
     saveNotification({ ...msg, title: pushForm.title || 'CIVAC PRO' });
     /* Try Web Push if permitted */
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -455,6 +476,7 @@ export default function ChatPage() {
       paymentData: { plan, monto, link },
     };
     saveMessages([...loadMessages(), msg]);
+    void supabase?.auth.getUser().then(({ data }) => data.user && saveCloudMessage(data.user.id, { text: msg.text, channel: msg.channel, type: msg.type }));
     setMsgs(loadMessages());
   };
 

@@ -24,6 +24,7 @@ import codigosRouter from "./codigos";
 import auditRouter from "./audit";
 import dbStatusRouter from "./db-status";
 import telemetryRouter from "./telemetry";
+import aiRouter from "./ai";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(codigosRouter);
 router.use(auditRouter);
 router.use(dbStatusRouter);
 router.use(telemetryRouter);
+router.use(aiRouter);
 
 export default router;

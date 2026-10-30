@@ -82,6 +82,29 @@ export async function apiDelete(path: string): Promise<boolean> {
   return ok;
 }
 
+export async function downloadAccountsCsv(): Promise<boolean> {
+  if (!isOnline()) return false;
+  const token = getToken();
+  if (!token) return false;
+  try {
+    const response = await fetch(`${BASE}/usuarios/export`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!response.ok) return false;
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `civac-cuentas-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export interface AuthResponse {
   token: string;

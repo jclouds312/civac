@@ -22,6 +22,7 @@ import {
   DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { downloadAccountsCsv } from "@/lib/api";
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
@@ -232,7 +233,7 @@ export default function Usuarios() {
   const [deleteTarget, setDeleteTarget] = useState<Account | null>(null);
   const [newPlan, setNewPlan] = useState<PlanId>("pro");
 
-  const isAdmin = currentUser?.role === "admin";
+  const isAdmin = ["admin", "superadmin", "developer", "staff"].includes(currentUser?.role ?? "");
 
   const filtered = accounts.filter(a =>
     a.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -273,6 +274,10 @@ export default function Usuarios() {
     if (!deleteTarget) return;
     deleteUser(deleteTarget.id);
     setDeleteTarget(null);
+  };
+
+  const handleExport = async () => {
+    await downloadAccountsCsv();
   };
 
   return (
@@ -351,7 +356,7 @@ export default function Usuarios() {
 
         {/* ── CUENTAS TAB ── */}
         <TabsContent value="cuentas" className="space-y-3 mt-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="relative flex-1 max-w-sm">
               <Input placeholder="Buscar por nombre, email o cargo…"
                 value={search} onChange={e => setSearch(e.target.value)}
@@ -359,6 +364,11 @@ export default function Usuarios() {
                 style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)" }}/>
               <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"/>
             </div>
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5 text-xs">
+                <Download size={13} /> Exportar cuentas CSV
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-2">

@@ -141,7 +141,7 @@ function SecInicio() {
     <div className="space-y-6">
       <SectionBanner emoji="🚀" title="Primeros pasos" subtitle="Configura tu finca y empieza en menos de 5 minutos" c1="#020d1a" c2="#0a2745"/>
       <div className="space-y-3">
-        <Step n={1} text="Inicia sesión — usa una de las 6 cuentas disponibles o ingresa con tu correo y contraseña." color="#00f5d4"/>
+        <Step n={1} text="Inicia sesión — usa Google OAuth o tu correo y contraseña; el rol y el plan se asignan desde Gestión Clientes." color="#00f5d4"/>
         <Step n={2} text='Ve a Configuración (⚙️ en el sidebar) y completa los datos de tu finca: nombre, NIT, municipio, departamento y tipo de producción.' color="#39ff7e"/>
         <Step n={3} text="Registra tus bovinos en Inventario — usa la importación CSV o crea cada animal manualmente con su aretado y categoría." color="#a78bfa"/>
         <Step n={4} text="Instala la PWA en tu celular para acceso rápido sin internet (ver sección Instalar PWA)." color="#fbbf24"/>
@@ -494,7 +494,7 @@ function SecLogin() {
                   </div>
                   <p className="text-[9px] font-mono text-muted-foreground truncate">{s.e}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <code className="text-[8px] px-1.5 py-0.5 rounded" style={{ background:"rgba(167,139,250,0.10)", color:"rgba(167,139,250,0.7)" }}>{s.p}</code>
+                    <span className="text-[8px] px-1.5 py-0.5 rounded" style={{ background:"rgba(57,255,126,0.10)", color:"rgba(57,255,126,0.75)" }}>Acceso gestionado</span>
                     <span className="text-[8px]" style={{ color:"rgba(255,255,255,0.25)" }}>· {s.cargo}</span>
                   </div>
                 </div>
@@ -504,15 +504,15 @@ function SecLogin() {
         </div>
       </div>
 
-      {/* Demo client accounts */}
+      {/* Client account access */}
       <div>
         <p className="text-[10px] font-black tracking-widest uppercase mb-3" style={{ color:"rgba(57,255,126,0.5)" }}>
-          Cuentas Demo — Ganadero Cliente
+          Cuentas y acceso de clientes
         </p>
         <div className="rounded-xl overflow-hidden" style={{ border:"1px solid rgba(255,255,255,0.08)" }}>
           <div className="grid grid-cols-4 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground"
             style={{ background:"rgba(255,255,255,0.03)", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-            <span>Usuario</span><span>Email</span><span>Password</span><span>Rol · Plan</span>
+            <span>Usuario</span><span>Email</span><span>Acceso</span><span>Rol · Plan</span>
           </div>
           {DEMO_CLIENTS.map((row, i) => (
             <div key={row.e} className="grid grid-cols-4 px-3 py-2.5 text-[10px] items-center gap-1"
@@ -521,7 +521,7 @@ function SecLogin() {
                 <span>{row.emoji}</span><span className="truncate">{row.n.split(" ")[0]} {row.n.split(" ")[1]}</span>
               </div>
               <code className="font-mono text-muted-foreground text-[9px] truncate">{row.e}</code>
-              <code className="font-mono text-[9px]" style={{ color:"#a78bfa" }}>{row.p}</code>
+              <span className="text-[8px] font-semibold" style={{ color:"#39ff7e" }}>Google OAuth / contraseña segura</span>
               <div className="flex flex-wrap gap-1">
                 <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background:`${row.rc}15`, color:row.rc, border:`1px solid ${row.rc}30` }}>{row.r}</span>
                 <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full" style={{ background:"rgba(0,245,212,0.07)", color:"rgba(0,245,212,0.55)", border:"1px solid rgba(0,245,212,0.15)" }}>{row.plan}</span>
@@ -529,6 +529,12 @@ function SecLogin() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <InfoCard icon={<svg width="16" height="16" viewBox="0 0 24 24"><path d="M21.35 11.1h-9.18v2.72h5.27c-.23 1.45-1.68 4.25-5.27 4.25-3.17 0-5.76-2.62-5.76-5.84s2.59-5.84 5.76-5.84c1.81 0 3.02.77 3.71 1.43l2.5-2.43C16.47 3.88 14.57 3 12.17 3 7.2 3 3.16 7.03 3.16 12s4.04 9 9.01 9c5.2 0 8.66-3.65 8.66-8.8 0-.59-.06-.99-.14-1.1z" fill="currentColor"/></svg>} title="Google Login" desc="Botón OAuth visible en acceso y registro; las cuentas se activan según el rol asignado." color="#4285f4" />
+        <InfoCard icon={<Cloud size={16}/>} title="Respaldos" desc="Exportación de datos y respaldos operativos sin exponer contraseñas ni tokens." color="#00f5d4" />
+        <InfoCard icon={<Shield size={16}/>} title="Accesos" desc="Roles separados para superadmin, admin, developer, ventas, soporte y cliente." color="#39ff7e" />
       </div>
 
       {/* Roles matrix */}
@@ -930,7 +936,7 @@ function SecServer() {
         <InfoCard icon={<Package size={16}/>} title="Versiones PWA" desc="Gestiona versiones de la app, descarga builds, genera links de instalación para clientes." color="#a78bfa"/>
         <InfoCard icon={<Globe size={16}/>} title="Integraciones" desc="Panel de APIs activas: Wompi, GPS MQTT, Bluetooth, RFID, PWA SW, IndexedDB, IPCC, Drive." color="#f97316"/>
       </div>
-      <CodeBlock label="Acceso al Server Panel" code={`URL:      /server\nUsuario:  super@civac.co\nPassword: super2026\n\nO acceder con botones rápidos en el login:\n  🔱 Super   →  super@civac.co / super2026\n  🛠️  Dev     →  dev@civac.co / dev2026\n  ⚙️  Admin   →  admin@ganader.ia / admin`}/>
+      <CodeBlock label="Acceso al Server Panel" code={`URL:      /server\nAcceso:   cuenta CIVAC Staff autorizada\n\nEl acceso se valida con sesión segura y rol asignado.\nNo se documentan contraseñas ni tokens en esta guía;\nusa Google OAuth o el flujo de restablecimiento de contraseña.`}/>
     </div>
   );
 }

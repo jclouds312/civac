@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createManagedAccount, deleteManagedAccount, downloadAccountsCsv, updateManagedAccount } from "@/lib/api";
+import { CivacSystemWidgets } from "@/components/civac-system-widgets";
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
@@ -311,6 +312,8 @@ export default function Usuarios() {
 
   return (
     <div className="space-y-4 pb-8 civac-animate">
+
+      <CivacSystemWidgets />
 
       {/* ── HERO BANNER ─────────────────────────────────────────────────── */}
       <div className="relative rounded-2xl sm:rounded-3xl p-5 sm:p-6 overflow-hidden"

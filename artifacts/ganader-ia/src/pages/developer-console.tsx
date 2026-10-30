@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Bot, CheckCircle2, Code2, ExternalLink, Gauge, Layers3, Play, RefreshCw, ShieldCheck, TerminalSquare } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { CivacSystemWidgets } from "@/components/civac-system-widgets";
 
 const roles = ["developer", "superadmin", "admin"];
 
@@ -44,6 +45,8 @@ export default function DeveloperConsole() {
           </div>
         </div>
       </header>
+
+      <CivacSystemWidgets compact />
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {checks.map(check => <div key={check.label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4"><div className="flex items-center justify-between"><span className="text-xs text-white/50">{check.label}</span>{check.ok ? <CheckCircle2 size={16} className="text-emerald-300"/> : <Gauge size={16} className="text-amber-300"/>}</div><p className="mt-3 text-sm font-bold text-white">{check.value}</p></div>)}

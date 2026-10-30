@@ -338,9 +338,12 @@ export default function Basculas() {
     try {
       const dev = deviceId ? devices.find(d => d.id === deviceId) : null;
       const bt = (navigator as unknown as { bluetooth: { requestDevice: (o: unknown) => Promise<BluetoothDeviceLike> } }).bluetooth;
-      const btDev = await bt.requestDevice({
-        filters: dev?.nameFilters?.map(n => ({ namePrefix:n })) ?? [{ namePrefix:"" }],
-        optionalServices: dev?.serviceUUIDs ?? ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],
+      const btDev = await bt.requestDevice(dev?.nameFilters?.length ? {
+        filters: dev.nameFilters.map(n => ({ namePrefix:n })),
+        optionalServices: dev.serviceUUIDs ?? ["6e400001-b5a3-f393-e0a9-e50e24dcca9e"],
+      } : {
+        acceptAllDevices: true,
+        optionalServices: ["6e400001-b5a3-f393-e0a9-e50e24dcca9e", "0000181d-0000-1000-8000-00805f9b34fb"],
       });
       setBtScanResult(`Dispositivo encontrado: ${btDev.name ?? "Sin nombre"}`);
       if (deviceId) {
@@ -413,13 +416,6 @@ export default function Basculas() {
     setTelemetry(loadTelemetry());
   };
 
-  /* ── Simulate weight (demo) ── */
-  const simulateWeight = (deviceId: string) => {
-    const kg = Math.round((200 + Math.random()*300) * 10) / 10;
-    setWeights(w => ({ ...w, [deviceId]:kg }));
-    updateDevice(deviceId, { liveWeight:kg, status:"connected", totalPesajes:(devices.find(d=>d.id===deviceId)?.totalPesajes??0)+1 });
-    sendTelemetry({ type:"weighing", event:"simulated_weight", severity:"info", deviceId, data:{ kg } });
-  };
 
   const connectedCount = devices.filter(d => d.status === "connected").length;
   const errorCount     = devices.filter(d => d.status === "error").length;
@@ -592,12 +588,6 @@ export default function Basculas() {
                             <Square size={12}/> Desconectar
                           </button>
                         )}
-                        <button onClick={() => simulateWeight(dev.id)}
-                          className="px-3 py-2 rounded-xl text-[10px] font-bold transition-all"
-                          style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.45)" }}
-                          title="Simular lectura de peso">
-                          <Activity size={12}/>
-                        </button>
                       </div>
                     </div>
                   </div>

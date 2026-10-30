@@ -105,14 +105,7 @@ const POTREROS_BOUNDS: Record<number,{x:number;y:number;w:number;h:number;label:
 const BASE_LAT = 4.710988;
 const BASE_LNG = -74.072092;
 
-const INITIAL_DEVICES: GpsDevice[] = [
-  {id:'DEV-001',nombre:'Collar Rosaura',  tipo:'collar-gps',imei:'354071230987654',animalId:'A-0042',animalNom:'Rosaura', vinculado:true,fechaVin:'2026-01-10',lat:4.710988,lng:-74.072092,precision:4,bateria:82,activo:true, ultimaActualizacion:Date.now()-120000,potreroId:1},
-  {id:'DEV-002',nombre:'Collar Titan',    tipo:'collar-gps',imei:'354071230987655',animalId:'A-0622',animalNom:'Titan',   vinculado:true,fechaVin:'2026-01-10',lat:4.711245,lng:-74.071887,precision:5,bateria:64,activo:true, ultimaActualizacion:Date.now()-60000, potreroId:5},
-  {id:'DEV-003',nombre:'Bolo Perla',      tipo:'bolus',      imei:'354071230987656',animalId:'A-0712',animalNom:'Perla',   vinculado:true,fechaVin:'2026-02-15',lat:4.710502,lng:-74.072341,precision:8,bateria:17,activo:true, ultimaActualizacion:Date.now()-30000, potreroId:1},
-  {id:'DEV-004',nombre:'Caravana Bravo',  tipo:'oreja',      imei:'RFID-ISO-40042',  animalId:'A-0401',animalNom:'Bravo',   vinculado:true,fechaVin:'2026-03-01',lat:4.711019,lng:-74.072501,precision:3,bateria:8, activo:false,ultimaActualizacion:Date.now()-3600000,potreroId:4},
-  {id:'DEV-005',nombre:'Collar Luna',     tipo:'collar-gps',imei:'354071230987657',animalId:'A-0503',animalNom:'Luna',    vinculado:true,fechaVin:'2026-03-15',lat:4.711500,lng:-74.071200,precision:6,bateria:91,activo:true, ultimaActualizacion:Date.now()-45000, potreroId:3},
-  {id:'DEV-006',nombre:'Collar Estrella', tipo:'collar-bt', imei:'BT:A1:B2:C3:D4', animalId:'A-0201',animalNom:'Estrella',vinculado:true,fechaVin:'2026-04-01',lat:4.710700,lng:-74.072200,precision:12,bateria:55,activo:true,ultimaActualizacion:Date.now()-90000, potreroId:1},
-];
+const INITIAL_DEVICES: GpsDevice[] = [];
 
 // Map positions (SVG 0-100 coords)
 const ANIMAL_SVG: Record<string, {x:number;y:number}> = {
@@ -151,7 +144,7 @@ export default function Gps() {
 
   /* ── Devices state — DB is authoritative online; local cache is offline fallback ── */
   const [devices, setDevices] = useState<GpsDevice[]>(
-    () => loadGpsDevices<GpsDevice>() ?? INITIAL_DEVICES
+    () => loadGpsDevices<GpsDevice>() ?? []
   );
   const [activeTab, setActiveTab] = useState<'mapa'|'geovallado'|'lista'|'vincular'|'catalogo'>('mapa');
 

@@ -434,8 +434,10 @@ router.post("/auth/logout", async (req, res) => {
 });
 
 /* ── GET /api/auth/google ─────────────────────────────────────────────────── */
-router.get("/auth/google", (_req, res) => {
+router.get("/auth/google", (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
+  const requestedReturnTo = typeof req.query.returnTo === "string" ? req.query.returnTo : "/";
+  const returnTo = requestedReturnTo.startsWith("/") && !requestedReturnTo.startsWith("//") ? requestedReturnTo : "/";
   const frontendUrl = appBaseUrl() ?? "";
   const callbackUrl = googleCallbackUrl("callback");
 
@@ -450,6 +452,7 @@ router.get("/auth/google", (_req, res) => {
     scope: "email profile openid",
     access_type: "offline",
     prompt: "select_account",
+    state: Buffer.from(returnTo, "utf8").toString("base64url"),
   });
 
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
@@ -463,10 +466,12 @@ router.get("/auth/google/callback", async (req, res) => {
     return res.redirect(`${frontendUrl}/?google_error=no_config`);
   }
 
-  const { code, error: oauthError } = req.query as { code?: string; error?: string };
-
+  const { code, error: oauthError, state } = req.query as { code?: string; error?: string; state?: string };
+  const returnTo = typeof state === "string" ? (() => { try { const value = Buffer.from(state, "base64url").toString("utf8"); return value.startsWith("/") && !value.startsWith("//") ? value : "/"; } catch { return "/"; } })() : "/";
+  const redirectWithError = (reason: string) => `${frontendUrl}${returnTo}?google_error=${encodeURIComponent(reason)}`;
+  
   if (oauthError || !code) {
-    return res.redirect(`${frontendUrl}/?google_error=cancelled`);
+    return res.redirect(redirectWithError("cancelled"));
   }
 
   try {
@@ -562,7 +567,7 @@ router.get("/auth/google/callback", async (req, res) => {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    res.redirect(`${frontendUrl}/?civac_token=${token}&google=1`);
+    res.redirect(`${frontendUrl}${returnTo}?civac_token=${token}&google=1`);
   } catch (err) {
     console.error("[Google OAuth error]", err);
     res.redirect(`${frontendUrl}/?google_error=server_error`);

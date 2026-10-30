@@ -3,7 +3,7 @@ import { useAuth, Account, PLAN_LABEL, PLAN_COLOR, PLAN_COLOR2, PLAN_GLOW, PLAN_
 import { formatPlanPrice } from "@/lib/plan-pricing";
 import {
   Eye, EyeOff, Lock, User, Shield, Zap, Star, Crown,
-  Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard,
+  Check, X, Leaf, ArrowRight, Wifi, Smartphone, CreditCard, Play,
   Phone, Building2, ChevronRight, CheckCircle2, ExternalLink,
   AlertTriangle, Copy, Activity, Globe, Cpu,
   TrendingUp, MapPin, Thermometer, Wind, Droplets, BarChart3,
@@ -437,7 +437,7 @@ function RightWidgets() {
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LOGO
-════�����══════════════════════════════════════════════════════════════════════════ */
+════������══════════════════════════════════════════════════════════════════════════ */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
     <div className="relative inline-block" style={{ width:size*1.6, height:size*1.6 }}>
@@ -664,6 +664,7 @@ function BottomPWANav({ tab, setTab }: { tab: string; setTab: (t: "login"|"regis
    IA MODULE TAB — showcase of AI features
 ═══════════════════════════════════════════════════════════════════════════════ */
 function DemoCivacTab() {
+  const [showPresentation, setShowPresentation] = useState(false);
   const steps = [
     { n:"01", title:"Conecta tu finca", text:"Registra la finca, ubicación, usuarios y el plan contratado. El sistema configura los módulos disponibles automáticamente.", c:"#00f5d4" },
     { n:"02", title:"Opera cada día", text:"Captura inventario, pesajes, producción, sanidad, potreros y costos desde computador o celular, incluso sin internet.", c:"#39ff7e" },
@@ -676,9 +677,16 @@ function DemoCivacTab() {
         <h2 className="mt-4 text-3xl sm:text-4xl font-black text-white">De la finca al control inteligente</h2>
         <p className="mt-3 max-w-2xl mx-auto text-sm leading-relaxed" style={{ color:"rgba(255,255,255,0.55)" }}>CIVAC centraliza la operación ganadera, protege tus datos y te ayuda a actuar antes de que un problema afecte el hato.</p>
       </div>
+      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8" style={{ background:"linear-gradient(135deg,rgba(0,200,255,0.12),rgba(4,13,26,0.92))", border:"1px solid rgba(0,200,255,0.30)", boxShadow:"0 20px 60px rgba(0,0,0,0.25)" }}>
+        <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div><p className="text-xs font-black uppercase tracking-widest" style={{ color:"#00c8ff" }}>Video presentación</p><h3 className="mt-2 text-2xl font-black text-white">Conoce CIVAC en acción</h3><p className="mt-2 max-w-xl text-sm leading-relaxed" style={{ color:"rgba(255,255,255,0.58)" }}>Mira cómo la plataforma conecta tu finca, tus datos y la inteligencia artificial en un solo lugar.</p></div>
+          <button type="button" onClick={() => setShowPresentation(true)} className="flex shrink-0 items-center gap-3 rounded-2xl px-5 py-3 text-sm font-black text-[#03111e] transition-transform hover:scale-105" style={{ background:"linear-gradient(135deg,#00f5d4,#00c8ff)", boxShadow:"0 0 28px rgba(0,200,255,0.35)" }}><Play size={17} fill="currentColor" /> Reproducir presentación</button>
+        </div>
+      </div>
       <div className="grid md:grid-cols-3 gap-4">
         {steps.map(step => <div key={step.n} className="rounded-3xl p-5" style={{ background:`linear-gradient(145deg,${step.c}12,rgba(4,13,26,0.9))`, border:`1px solid ${step.c}35` }}><div className="text-4xl font-black" style={{ color:step.c }}>{step.n}</div><h3 className="mt-4 text-base font-black text-white">{step.title}</h3><p className="mt-2 text-xs leading-relaxed" style={{ color:"rgba(255,255,255,0.55)" }}>{step.text}</p></div>)}
       </div>
+      {showPresentation && <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 p-4" role="dialog" aria-modal="true" aria-label="Video presentación CIVAC" onClick={() => setShowPresentation(false)}><div className="relative w-full max-w-5xl rounded-3xl bg-[#04101d] p-2 shadow-2xl" onClick={e => e.stopPropagation()}><button type="button" aria-label="Cerrar video" onClick={() => setShowPresentation(false)} className="absolute -right-2 -top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg"><X size={18} /></button><video className="w-full rounded-2xl" src="/videos/civac-presentacion.mp4" controls autoPlay playsInline preload="metadata" /></div></div>}
       <div className="rounded-3xl p-5 sm:p-6" style={{ background:"rgba(4,13,26,0.8)", border:"1px solid rgba(0,200,255,0.25)" }}>
         <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-widest" style={{ color:"#00c8ff" }}>Incluido en la plataforma</p><h3 className="mt-1 text-xl font-black text-white">Una operación conectada</h3></div><span className="px-3 py-1 rounded-full text-xs font-bold" style={{ background:"rgba(57,255,126,0.12)", color:"#39ff7e" }}>PWA · Offline · IA</span></div>
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">{["Inventario y trazabilidad","Producción y reproducción","GPS, Bluetooth y potreros","Planes, staff y reportes"].map(item => <div key={item} className="rounded-2xl p-3 text-xs font-semibold text-white/70" style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)" }}>✓ {item}</div>)}</div>

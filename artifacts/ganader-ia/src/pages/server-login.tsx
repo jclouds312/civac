@@ -56,6 +56,7 @@ export default function ServerLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [tick, setTick] = useState(0);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   // Redirect if already logged in as CIVAC staff
   useEffect(() => {
@@ -226,6 +227,22 @@ export default function ServerLogin() {
                 )}
               </button>
             </form>
+
+            <div className="my-4 flex items-center gap-3 text-[10px] font-mono" style={{ color: "rgba(148,163,184,0.35)" }}>
+              <div className="h-px flex-1" style={{ background: "rgba(0,245,212,0.10)" }} />
+              <span>O ACCESO DIRECTO</span>
+              <div className="h-px flex-1" style={{ background: "rgba(0,245,212,0.10)" }} />
+            </div>
+            <button
+              type="button"
+              disabled={googleLoading}
+              onClick={() => { setGoogleLoading(true); window.location.href = "/api/auth/google?returnTo=/server-login"; }}
+              className="w-full py-3 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 bg-white hover:bg-slate-100 disabled:opacity-60"
+              style={{ color: "#172033" }}
+            >
+              <span className="text-base font-black">G</span>
+              {googleLoading ? "CONECTANDO CON GOOGLE..." : "Continuar con Google / Gmail"}
+            </button>
 
             {/* Security notice */}
             <div className="mt-5 pt-4 border-t" style={{ borderColor: "rgba(0,245,212,0.08)" }}>

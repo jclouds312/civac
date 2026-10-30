@@ -58,12 +58,14 @@ export default function ServerLogin() {
   const [tick, setTick] = useState(0);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  // Redirect if already logged in as CIVAC staff
+  // Redirect any authenticated CIVAC staff account, including Google-created IDs.
   useEffect(() => {
-    if (user && CIVAC_STAFF_IDS.includes(user.id)) {
-      navigate("/server-dashboard");
-    }
-  }, [user]);
+    const account = user as (typeof user & { role?: string; email?: string }) | null;
+    const staffRoles = ["admin", "superadmin", "developer", "staff", "sales"];
+    const staffEmails = ["johnatanvallejomarulanda@gmail.com", "john474nvallejo@gmail.com"];
+    const isStaff = Boolean(account && (CIVAC_STAFF_IDS.includes(account.id) || staffRoles.includes(account.role ?? "") || staffEmails.includes((account.email ?? "").toLowerCase())));
+    if (isStaff) navigate("/server-dashboard");
+  }, [user, navigate]);
 
   // Clock tick
   useEffect(() => {

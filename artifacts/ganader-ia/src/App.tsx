@@ -389,6 +389,7 @@ function App() {
                   <Route path="/plan/:planId" component={PlanLanding} />
                   <Route path="/invite/:token" component={InvitePage} />
                   <Route path="/server" component={ServerLogin} />
+  <Route path="/server-login" component={ServerLogin} />
                   <Route path="/server-dashboard" component={ServerDashboard} />
                   <Route component={AuthGate} />
                 </Switch>

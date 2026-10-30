@@ -236,7 +236,7 @@ export default function ServerLogin() {
             <button
               type="button"
               disabled={googleLoading}
-              onClick={() => { setGoogleLoading(true); window.location.href = "/api/auth/google?returnTo=/server-login"; }}
+              onClick={() => { setGoogleLoading(true); window.location.href = "/api/auth/google?returnTo=/server"; }}
               className="w-full py-3 rounded-xl text-[13px] font-bold transition-all flex items-center justify-center gap-2 bg-white hover:bg-slate-100 disabled:opacity-60"
               style={{ color: "#172033" }}
             >

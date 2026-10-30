@@ -437,7 +437,7 @@ function RightWidgets() {
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LOGO
-═══════════════════════════════════════════════════════════════════════════════ */
+════��══════════════════════════════════════════════════════════════════════════ */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
     <div className="relative inline-block" style={{ width:size*1.6, height:size*1.6 }}>
@@ -732,10 +732,11 @@ function GoogleSignInButton({ onError }: { onError?: (msg: string) => void }) {
       .catch(() => setConfigured(false));
   }, []);
 
-  if (configured === false) return null;
-  void onError;
-
   const handleClick = () => {
+    if (configured === false) {
+      onError?.("Google no está habilitado todavía en este entorno. Usa correo y contraseña o solicita al administrador activarlo.");
+      return;
+    }
     setChecking(true);
     window.location.href = "/api/auth/google";
   };
@@ -811,7 +812,7 @@ function LiveSensorStrip() {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════════
+/* ════════════��══════════════════════════════════════════════════════════════════
    MAIN LOGIN COMPONENT
 ═══════════════════════════════════════════════════════════════════════════════ */
 export default function Login() {

@@ -437,7 +437,7 @@ function RightWidgets() {
 
 /* ═══════════════════════════════════════════════════════════════════════════════
    LOGO
-════���══════════════════════════════════════════════════════════════════════════ */
+════����══════════════════════════════════════════════════════════════════════════ */
 function CivacLogo({ size = 80 }: { size?: number }) {
   return (
     <div className="relative inline-block" style={{ width:size*1.6, height:size*1.6 }}>
@@ -1810,11 +1810,14 @@ export default function Login() {
                     Acceso de cliente protegido con una tarjeta privada de un solo uso.
                   </p>
                 </div>
-                <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
-                  className="flex-shrink-0 px-4 py-3 rounded-xl text-xs font-black transition-all hover:brightness-110"
-                  style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300", boxShadow:"0 0 18px rgba(251,191,36,0.18)" }}>
-                  {showCardAccess ? "Cerrar acceso" : "Acceder a William"}
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                  <button type="button" onClick={() => { setShowCardAccess(value => !value); setCardError(""); }}
+                    className="px-4 py-3 rounded-xl text-xs font-black transition-all hover:brightness-110"
+                    style={{ background:"linear-gradient(135deg,#fbbf24,#f59e0b)", color:"#1a1300", boxShadow:"0 0 18px rgba(251,191,36,0.18)" }}>
+                    {showCardAccess ? "Cerrar acceso" : "Acceder a William"}
+                  </button>
+                  <GoogleSignInButton onError={setError} />
+                </div>
               </div>
               {showCardAccess && (
                 <form onSubmit={handleCardActivate} className="px-5 pb-5 space-y-2.5">

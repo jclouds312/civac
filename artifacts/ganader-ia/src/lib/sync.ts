@@ -91,9 +91,12 @@ class SyncEngine {
 
     try {
       const payload = this._buildPayload();
+      const token = localStorage.getItem('civac_session_token') || localStorage.getItem('civac_server_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
       const res = await fetch('/api/sync/v1/ingest', {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body:    JSON.stringify(payload),
         signal:  AbortSignal.timeout(20_000),
       });
@@ -118,7 +121,8 @@ class SyncEngine {
     try {
       const since = this.state.lastSyncAt ?? '1970-01-01T00:00:00.000Z';
       const url   = `/api/sync/v1/pull?since=${encodeURIComponent(since)}&deviceId=${this.state.deviceId}`;
-      const res   = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+      const token = localStorage.getItem('civac_session_token') || localStorage.getItem('civac_server_token');
+      const res   = await fetch(url, { headers: token ? { Authorization: `Bearer ${token}` } : {}, signal: AbortSignal.timeout(10_000) });
       if (!res.ok) return false;
       const body = await res.json() as { ok: boolean; data: Record<string, unknown[]> };
       if (body.ok && body.data) { this._applyServerData(body.data); return true; }
@@ -246,9 +250,10 @@ export function buildSyncPayload(userId: string, planId: string) {
 /** Envía el payload al servidor y retorna resultado. */
 export async function syncToCloud(payload: ReturnType<typeof buildSyncPayload>): Promise<{ ok: boolean; message: string }> {
   try {
+    const token = localStorage.getItem('civac_session_token') || localStorage.getItem('civac_server_token');
     const res = await fetch('/api/sync/v1/ingest', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body:    JSON.stringify(payload),
       signal:  AbortSignal.timeout(20_000),
     });

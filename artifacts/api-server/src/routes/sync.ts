@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { desc, sql } from "drizzle-orm";
+import { authMiddleware, type AuthRequest } from "../middleware/auth";
 import {
   db,
   syncLogTable,
@@ -15,6 +16,15 @@ import {
 } from "@workspace/db";
 
 const router = Router();
+router.use(authMiddleware);
+
+function requireUser(req: AuthRequest, res: import("express").Response): boolean {
+  if (!req.user || req.user.userId === "anon" || req.user.role === "anonymous") {
+    res.status(401).json({ ok: false, code: "AUTH_REQUIRED", message: "La sincronización requiere una sesión válida" });
+    return false;
+  }
+  return true;
+}
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
 
@@ -59,10 +69,11 @@ async function upsertAnimals(rows: Row[]) {
 async function upsertPotreros(rows: Row[]) {
   if (!rows.length) return;
   try {
-    await db.delete(potrerosTable);
     for (const r of rows) {
       try {
-        await db.insert(potrerosTable).values({
+        const id = Number(r["id"]);
+        const values = {
+          ...(Number.isInteger(id) && id > 0 ? { id } : {}),
           nombre:        String(r["nombre"] ?? ""),
           pasto:         String(r["pasto"] ?? ""),
           hectareas:     Number(r["hectareas"] ?? 0),
@@ -75,7 +86,11 @@ async function upsertPotreros(rows: Row[]) {
           capacidadMax:  r["capacidadMax"] != null ? Number(r["capacidadMax"]) : null,
           aforo:         r["aforo"] != null ? Number(r["aforo"]) : null,
           observaciones: String(r["observaciones"] ?? ""),
-        }).onConflictDoNothing();
+        };
+        await db.insert(potrerosTable).values(values).onConflictDoUpdate({
+          target: potrerosTable.id,
+          set: { ...values, updatedAt: new Date() },
+        });
       } catch { /* skip */ }
     }
   } catch { /* skip */ }
@@ -93,7 +108,8 @@ async function upsertGeneric(table: typeof insumosTable, rows: Row[], fields: st
 }
 
 /* ── POST /api/sync/v1/ingest ─────────────────────────────────────────────── */
-router.post("/sync/v1/ingest", async (req, res) => {
+router.post("/sync/v1/ingest", async (req: AuthRequest, res) => {
+  if (!requireUser(req, res)) return;
   try {
     const payload = req.body as {
       schema?:    string;
@@ -118,8 +134,8 @@ router.post("/sync/v1/ingest", async (req, res) => {
     }
 
     const deviceId = payload.deviceId   ?? "unknown";
-    const userId   = payload.meta?.userId   ?? "anonymous";
-    const userRole = payload.meta?.userRole ?? "viewer";
+    const userId   = req.user!.userId;
+    const userRole = req.user!.role;
     const planCode = payload.meta?.planId   ?? "basico";
     const data     = payload.data ?? {};
 
@@ -182,7 +198,8 @@ router.post("/sync/v1/ingest", async (req, res) => {
 });
 
 /* ── GET /api/sync/v1/pull ────────────────────────────────────────────────── */
-router.get("/sync/v1/pull", async (req, res) => {
+router.get("/sync/v1/pull", async (req: AuthRequest, res) => {
+  if (!requireUser(req, res)) return;
   try {
     const [animals, potreros, insumos, personal, reproduccion, alertas, pesajes, gps, lotes] = await Promise.all([
       db.select().from(animalsTable).orderBy(animalsTable.id),
@@ -220,7 +237,8 @@ router.get("/sync/v1/pull", async (req, res) => {
 });
 
 /* ── GET /api/sync/v1/status ─────────────────────────────────────────────── */
-router.get("/sync/v1/status", async (req, res) => {
+router.get("/sync/v1/status", async (req: AuthRequest, res) => {
+  if (!requireUser(req, res)) return;
   try {
     const deviceId = req.query["deviceId"] as string | undefined;
     let query = db.select().from(syncLogTable).orderBy(desc(syncLogTable.syncedAt)).limit(1);
@@ -243,7 +261,8 @@ router.get("/sync/v1/status", async (req, res) => {
 });
 
 /* ── GET /api/sync/v1/history ────────────────────────────────────────────── */
-router.get("/sync/v1/history", async (_req, res) => {
+router.get("/sync/v1/history", async (req: AuthRequest, res) => {
+  if (!requireUser(req, res)) return;
   try {
     const entries = await db.select().from(syncLogTable).orderBy(desc(syncLogTable.syncedAt)).limit(50);
     return res.json({ ok: true, total: entries.length, entries });

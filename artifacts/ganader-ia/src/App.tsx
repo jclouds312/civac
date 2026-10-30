@@ -63,6 +63,7 @@ import Trazabilidad from "./pages/trazabilidad";
 import MiCuenta from "./pages/mi-cuenta";
 import ChatPage from "./pages/chat";
 import Basculas from "./pages/basculas";
+import DeveloperConsole from "./pages/developer-console";
 
 const queryClient = new QueryClient();
 
@@ -352,6 +353,7 @@ function AuthGate() {
         <Route path="/acerca" component={Acerca} />
         <Route path="/mi-cuenta" component={MiCuenta} />
         <Route path="/chat" component={ChatPage} />
+        <Route path="/developer-console" component={DeveloperConsole} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

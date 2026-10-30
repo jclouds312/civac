@@ -12,7 +12,7 @@ import {
   ChevronRight, Activity, Zap, Target, BarChart2, Printer,
   Beef, Droplets, Heart, Dna, Leaf, Wheat, Package, DollarSign,
   FlaskConical, Users, Sparkles, Scale, Satellite, Building2,
-  FileText, UserCog, Tag, Shield, Bot, Layers, Navigation,
+  FileText, UserCog, Tag, Shield, Bot, Layers, Navigation, Code2,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "wouter";
@@ -58,6 +58,7 @@ function StaffCommandCenter({ role }: { role?: string }) {
     { label: "Revisar clientes", href: "/clientes", detail: "Cuentas y actividad", icon: <Users size={18} />, color: "#00c8ff" },
     { label: "Módulos y plataformas", href: "/modulos", detail: "Estado operativo CIVAC", icon: <Layers size={18} />, color: "#39ff7e" },
     { label: "Asistente IA", href: "/chat", detail: "Soporte operativo", icon: <Bot size={18} />, color: "#fbbf24" },
+    { label: "Consola developer", href: "/developer-console", detail: "Builder y mantenimiento", icon: <Code2 size={18} />, color: "#a78bfa" },
   ];
 
   return (
@@ -222,7 +223,7 @@ export default function Dashboard() {
       icon:<Activity size={14}/>, href:'/inventario',
     },
     {
-      label:'Producción hoy', emoji:'🥛', val:'84 L', sub:'5 vacas · 16.8 L/c', trend:'+6%', up:true,
+      label:'Producción hoy', emoji:'���', val:'84 L', sub:'5 vacas · 16.8 L/c', trend:'+6%', up:true,
       grad:'linear-gradient(145deg,#001830,#002040,#002850)',
       lGrad:'linear-gradient(145deg,#b0dcff,#88c8f8)',
       neon:'#00c8ff', glow:'0,200,255', lText:'#083870',

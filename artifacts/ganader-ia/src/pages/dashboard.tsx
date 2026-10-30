@@ -49,6 +49,42 @@ function useLiveClock() {
   return now;
 }
 
+function StaffCommandCenter({ role }: { role?: string }) {
+  const canManage = ["staff", "developer", "admin", "superadmin"].includes(role ?? "");
+  if (!canManage) return null;
+
+  const actions = [
+    { label: "Gestionar usuarios", href: "/usuarios", detail: "Roles, planes y accesos", icon: <UserCog size={18} />, color: "#c084fc" },
+    { label: "Revisar clientes", href: "/clientes", detail: "Cuentas y actividad", icon: <Users size={18} />, color: "#00c8ff" },
+    { label: "Módulos y plataformas", href: "/modulos", detail: "Estado operativo CIVAC", icon: <Layers size={18} />, color: "#39ff7e" },
+    { label: "Asistente IA", href: "/chat", detail: "Soporte operativo", icon: <Bot size={18} />, color: "#fbbf24" },
+  ];
+
+  return (
+    <section aria-labelledby="staff-command-center" className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-5">
+      <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300/70">Centro de operaciones</p>
+          <h2 id="staff-command-center" className="text-lg font-black text-white">Herramientas de staff</h2>
+        </div>
+        <span className="w-fit rounded-full border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1 text-[10px] font-bold text-emerald-300">Rol verificado: {role}</span>
+      </div>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {actions.map((action) => (
+          <Link key={action.href} href={action.href} className="group rounded-xl border border-white/10 bg-white/[0.03] p-3 transition hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.07]">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ color: action.color, background: `${action.color}18` }}>{action.icon}</span>
+              <ChevronRight size={15} className="text-white/30 transition group-hover:translate-x-0.5 group-hover:text-white/70" />
+            </div>
+            <p className="text-sm font-bold text-white">{action.label}</p>
+            <p className="mt-1 text-xs text-white/45">{action.detail}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 const dataProduccion = [
   { name:'Oct', litros:52000, meta:50000 },
   { name:'Nov', litros:55000, meta:53000 },
@@ -385,6 +421,8 @@ export default function Dashboard() {
           </Link>
         ))}
       </div>
+
+      <StaffCommandCenter role={user?.role} />
 
       {/* ── PLAN WIDGETS ─────────────────────────────────────────────────── */}
       <PlanWidgets />

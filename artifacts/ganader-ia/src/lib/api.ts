@@ -129,6 +129,36 @@ export async function apiMe(): Promise<AuthResponse["user"] | null> {
   return apiGet<AuthResponse["user"]>("/auth/me");
 }
 
+// ─── Gestión de cuentas staff ─────────────────────────────────────────────────
+export interface ManagedAccountPayload {
+  nombre: string;
+  email: string;
+  password?: string;
+  cargo?: string;
+  finca?: string;
+  role: string;
+  planCode?: string;
+  planExpiry?: string;
+  permisos?: string[];
+  activo?: boolean;
+}
+
+export async function createManagedAccount(payload: ManagedAccountPayload) {
+  return apiPost<{ id: string; email: string; role: string }>("/usuarios", payload);
+}
+
+export async function updateManagedAccount(id: string, payload: Partial<ManagedAccountPayload>) {
+  return apiPut<{ id: string }>(`/usuarios/${encodeURIComponent(id)}`, payload);
+}
+
+export async function deleteManagedAccount(id: string): Promise<boolean> {
+  return apiDelete(`/usuarios/${encodeURIComponent(id)}`);
+}
+
+export async function getManagedAccounts() {
+  return apiGet<ManagedAccountPayload[]>("/usuarios");
+}
+
 // ─── Image upload ─────────────────────────────────────────────────────────────
 export interface StoredImageMeta {
   id: number; entityType: string; entityId: string;

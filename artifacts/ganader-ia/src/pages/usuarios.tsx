@@ -22,7 +22,7 @@ import {
   DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { downloadAccountsCsv } from "@/lib/api";
+import { createManagedAccount, deleteManagedAccount, downloadAccountsCsv, updateManagedAccount } from "@/lib/api";
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 const PLAN_ORDER: PlanId[] = ["basico", "pro", "premium", "platino"];
@@ -251,15 +251,33 @@ export default function Usuarios() {
     a.cargo.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAdd = (data: Omit<Account,"id">) => {
-    registerUser(data);
+  const handleAdd = async (data: Omit<Account,"id">) => {
+    const planExpiry = data.planExpiry;
+    const remote = await createManagedAccount({
+      nombre: data.nombre,
+      email: data.email,
+      password: data.password,
+      cargo: data.cargo,
+      finca: data.finca,
+      role: data.role,
+      planCode: data.plan,
+      planExpiry,
+      permisos: data.permisos,
+      activo: data.activo,
+    });
+    registerUser({ ...data, ...(remote?.id ? { id: remote.id } : {}) });
     setAddOpen(false);
   };
 
-  const handleEdit = (data: Omit<Account,"id">) => {
+  const handleEdit = async (data: Omit<Account,"id">) => {
     if (!editTarget) return;
     const upd: Partial<Account> = { ...data };
     if (!data.password) delete upd.password;
+    await updateManagedAccount(editTarget.id, {
+      ...data,
+      planCode: data.plan,
+      planExpiry: data.planExpiry,
+    });
     updateUser(editTarget.id, upd);
     setEditTarget(null);
   };
@@ -280,8 +298,9 @@ export default function Usuarios() {
     updateUser(a.id, { activo: !(a.activo !== false) });
   };
 
-  const doDelete = () => {
+  const doDelete = async () => {
     if (!deleteTarget) return;
+    await deleteManagedAccount(deleteTarget.id);
     deleteUser(deleteTarget.id);
     setDeleteTarget(null);
   };

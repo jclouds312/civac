@@ -8,9 +8,11 @@ de soporte.
 
 | Proyecto | Ruta | Tecnología | Uso |
 | --- | --- | --- | --- |
+| Shell web | `app/`, `next.config.mjs` | Next.js, React | Entrada de Vercel; carga la PWA como cliente |
 | PWA web | `artifacts/ganader-ia` | React, Vite, TypeScript | Aplicación principal instalable y offline |
 | App móvil | `artifacts/ganader-ia-mobile` | Expo, React Native, Expo Router | Android/iOS y vista web móvil |
-| API | `artifacts/api-server` | Express, TypeScript, Drizzle | Autenticación, cuentas, licencias y datos |
+| API Flask | `api/index.py`, `artifacts/api-server/api` | Flask, WSGI, PostgreSQL | Backend de Vercel y servidor Gunicorn de Replit |
+| API Node | `artifacts/api-server/src` | Express, TypeScript, Drizzle | Servicio separado usado por el workflow de desarrollo |
 | Base de datos | `lib/db` | PostgreSQL/SQLite, Drizzle | Persistencia de cuentas y datos |
 | Servicios Python | `artifacts/analytics-server`, `artifacts/gps-server` | Flask/Django | Servicios opcionales de analítica y GPS |
 
@@ -41,12 +43,20 @@ por separado en desarrollo:
 # PWA web
 PORT=5000 BASE_PATH=/ pnpm --filter @workspace/ganader-ia run dev
 
-# API Express
+# API Flask
+PYTHONPATH=.pythonlibs/lib/python3.12/site-packages${PYTHONPATH:+:$PYTHONPATH} PORT=8000 python3 artifacts/api-server/api/index.py
+
+# API Express de desarrollo
 PORT=8080 pnpm --filter @workspace/api-server run dev-tsx
 
 # App móvil Expo
 PORT=8081 pnpm --filter @workspace/ganader-ia-mobile run dev
 ```
+
+En el proxy de Vite, `/api/ai/*` y `/api/gps/*` van a Flask en el puerto 8000;
+las demás rutas `/api/*` van al servicio Express en el puerto 8080. En Vercel,
+`vercel.json` dirige las rutas `/api/*` al adaptador Flask. Mantén compatibles
+las rutas entre ambos backends hasta completar la migración.
 
 La vista Expo muestra un QR para Expo Go. En Replit, la URL pública de preview
 se proporciona mediante las variables del workflow; no fijes `localhost` como
@@ -70,18 +80,26 @@ pnpm run typecheck
 # PWA web
 pnpm --filter @workspace/ganader-ia run build
 
-# API Express
+# API Express de desarrollo
 pnpm --filter @workspace/api-server run build
+
+# Aplicación Next.js para Vercel
+pnpm run build:vercel
+
+# Pruebas del gateway y API Flask
+.pythonlibs/bin/python3 -m pytest tests/test_flask_serverless.py
 
 # App móvil
 pnpm --filter @workspace/ganader-ia-mobile run typecheck
 pnpm --filter @workspace/ganader-ia-mobile run build
 ```
 
-El build del workspace configurado para Replit compila la PWA y la API. La API
-Express puede servir los archivos estáticos web en producción. Publicar se hace
-desde Replit Publishing; la geografía del despliegue debe coincidir con la de la
-base de datos existente.
+El build de Replit compila la PWA, copia sus recursos estáticos al directorio
+servido por Flask y compila el servicio Node. El comando de producción ejecuta
+Flask con Gunicorn en el puerto 5000. Vercel compila el shell Next.js y expone
+`api/index.py` como función Python; ese adaptador carga la aplicación Flask y
+restaura la ruta original después de las reglas de `vercel.json`. Publicar se
+hace desde Replit Publishing; la geografía debe coincidir con la base de datos.
 
 ## PWA instalable y uso offline
 
@@ -253,10 +271,16 @@ sustituye la valoración veterinaria.
 
 ## Integraciones y API
 
-El frontend usa rutas relativas `/api/*` para que desarrollo y despliegue
-compartan origen. La API Express contiene las rutas de autenticación, cuentas,
-licencias, datos ganaderos, sincronización y estado del servidor. Comprueba las
-rutas disponibles en `artifacts/api-server/src/routes/`.
+El frontend usa rutas relativas `/api/*` para compartir origen. En Vercel,
+`vercel.json` reescribe esas rutas hacia `api/index.py`, un adaptador WSGI que
+carga de forma diferida `artifacts/api-server/api/index.py`. El monolito Flask
+sirve la API de producción y los recursos web en Replit; necesita
+`DATABASE_URL` o `POSTGRES_URL` y falla explícitamente si no hay base de datos.
+
+El servicio Express de `artifacts/api-server/src/routes/` sigue disponible como
+workflow independiente y para el proxy de desarrollo de Vite. No asumas que una
+ruta existente solo en Express funciona en Vercel: implementa o valida su
+equivalente Flask antes de publicar.
 
 Para configurar Google OAuth u otros proveedores, define los secretos requeridos
 en el entorno y registra las URLs de callback exactas en cada consola de
@@ -265,10 +289,14 @@ proveedor. No pongas access tokens ni claves privadas en código frontend.
 ## Estructura resumida
 
 ```text
+app/                   # Shell Next.js que carga la PWA
+api/index.py           # Adaptador WSGI para Vercel
 artifacts/
   ganader-ia/          # PWA web React/Vite
   ganader-ia-mobile/   # aplicación Expo
-  api-server/          # API Express y rutas
+  api-server/
+    api/               # Monolito Flask usado en producción
+    src/               # API Express para workflow separado
   analytics-server/    # servicio opcional de analítica
   gps-server/          # servicio opcional de GPS
 lib/

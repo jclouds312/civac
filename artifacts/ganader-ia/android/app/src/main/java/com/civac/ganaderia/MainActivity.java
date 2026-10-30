@@ -1,0 +1,5 @@
+package com.civac.ganaderia;
+
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {}

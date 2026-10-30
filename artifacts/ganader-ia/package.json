@@ -10,7 +10,10 @@
     "dev": "vite --config vite.config.ts --host 0.0.0.0",
     "build": "vite build --config vite.config.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "mobile:sync": "pnpm build && cap sync",
+    "mobile:android": "cap open android",
+    "mobile:ios": "cap open ios"
   },
   "devDependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -80,6 +83,10 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/ios": "^8.6.0",
     "@mlc-ai/web-llm": "0.2.86",
     "@supabase/supabase-js": "^2.118.0",
     "@vercel/speed-insights": "^2.0.0",
